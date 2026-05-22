@@ -5,7 +5,7 @@ import SolvivorIcon from "./SolvivorIcon";
 const BOOT_LINES = [
   { text: "INITIALIZING SOLVIVOR PROTOCOLS...", delay: 400, type: "default" },
   { text: "CONNECTING TO GLOBAL MAINFRAME...", delay: 800, type: "default" },
-  { text: "LOADING THREAT DATABASE [5 VECTORS]...", delay: 1200, type: "default" },
+  { text: "LOADING THREAT DATABASE [UNLIMITED VECTORS]...", delay: 1200, type: "default" },
   { text: "VERIFYING BIO-METRICS...", delay: 1600, type: "default" },
   { text: "SCANNING NEURAL PATTERNS...", delay: 2000, type: "default" },
   { text: "[WARN_0x4F] UNAUTHORIZED ACCESS ATTEMPT LOGGED", delay: 2400, type: "warn" },

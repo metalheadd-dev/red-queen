@@ -81,9 +81,9 @@ export default function ArchivesPage() {
             THREAT <span style={{ color: "var(--accent)" }}>DATABASE</span>
           </h1>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "600px", lineHeight: "1.8" }}>
-            Classified dossiers on all 5 active extinction vectors monitored by the RED QUEEN.
+            Classified dossiers on the UNLIMITED active extinction vectors monitored by the RED QUEEN.
             Certain intelligence is restricted pending clearance verification.
-            $UMB token holders receive automatic Level 5 access — state your holdings in the TERMINAL.
+            $redqueen token holders receive automatic Level 5 access — state your holdings in the TERMINAL.
           </p>
         </div>
       </div>
@@ -197,10 +197,10 @@ export default function ArchivesPage() {
         {/* More threats coming */}
         <div style={{ marginTop: "48px", textAlign: "center", padding: "40px", border: "1px dashed rgba(255,77,77,0.15)", borderRadius: "2px" }}>
           <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", letterSpacing: "0.2em" }}>
-            2 ADDITIONAL THREAT FILES — LOCKED
+            75+ ADDITIONAL THREAT FILES — LOCKED
           </div>
           <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)", marginTop: "8px" }}>
-            ALIEN XENOMORPH PROTOCOL + NUCLEAR WINTER SCENARIO
+            ALIEN XENOMORPH PROTOCOL + NUCLEAR WINTER SCENARIO + TIKTOK COLLAPSE
           </div>
           <div style={{ marginTop: "16px" }}>
             <a href="/terminal" className="btn btn-ghost" style={{ fontSize: "11px" }}>

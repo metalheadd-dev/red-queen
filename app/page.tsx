@@ -93,7 +93,7 @@ export default function HomePage() {
       <div className="container">
         <div className="stat-row">
           <div className="stat-card">
-            <div className="stat-value">5</div>
+            <div className="stat-value">75+</div>
             <div className="stat-label">ACTIVE THREATS</div>
           </div>
           <div className="stat-card">
@@ -157,9 +157,8 @@ export default function HomePage() {
                 and delivers actionable classified intelligence — if she deems you worthy.
               </p>
               <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9" }}>
-                She monitors <strong style={{ color: "var(--text)" }}>5 concurrent apocalypse vectors</strong>:
-                T-Virus outbreaks, Skynet AI uprisings, Madness Prion contaminations,
-                nuclear winter scenarios, and deep-space xenomorph contacts.
+                She monitors <strong style={{ color: "var(--text)" }}>UNLIMITED concurrent apocalypse vectors</strong>:
+                Realistic threats, fictional invasions, and satirical cultural collapses.
               </p>
               <div style={{ marginTop: "28px", display: "flex", gap: "12px" }}>
                 <Link href="/terminal" className="btn btn-primary">TALK TO HER</Link>
@@ -253,8 +252,7 @@ export default function HomePage() {
               <div className="bento-icon">☣️</div>
               <div className="bento-title">Threat<br />Database</div>
               <div className="bento-desc">
-                Classified dossiers on all 5 active apocalypse vectors. T-Virus,
-                Skynet, Nuclear Winter, Prion-MK, Xenomorph Protocol.
+                Classified dossiers on realistic threats, fictional invasions, and satirical collapse scenarios.
               </div>
               <div className="bento-cta">→ VIEW FILES</div>
             </Link>
