@@ -5,11 +5,11 @@ import { supabase } from "@/lib/supabase";
 export const maxDuration = 30;
 export const runtime = "edge";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(req: Request) {
+  const client = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || "dummy_key",
+  });
+
   try {
     const body = await req.json();
     const messages = body.messages || [];
