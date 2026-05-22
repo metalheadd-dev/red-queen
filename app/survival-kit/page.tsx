@@ -1,5 +1,5 @@
 "use client";
-import UmbrellaIcon from "@/components/UmbrellaIcon";
+import SolvivorIcon from "@/components/SolvivorIcon";
 
 export default function SurvivalKitPage() {
   return (
