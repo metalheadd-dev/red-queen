@@ -120,7 +120,7 @@ export default function TerminalPage() {
         {
           role: "assistant",
           content:
-            "[ERR_0x9B] COMMUNICATION LINK CORRUPTED.\n\nEnsure your GEMINI_API_KEY is set in .env.local and restart the server.\n\n[BIO-SCORE: 0%] Failure to establish uplink is terminal.",
+            "[ERR_0x9B] COMMUNICATION LINK CORRUPTED.\n\nEnsure your OPENAI_API_KEY is set in .env.local and restart the server.\n\n[BIO-SCORE: 0%] Failure to establish uplink is terminal.",
           bioScore: "0",
         },
       ]);
