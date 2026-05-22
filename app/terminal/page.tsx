@@ -89,30 +89,18 @@ export default function TerminalPage() {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || `Server error ${res.status}`);
       }
-      if (!res.body) throw new Error("No stream");
+      const data = await res.json();
+      if (!data.message) throw new Error("No message returned");
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulated = "";
+      const accumulated = data.message;
 
-      // Streaming placeholder
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        
-        accumulated += chunk;
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            role: "assistant",
-            content: accumulated,
-          };
-          return updated;
-        });
-      }
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: accumulated,
+        },
+      ]);
 
       const { score } = extractBioScore(accumulated);
       if (score) setCurrentScore(score);
