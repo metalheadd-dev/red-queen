@@ -102,25 +102,16 @@ export default function TerminalPage() {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
-        // Parse SSE data lines
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-          if (line.startsWith("0:")) {
-            try {
-              const jsonStr = line.slice(2);
-              const parsed = JSON.parse(jsonStr);
-              accumulated += parsed;
-              setMessages((prev) => {
-                const updated = [...prev];
-                updated[updated.length - 1] = {
-                  role: "assistant",
-                  content: accumulated,
-                };
-                return updated;
-              });
-            } catch {}
-          }
-        }
+        
+        accumulated += chunk;
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: accumulated,
+          };
+          return updated;
+        });
       }
 
       const { score } = extractBioScore(accumulated);
