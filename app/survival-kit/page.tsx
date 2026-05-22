@@ -63,18 +63,18 @@ export default function SurvivalKitPage() {
               </p>
               
               <h3 style={{ color: "var(--accent)", fontSize: "14px", marginTop: "24px", marginBottom: "8px" }}>▶ REALISTIC THREATS</h3>
-              <p style={{ marginBottom: "16px", fontSize: "13px" }}>
-                Pandemics, Nuclear War, EMP Attacks, Cyber Warfare, Global Blackouts, Economic Collapse, Hyperinflation, Water Contamination, AI Takeover, Civil Wars, and Infrastructure Collapse.
+              <p style={{ marginBottom: "16px", fontSize: "13px", color: "var(--text-dim)" }}>
+                Hantavirus outbreaks, Pandemics, Bird flu, Bioweapons, Nuclear war, Nuclear winter, EMP attacks, Cyber warfare, Global blackouts, Economic collapse, Hyperinflation, Food shortages, Water contamination, Climate catastrophe, Solar flares, Earthquakes, Tsunamis, Supervolcano eruptions, Chemical disasters, AI takeover, Infrastructure collapse, Civil wars, Riots, Martial law, Satellite collapse, and Supply chain failure.
               </p>
 
               <h3 style={{ color: "var(--accent)", fontSize: "14px", marginTop: "16px", marginBottom: "8px" }}>▶ FICTIONAL INVASIONS</h3>
-              <p style={{ marginBottom: "16px", fontSize: "13px" }}>
-                Alien Invasions, Zombie Outbreaks, Robot Uprisings, Giant Bug Invasions, Vampire Plagues, Kaiju Attacks, Moon Collisions, Time Traveler Wars, and Sentient Nanobot Swarms.
+              <p style={{ marginBottom: "16px", fontSize: "13px", color: "var(--text-dim)" }}>
+                Alien invasions, Zombies, Mutant viruses, Robot uprisings, Android rebellions, Giant bug invasions, Intelligent insects, Parasite outbreaks, Vampire plagues, Demon invasions, Kaiju attacks, Dinosaur return, Moon collision, Asteroid impacts, Reality collapse, Simulation glitches, Time traveler wars, Sentient plants, Nanobot swarms, Underwater monsters, Shadow creatures, Haunted technology, Invisible predators, AI refrigerators becoming sentient, Internet demons, Killer clowns, and Evil cartoons becoming real.
               </p>
 
               <h3 style={{ color: "var(--accent)", fontSize: "14px", marginTop: "16px", marginBottom: "8px" }}>▶ SATIRICAL / CULTURAL COLLAPSE</h3>
-              <p style={{ fontSize: "13px" }}>
-                The Invasion of Dumb People, TikTok Civilization Collapse, Reality TV Dictatorships, Toilet Paper Wars, WiFi Extinction Events, and the Smartphone Dependency Collapse.
+              <p style={{ fontSize: "13px", color: "var(--text-dim)" }}>
+                Invasion of dumb people, Meme brainrot pandemic, TikTok civilization collapse, Toilet paper wars, Influencer dictatorship, Reality TV apocalypse, Coffee shortage collapse, WiFi extinction event, NPC uprising, Smartphone dependency collapse, Cat domination era, Fast food wars, Infinite advertisement apocalypse, Government replaced by streamers, and Apocalypse caused by bad software update.
               </p>
             </div>
           </div>
