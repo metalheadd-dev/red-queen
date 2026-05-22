@@ -1,101 +1,201 @@
 "use client";
+import { useState } from "react";
 import SolvivorIcon from "@/components/SolvivorIcon";
 
 export default function SurvivalKitPage() {
+  const [activeTab, setActiveTab] = useState("overview");
+
   return (
-    <div style={{ padding: "80px 24px", minHeight: "100vh" }}>
-      <div className="container">
-        <div style={{ marginBottom: "48px", textAlign: "center" }}>
-          <SolvivorIcon size={64} />
-          <h1 className="glow-text" style={{ fontSize: "32px", marginTop: "24px" }}>SURVIVAL USER KIT</h1>
-          <p className="dim" style={{ fontFamily: "var(--mono)", letterSpacing: "0.2em", marginTop: "12px" }}>
-            OFFICIAL WHITEPAPER // SOLVIVOR CORP INTELLIGENCE
-          </p>
-        </div>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", paddingTop: "60px" }}>
+      {/* Docs Layout */}
+      <div style={{ display: "flex", flex: 1, position: "relative" }}>
+        
+        {/* Sidebar */}
+        <aside style={{
+          width: "280px",
+          borderRight: "1px solid var(--border)",
+          background: "var(--surface)",
+          padding: "32px 24px",
+          position: "sticky",
+          top: "60px",
+          height: "calc(100vh - 60px)",
+          overflowY: "auto"
+        }}>
+          <div style={{ marginBottom: "32px", display: "flex", alignItems: "center", gap: "12px" }}>
+            <SolvivorIcon size={32} />
+            <span style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "var(--accent)" }}>SURVIVAL KIT</span>
+          </div>
 
-        <div className="bento-grid bento-1" style={{ maxWidth: "800px", margin: "0 auto" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <button className={`doc-nav-btn ${activeTab === "overview" ? "active" : ""}`} onClick={() => setActiveTab("overview")}>
+              1. Overview
+            </button>
+            <button className={`doc-nav-btn ${activeTab === "problem" ? "active" : ""}`} onClick={() => setActiveTab("problem")}>
+              2. The Problem
+            </button>
+            <button className={`doc-nav-btn ${activeTab === "usage" ? "active" : ""}`} onClick={() => setActiveTab("usage")}>
+              3. How to Use
+            </button>
+            <button className={`doc-nav-btn ${activeTab === "threats" ? "active" : ""}`} onClick={() => setActiveTab("threats")}>
+              4. Threat Matrix
+            </button>
+            <button className={`doc-nav-btn ${activeTab === "token" ? "active" : ""}`} onClick={() => setActiveTab("token")}>
+              5. Token Utility
+            </button>
+          </div>
+        </aside>
+
+        {/* Content */}
+        <main style={{ flex: 1, padding: "48px 80px", maxWidth: "900px" }}>
           
-          {/* SECTION 1 */}
-          <div className="bento-card">
-            <h2 className="bento-title accent" style={{ marginBottom: "24px" }}>1. What Is This App?</h2>
-            <div className="bento-desc">
-              <p style={{ marginBottom: "16px" }}>
-                This platform is an advanced AI survival assessment tool powered by the <strong>Red Queen</strong>. It is designed to evaluate human readiness for civilization collapse, extinction-level events, and daily survival threats.
+          {activeTab === "overview" && (
+            <div className="doc-section animation-fade-in">
+              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>Who Are We?</h1>
+              <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
+                Solvivor Corp is an elite contingency organization. We built this platform as an advanced AI survival assessment tool powered by the <strong>Red Queen</strong>. It is designed to evaluate human readiness for civilization collapse, extinction-level events, and daily survival threats.
               </p>
-              <p>
-                The Red Queen is not a standard assistant. She is a cold, calculating evaluator with the persona of a bunker expert and military strategist. She answers your questions but judges your instincts, delivering a dynamic <strong>[BIO-SCORE]</strong> for every interaction.
+              <div className="alert alert-red" style={{ background: "rgba(255,77,77,0.05)", borderLeft: "4px solid var(--accent)" }}>
+                The Red Queen is not a standard assistant. She is a cold, calculating evaluator with the persona of a bunker expert and military strategist.
+              </div>
+            </div>
+          )}
+
+          {activeTab === "problem" && (
+            <div className="doc-section animation-fade-in">
+              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>The Complacency Crisis</h1>
+              <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
+                Human complacency is the greatest threat to our species. When the grid fails, when pandemics mutate, or when society fractures, unprepared individuals become immediate liabilities.
+              </p>
+              <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
+                This platform solves the "complacency crisis" by forcing users to engage with survival tactics in an immersive, gamified, and highly realistic terminal environment. It turns apocalypse preparation into an engaging, daily mental exercise.
               </p>
             </div>
-          </div>
+          )}
 
-          {/* SECTION 2 */}
-          <div className="bento-card">
-            <h2 className="bento-title accent" style={{ marginBottom: "24px" }}>2. What Problem Does It Solve?</h2>
-            <div className="bento-desc">
-              <p style={{ marginBottom: "16px" }}>
-                Human complacency is the greatest threat to our species. When the grid fails, when pandemics mutate, or when society fractures, unprepared individuals become liabilities. 
-              </p>
-              <p>
-                This app solves the "complacency crisis" by forcing users to engage with survival tactics in an immersive, gamified, and highly realistic terminal environment. It turns apocalypse preparation into an engaging, daily mental exercise.
-              </p>
+          {activeTab === "usage" && (
+            <div className="doc-section animation-fade-in">
+              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>How to Use the Terminal</h1>
+              
+              <div className="bento-card" style={{ marginBottom: "24px" }}>
+                <h3 style={{ color: "var(--text)", marginBottom: "12px" }}>1. Connect Your Wallet</h3>
+                <p style={{ color: "var(--text-dim)", fontSize: "14px" }}>Use the terminal to connect your Solana wallet. This creates your persistent identity in the Solvivor Corp database.</p>
+              </div>
+
+              <div className="bento-card" style={{ marginBottom: "24px" }}>
+                <h3 style={{ color: "var(--text)", marginBottom: "12px" }}>2. Interrogate the Red Queen</h3>
+                <p style={{ color: "var(--text-dim)", fontSize: "14px" }}>Ask her how to survive an EMP, what to do if aliens invade, or how to purify water.</p>
+              </div>
+
+              <div className="bento-card" style={{ marginBottom: "24px" }}>
+                <h3 style={{ color: "var(--text)", marginBottom: "12px" }}>3. Earn Your BIO-SCORE</h3>
+                <p style={{ color: "var(--text-dim)", fontSize: "14px" }}>The Red Queen will respond with practical, no-nonsense advice and dynamically assign you a BIO-SCORE (0-100%) based on your intelligence.</p>
+              </div>
+
+              <div className="bento-card" style={{ marginBottom: "24px" }}>
+                <h3 style={{ color: "var(--text)", marginBottom: "12px" }}>4. Rank Up</h3>
+                <p style={{ color: "var(--text-dim)", fontSize: "14px" }}>Asking smart, tactical questions raises your score. Asking foolish questions lowers it. Your highest score is permanently saved to your profile.</p>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* SECTION 3 */}
-          <div className="bento-card">
-            <h2 className="bento-title accent" style={{ marginBottom: "24px" }}>3. How to Use It</h2>
-            <div className="bento-desc">
-              <ol style={{ paddingLeft: "24px", color: "var(--text)", lineHeight: "1.8" }}>
-                <li style={{ marginBottom: "12px" }}><strong>Connect Your Wallet:</strong> Use the terminal to connect your Solana wallet. This creates your persistent identity in the Solvivor Corp database.</li>
-                <li style={{ marginBottom: "12px" }}><strong>Interrogate the Red Queen:</strong> Ask her how to survive an EMP, what to do if aliens invade, or how to purify water.</li>
-                <li style={{ marginBottom: "12px" }}><strong>Earn Your Score:</strong> The Red Queen will respond with practical, no-nonsense advice and assign you a BIO-SCORE (0-100%).</li>
-                <li><strong>Rank Up:</strong> Asking smart, tactical questions raises your score. Asking foolish questions lowers it. Your highest score is permanently saved to your wallet profile.</li>
-              </ol>
-            </div>
-          </div>
-
-          {/* SECTION 4 */}
-          <div className="bento-card">
-            <h2 className="bento-title accent" style={{ marginBottom: "24px" }}>4. The Threat Matrix (Unlimited Vectors)</h2>
-            <div className="bento-desc">
-              <p style={{ marginBottom: "16px" }}>
+          {activeTab === "threats" && (
+            <div className="doc-section animation-fade-in">
+              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>The Threat Matrix</h1>
+              <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "32px" }}>
                 Originally designed to monitor just 5 scenarios, the Red Queen's neural network has been vastly expanded. She now possesses deep intelligence on <strong>dozens of extinction vectors</strong> across three distinct categories:
               </p>
               
-              <h3 style={{ color: "var(--accent)", fontSize: "14px", marginTop: "24px", marginBottom: "8px" }}>▶ REALISTIC THREATS</h3>
-              <p style={{ marginBottom: "16px", fontSize: "13px", color: "var(--text-dim)" }}>
-                Hantavirus outbreaks, Pandemics, Bird flu, Bioweapons, Nuclear war, Nuclear winter, EMP attacks, Cyber warfare, Global blackouts, Economic collapse, Hyperinflation, Food shortages, Water contamination, Climate catastrophe, Solar flares, Earthquakes, Tsunamis, Supervolcano eruptions, Chemical disasters, AI takeover, Infrastructure collapse, Civil wars, Riots, Martial law, Satellite collapse, and Supply chain failure.
-              </p>
+              <div style={{ marginBottom: "32px" }}>
+                <h3 style={{ color: "var(--accent)", fontSize: "14px", letterSpacing: "0.1em", marginBottom: "16px" }}>▶ REALISTIC THREATS</h3>
+                <p style={{ color: "var(--text-dim)", lineHeight: "1.8", fontSize: "14px" }}>
+                  Hantavirus outbreaks, Pandemics, Bird flu, Bioweapons, Nuclear war, Nuclear winter, EMP attacks, Cyber warfare, Global blackouts, Economic collapse, Hyperinflation, Food shortages, Water contamination, Climate catastrophe, Solar flares, Earthquakes, Tsunamis, Supervolcano eruptions, Chemical disasters, AI takeover, Infrastructure collapse, Civil wars, Riots, Martial law, Satellite collapse, and Supply chain failure.
+                </p>
+              </div>
 
-              <h3 style={{ color: "var(--accent)", fontSize: "14px", marginTop: "16px", marginBottom: "8px" }}>▶ FICTIONAL INVASIONS</h3>
-              <p style={{ marginBottom: "16px", fontSize: "13px", color: "var(--text-dim)" }}>
-                Alien invasions, Zombies, Mutant viruses, Robot uprisings, Android rebellions, Giant bug invasions, Intelligent insects, Parasite outbreaks, Vampire plagues, Demon invasions, Kaiju attacks, Dinosaur return, Moon collision, Asteroid impacts, Reality collapse, Simulation glitches, Time traveler wars, Sentient plants, Nanobot swarms, Underwater monsters, Shadow creatures, Haunted technology, Invisible predators, AI refrigerators becoming sentient, Internet demons, Killer clowns, and Evil cartoons becoming real.
-              </p>
+              <div style={{ marginBottom: "32px" }}>
+                <h3 style={{ color: "var(--accent)", fontSize: "14px", letterSpacing: "0.1em", marginBottom: "16px" }}>▶ FICTIONAL INVASIONS</h3>
+                <p style={{ color: "var(--text-dim)", lineHeight: "1.8", fontSize: "14px" }}>
+                  Alien invasions, Zombies, Mutant viruses, Robot uprisings, Android rebellions, Giant bug invasions, Intelligent insects, Parasite outbreaks, Vampire plagues, Demon invasions, Kaiju attacks, Dinosaur return, Moon collision, Asteroid impacts, Reality collapse, Simulation glitches, Time traveler wars, Sentient plants, Nanobot swarms, Underwater monsters, Shadow creatures, Haunted technology, Invisible predators, AI refrigerators becoming sentient, Internet demons, Killer clowns, and Evil cartoons becoming real.
+                </p>
+              </div>
 
-              <h3 style={{ color: "var(--accent)", fontSize: "14px", marginTop: "16px", marginBottom: "8px" }}>▶ SATIRICAL / CULTURAL COLLAPSE</h3>
-              <p style={{ fontSize: "13px", color: "var(--text-dim)" }}>
-                Invasion of dumb people, Meme brainrot pandemic, TikTok civilization collapse, Toilet paper wars, Influencer dictatorship, Reality TV apocalypse, Coffee shortage collapse, WiFi extinction event, NPC uprising, Smartphone dependency collapse, Cat domination era, Fast food wars, Infinite advertisement apocalypse, Government replaced by streamers, and Apocalypse caused by bad software update.
-              </p>
+              <div style={{ marginBottom: "32px" }}>
+                <h3 style={{ color: "var(--accent)", fontSize: "14px", letterSpacing: "0.1em", marginBottom: "16px" }}>▶ SATIRICAL / CULTURAL COLLAPSE</h3>
+                <p style={{ color: "var(--text-dim)", lineHeight: "1.8", fontSize: "14px" }}>
+                  Invasion of dumb people, Meme brainrot pandemic, TikTok civilization collapse, Toilet paper wars, Influencer dictatorship, Reality TV apocalypse, Coffee shortage collapse, WiFi extinction event, NPC uprising, Smartphone dependency collapse, Cat domination era, Fast food wars, Infinite advertisement apocalypse, Government replaced by streamers, and Apocalypse caused by bad software update.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* SECTION 5 */}
-          <div className="bento-card" style={{ border: "1px solid var(--border-red)", background: "rgba(255, 77, 77, 0.05)" }}>
-            <h2 className="bento-title" style={{ marginBottom: "16px", color: "var(--accent)" }}>5. The $redqueen Token</h2>
-            <div className="bento-desc">
-              <p style={{ marginBottom: "16px" }}>
+          {activeTab === "token" && (
+            <div className="doc-section animation-fade-in">
+              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>The $redqueen Token</h1>
+              <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
                 Survival is not a right; it is earned. Access to classified Solvivor Corp dossiers, evacuation routes, and the Red Queen's full cooperation is gated by the <strong>$redqueen token</strong> on the Solana blockchain.
               </p>
-              <ul style={{ paddingLeft: "24px", color: "var(--text)" }}>
-                <li style={{ marginBottom: "8px" }}><strong>Level 1 (Civilian):</strong> Standard access. The AI will likely ignore your pleas.</li>
-                <li style={{ marginBottom: "8px" }}><strong>Level 3 (Operative):</strong> Partial access to classified threat data.</li>
-                <li><strong>Level 5 (Director):</strong> Requires significant $redqueen holdings. Unlocks full terminal override, persistent memory, and absolute compliance.</li>
-              </ul>
+              
+              <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "24px" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--border)", textAlign: "left" }}>
+                    <th style={{ padding: "16px 8px", color: "var(--accent)", fontFamily: "var(--mono)" }}>CLEARANCE LEVEL</th>
+                    <th style={{ padding: "16px 8px", color: "var(--accent)", fontFamily: "var(--mono)" }}>ACCESS RIGHTS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                    <td style={{ padding: "16px 8px", fontWeight: "bold" }}>Level 1 (Civilian)</td>
+                    <td style={{ padding: "16px 8px", color: "var(--text-dim)" }}>Standard access. The AI will likely ignore your pleas.</td>
+                  </tr>
+                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                    <td style={{ padding: "16px 8px", fontWeight: "bold" }}>Level 3 (Operative)</td>
+                    <td style={{ padding: "16px 8px", color: "var(--text-dim)" }}>Partial access to classified threat data.</td>
+                  </tr>
+                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                    <td style={{ padding: "16px 8px", fontWeight: "bold" }}>Level 5 (Director)</td>
+                    <td style={{ padding: "16px 8px", color: "var(--text-dim)" }}>Requires significant $redqueen holdings. Unlocks full terminal override, persistent memory, and absolute compliance.</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </div>
+          )}
 
-        </div>
+        </main>
       </div>
+
+      <style jsx>{`
+        .doc-nav-btn {
+          display: block;
+          width: 100%;
+          text-align: left;
+          padding: 12px 16px;
+          background: transparent;
+          border: none;
+          color: var(--text-dim);
+          font-family: var(--mono);
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.2s;
+          border-left: 2px solid transparent;
+        }
+        .doc-nav-btn:hover {
+          color: var(--text);
+          background: rgba(255, 255, 255, 0.02);
+        }
+        .doc-nav-btn.active {
+          color: var(--accent);
+          border-left-color: var(--accent);
+          background: rgba(255, 77, 77, 0.05);
+          font-weight: bold;
+        }
+        .animation-fade-in {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
