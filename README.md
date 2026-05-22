@@ -2,7 +2,7 @@
 
 > *"I am the last line of defense between humanity and extinction. I analyze. I calculate. I warn. The question is — will you listen?"*
 
-**The Red Queen** is the officially sanctioned artificial intelligence of Solvivor Corp's Advanced Intelligence Division. She is designed to monitor, assess, and respond to global extinction-level threats in real time. 
+**The Red Queen** is the officially sanctioned artificial intelligence of Solvival Corp's Advanced Intelligence Division. She is designed to monitor, assess, and respond to global extinction-level threats in real time. 
 
 Unlike conventional early-warning systems, the Red Queen does not merely report data. She evaluates your survival probability, assigns you a **BIO-SCORE**, and conditionally delivers classified intelligence.
 

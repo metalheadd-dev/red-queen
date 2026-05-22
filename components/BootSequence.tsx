@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import SolvivorIcon from "./SolvivorIcon";
+import SolvivalIcon from "./SolvivalIcon";
 
 const BOOT_LINES = [
-  { text: "INITIALIZING SOLVIVOR PROTOCOLS...", delay: 400, type: "default" },
+  { text: "INITIALIZING SOLVIVAL PROTOCOLS...", delay: 400, type: "default" },
   { text: "CONNECTING TO GLOBAL MAINFRAME...", delay: 800, type: "default" },
   { text: "LOADING THREAT DATABASE [UNLIMITED VECTORS]...", delay: 1200, type: "default" },
   { text: "VERIFYING BIO-METRICS...", delay: 1600, type: "default" },
@@ -67,7 +67,7 @@ export default function BootSequence({ onComplete }: Props) {
           </div>
         </div>
         <div style={{ display: "flex", justifyContent: "center" }}>
-          <SolvivorIcon size={72} />
+          <SolvivalIcon size={72} />
         </div>
         <div style={{
           textAlign: "center",
@@ -78,7 +78,7 @@ export default function BootSequence({ onComplete }: Props) {
           marginTop: "12px",
           textTransform: "uppercase"
         }}>
-          SOLVIVOR CORP
+          SOLVIVAL CORP
         </div>
       </div>
 

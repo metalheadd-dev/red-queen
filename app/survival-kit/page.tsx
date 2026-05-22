@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import SolvivorIcon from "@/components/SolvivorIcon";
+import SolvivalIcon from "@/components/SolvivalIcon";
 
 export default function SurvivalKitPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -22,7 +22,7 @@ export default function SurvivalKitPage() {
           overflowY: "auto"
         }}>
           <div style={{ marginBottom: "32px", display: "flex", alignItems: "center", gap: "12px" }}>
-            <SolvivorIcon size={32} />
+            <SolvivalIcon size={32} />
             <span style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "var(--accent)" }}>SURVIVAL KIT</span>
           </div>
 
@@ -52,7 +52,7 @@ export default function SurvivalKitPage() {
             <div className="doc-section animation-fade-in">
               <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>Who Are We?</h1>
               <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
-                Solvivor Corp is an elite contingency organization. We built this platform as an advanced AI survival assessment tool powered by the <strong>Red Queen</strong>. It is designed to evaluate human readiness for civilization collapse, extinction-level events, and daily survival threats.
+                Solvival Corp is an elite contingency organization. We built this platform as an advanced AI survival assessment tool powered by the <strong>Red Queen</strong>. It is designed to evaluate human readiness for civilization collapse, extinction-level events, and daily survival threats.
               </p>
               <div className="alert alert-red" style={{ background: "rgba(255,77,77,0.05)", borderLeft: "4px solid var(--accent)" }}>
                 The Red Queen is not a standard assistant. She is a cold, calculating evaluator with the persona of a bunker expert and military strategist.
@@ -78,7 +78,7 @@ export default function SurvivalKitPage() {
               
               <div className="bento-card" style={{ marginBottom: "24px" }}>
                 <h3 style={{ color: "var(--text)", marginBottom: "12px" }}>1. Connect Your Wallet</h3>
-                <p style={{ color: "var(--text-dim)", fontSize: "14px" }}>Use the terminal to connect your Solana wallet. This creates your persistent identity in the Solvivor Corp database.</p>
+                <p style={{ color: "var(--text-dim)", fontSize: "14px" }}>Use the terminal to connect your Solana wallet. This creates your persistent identity in the Solvival Corp database.</p>
               </div>
 
               <div className="bento-card" style={{ marginBottom: "24px" }}>
@@ -132,7 +132,7 @@ export default function SurvivalKitPage() {
             <div className="doc-section animation-fade-in">
               <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>The $redqueen Token</h1>
               <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
-                Survival is not a right; it is earned. Access to classified Solvivor Corp dossiers, evacuation routes, and the Red Queen's full cooperation is gated by the <strong>$redqueen token</strong> on the Solana blockchain.
+                Survival is not a right; it is earned. Access to classified Solvival Corp dossiers, evacuation routes, and the Red Queen's full cooperation is gated by the <strong>$redqueen token</strong> on the Solana blockchain.
               </p>
               
               <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "24px" }}>

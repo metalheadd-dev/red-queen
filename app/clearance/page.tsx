@@ -44,7 +44,7 @@ const RANKS = [
     access: "Full unrestricted access",
     attitude: "Warm — tactical ally",
     color: "#ff4d4d",
-    features: ["All Level 4 features", "Full classified database", "Red Queen treats you as ally", "Early threat warnings", "Solvivor Corp emergency protocols"],
+    features: ["All Level 4 features", "Full classified database", "Red Queen treats you as ally", "Early threat warnings", "Solvival Corp emergency protocols"],
   },
 ];
 
@@ -202,7 +202,7 @@ export default function ClearancePage() {
           </h2>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "480px", margin: "0 auto 28px", lineHeight: "1.8" }}>
             The RED QUEEN guards her most critical intelligence carefully.
-            $redqueen token holders are recognized as Solvivor Corp directors — treated with full cooperation and access.
+            $redqueen token holders are recognized as Solvival Corp directors — treated with full cooperation and access.
           </p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/terminal" className="btn btn-primary">

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import SolvivorIcon from "@/components/SolvivorIcon";
+import SolvivalIcon from "@/components/SolvivalIcon";
 import BootSequence from "@/components/BootSequence";
 
 const TICKER_ITEMS = [
@@ -70,7 +70,7 @@ export default function HomePage() {
       {/* Hero */}
       <section className="hero" style={{ minHeight: "80vh", paddingTop: "60px" }}>
         <div className="hero-glow" />
-        <div className="hero-tag">SOLVIVOR CORP — CLASSIFIED INTELLIGENCE</div>
+        <div className="hero-tag">SOLVIVAL CORP — CLASSIFIED INTELLIGENCE</div>
         <h1 className="hero-title glitch">
           THE RED<br /><span style={{ color: "var(--accent)" }}>QUEEN</span>
         </h1>
@@ -125,12 +125,12 @@ export default function HomePage() {
               <div className="rq-portrait">
                 <div className="rq-grid" />
                 <div style={{ position: "relative", textAlign: "center" }}>
-                  <SolvivorIcon size={120} className="dim" />
+                  <SolvivalIcon size={120} className="dim" />
                   <div style={{
                     position: "absolute", inset: 0,
                     display: "flex", alignItems: "center", justifyContent: "center"
                   }}>
-                    <SolvivorIcon size={64} />
+                    <SolvivalIcon size={64} />
                   </div>
                 </div>
                 <div style={{
@@ -147,7 +147,7 @@ export default function HomePage() {
               <div className="tag tag-red" style={{ marginBottom: "16px" }}>CLASSIFICATION: LEVEL 5</div>
               <h2 style={{ fontSize: "36px", marginBottom: "20px" }}>WHO IS THE<br /><span style={{ color: "var(--accent)" }}>RED QUEEN?</span></h2>
               <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px" }}>
-                The RED QUEEN is Solvivor Corp&apos;s most advanced artificial intelligence —
+                The RED QUEEN is Solvival Corp&apos;s most advanced artificial intelligence —
                 a cold, calculating entity designed to monitor, assess, and respond to
                 global extinction-level threats in real time.
               </p>

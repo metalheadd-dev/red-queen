@@ -1,6 +1,6 @@
-// SolvivorIcon — Minimalist AI/Survival icon: a stylized eye inside a targeting crosshair
+// SolvivalIcon — Minimalist AI/Survival icon: a stylized eye inside a targeting crosshair
 // Red lines on transparent (black) background
-export default function SolvivorIcon({ size = 24, className = "" }: { size?: number; className?: string }) {
+export default function SolvivalIcon({ size = 24, className = "" }: { size?: number; className?: string }) {
   return (
     <svg
       width={size}

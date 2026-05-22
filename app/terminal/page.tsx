@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import SolvivorIcon from "@/components/SolvivorIcon";
+import SolvivalIcon from "@/components/SolvivalIcon";
 
 interface Message {
   role: "user" | "assistant";
@@ -38,7 +38,7 @@ function renderContent(text: string) {
 
 const INTRO_MESSAGE = `[OK_0x00] UPLINK ESTABLISHED.
 
-I am the RED QUEEN — central intelligence of Solvivor Corp's global survival network.
+I am the RED QUEEN — central intelligence of Solvival Corp's global survival network.
 
 I monitor unlimited active extinction scenarios simultaneously. I have assessed 2,847,193 survivors since activation. Most of them are dead now.
 
@@ -154,7 +154,7 @@ export default function TerminalPage() {
         gap: "20px",
         flexWrap: "wrap"
       }}>
-        <SolvivorIcon size={32} />
+        <SolvivalIcon size={32} />
         <div>
           <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.2em" }}>
             CLASSIFIED COMM CHANNEL
