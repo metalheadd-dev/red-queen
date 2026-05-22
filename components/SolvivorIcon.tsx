@@ -1,6 +1,7 @@
-export default function UmbrellaIcon({ size = 40, color = "#ff4d4d" }: { size?: number; color?: string }) {
+export default function SolvivorIcon({ size = 24, className = "" }: { size?: number; className?: string }) {
+  const color = "#ff4d4d";
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
       {/* Outer circle */}
       <circle cx="50" cy="50" r="48" stroke={color} strokeWidth="3" />
       {/* Umbrella arcs - top hemisphere */}

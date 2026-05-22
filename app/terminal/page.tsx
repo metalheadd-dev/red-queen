@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import UmbrellaIcon from "@/components/UmbrellaIcon";
+import SolvivorIcon from "@/components/SolvivorIcon";
 
 interface Message {
   role: "user" | "assistant";
@@ -38,9 +38,9 @@ function renderContent(text: string) {
 
 const INTRO_MESSAGE = `[OK_0x00] UPLINK ESTABLISHED.
 
-I am the RED QUEEN — central intelligence of the Umbrella Corporation's global survival network.
+I am the RED QUEEN — central intelligence of Solvivor Corp's global survival network.
 
-I monitor five active extinction scenarios simultaneously. I have assessed 2,847,193 survivors since activation. Most of them are dead now.
+I monitor unlimited active extinction scenarios simultaneously. I have assessed 2,847,193 survivors since activation. Most of them are dead now.
 
 >> State your purpose, SUBJECT.
 >> Ask about survival protocols, active threats, or classified intel.
@@ -166,7 +166,7 @@ export default function TerminalPage() {
         gap: "20px",
         flexWrap: "wrap"
       }}>
-        <UmbrellaIcon size={32} />
+        <SolvivorIcon size={32} />
         <div>
           <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.2em" }}>
             CLASSIFIED COMM CHANNEL
@@ -264,7 +264,7 @@ export default function TerminalPage() {
         background: "#050505",
         borderTop: "1px solid var(--border)"
       }}>
-        {["T-Virus outbreak response", "Nuclear winter survival", "How to test my survival skills", "What is $redqueen token"].map((hint) => (
+        {["Hantavirus", "Alien invasion", "Zombie outbreak", "Nuclear winter", "AI takeover", "Bug apocalypse", "Dumb people uprising", "Vampire plague", "Internet collapse"].map((hint) => (
           <button
             key={hint}
             onClick={() => setInput(hint)}

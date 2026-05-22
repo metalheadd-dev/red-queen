@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import UmbrellaIcon from "./UmbrellaIcon";
+import SolvivorIcon from "./SolvivorIcon";
 import dynamic from "next/dynamic";
 
 // Dynamically import the wallet button to avoid SSR hydration issues
@@ -26,9 +26,9 @@ export default function NavBar() {
       <div className="navbar-inner">
         <Link href="/" className="navbar-logo">
           <div className="navbar-logo-icon">
-            <UmbrellaIcon size={30} />
+            <SolvivorIcon size={30} />
           </div>
-          <span className="navbar-logo-text">UMBRELLA CORP</span>
+          <span className="navbar-logo-text">SOLVIVOR CORP</span>
         </Link>
 
         <ul className="navbar-nav">

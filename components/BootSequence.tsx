@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import UmbrellaIcon from "./UmbrellaIcon";
+import SolvivorIcon from "./SolvivorIcon";
 
 const BOOT_LINES = [
-  { text: "INITIALIZING UMBRELLA PROTOCOLS...", delay: 400, type: "default" },
+  { text: "INITIALIZING SOLVIVOR PROTOCOLS...", delay: 400, type: "default" },
   { text: "CONNECTING TO GLOBAL MAINFRAME...", delay: 800, type: "default" },
   { text: "LOADING THREAT DATABASE [5 VECTORS]...", delay: 1200, type: "default" },
   { text: "VERIFYING BIO-METRICS...", delay: 1600, type: "default" },
@@ -67,7 +67,7 @@ export default function BootSequence({ onComplete }: Props) {
           </div>
         </div>
         <div style={{ display: "flex", justifyContent: "center" }}>
-          <UmbrellaIcon size={72} color="#ff4d4d" />
+          <SolvivorIcon size={72} />
         </div>
         <div style={{
           textAlign: "center",
@@ -78,7 +78,7 @@ export default function BootSequence({ onComplete }: Props) {
           marginTop: "12px",
           textTransform: "uppercase"
         }}>
-          UMBRELLA CORPORATION
+          SOLVIVOR CORP
         </div>
       </div>
 

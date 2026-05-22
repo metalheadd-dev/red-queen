@@ -5,12 +5,12 @@ import Footer from "@/components/Footer";
 import SolanaProvider from "@/components/SolanaProvider";
 
 export const metadata: Metadata = {
-  title: "UMBRELLA CORPORATION — RED QUEEN TERMINAL",
+  title: "SOLVIVOR CORP — RED QUEEN TERMINAL",
   description:
     "The RED QUEEN is online. Survival intelligence, threat assessment, and classified apocalypse briefings. Are you prepared?",
-  keywords: ["apocalypse", "survival", "red queen", "umbrella corporation", "AI agent", "$redqueen token"],
+  keywords: ["apocalypse", "survival", "red queen", "solvivor corp", "AI agent", "$redqueen token"],
   openGraph: {
-    title: "UMBRELLA CORPORATION — RED QUEEN",
+    title: "SOLVIVOR CORP — RED QUEEN",
     description: "The AI that decides who survives. Talk to the RED QUEEN.",
     type: "website",
   },
