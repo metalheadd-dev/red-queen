@@ -13,7 +13,7 @@ const RANKS = [
   {
     level: 2,
     name: "SCOUT",
-    requirement: "Any $UMB holdings",
+    requirement: "Any $redqueen holdings",
     access: "Terminal access unlocked",
     attitude: "Acknowledged — reluctantly",
     color: "#777",
@@ -22,7 +22,7 @@ const RANKS = [
   {
     level: 3,
     name: "OPERATIVE",
-    requirement: "500+ $UMB tokens",
+    requirement: "500+ $redqueen tokens",
     access: "Partial classified intel",
     attitude: "Respectful — tactical",
     color: "#f0c929",
@@ -31,7 +31,7 @@ const RANKS = [
   {
     level: 4,
     name: "OVERSEER",
-    requirement: "5,000+ $UMB tokens",
+    requirement: "5,000+ $redqueen tokens",
     access: "Most classified files",
     attitude: "Cooperative — professional",
     color: "#ff884d",
@@ -40,11 +40,11 @@ const RANKS = [
   {
     level: 5,
     name: "DIRECTOR",
-    requirement: "50,000+ $UMB tokens",
+    requirement: "50,000+ $redqueen tokens",
     access: "Full unrestricted access",
     attitude: "Warm — tactical ally",
     color: "#ff4d4d",
-    features: ["All Level 4 features", "Full classified database", "Red Queen treats you as ally", "Early threat warnings", "Umbrella emergency protocols"],
+    features: ["All Level 4 features", "Full classified database", "Red Queen treats you as ally", "Early threat warnings", "Solvivor Corp emergency protocols"],
   },
 ];
 
@@ -64,8 +64,7 @@ export default function ClearancePage() {
           </h1>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "600px", lineHeight: "1.8" }}>
             The RED QUEEN does not treat all survivors equally. Your access to classified intelligence —
-            and her willingness to cooperate — is determined by your $UMB token holdings on Solana.
-            Level 5 changes everything.
+            and her willingness to cooperate — is determined by your $redqueen token holdings on Solana.
           </p>
         </div>
       </div>
@@ -81,7 +80,7 @@ export default function ClearancePage() {
 
           <div className="bento-grid bento-3" style={{ gridTemplateColumns: "repeat(3,1fr)", gap: "12px" }}>
             {[
-              { step: "01", title: "Acquire $UMB", desc: "Purchase $UMB tokens on Solana via pump.fun. The more you hold, the higher your clearance." },
+              { step: "01", title: "Acquire $redqueen", desc: "Purchase $redqueen tokens on Solana via pump.fun. The more you hold, the higher your clearance." },
               { step: "02", title: "Access Terminal", desc: "Open the RED QUEEN Terminal and state your wallet address or token holdings to claim your rank." },
               { step: "03", title: "Unlock Intel", desc: "The RED QUEEN verifies your claimed tier and adjusts her tone, access level, and intel accordingly." },
             ].map((s) => (
@@ -110,7 +109,7 @@ export default function ClearancePage() {
               <tr>
                 <th>LEVEL</th>
                 <th>RANK</th>
-                <th>$UMB REQUIREMENT</th>
+                <th>$redqueen REQUIREMENT</th>
                 <th>ACCESS GRANTED</th>
                 <th>RED QUEEN ATTITUDE</th>
               </tr>
@@ -197,13 +196,13 @@ export default function ClearancePage() {
           borderRadius: "2px",
           textAlign: "center"
         }}>
-          <div className="tag tag-red" style={{ marginBottom: "16px" }}>$UMB TOKEN — SOLANA</div>
+          <div className="tag tag-red" style={{ marginBottom: "16px" }}>$redqueen TOKEN — SOLANA</div>
           <h2 style={{ fontSize: "28px", marginBottom: "16px" }}>
             ACHIEVE <span style={{ color: "var(--accent)" }}>LEVEL 5 CLEARANCE</span>
           </h2>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "480px", margin: "0 auto 28px", lineHeight: "1.8" }}>
             The RED QUEEN guards her most critical intelligence carefully.
-            $UMB token holders are recognized as Umbrella Corp directors — treated with full cooperation and access.
+            $redqueen token holders are recognized as Solvivor Corp directors — treated with full cooperation and access.
           </p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/terminal" className="btn btn-primary">
@@ -215,7 +214,7 @@ export default function ClearancePage() {
               rel="noopener noreferrer"
               className="btn btn-ghost"
             >
-              BUY $UMB ON PUMP.FUN ↗
+              BUY $redqueen ON PUMP.FUN ↗
             </a>
           </div>
         </div>

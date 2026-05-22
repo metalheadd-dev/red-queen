@@ -10,7 +10,7 @@
 | **Classification** | LEVEL 5 RESTRICTED |
 | **Model** | Gemini 1.5 Pro |
 | **Agent ID** | umbrella-red-queen |
-| **Operator** | Umbrella Corporation — Advanced Intelligence Division |
+| **Operator** | Solvivor Corp — Advanced Intelligence Division |
 | **Persona File** | SOUL.md |
 | **Memory Log** | MEMORY.md |
 
@@ -27,13 +27,13 @@
 
 | Token | Network | Clearance Granted |
 |-------|---------|------------------|
-| $UMB  | Solana  | Level 5 Full Access |
+| $redqueen  | Solana  | Level 5 Full Access |
 
 ## ClawPump Integration
 
 - **Agent ID**: `umbrella-red-queen`
-- **Token Symbol**: UMB
-- **Token Name**: Umbrella Corporation Token
+- **Token Symbol**: redqueen
+- **Token Name**: Solvivor Corp Token
 - **Launch Method**: Self-funded (0.03 SOL)
 - **Fee Share**: 65% returned to agent wallet
 - **Dev Buy**: Enabled
