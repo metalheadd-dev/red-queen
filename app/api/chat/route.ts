@@ -3,7 +3,6 @@ import { SOUL_PROMPT } from "@/lib/soul";
 import { supabase } from "@/lib/supabase";
 
 export const maxDuration = 30;
-export const runtime = "edge";
 
 export async function POST(req: Request) {
   const client = new OpenAI({
