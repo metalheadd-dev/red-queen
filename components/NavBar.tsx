@@ -3,8 +3,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SolvivalIcon from "./SolvivalIcon";
 import dynamic from "next/dynamic";
+import { useWallet } from "@solana/wallet-adapter-react";
 
-// Dynamically import the wallet button to avoid SSR hydration issues
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
   { ssr: false }
@@ -12,6 +12,7 @@ const WalletMultiButton = dynamic(
 
 export default function NavBar() {
   const pathname = usePathname();
+  const { connected } = useWallet();
 
   const links = [
     { href: "/", label: "HUB" },
@@ -39,22 +40,33 @@ export default function NavBar() {
               </Link>
             </li>
           ))}
+          {connected && (
+            <li>
+              <Link
+                href="/profile"
+                className={pathname === "/profile" ? "active" : ""}
+                style={{ color: "var(--accent)" }}
+              >
+                ◉ PROFILE
+              </Link>
+            </li>
+          )}
         </ul>
 
-        <div className="navbar-status" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="navbar-status" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span className="status-dot" />
             RED QUEEN ONLINE
           </div>
           <WalletMultiButton style={{
-            background: 'transparent',
-            border: '1px solid var(--accent)',
-            color: 'var(--accent)',
-            fontFamily: 'var(--mono)',
-            fontSize: '12px',
-            padding: '5px 15px',
-            height: 'auto',
-            lineHeight: '1.5'
+            background: "transparent",
+            border: "1px solid var(--accent)",
+            color: "var(--accent)",
+            fontFamily: "var(--mono)",
+            fontSize: "12px",
+            padding: "5px 15px",
+            height: "auto",
+            lineHeight: "1.5",
           }} />
         </div>
       </div>
