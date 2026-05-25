@@ -20,19 +20,19 @@ Users can interact with the Red Queen via the Terminal. She processes real-time 
 
 ---
 
-## 🔐 Clearance Levels & The $redqueen Token
+## 🔐 Clearance Levels & The $THREAT Token
 
 The Red Queen guards her most critical intelligence behind a strict clearance hierarchy. Survival is not a right; it is earned.
 
-Access to classified dossiers, emergency evacuation routes, and the Red Queen's cooperation is determined entirely by your **$redqueen Token** holdings on the Solana blockchain. 
+Access to classified dossiers, emergency evacuation routes, and the Red Queen's cooperation is determined entirely by your **$THREAT Token** holdings on the Solana blockchain. 
 
 | Level | Rank | Requirement | Clearance Granted |
 |-------|------|-------------|-------------------|
 | **1** | CIVILIAN | None | Public Briefings / Ignored |
-| **2** | SCOUT | Any $redqueen | Terminal Access / Basic Assessment |
-| **3** | OPERATIVE | 500+ $redqueen | Partial Classified Intel / Tactical Tone |
-| **4** | OVERSEER | 5,000+ $redqueen | Full Archives / Evacuation Maps |
-| **5** | DIRECTOR | 50,000+ $redqueen| Complete Override / Recognized as Ally |
+| **2** | SCOUT | Any $THREAT | Terminal Access / Basic Assessment |
+| **3** | OPERATIVE | 500+ $THREAT | Partial Classified Intel / Tactical Tone |
+| **4** | OVERSEER | 5,000+ $THREAT | Full Archives / Evacuation Maps |
+| **5** | DIRECTOR | 50,000+ $THREAT| Complete Override / Recognized as Ally |
 
 ---
 

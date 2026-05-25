@@ -27,13 +27,13 @@
 
 | Token | Network | Clearance Granted |
 |-------|---------|------------------|
-| $redqueen  | Solana  | Level 5 Full Access |
+| $THREAT  | Solana  | Level 5 Full Access |
 
 ## ClawPump Integration
 
 - **Agent ID**: `umbrella-red-queen`
-- **Token Symbol**: redqueen
-- **Token Name**: Solvival Corp Token
+- **Token Symbol**: THREAT
+- **Token Name**: Threat Agent Token
 - **Launch Method**: Self-funded (0.03 SOL)
 - **Fee Share**: 65% returned to agent wallet
 - **Dev Buy**: Enabled

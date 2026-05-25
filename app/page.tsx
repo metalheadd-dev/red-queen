@@ -103,7 +103,7 @@ export default function HomePage() {
             fontWeight: 700,
             color: "var(--accent)",
             letterSpacing: "0.1em",
-          }}>CA</span>
+          }}>$THREAT</span>
           <div style={{
             display: "flex",
             alignItems: "center",
@@ -118,10 +118,10 @@ export default function HomePage() {
               fontSize: "11px",
               color: "var(--text-dim)",
               letterSpacing: "0.08em",
-            }}>03SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump</span>
+            }}>3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump</span>
           </div>
           <a
-            href="https://pump.fun"
+            href="https://pump.fun/coin/3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump"
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -314,7 +314,7 @@ export default function HomePage() {
               <div className="bento-icon">🔐</div>
               <div className="bento-title">Rank<br />Registry</div>
               <div className="bento-desc">
-                5-tier clearance system. Holders of $RQAI token unlock Level 5
+                5-tier clearance system. Holders of $THREAT token unlock Level 5
                 full access and receive warm treatment from the RED QUEEN.
               </div>
               <div className="bento-cta">→ CHECK CLEARANCE</div>
