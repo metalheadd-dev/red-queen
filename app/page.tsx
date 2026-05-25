@@ -118,7 +118,7 @@ export default function HomePage() {
               fontSize: "11px",
               color: "var(--text-dim)",
               letterSpacing: "0.08em",
-            }}>0000000000000</span>
+            }}>03SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump</span>
           </div>
           <a
             href="https://pump.fun"
