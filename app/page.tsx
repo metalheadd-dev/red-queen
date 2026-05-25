@@ -118,7 +118,7 @@ export default function HomePage() {
               fontSize: "11px",
               color: "var(--text-dim)",
               letterSpacing: "0.08em",
-            }}>CA: TOKEN ADDRESS COMING SOON</span>
+            }}>51bjkaw6Y6Cir2NQwsrUU6sJfRdcEX4LPQJjX5Eepump</span>
           </div>
           <a
             href="https://pump.fun"
