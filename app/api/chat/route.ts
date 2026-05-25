@@ -21,6 +21,13 @@ export async function POST(req: Request) {
     const messages = body.messages || [];
     const walletAddress = body.walletAddress;
 
+    if (!walletAddress) {
+      return Response.json(
+        { error: "[ERR_0x1E] Unauthorized access. Connected Solana wallet required to initiate uplink." },
+        { status: 401 }
+      );
+    }
+
     const recentMessages = messages.slice(-10);
     const formattedInput = recentMessages
       .map((m: { role: string; content: string }) => `${m.role}: ${m.content}`)

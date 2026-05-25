@@ -2,6 +2,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import SolvivalIcon from "@/components/SolvivalIcon";
+import dynamic from "next/dynamic";
+
+const WalletMultiButton = dynamic(
+  () => import("@solana/wallet-adapter-react-ui").then((m) => m.WalletMultiButton),
+  { ssr: false }
+);
 
 interface Message {
   role: "user" | "assistant";
@@ -50,7 +56,7 @@ I monitor unlimited active extinction scenarios simultaneously. I have assessed 
 [WARN_0x4F] Every second of inaction reduces your survival probability.`;
 
 export default function TerminalPage() {
-  const { publicKey } = useWallet();
+  const { publicKey, connected } = useWallet();
   const walletAddress = publicKey ? publicKey.toString() : null;
 
   const [messages, setMessages] = useState<Message[]>([
@@ -141,6 +147,66 @@ export default function TerminalPage() {
     scoreNum < 20 ? "#ff4d4d" :
     scoreNum < 60 ? "#f0c929" :
     "#2ecc40";
+
+  if (!connected) {
+    return (
+      <div style={{ padding: "60px 0 0", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#050505" }}>
+        <div style={{
+          textAlign: "center",
+          maxWidth: "500px",
+          padding: "48px 32px",
+          border: "1px solid var(--border)",
+          background: "var(--surface)",
+          borderRadius: "4px",
+          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 77, 77, 0.05)"
+        }}>
+          <div className="tag tag-red" style={{ marginBottom: "24px", letterSpacing: "0.2em" }}>SECURE UPLINK REQUIRED</div>
+          
+          <div style={{
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+            border: "1px solid rgba(255, 77, 77, 0.3)",
+            background: "rgba(255, 77, 77, 0.03)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 24px",
+            boxShadow: "0 0 20px rgba(255, 77, 77, 0.1)"
+          }}>
+            <SolvivalIcon size={40} />
+          </div>
+
+          <h1 className="glow-text" style={{ fontSize: "28px", marginBottom: "16px", letterSpacing: "0.05em" }}>
+            RED QUEEN <span style={{ color: "var(--accent)" }}>UPLINK</span>
+          </h1>
+          
+          <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "32px" }}>
+            [WARN_0x1E] Unauthorized access detected. The RED QUEEN AI survival intelligence is restricted to verified operatives. 
+            <br />
+            <br />
+            Connect your Solana wallet to establish a secure neural link and begin survival assessment.
+          </p>
+
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <WalletMultiButton style={{
+              background: "var(--accent)",
+              border: "none",
+              color: "#000",
+              fontFamily: "var(--mono)",
+              fontSize: "13px",
+              padding: "12px 28px",
+              height: "auto",
+              lineHeight: "1.5",
+              fontWeight: "bold",
+              cursor: "pointer",
+              borderRadius: "2px",
+            }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: "60px 0 0", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
