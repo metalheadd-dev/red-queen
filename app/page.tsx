@@ -103,7 +103,7 @@ export default function HomePage() {
             fontWeight: 700,
             color: "var(--accent)",
             letterSpacing: "0.1em",
-          }}>$RQAI</span>
+          }}>CA</span>
           <div style={{
             display: "flex",
             alignItems: "center",
@@ -118,7 +118,7 @@ export default function HomePage() {
               fontSize: "11px",
               color: "var(--text-dim)",
               letterSpacing: "0.08em",
-            }}>51bjkaw6Y6Cir2NQwsrUU6sJfRdcEX4LPQJjX5Eepump</span>
+            }}>0000000000000</span>
           </div>
           <a
             href="https://pump.fun"
