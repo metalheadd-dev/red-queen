@@ -13,7 +13,7 @@ const RANKS = [
   {
     level: 2,
     name: "SCOUT",
-    requirement: "Any $redqueen holdings",
+    requirement: "Any $RQAI holdings",
     access: "Terminal access unlocked",
     attitude: "Acknowledged — reluctantly",
     color: "#777",
@@ -22,7 +22,7 @@ const RANKS = [
   {
     level: 3,
     name: "OPERATIVE",
-    requirement: "500+ $redqueen tokens",
+    requirement: "500+ $RQAI tokens",
     access: "Partial classified intel",
     attitude: "Respectful — tactical",
     color: "#f0c929",
@@ -31,7 +31,7 @@ const RANKS = [
   {
     level: 4,
     name: "OVERSEER",
-    requirement: "5,000+ $redqueen tokens",
+    requirement: "5,000+ $RQAI tokens",
     access: "Most classified files",
     attitude: "Cooperative — professional",
     color: "#ff884d",
@@ -40,7 +40,7 @@ const RANKS = [
   {
     level: 5,
     name: "DIRECTOR",
-    requirement: "50,000+ $redqueen tokens",
+    requirement: "50,000+ $RQAI tokens",
     access: "Full unrestricted access",
     attitude: "Warm — tactical ally",
     color: "#ff4d4d",
@@ -64,7 +64,7 @@ export default function ClearancePage() {
           </h1>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "600px", lineHeight: "1.8" }}>
             The RED QUEEN does not treat all survivors equally. Your access to classified intelligence —
-            and her willingness to cooperate — is determined by your $redqueen token holdings on Solana.
+            and her willingness to cooperate — is determined by your $RQAI token holdings on Solana.
           </p>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function ClearancePage() {
 
           <div className="bento-grid bento-3" style={{ gridTemplateColumns: "repeat(3,1fr)", gap: "12px" }}>
             {[
-              { step: "01", title: "Acquire $redqueen", desc: "Purchase $redqueen tokens on Solana via pump.fun. The more you hold, the higher your clearance." },
+              { step: "01", title: "Acquire $RQAI", desc: "Purchase $RQAI tokens on Solana via pump.fun. The more you hold, the higher your clearance." },
               { step: "02", title: "Access Terminal", desc: "Open the RED QUEEN Terminal and state your wallet address or token holdings to claim your rank." },
               { step: "03", title: "Unlock Intel", desc: "The RED QUEEN verifies your claimed tier and adjusts her tone, access level, and intel accordingly." },
             ].map((s) => (
@@ -109,7 +109,7 @@ export default function ClearancePage() {
               <tr>
                 <th>LEVEL</th>
                 <th>RANK</th>
-                <th>$redqueen REQUIREMENT</th>
+                <th>$RQAI REQUIREMENT</th>
                 <th>ACCESS GRANTED</th>
                 <th>RED QUEEN ATTITUDE</th>
               </tr>
@@ -196,13 +196,13 @@ export default function ClearancePage() {
           borderRadius: "2px",
           textAlign: "center"
         }}>
-          <div className="tag tag-red" style={{ marginBottom: "16px" }}>$redqueen TOKEN — SOLANA</div>
+          <div className="tag tag-red" style={{ marginBottom: "16px" }}>$RQAI TOKEN — SOLANA</div>
           <h2 style={{ fontSize: "28px", marginBottom: "16px" }}>
             ACHIEVE <span style={{ color: "var(--accent)" }}>LEVEL 5 CLEARANCE</span>
           </h2>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "480px", margin: "0 auto 28px", lineHeight: "1.8" }}>
             The RED QUEEN guards her most critical intelligence carefully.
-            $redqueen token holders are recognized as Solvival Corp directors — treated with full cooperation and access.
+            $RQAI token holders are recognized as Solvival Corp directors — treated with full cooperation and access.
           </p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/terminal" className="btn btn-primary">
@@ -214,7 +214,7 @@ export default function ClearancePage() {
               rel="noopener noreferrer"
               className="btn btn-ghost"
             >
-              BUY $redqueen ON PUMP.FUN ↗
+              BUY $RQAI ON PUMP.FUN ↗
             </a>
           </div>
         </div>

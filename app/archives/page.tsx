@@ -115,7 +115,7 @@ export default function ArchivesPage() {
           </h1>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "640px", lineHeight: "1.8" }}>
             Classified dossiers on all {total} active extinction vectors monitored by the RED QUEEN — across 3 categories.
-            Click any redacted section to decrypt. $redqueen holders get Level 5 full access in the TERMINAL.
+            Click any redacted section to decrypt. $RQAI holders get Level 5 full access in the TERMINAL.
           </p>
           <div style={{ display: "flex", gap: "24px", marginTop: "24px", flexWrap: "wrap" }}>
             {CATEGORIES.map((cat) => (

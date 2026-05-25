@@ -87,6 +87,58 @@ export default function HomePage() {
             ACCESS THREAT DATABASE
           </Link>
         </div>
+
+        {/* Token CA */}
+        <div style={{
+          marginTop: "32px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "10px",
+          flexWrap: "wrap",
+        }}>
+          <span style={{
+            fontFamily: "var(--mono)",
+            fontSize: "13px",
+            fontWeight: 700,
+            color: "var(--accent)",
+            letterSpacing: "0.1em",
+          }}>$RQAI</span>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            background: "rgba(255,77,77,0.06)",
+            border: "1px solid rgba(255,77,77,0.2)",
+            borderRadius: "2px",
+            padding: "6px 14px",
+          }}>
+            <span style={{
+              fontFamily: "var(--mono)",
+              fontSize: "11px",
+              color: "var(--text-dim)",
+              letterSpacing: "0.08em",
+            }}>CA: TOKEN ADDRESS COMING SOON</span>
+          </div>
+          <a
+            href="https://pump.fun"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: "10px",
+              color: "var(--accent)",
+              textDecoration: "none",
+              letterSpacing: "0.12em",
+              border: "1px solid rgba(255,77,77,0.3)",
+              padding: "6px 12px",
+              borderRadius: "2px",
+              transition: "all 0.2s",
+            }}
+          >
+            PUMP.FUN ↗
+          </a>
+        </div>
       </section>
 
       {/* Stats */}
@@ -262,7 +314,7 @@ export default function HomePage() {
               <div className="bento-icon">🔐</div>
               <div className="bento-title">Rank<br />Registry</div>
               <div className="bento-desc">
-                5-tier clearance system. Holders of $redqueen token unlock Level 5
+                5-tier clearance system. Holders of $RQAI token unlock Level 5
                 full access and receive warm treatment from the RED QUEEN.
               </div>
               <div className="bento-cta">→ CHECK CLEARANCE</div>

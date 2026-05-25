@@ -181,7 +181,7 @@ export default function TerminalPage() {
 
       {/* Info bar */}
       <div className="alert alert-red" style={{ margin: "0", borderRadius: "0", border: "none", borderBottom: "1px solid rgba(255,77,77,0.15)" }}>
-        <strong>[NOTICE]</strong> All communications are monitored. Your survival intelligence is being evaluated. Claim Level 5 access by connecting your wallet if you hold <strong>$redqueen tokens</strong>.
+        <strong>[NOTICE]</strong> All communications are monitored. Your survival intelligence is being evaluated. Claim Level 5 access by connecting your wallet if you hold <strong>$RQAI tokens</strong>.
       </div>
 
       {/* Messages */}

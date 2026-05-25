@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "SOLVIVAL CORP — RED QUEEN TERMINAL",
   description:
     "The RED QUEEN is online. Survival intelligence, threat assessment, and classified apocalypse briefings. Are you prepared?",
-  keywords: ["apocalypse", "survival", "red queen", "solvival corp", "AI agent", "$redqueen token"],
+  keywords: ["apocalypse", "survival", "red queen", "solvival corp", "AI agent", "$RQAI token", "RQAI"],
   openGraph: {
     title: "SOLVIVAL CORP — RED QUEEN",
     description: "The AI that decides who survives. Talk to the RED QUEEN.",

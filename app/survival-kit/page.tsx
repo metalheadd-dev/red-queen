@@ -130,9 +130,9 @@ export default function SurvivalKitPage() {
 
           {activeTab === "token" && (
             <div className="doc-section animation-fade-in">
-              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>The $redqueen Token</h1>
+              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>The $RQAI Token</h1>
               <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
-                Survival is not a right; it is earned. Access to classified Solvival Corp dossiers, evacuation routes, and the Red Queen's full cooperation is gated by the <strong>$redqueen token</strong> on the Solana blockchain.
+                Survival is not a right; it is earned. Access to classified Solvival Corp dossiers, evacuation routes, and the Red Queen's full cooperation is gated by the <strong>$RQAI token</strong> on the Solana blockchain.
               </p>
               
               <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "24px" }}>
@@ -153,7 +153,7 @@ export default function SurvivalKitPage() {
                   </tr>
                   <tr style={{ borderBottom: "1px solid var(--border)" }}>
                     <td style={{ padding: "16px 8px", fontWeight: "bold" }}>Level 5 (Director)</td>
-                    <td style={{ padding: "16px 8px", color: "var(--text-dim)" }}>Requires significant $redqueen holdings. Unlocks full terminal override, persistent memory, and absolute compliance.</td>
+                    <td style={{ padding: "16px 8px", color: "var(--text-dim)" }}>Requires significant $RQAI holdings. Unlocks full terminal override, persistent memory, and absolute compliance.</td>
                   </tr>
                 </tbody>
               </table>
