@@ -66,10 +66,50 @@ export default function TerminalPage() {
   const [loading, setLoading] = useState(false);
   const [currentScore, setCurrentScore] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    async function loadHistory() {
+      if (!connected || !walletAddress) return;
+      setLoadingHistory(true);
+      try {
+        const res = await fetch(`/api/history?wallet=${walletAddress}`);
+        const data = await res.json();
+        if (data.history && data.history.length > 0) {
+          const mapped = data.history.map((m: any) => {
+            const parsed = extractBioScore(m.content);
+            return {
+              role: m.role,
+              content: m.content,
+              bioScore: parsed.score || undefined
+            };
+          });
+          setMessages(mapped);
+
+          // Find the last bioScore in history
+          for (let i = mapped.length - 1; i >= 0; i--) {
+            if (mapped[i].bioScore) {
+              setCurrentScore(mapped[i].bioScore);
+              break;
+            }
+          }
+        } else {
+          setMessages([
+            { role: "assistant", content: INTRO_MESSAGE, bioScore: "PENDING" },
+          ]);
+          setCurrentScore(null);
+        }
+      } catch (err) {
+        console.error("Failed to load chat history:", err);
+      }
+      setLoadingHistory(false);
+    }
+    loadHistory();
+  }, [connected, walletAddress]);
 
   async function sendMessage() {
     const text = input.trim();
@@ -261,21 +301,30 @@ export default function TerminalPage() {
         minHeight: 0,
         maxHeight: "calc(100vh - 320px)",
       }}>
-        {messages.map((msg, i) => (
-          <div key={i} className={`message message-${msg.role === "user" ? "user" : "ai"}`}>
-            <div className="message-label">
-              {msg.role === "user" ? "[ YOU — SUBJECT ]" : "[ RED QUEEN — LEVEL 5 ]"}
+        {loadingHistory ? (
+          <div className="message message-ai">
+            <div className="message-label">[ SYSTEM — SEARCHING RECORDS ]</div>
+            <div className="message-bubble" style={{ color: "var(--text-dim)" }}>
+              RESTORING CLASSIFIED UPLINK DATA STREAM<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
             </div>
-            <div className="message-bubble">
-              {renderContent(msg.content)}
-            </div>
-            {msg.bioScore && msg.bioScore !== "PENDING" && (
-              <div className="bio-score" style={{ color: scoreColor }}>
-                ▶ BIO-SCORE UPDATED: {msg.bioScore}%
-              </div>
-            )}
           </div>
-        ))}
+        ) : (
+          messages.map((msg, i) => (
+            <div key={i} className={`message message-${msg.role === "user" ? "user" : "ai"}`}>
+              <div className="message-label">
+                {msg.role === "user" ? "[ YOU — SUBJECT ]" : "[ RED QUEEN — LEVEL 5 ]"}
+              </div>
+              <div className="message-bubble">
+                {renderContent(msg.content)}
+              </div>
+              {msg.bioScore && msg.bioScore !== "PENDING" && (
+                <div className="bio-score" style={{ color: scoreColor }}>
+                  ▶ BIO-SCORE UPDATED: {msg.bioScore}%
+                </div>
+              )}
+            </div>
+          ))
+        )}
 
         {loading && (
           <div className="message message-ai">

@@ -165,6 +165,32 @@ export default function ProfilePage() {
     setSaving(false);
   }
 
+  async function confirmName(nameToSave: string) {
+    setEditingName(false);
+    if (!wallet) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          wallet_address: wallet,
+          apocalyptic_name: nameToSave || generatedName,
+          chosen_scenarios: chosenScenarios,
+        }),
+      });
+      const data = await res.json();
+      if (data.profile) {
+        setProfile(data.profile);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setSaving(false);
+  }
+
   const displayName = customName || generatedName;
   const scoreNum = profile?.last_bio_score ?? null;
   const scoreColor = scoreNum === null ? "var(--text-dim)" : scoreNum < 20 ? "#ff4d4d" : scoreNum < 60 ? "#f0c929" : "#2ecc40";
@@ -234,6 +260,7 @@ export default function ProfilePage() {
                   <input
                     value={customName}
                     onChange={(e) => { setCustomName(e.target.value.toUpperCase()); setSaved(false); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") confirmName(customName); }}
                     style={{
                       fontFamily: "var(--mono)", fontSize: "22px", fontWeight: 700,
                       background: "rgba(255,77,77,0.05)", border: "1px solid var(--accent)",
@@ -244,7 +271,7 @@ export default function ProfilePage() {
                     autoFocus
                   />
                   <button className="btn btn-primary" style={{ fontSize: "11px", padding: "6px 14px" }}
-                    onClick={() => setEditingName(false)}>CONFIRM</button>
+                    onClick={() => confirmName(customName)}>CONFIRM</button>
                 </div>
               ) : (
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px", flexWrap: "wrap" }}>
