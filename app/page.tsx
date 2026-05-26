@@ -290,7 +290,16 @@ export default function HomePage() {
           <div className="bento-grid bento-3">
             <Link href="/terminal" className="bento-card">
               <div className="bento-number">01 / TERMINAL</div>
-              <div className="bento-icon">🔴</div>
+              <div className="bento-icon" style={{ height: "40px", display: "flex", alignItems: "center", marginBottom: "16px" }}>
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="16" cy="16" r="3" fill="var(--accent)" />
+                  <circle cx="16" cy="16" r="8" stroke="var(--accent)" strokeWidth="1" strokeDasharray="3 3" opacity="0.8">
+                    <animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="8s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx="16" cy="16" r="13" stroke="var(--accent)" strokeWidth="1" opacity="0.4" />
+                  <path d="M16 0 V6 M16 26 V32 M0 16 H6 M26 16 H32" stroke="var(--accent)" strokeWidth="1" opacity="0.5" />
+                </svg>
+              </div>
               <div className="bento-title">Talk to the<br />Red Queen</div>
               <div className="bento-desc">
                 Direct communication channel to the RED QUEEN AI. Ask about threats,
@@ -301,7 +310,15 @@ export default function HomePage() {
 
             <Link href="/archives" className="bento-card">
               <div className="bento-number">02 / ARCHIVES</div>
-              <div className="bento-icon">☣️</div>
+              <div className="bento-icon" style={{ height: "40px", display: "flex", alignItems: "center", marginBottom: "16px" }}>
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M16 3 L29 27 H3 Z" stroke="var(--accent)" strokeWidth="1.5" strokeLinejoin="round" fill="rgba(255, 77, 77, 0.05)" />
+                  <circle cx="16" cy="17" r="5" stroke="var(--accent)" strokeWidth="1" strokeDasharray="2 2" />
+                  <path d="M16 10 V14" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
+                  <circle cx="16" cy="21" r="1.5" fill="var(--accent)" />
+                  <path d="M12 20 L8 22 M20 20 L24 22" stroke="var(--accent)" strokeWidth="1" opacity="0.6" />
+                </svg>
+              </div>
               <div className="bento-title">Threat<br />Database</div>
               <div className="bento-desc">
                 Classified dossiers on realistic threats, fictional invasions, and satirical collapse scenarios.
@@ -311,7 +328,15 @@ export default function HomePage() {
 
             <Link href="/clearance" className="bento-card">
               <div className="bento-number">03 / CLEARANCE</div>
-              <div className="bento-icon">🔐</div>
+              <div className="bento-icon" style={{ height: "40px", display: "flex", alignItems: "center", marginBottom: "16px" }}>
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="8" y="13" width="16" height="13" rx="2" stroke="var(--accent)" strokeWidth="1.5" fill="rgba(255, 77, 77, 0.05)" />
+                  <path d="M12 13 V9 C12 6.8 13.8 5 16 5 C18.2 5 20 6.8 20 9 V13" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="16" cy="18" r="2" fill="var(--accent)" />
+                  <path d="M16 20 V23" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M4 16 H8 M24 16 H28" stroke="var(--accent)" strokeWidth="1" opacity="0.6" />
+                </svg>
+              </div>
               <div className="bento-title">Rank<br />Registry</div>
               <div className="bento-desc">
                 5-tier clearance system. Holders of $THREAT token unlock Level 5
