@@ -128,12 +128,15 @@ export default function ProfilePage() {
         }),
       });
       const data = await res.json();
-      if (data.profile) {
+      if (data.error) {
+        alert("Error saving profile: " + data.error);
+      } else if (data.profile) {
         setProfile(data.profile);
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       }
-    } catch (e) {
+    } catch (e: any) {
+      alert("Failed to save profile: " + e.message);
       console.error(e);
     }
     setSaving(false);
@@ -154,12 +157,15 @@ export default function ProfilePage() {
         }),
       });
       const data = await res.json();
-      if (data.profile) {
+      if (data.error) {
+        alert("Error saving name: " + data.error);
+      } else if (data.profile) {
         setProfile(data.profile);
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       }
-    } catch (e) {
+    } catch (e: any) {
+      alert("Failed to save name: " + e.message);
       console.error(e);
     }
     setSaving(false);
