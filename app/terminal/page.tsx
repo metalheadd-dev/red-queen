@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import SolvivalIcon from "@/components/SolvivalIcon";
 import dynamic from "next/dynamic";
+import { generateApocalypticName } from "@/lib/names";
+
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((m) => m.WalletMultiButton),
@@ -65,6 +67,7 @@ export default function TerminalPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentScore, setCurrentScore] = useState<string | null>(null);
+  const [apocalypticName, setApocalypticName] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
@@ -73,14 +76,28 @@ export default function TerminalPage() {
   }, [messages]);
 
   useEffect(() => {
-    async function loadHistory() {
+    async function loadProfileAndHistory() {
       if (!connected || !walletAddress) return;
       setLoadingHistory(true);
+
+      const generated = generateApocalypticName(walletAddress);
+      setApocalypticName(generated);
+
       try {
-        const res = await fetch(`/api/history?wallet=${walletAddress}`);
-        const data = await res.json();
-        if (data.history && data.history.length > 0) {
-          const mapped = data.history.map((m: any) => {
+        const [profileRes, historyRes] = await Promise.all([
+          fetch(`/api/profile?wallet=${walletAddress}`).then((r) => r.json()).catch(() => ({})),
+          fetch(`/api/history?wallet=${walletAddress}`).then((r) => r.json()).catch(() => ({}))
+        ]);
+
+        if (profileRes && profileRes.profile) {
+          setApocalypticName(profileRes.profile.apocalyptic_name || generated);
+          if (profileRes.profile.last_bio_score !== null) {
+            setCurrentScore(profileRes.profile.last_bio_score.toString());
+          }
+        }
+
+        if (historyRes && historyRes.history && historyRes.history.length > 0) {
+          const mapped = historyRes.history.map((m: any) => {
             const parsed = extractBioScore(m.content);
             return {
               role: m.role,
@@ -90,7 +107,7 @@ export default function TerminalPage() {
           });
           setMessages(mapped);
 
-          // Find the last bioScore in history
+          // Find the last bioScore in history (precedence over profile default)
           for (let i = mapped.length - 1; i >= 0; i--) {
             if (mapped[i].bioScore) {
               setCurrentScore(mapped[i].bioScore);
@@ -101,14 +118,13 @@ export default function TerminalPage() {
           setMessages([
             { role: "assistant", content: INTRO_MESSAGE, bioScore: "PENDING" },
           ]);
-          setCurrentScore(null);
         }
       } catch (err) {
-        console.error("Failed to load chat history:", err);
+        console.error("Failed to load user profile or history:", err);
       }
       setLoadingHistory(false);
     }
-    loadHistory();
+    loadProfileAndHistory();
   }, [connected, walletAddress]);
 
   async function sendMessage() {
@@ -312,7 +328,7 @@ export default function TerminalPage() {
           messages.map((msg, i) => (
             <div key={i} className={`message message-${msg.role === "user" ? "user" : "ai"}`}>
               <div className="message-label">
-                {msg.role === "user" ? "[ YOU — SUBJECT ]" : "[ RED QUEEN — LEVEL 5 ]"}
+                {msg.role === "user" ? `[ YOU — ${apocalypticName || "SUBJECT"} ]` : "[ RED QUEEN — LEVEL 5 ]"}
               </div>
               <div className="message-bubble">
                 {renderContent(msg.content)}
