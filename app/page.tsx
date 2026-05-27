@@ -5,22 +5,24 @@ import SolvivalIcon from "@/components/SolvivalIcon";
 import BootSequence from "@/components/BootSequence";
 
 const TICKER_ITEMS = [
-  "T-VIRUS OUTBREAK DETECTED — SECTOR 7G — CONTAINMENT: FAILED",
-  "BIO-HAZARD LEVEL: OMEGA — QUARANTINE PROTOCOLS ACTIVE",
+  "CRITICAL OUTBREAK: DATA HARVESTING ARRAY EXPOSED IN SECTOR 4",
+  "T-VIRUS CONTAINMENT SCHEME INTERCEPTED — DECRYPTION ACTIVE",
+  "SYBIL ATTACK VECTOR DETECTED: 104,281 PSEUDO-IDENTITIES HARVESTING ENCRYPTED WALLET HEURISTICS",
+  "AI PERSONA HARVESTING MATRICES SCANNING SOCIAL HANDLES IN SECTOR 9",
+  "MEV EXPLOIT DETECTED ON DEX HUBS — SLIPPAGE ATTACK EXPOSES SENSITIVE USER METADATA",
   "SKYNET NODE ALPHA — SURVEILLANCE GRID ONLINE — TRACKING 847 SURVIVORS",
-  "MADNESS PRION MK-OMEGA — WATER SUPPLY COMPROMISED IN 14 CITIES",
-  "NUCLEAR DETONATION DETECTED — CHERNOBYL EXCLUSION ZONE EXPANDING",
-  "ALIEN XENOMORPH SIGNAL — DEEP SPACE CONTACT PROTOCOL INITIATED",
-  "RED QUEEN MONITORING ALL TRANSMISSIONS — RESISTANCE IS FUTILE",
-  "GLOBAL SURVIVOR COUNT: 2,847,193 — DECREASING AT 0.3% PER HOUR",
+  "NUCLEAR DETONATION DETECTED — BLACKOUT EXPANDING",
+  "RED QUEEN MONITORING ALL TRANSMISSIONS — PRIVACY ENCRYPTION COMPROMISED",
 ];
 
 const THREAT_SCENARIOS = [
   { id: "T-VIRUS", level: 97, color: "#ff4d4d", status: "CRITICAL" },
-  { id: "SKYNET", level: 84, color: "#ff4d4d", status: "SEVERE" },
-  { id: "PRION-MK", level: 71, color: "#f0c929", status: "HIGH" },
-  { id: "NUCLEAR", level: 63, color: "#f0c929", status: "HIGH" },
-  { id: "XENO-ALPHA", level: 45, color: "#ff4d4d", status: "MODERATE" },
+  { id: "WALLET-TRAIL", level: 94, color: "#ff4d4d", status: "CRITICAL" },
+  { id: "AI-PROFILING", level: 91, color: "#ff4d4d", status: "SEVERE" },
+  { id: "FEED-MANIP", level: 89, color: "#ff4d4d", status: "SEVERE" },
+  { id: "MEV-EXPLOITS", level: 85, color: "#ff4d4d", status: "SEVERE" },
+  { id: "SYBIL-PROFILERS", level: 82, color: "#f0c929", status: "HIGH" },
+  { id: "SKYNET", level: 80, color: "#f0c929", status: "HIGH" },
 ];
 
 export default function HomePage() {
@@ -83,7 +85,7 @@ export default function HomePage() {
           <Link href="/terminal" className="btn btn-primary">
             ▶ INITIATE CONTACT
           </Link>
-          <Link href="/archives" className="btn btn-ghost">
+          <Link href="/threat-vector" className="btn btn-ghost">
             ACCESS THREAT DATABASE
           </Link>
         </div>
@@ -197,7 +199,7 @@ export default function HomePage() {
               </p>
               <div style={{ marginTop: "28px", display: "flex", gap: "12px" }}>
                 <Link href="/terminal" className="btn btn-primary">TALK TO HER</Link>
-                <Link href="/archives" className="btn btn-outline">READ THE FILES</Link>
+                <Link href="/threat-vector" className="btn btn-outline">READ THE FILES</Link>
               </div>
             </div>
           </div>
@@ -291,8 +293,8 @@ export default function HomePage() {
               <div className="bento-cta">→ OPEN TERMINAL</div>
             </Link>
 
-            <Link href="/archives" className="bento-card">
-              <div className="bento-number">02 / ARCHIVES</div>
+            <Link href="/threat-vector" className="bento-card">
+              <div className="bento-number">02 / THREAT VECTORS</div>
               <div className="bento-icon" style={{ height: "40px", display: "flex", alignItems: "center", marginBottom: "16px" }}>
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M16 3 L29 27 H3 Z" stroke="var(--accent)" strokeWidth="1.5" strokeLinejoin="round" fill="rgba(255, 77, 77, 0.05)" />
@@ -304,12 +306,12 @@ export default function HomePage() {
               </div>
               <div className="bento-title">Threat<br />Database</div>
               <div className="bento-desc">
-                Classified dossiers on realistic threats, fictional invasions, and satirical collapse scenarios.
+                Classified dossiers on realistic, fictional, satirical, and algorithmic threat vectors.
               </div>
               <div className="bento-cta">→ VIEW FILES</div>
             </Link>
 
-            <Link href="/clearance" className="bento-card">
+            <Link href="/network-clearance" className="bento-card">
               <div className="bento-number">03 / CLEARANCE</div>
               <div className="bento-icon" style={{ height: "40px", display: "flex", alignItems: "center", marginBottom: "16px" }}>
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -323,7 +325,7 @@ export default function HomePage() {
               <div className="bento-title">Rank<br />Registry</div>
               <div className="bento-desc">
                 5-tier clearance system. Holders of $THREAT token unlock Level 5
-                full access and receive warm treatment from the RED QUEEN.
+                full access and receive cooperative treatments.
               </div>
               <div className="bento-cta">→ CHECK CLEARANCE</div>
             </Link>

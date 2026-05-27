@@ -30,8 +30,8 @@ export default function NavBar() {
   const links = [
     { href: "/", label: "HUB" },
     { href: "/terminal", label: "TERMINAL" },
-    { href: "/archives", label: "ARCHIVES" },
-    { href: "/clearance", label: "CLEARANCE" },
+    { href: "/threat-vector", label: "THREAT VECTORS" },
+    { href: "/network-clearance", label: "CLEARANCE" },
     { href: "/survival-kit", label: "SURVIVAL KIT" },
   ];
 
@@ -65,8 +65,8 @@ export default function NavBar() {
             {connected && (
               <li>
                 <Link
-                  href="/profile"
-                  className={pathname === "/profile" ? "active" : ""}
+                  href="/operative"
+                  className={pathname === "/operative" ? "active" : ""}
                   style={{ color: "var(--accent)" }}
                 >
                   ◉ PROFILE
@@ -178,7 +178,7 @@ export default function NavBar() {
               {connected && (
                 <li>
                   <Link 
-                    href="/profile" 
+                    href="/operative" 
                     onClick={() => setMenuOpen(false)}
                     style={{
                       fontFamily: "var(--mono)",
@@ -190,7 +190,7 @@ export default function NavBar() {
                       display: "block",
                     }}
                   >
-                    {pathname === "/profile" ? "▶ " : ""}◉ PROFILE
+                    {pathname === "/operative" ? "▶ " : ""}◉ PROFILE
                   </Link>
                 </li>
               )}

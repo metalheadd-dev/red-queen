@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { SOUL_PROMPT } from "@/lib/soul";
 import { supabase } from "@/lib/supabase";
+import { getHashedWallet } from "@/lib/crypto";
 
 export const maxDuration = 30;
 
@@ -28,6 +29,8 @@ export async function POST(req: Request) {
       );
     }
 
+    const hashedWallet = getHashedWallet(walletAddress);
+
     const recentMessages = messages.slice(-10);
     const formattedInput = recentMessages
       .map((m: { role: string; content: string }) => `${m.role}: ${m.content}`)
@@ -52,13 +55,13 @@ export async function POST(req: Request) {
         const lastUserMsg = recentMessages[recentMessages.length - 1];
 
         await supabase.from("messages").insert([
-          { role: "user", content: lastUserMsg ? lastUserMsg.content : "", wallet_address: walletAddress || null },
-          { role: "assistant", content: outputText, wallet_address: walletAddress || null },
+          { role: "user", content: lastUserMsg ? lastUserMsg.content : "", wallet_address: hashedWallet || null },
+          { role: "assistant", content: outputText, wallet_address: hashedWallet || null },
         ]);
 
         if (walletAddress && bioScore !== null) {
           await supabase.from("users").upsert(
-            { wallet_address: walletAddress, last_bio_score: bioScore, last_interaction: new Date().toISOString() },
+            { wallet_address: hashedWallet, last_bio_score: bioScore, last_interaction: new Date().toISOString() },
             { onConflict: "wallet_address" }
           );
         }

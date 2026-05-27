@@ -1,0 +1,208 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { Connection, PublicKey } from "@solana/web3.js";
+import Link from "next/link";
+import { CATEGORIES, Threat } from "@/lib/threats";
+
+const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
+
+export default function ThreatVectorPage() {
+  const { publicKey, connected } = useWallet();
+  const { setVisible } = useWalletModal();
+  const [activeCategory, setActiveCategory] = useState("algorithmic");
+  const [threatBalance, setThreatBalance] = useState<number | null>(null);
+  const [loadingBalance, setLoadingBalance] = useState(false);
+
+  useEffect(() => {
+    async function checkBalance() {
+      if (!publicKey) {
+        setThreatBalance(null);
+        return;
+      }
+      setLoadingBalance(true);
+      try {
+        // Use a fast public RPC endpoint to fetch balance
+        const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+          mint: THREAT_MINT,
+        });
+        if (tokenAccounts.value.length === 0) {
+          setThreatBalance(0);
+        } else {
+          const balanceInfo = tokenAccounts.value[0].account.data.parsed.info.tokenAmount;
+          setThreatBalance(balanceInfo.uiAmount || 0);
+        }
+      } catch (err) {
+        console.error("Failed to query $THREAT balance:", err);
+        // Fallback to mock hold if Mainnet RPC fails
+        setThreatBalance(500); 
+      }
+      setLoadingBalance(false);
+    }
+    checkBalance();
+  }, [publicKey]);
+
+  const currentCat = CATEGORIES.find((c) => c.key === activeCategory)!;
+  const isGated = activeCategory === "realistic" || activeCategory === "fictional";
+  const hasAccess = !isGated || (connected && threatBalance !== null && threatBalance > 0);
+
+  return (
+    <div style={{ padding: "60px 0 0", minHeight: "100vh", background: "#050505" }}>
+      {/* Header */}
+      <div style={{ borderBottom: "1px solid var(--border)", padding: "48px 24px", background: "var(--surface)" }}>
+        <div className="container">
+          <div className="tag tag-red" style={{ marginBottom: "16px" }}>SECURE DATAFEED — RED QUEEN NODE 7.4</div>
+          <h1 className="glow-text" style={{ fontSize: "clamp(28px, 5vw, 48px)", marginBottom: "16px", letterSpacing: "0.05em" }}>
+            THREAT <span style={{ color: "var(--accent)" }}>VECTORS</span>
+          </h1>
+          <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "680px", lineHeight: "1.8" }}>
+            Classified central node directory of threats. Select a hardware sector below. 
+            Sector Alpha & Beta require holding <span style={{ color: "var(--accent)" }}>$THREAT</span> tokens. 
+            Sector Delta houses active diagnostic privacy modules, which require a micro-USDC computation fee via on-chain <span style={{ color: "var(--accent)" }}>x402</span> protocols.
+          </p>
+        </div>
+      </div>
+
+      {/* Category Tabs */}
+      <div style={{ borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
+        <div className="container" style={{ display: "flex", overflowX: "auto" }}>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.key}
+              onClick={() => setActiveCategory(cat.key)}
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: "11px",
+                letterSpacing: "0.12em",
+                padding: "18px 24px",
+                background: "none",
+                border: "none",
+                borderBottom: activeCategory === cat.key ? `2px solid ${cat.color}` : "2px solid transparent",
+                color: activeCategory === cat.key ? cat.color : "var(--text-dim)",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {cat.label} <span style={{ opacity: 0.5 }}>({cat.threats.length})</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Section */}
+      <div className="container" style={{ padding: "48px 24px" }}>
+        {isGated && !connected ? (
+          <div style={{
+            textAlign: "center",
+            maxWidth: "600px",
+            margin: "40px auto",
+            padding: "48px 32px",
+            border: "1px solid rgba(255, 77, 77, 0.2)",
+            background: "rgba(255, 77, 77, 0.02)",
+            borderRadius: "4px"
+          }}>
+            <div className="tag tag-red" style={{ marginBottom: "20px" }}>SECURE DECRYPTION UPLINK REQUIRED</div>
+            <h3 style={{ fontSize: "20px", marginBottom: "12px" }}>Uplink Gated</h3>
+            <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
+              To view this sector's threat files, connect your Solana wallet. The system will inspect your public key for active $THREAT token credentials.
+            </p>
+            <button className="btn btn-primary" onClick={() => setVisible(true)}>CONNECT WALLET</button>
+          </div>
+        ) : isGated && connected && threatBalance !== null && threatBalance === 0 ? (
+          <div style={{
+            textAlign: "center",
+            maxWidth: "600px",
+            margin: "40px auto",
+            padding: "48px 32px",
+            border: "1px solid rgba(240, 201, 41, 0.3)",
+            background: "rgba(240, 201, 41, 0.02)",
+            borderRadius: "4px"
+          }}>
+            <div className="tag tag-yellow" style={{ marginBottom: "20px", color: "#f0c929", borderColor: "rgba(240, 201, 41, 0.3)" }}>
+              $THREAT CLEARANCE CHECK FAILED
+            </div>
+            <h3 style={{ fontSize: "20px", marginBottom: "12px", color: "#f0c929" }}>Insufficient Clearance</h3>
+            <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
+              Your wallet holds 0 $THREAT. Level 2+ clearance is required to scan these files. Hold at least 1 $THREAT token to bypass encryption lock.
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <a
+                href="https://pump.fun/coin/3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{ background: "#f0c929", color: "#000" }}
+              >
+                BUY $THREAT ON PUMP.FUN ↗
+              </a>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+            {loadingBalance && (
+              <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", textAlign: "center" }}>
+                DECRYPTING SECURITY SIGNATURES<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+              </div>
+            )}
+            
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "24px" }}>
+              {currentCat.threats.map((threat) => (
+                <div key={threat.id} className="threat-card" style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  minHeight: "260px",
+                  borderColor: currentCat.color + "25",
+                  boxShadow: `0 8px 30px rgba(0,0,0,0.5), 0 0 15px ${currentCat.color}03`
+                }}>
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: "12px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: currentCat.color, letterSpacing: "0.15em" }}>
+                        {threat.id}
+                      </div>
+                      <div className={`tag ${threat.level > 90 ? "tag-red" : threat.level > 70 ? "tag-yellow" : "tag-green"}`} style={{ fontSize: "9px" }}>
+                        {threat.status}
+                      </div>
+                    </div>
+                    
+                    <h3 style={{ fontSize: "18px", margin: "0 0 8px", color: "var(--text)" }}>{threat.name}</h3>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "16px" }}>
+                      CLASSIFICATION: {threat.classification}
+                    </div>
+                    
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", display: "flex", gap: "8px", flexDirection: "column" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>THREAT RATE:</span>
+                        <span style={{ color: currentCat.color }}>{threat.level}%</span>
+                      </div>
+                      <div className="threat-bar-wrap" style={{ height: "4px" }}>
+                        <div className="threat-bar-fill" style={{ width: `${threat.level}%`, background: currentCat.color }} />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style={{ marginTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>
+                      ORIGIN: {threat.origin}
+                    </span>
+                    <Link href={`/threat-vector/${threat.id}`} className="btn btn-ghost" style={{
+                      fontSize: "10px",
+                      padding: "6px 14px",
+                      borderColor: currentCat.color + "50",
+                      color: currentCat.color
+                    }}>
+                      DECRYPT DOSSIER →
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1097,3 +1097,33 @@ h1, h2, h3, h4, h5 {
   }
 }
 
+/* ── CRT Display & Color Hardening ── */
+:root {
+  --bg: #050505 !important;
+  --surface: #0a0a0a !important;
+  --panel: #0d0d0d !important;
+  --accent: #ff0033 !important;
+  --accent-dim: #cc0029 !important;
+  --accent-glow: rgba(255, 0, 51, 0.15) !important;
+  --border-red: rgba(255, 0, 51, 0.35) !important;
+}
+
+pre, code, .mono, .chat-input, .redacted-text, .navbar-logo-text, .glow-text, .bento-number, .bento-cta {
+  text-shadow: 0 0 4px rgba(255, 0, 51, 0.7) !important;
+}
+
+.page-bg::before {
+  background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.28) 50%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 51, 0.08),
+      rgba(0, 255, 51, 0.02),
+      rgba(0, 0, 255, 0.08)
+    ) !important;
+  background-size: 100% 3px, 4px 100% !important;
+}
+
+

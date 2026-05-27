@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { getHashedWallet } from "@/lib/crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -8,11 +9,13 @@ export async function GET(req: Request) {
   if (!wallet) return Response.json({ error: "wallet required" }, { status: 400 });
   if (!supabase) return Response.json({ error: "DB not configured" }, { status: 500 });
 
+  const hashedWallet = getHashedWallet(wallet);
+
   try {
     const { data, error } = await supabase
       .from("messages")
       .select("role, content, created_at")
-      .eq("wallet_address", wallet)
+      .eq("wallet_address", hashedWallet)
       .order("created_at", { ascending: true });
 
     if (error) {
