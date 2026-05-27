@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SolvivalIcon from "./SolvivalIcon";
@@ -13,6 +14,7 @@ const WalletMultiButton = dynamic(
 export default function NavBar() {
   const pathname = usePathname();
   const { connected } = useWallet();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const links = [
     { href: "/", label: "HUB" },
@@ -22,54 +24,195 @@ export default function NavBar() {
     { href: "/survival-kit", label: "SURVIVAL KIT" },
   ];
 
+  const legalLinks = [
+    { href: "/license", label: "LICENSE" },
+    { href: "/copyright", label: "COPYRIGHT" },
+    { href: "/privacy", label: "PRIVACY POLICY" },
+    { href: "/terms", label: "TERMS OF SERVICE" },
+  ];
+
   return (
-    <nav className="navbar">
-      <div className="navbar-inner">
-        <Link href="/" className="navbar-logo">
-          <div className="navbar-logo-icon">
-            <SolvivalIcon size={30} />
-          </div>
-          <span className="navbar-logo-text">SOLVIVAL CORP</span>
-        </Link>
+    <>
+      <nav className="navbar">
+        <div className="navbar-inner">
+          <Link href="/" className="navbar-logo" onClick={() => setMenuOpen(false)}>
+            <div className="navbar-logo-icon">
+              <SolvivalIcon size={30} />
+            </div>
+            <span className="navbar-logo-text">SOLVIVAL CORP</span>
+          </Link>
 
-        <ul className="navbar-nav">
-          {links.map((l) => (
-            <li key={l.href}>
-              <Link href={l.href} className={pathname === l.href ? "active" : ""}>
-                {l.label}
-              </Link>
-            </li>
-          ))}
-          {connected && (
-            <li>
-              <Link
-                href="/profile"
-                className={pathname === "/profile" ? "active" : ""}
-                style={{ color: "var(--accent)" }}
-              >
-                ◉ PROFILE
-              </Link>
-            </li>
-          )}
-        </ul>
+          {/* Desktop Links */}
+          <ul className="navbar-nav desktop-only">
+            {links.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className={pathname === l.href ? "active" : ""}>
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+            {connected && (
+              <li>
+                <Link
+                  href="/profile"
+                  className={pathname === "/profile" ? "active" : ""}
+                  style={{ color: "var(--accent)" }}
+                >
+                  ◉ PROFILE
+                </Link>
+              </li>
+            )}
+          </ul>
 
-        <div className="navbar-status" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span className="status-dot" />
-            RED QUEEN ONLINE
+          <div className="navbar-status desktop-only" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span className="status-dot" />
+              RED QUEEN ONLINE
+            </div>
+            <WalletMultiButton style={{
+              background: "transparent",
+              border: "1px solid var(--accent)",
+              color: "var(--accent)",
+              fontFamily: "var(--mono)",
+              fontSize: "12px",
+              padding: "5px 15px",
+              height: "auto",
+              lineHeight: "1.5",
+            }} />
           </div>
-          <WalletMultiButton style={{
-            background: "transparent",
-            border: "1px solid var(--accent)",
-            color: "var(--accent)",
-            fontFamily: "var(--mono)",
-            fontSize: "12px",
-            padding: "5px 15px",
-            height: "auto",
-            lineHeight: "1.5",
-          }} />
+
+          {/* Mobile Menu Hamburger Button */}
+          <button 
+            className="mobile-menu-toggle"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle Menu"
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--accent)",
+              cursor: "pointer",
+              display: "none",
+              flexDirection: "column",
+              gap: "6px",
+              padding: "8px",
+              zIndex: 200,
+            }}
+          >
+            <span style={{ width: "24px", height: "2px", backgroundColor: "var(--accent)", transition: "all 0.3s", transform: menuOpen ? "rotate(45deg) translate(5px, 6px)" : "none" }} />
+            <span style={{ width: "24px", height: "2px", backgroundColor: "var(--accent)", transition: "all 0.3s", opacity: menuOpen ? 0 : 1 }} />
+            <span style={{ width: "24px", height: "2px", backgroundColor: "var(--accent)", transition: "all 0.3s", transform: menuOpen ? "rotate(-45deg) translate(5px, -6px)" : "none" }} />
+          </button>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Mobile Drawer Overlay */}
+      {menuOpen && (
+        <div className="mobile-drawer" style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(5, 5, 5, 0.98)",
+          zIndex: 150,
+          padding: "100px 24px 40px",
+          display: "flex",
+          flexDirection: "column",
+          overflowY: "auto",
+          backdropFilter: "blur(20px)",
+          borderBottom: "1px solid var(--border)",
+        }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px", flex: 1 }}>
+            <div style={{ borderBottom: "1px solid var(--border)", paddingBottom: "16px" }}>
+              <span className="tag tag-red">OPERATIVE NAV UPLINK</span>
+            </div>
+            
+            {/* Nav Links */}
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "16px" }}>
+              {links.map((l) => (
+                <li key={l.href}>
+                  <Link 
+                    href={l.href} 
+                    onClick={() => setMenuOpen(false)}
+                    style={{
+                      fontFamily: "var(--mono)",
+                      fontSize: "18px",
+                      fontWeight: 700,
+                      color: pathname === l.href ? "var(--accent)" : "var(--text)",
+                      textDecoration: "none",
+                      letterSpacing: "0.1em",
+                      display: "block",
+                    }}
+                  >
+                    {pathname === l.href ? "▶ " : ""}{l.label}
+                  </Link>
+                </li>
+              ))}
+              {connected && (
+                <li>
+                  <Link 
+                    href="/profile" 
+                    onClick={() => setMenuOpen(false)}
+                    style={{
+                      fontFamily: "var(--mono)",
+                      fontSize: "18px",
+                      fontWeight: 700,
+                      color: "var(--accent)",
+                      textDecoration: "none",
+                      letterSpacing: "0.1em",
+                      display: "block",
+                    }}
+                  >
+                    {pathname === "/profile" ? "▶ " : ""}◉ PROFILE
+                  </Link>
+                </li>
+              )}
+            </ul>
+
+            <div style={{ borderBottom: "1px solid var(--border)", margin: "16px 0" }} />
+
+            {/* Legal Links */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.2em" }}>CLASSIFIED PROTOCOLS</span>
+              {legalLinks.map((l) => (
+                <Link 
+                  key={l.href} 
+                  href={l.href}
+                  onClick={() => setMenuOpen(false)}
+                  style={{
+                    fontFamily: "var(--mono)",
+                    fontSize: "13px",
+                    color: "var(--text-muted)",
+                    textDecoration: "none",
+                    letterSpacing: "0.08em",
+                    display: "block",
+                  }}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer of Mobile Drawer */}
+          <div style={{ marginTop: "40px", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <WalletMultiButton style={{
+              width: "100%",
+              justifyContent: "center",
+              background: "var(--accent)",
+              border: "none",
+              color: "#000",
+              fontFamily: "var(--mono)",
+              fontSize: "13px",
+              padding: "12px",
+              height: "auto",
+              lineHeight: "1.5",
+              fontWeight: "bold",
+            }} />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>
+              <span className="status-dot" />
+              RED QUEEN CONNECTION SECURED
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
