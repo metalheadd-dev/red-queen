@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { generateApocalypticName } from "@/lib/names";
@@ -70,8 +71,18 @@ type Profile = {
 };
 
 export default function ProfilePage() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, wallet: walletObj, disconnect } = useWallet();
+  const { setVisible } = useWalletModal();
   const wallet = publicKey?.toString() ?? null;
+
+  const handleChangeWallet = async () => {
+    try {
+      await disconnect();
+      setVisible(true);
+    } catch (err) {
+      console.error("Failed to change wallet:", err);
+    }
+  };
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(false);
@@ -190,18 +201,36 @@ export default function ProfilePage() {
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "32px" }}>
             The RED QUEEN cannot assess an anonymous subject. Connect your Phantom wallet to receive your classified operative designation and build your survival profile.
           </p>
-          <WalletMultiButton style={{
-            background: "var(--accent)",
-            border: "none",
-            color: "#000",
-            fontFamily: "var(--mono)",
-            fontSize: "13px",
-            padding: "12px 28px",
-            height: "auto",
-            lineHeight: "1.5",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", justifyContent: "center" }}>
+            <WalletMultiButton style={{
+              background: "var(--accent)",
+              border: "none",
+              color: "#000",
+              fontFamily: "var(--mono)",
+              fontSize: "13px",
+              padding: "12px 28px",
+              height: "auto",
+              lineHeight: "1.5",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }} />
+            {walletObj && !connected && (
+              <button 
+                onClick={handleChangeWallet}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-dim)",
+                  textDecoration: "underline",
+                  fontSize: "11px",
+                  cursor: "pointer",
+                  fontFamily: "var(--mono)",
+                }}
+              >
+                [CHANGE WALLET]
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );

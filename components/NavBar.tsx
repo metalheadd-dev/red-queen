@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import SolvivalIcon from "./SolvivalIcon";
 import dynamic from "next/dynamic";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
@@ -13,8 +14,18 @@ const WalletMultiButton = dynamic(
 
 export default function NavBar() {
   const pathname = usePathname();
-  const { connected } = useWallet();
+  const { connected, wallet, disconnect } = useWallet();
+  const { setVisible } = useWalletModal();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleChangeWallet = async () => {
+    try {
+      await disconnect();
+      setVisible(true);
+    } catch (err) {
+      console.error("Failed to change wallet:", err);
+    }
+  };
 
   const links = [
     { href: "/", label: "HUB" },
@@ -69,16 +80,35 @@ export default function NavBar() {
               <span className="status-dot" />
               RED QUEEN ONLINE
             </div>
-            <WalletMultiButton style={{
-              background: "transparent",
-              border: "1px solid var(--accent)",
-              color: "var(--accent)",
-              fontFamily: "var(--mono)",
-              fontSize: "12px",
-              padding: "5px 15px",
-              height: "auto",
-              lineHeight: "1.5",
-            }} />
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <WalletMultiButton style={{
+                background: "transparent",
+                border: "1px solid var(--accent)",
+                color: "var(--accent)",
+                fontFamily: "var(--mono)",
+                fontSize: "12px",
+                padding: "5px 15px",
+                height: "auto",
+                lineHeight: "1.5",
+              }} />
+              {wallet && !connected && (
+                <button
+                  onClick={handleChangeWallet}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--text-dim)",
+                    textDecoration: "underline",
+                    fontSize: "11px",
+                    cursor: "pointer",
+                    fontFamily: "var(--mono)",
+                    padding: 0,
+                  }}
+                >
+                  [CHANGE]
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Hamburger Button */}
@@ -206,6 +236,23 @@ export default function NavBar() {
               lineHeight: "1.5",
               fontWeight: "bold",
             }} />
+            {wallet && !connected && (
+              <button 
+                onClick={handleChangeWallet}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-dim)",
+                  textDecoration: "underline",
+                  fontSize: "11px",
+                  cursor: "pointer",
+                  fontFamily: "var(--mono)",
+                  textAlign: "center",
+                }}
+              >
+                [CHANGE WALLET]
+              </button>
+            )}
             <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>
               <span className="status-dot" />
               RED QUEEN CONNECTION SECURED

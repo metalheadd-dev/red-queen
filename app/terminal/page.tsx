@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import SolvivalIcon from "@/components/SolvivalIcon";
 import dynamic from "next/dynamic";
 import { generateApocalypticName } from "@/lib/names";
@@ -58,8 +59,18 @@ I monitor unlimited active extinction scenarios simultaneously. I have assessed 
 [WARN_0x4F] Every second of inaction reduces your survival probability.`;
 
 export default function TerminalPage() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, wallet, disconnect } = useWallet();
+  const { setVisible } = useWalletModal();
   const walletAddress = publicKey ? publicKey.toString() : null;
+
+  const handleChangeWallet = async () => {
+    try {
+      await disconnect();
+      setVisible(true);
+    } catch (err) {
+      console.error("Failed to change wallet:", err);
+    }
+  };
 
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: INTRO_MESSAGE, bioScore: "PENDING" },
@@ -244,7 +255,7 @@ export default function TerminalPage() {
             Connect your Solana wallet to establish a secure neural link and begin survival assessment.
           </p>
 
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", justifyContent: "center" }}>
             <WalletMultiButton style={{
               background: "var(--accent)",
               border: "none",
@@ -258,6 +269,22 @@ export default function TerminalPage() {
               cursor: "pointer",
               borderRadius: "2px",
             }} />
+            {wallet && !connected && (
+              <button 
+                onClick={handleChangeWallet}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-dim)",
+                  textDecoration: "underline",
+                  fontSize: "11px",
+                  cursor: "pointer",
+                  fontFamily: "var(--mono)",
+                }}
+              >
+                [CHANGE WALLET]
+              </button>
+            )}
           </div>
         </div>
       </div>
