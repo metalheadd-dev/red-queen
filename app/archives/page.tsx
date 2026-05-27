@@ -187,7 +187,7 @@ export default function ArchivesPage() {
 
               {/* Card body */}
               <div className="threat-card-body">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+                <div className="responsive-grid-2" style={{ display: "grid" }}>
                   <div>
                     <div style={{ fontFamily: "var(--mono)", fontSize: "10px", letterSpacing: "0.2em", color: "var(--text-dim)", marginBottom: "12px" }}>
                       REPORTED SYMPTOMS / INDICATORS

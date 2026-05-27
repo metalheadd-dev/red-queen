@@ -78,7 +78,7 @@ export default function ClearancePage() {
             <span className="section-line" />
           </div>
 
-          <div className="bento-grid bento-3" style={{ gridTemplateColumns: "repeat(3,1fr)", gap: "12px" }}>
+          <div className="bento-grid bento-3" style={{ gap: "12px" }}>
             {[
               { step: "01", title: "Acquire $THREAT", desc: "Purchase $THREAT tokens on Solana via pump.fun. The more you hold, the higher your clearance." },
               { step: "02", title: "Access Terminal", desc: "Open the RED QUEEN Terminal and state your wallet address or token holdings to claim your rank." },

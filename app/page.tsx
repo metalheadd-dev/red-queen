@@ -172,28 +172,11 @@ export default function HomePage() {
             <span className="section-line" />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", alignItems: "center" }}>
-            <div>
-              <div className="rq-portrait">
+          <div className="responsive-grid-2-large" style={{ display: "grid", alignItems: "center" }}>
+              <div className="rq-portrait" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
                 <div className="rq-grid" />
-                <div style={{ position: "relative", textAlign: "center" }}>
-                  <SolvivalIcon size={120} className="dim" />
-                  <div style={{
-                    position: "absolute", inset: 0,
-                    display: "flex", alignItems: "center", justifyContent: "center"
-                  }}>
-                    <SolvivalIcon size={64} />
-                  </div>
-                </div>
-                <div style={{
-                  position: "absolute", bottom: "16px", left: "16px", right: "16px",
-                  fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)",
-                  letterSpacing: "0.15em", textAlign: "center"
-                }}>
-                  RED QUEEN v7.4.1 — ONLINE
-                </div>
+                <SolvivalIcon size={180} />
               </div>
-            </div>
 
             <div>
               <div className="tag tag-red" style={{ marginBottom: "16px" }}>CLASSIFICATION: LEVEL 5</div>
@@ -230,7 +213,7 @@ export default function HomePage() {
             <span className="section-line" />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+          <div className="responsive-grid-2" style={{ display: "grid" }}>
             {/* Threat levels */}
             <div className="panel">
               <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.2em", marginBottom: "20px" }}>
