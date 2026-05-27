@@ -29,3 +29,11 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# mobile build and signing keys
+*.keystore
+*.apk
+*.aab
+.gradle/
+build/
+local.properties
