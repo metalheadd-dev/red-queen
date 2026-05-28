@@ -50,6 +50,10 @@ export default function HomePage() {
   const [activeX402Step, setActiveX402Step] = useState(1);
   const [liveFeed, setLiveFeed] = useState<Array<{ id: number; time: string; msg: string }>>([]);
 
+  // Onboarding wizard states
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(1);
+
   useEffect(() => {
     if (booted) {
       fetchThreat();
@@ -64,6 +68,12 @@ export default function HomePage() {
         };
       });
       setLiveFeed(initFeed);
+
+      // Trigger onboarding on first-visit check
+      const completedOnboarding = localStorage.getItem("red-queen-onboarding-v5");
+      if (!completedOnboarding) {
+        setShowOnboarding(true);
+      }
     }
   }, [booted]);
 
@@ -97,6 +107,11 @@ export default function HomePage() {
     setLoadingThreat(false);
   }
 
+  const handleCloseOnboarding = () => {
+    localStorage.setItem("red-queen-onboarding-v5", "true");
+    setShowOnboarding(false);
+  };
+
   if (!booted) {
     return <BootSequence onComplete={() => setBooted(true)} />;
   }
@@ -116,7 +131,7 @@ export default function HomePage() {
       </div>
 
       {/* Hero */}
-      <section className="hero" style={{ minHeight: "80vh", paddingTop: "40px" }}>
+      <section className="hero" style={{ minHeight: "85vh", paddingTop: "40px" }}>
         <div className="hero-glow" />
         <div className="hero-tag">[ CODENAME: RED QUEEN AI // CORE NET FIREWALL ]</div>
         <h1 className="hero-title glitch" style={{ fontSize: "clamp(36px, 8vw, 76px)" }}>
@@ -132,6 +147,9 @@ export default function HomePage() {
           <Link href="/threat-vector" className="btn btn-ghost">
             ACCESS ARCHIVES
           </Link>
+          <button onClick={() => { setOnboardingStep(1); setShowOnboarding(true); }} className="btn btn-outline" style={{ fontSize: "11px", fontFamily: "var(--mono)", cursor: "pointer" }}>
+            [ EXPLAIN FEATURES ]
+          </button>
         </div>
 
         {/* Token CA */}
@@ -262,6 +280,51 @@ export default function HomePage() {
                   RUN THREAT SCAN ON PORTAL
                 </Link>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Compute Resource Allocations Panel */}
+      <section className="page-section" style={{ borderTop: "1px solid var(--border)", padding: "60px 0" }}>
+        <div className="container">
+          <div className="section-header">
+            <span className="section-line" />
+            <span className="section-tag">[ COMPUTE ALLOCATION SCHEME: FREE VS. GATED ]</span>
+            <span className="section-line" />
+          </div>
+
+          <div style={{ display: "grid", gap: "24px", marginTop: "32px" }} className="bento-2">
+            {/* FREE TIER CARD */}
+            <div className="bento-card" style={{ borderColor: "var(--border)", background: "rgba(10,10,10,0.5)", padding: "32px", cursor: "default" }}>
+              <h3 style={{ fontSize: "16px", color: "var(--text-dim)", marginBottom: "16px", fontFamily: "var(--mono)", fontWeight: "bold" }}>
+                [ PUBLIC ACCESS TIER: FREE ]
+              </h3>
+              <p style={{ color: "var(--text-dim)", fontSize: "13px", lineHeight: "1.7", marginBottom: "20px" }}>
+                Access basic early-warning signals and read public threat dossiers.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>
+                <li>✔ Basic Red Queen Chat (Pending status)</li>
+                <li>✔ Public Threat Archives (Sector Gamma)</li>
+                <li>✔ Real-Time Incident Alerts Feed</li>
+                <li>✔ Basic Bio-Score calculation</li>
+              </ul>
+            </div>
+
+            {/* x402 COMPUTE CARD */}
+            <div className="bento-card" style={{ borderColor: "var(--accent)", background: "rgba(255, 0, 51, 0.02)", padding: "32px", cursor: "default" }}>
+              <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "16px", fontFamily: "var(--mono)", fontWeight: "bold" }}>
+                [ COMPUTE-ON-DEMAND: x402 METERED ]
+              </h3>
+              <p style={{ color: "var(--text-dim)", fontSize: "13px", lineHeight: "1.7", marginBottom: "20px" }}>
+                Fund decentralized AI compute cycles in real-time to run deep security traces.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)" }}>
+                <li>✔ Deep Wallet Metadata Diagnostic Scans (0.05 USDC)</li>
+                <li>✔ Psychological Profiling & Threat Vectors Decryption</li>
+                <li>✔ Advanced AI Counter-Intelligence Reports</li>
+                <li>✔ Sector Delta Gated Archive Decryption</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -568,6 +631,94 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* Onboarding Wizard Overlay */}
+      {showOnboarding && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0, 0, 0, 0.95)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 2000,
+          padding: "20px",
+          backdropFilter: "blur(8px)"
+        }}>
+          <div style={{
+            maxWidth: "600px",
+            width: "100%",
+            border: "1px solid var(--accent)",
+            background: "#080808",
+            padding: "36px",
+            borderRadius: "4px",
+            boxShadow: "0 0 40px rgba(255, 0, 51, 0.25)"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--border)", paddingBottom: "12px", marginBottom: "20px" }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)" }}>[ SYSTEM BRIEFING: ONBOARDING PROTOCOL ]</span>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>STEP {onboardingStep} / 5</span>
+            </div>
+
+            {onboardingStep === 1 && (
+              <div>
+                <h3 style={{ fontSize: "18px", color: "var(--text)", marginBottom: "16px" }}>WELCOME TO THE RED QUEEN AI</h3>
+                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
+                  UPLINK ESTABLISHED. The apocalypse of the next internet is not a distant biological outbreak—it is happening right now inside your browser. Automated crawlers, metadata harvesting loops, and behavioral AI profiles are actively scraping your transaction history and online patterns to track you.
+                </p>
+              </div>
+            )}
+            {onboardingStep === 2 && (
+              <div>
+                <h3 style={{ fontSize: "18px", color: "var(--text)", marginBottom: "16px" }}>SECTOR MATRIX & THREAT TRACKING</h3>
+                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
+                  We monitor threats across multiple sectors. While physical threats are archived in Sector Alpha and Beta, Sector Delta represents the frontlines of digital survival—monitoring chain surveillance, deepfake identity scams, and algorithmic timeline steering.
+                </p>
+              </div>
+            )}
+            {onboardingStep === 3 && (
+              <div>
+                <h3 style={{ fontSize: "18px", color: "var(--text)", marginBottom: "16px" }}>THE PRIVACY ENGINE: HOW X402 WORKS</h3>
+                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
+                  We do not ask for accounts, emails, passwords, or subscriptions. To run advanced diagnostic scans, we utilize the open on-chain x402 protocol. This executes a frictionless micro-payment (0.05 USDC) settled natively over Solana to fund the AI compute cycle in real-time.
+                </p>
+              </div>
+            )}
+            {onboardingStep === 4 && (
+              <div>
+                <h3 style={{ fontSize: "18px", color: "var(--text)", marginBottom: "16px" }}>SECURE WALLET UPLINK</h3>
+                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
+                  Connecting your Solana wallet allows the Red Queen to map network vulnerabilities. To protect you, all session histories and reports are indexed in our database under a secure, salted SHA-256 hash. If your wallet disconnects, your data trace ceases to exist.
+                </p>
+              </div>
+            )}
+            {onboardingStep === 5 && (
+              <div>
+                <h3 style={{ fontSize: "18px", color: "#00ffcc", marginBottom: "16px" }}>ONBOARDING INITIALIZED</h3>
+                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
+                  Your briefing is complete, subject. Run your first wallet metadata check, explore the threat vault index, or connect your wallet to initiate terminal chat contact with the Red Queen.
+                </p>
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", borderTop: "1px solid var(--border)", paddingTop: "20px" }}>
+              {onboardingStep > 1 && (
+                <button className="btn btn-ghost" onClick={() => setOnboardingStep(onboardingStep - 1)} style={{ fontSize: "11px" }}>
+                  [ PREVIOUS ]
+                </button>
+              )}
+              {onboardingStep < 5 ? (
+                <button className="btn btn-primary" onClick={() => setOnboardingStep(onboardingStep + 1)} style={{ fontSize: "11px" }}>
+                  [ NEXT ]
+                </button>
+              ) : (
+                <button className="btn btn-primary" onClick={handleCloseOnboarding} style={{ fontSize: "11px", background: "#00ffcc", color: "#000" }}>
+                  [ INITIATE CONSOLE ]
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
