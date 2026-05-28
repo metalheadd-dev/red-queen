@@ -82,12 +82,124 @@ export default function TerminalPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [limitBlocked, setLimitBlocked] = useState(false);
+  const [shareModalData, setShareModalData] = useState<{ content: string; bioScore?: string } | null>(null);
+  const [shareImageSrc, setShareImageSrc] = useState<string>("");
+  const [copySuccess, setCopySuccess] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     if (connected) {
       setLimitBlocked(false);
     }
   }, [connected]);
+
+  useEffect(() => {
+    if (!shareModalData || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Draw parameters
+    const w = 600;
+    const h = 400;
+    canvas.width = w;
+    canvas.height = h;
+
+    // 1. Background
+    ctx.fillStyle = "#050505";
+    ctx.fillRect(0, 0, w, h);
+
+    // 2. Neon Red Border
+    ctx.strokeStyle = "#ff0033";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(4, 4, w - 8, h - 8);
+
+    // Sub-border
+    ctx.strokeStyle = "rgba(255, 0, 51, 0.2)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(10, 10, w - 20, h - 20);
+
+    // 3. Scanline grid background
+    ctx.fillStyle = "rgba(255, 0, 51, 0.02)";
+    for (let y = 12; y < h - 12; y += 4) {
+      ctx.fillRect(12, y, w - 24, 2);
+    }
+
+    // 4. Header Bar
+    ctx.fillStyle = "rgba(255, 77, 77, 0.08)";
+    ctx.fillRect(12, 12, w - 24, 40);
+    ctx.strokeStyle = "rgba(255, 77, 77, 0.2)";
+    ctx.beginPath();
+    ctx.moveTo(12, 52);
+    ctx.lineTo(w - 12, 52);
+    ctx.stroke();
+
+    // Header Text
+    ctx.fillStyle = "#ff0033";
+    ctx.font = "bold 11px monospace";
+    ctx.textBaseline = "middle";
+    ctx.fillText("◉ RED QUEEN CYBERNETIC PROTOCOL NODE 7.4.1", 24, 32);
+
+    // 5. Bio-score panel in top right
+    const score = shareModalData.bioScore || currentScore || "PENDING";
+    ctx.fillStyle = score === "PENDING" ? "#f0c929" : parseInt(score) < 20 ? "#ff4d4d" : parseInt(score) < 60 ? "#f0c929" : "#2ecc40";
+    ctx.font = "bold 12px monospace";
+    ctx.fillText(`BIO-SCORE: ${score}%`, w - 170, 32);
+
+    // 6. Apocalyptic Name
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+    ctx.font = "12px monospace";
+    ctx.fillText(`OPERATIVE: ${apocalypticName || "SUBJECT"}`, 24, 80);
+
+    // 7. Message Body Text
+    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+    ctx.font = "11px monospace";
+    
+    // Wrap text function
+    const text = shareModalData.content;
+    const cleanText = text.replace(/\[BIO-SCORE:\s*\d+%?\]/i, "").replace(/\[SYSTEM NOTICE:.*?\]/g, "").trim();
+    
+    const paragraphs = cleanText.split("\n");
+    const lines: string[] = [];
+    const maxWidth = w - 48;
+    const lineHeight = 18;
+
+    paragraphs.forEach((para) => {
+      if (!para.trim()) {
+        lines.push("");
+        return;
+      }
+      const words = para.split(" ");
+      let line = "";
+      for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + " ";
+        let metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          lines.push(line.trim());
+          line = words[n] + " ";
+        } else {
+          line = testLine;
+        }
+      }
+      lines.push(line.trim());
+    });
+
+    // Render up to 13 lines of text
+    const startY = 110;
+    for (let i = 0; i < Math.min(lines.length, 13); i++) {
+      ctx.fillText(lines[i], 24, startY + i * lineHeight);
+    }
+
+    // 8. Footer
+    ctx.fillStyle = "rgba(255, 77, 77, 0.4)";
+    ctx.font = "9px monospace";
+    ctx.fillText("RETRANSMISSION SECURITY PROTOCOL ACTIVATED // UPLINK SECURED", 24, h - 30);
+    ctx.fillStyle = "#ff0033";
+    ctx.fillText("@redqueen_agent", w - 120, h - 30);
+
+    // Save as image URL
+    setShareImageSrc(canvas.toDataURL("image/png"));
+  }, [shareModalData, apocalypticName, currentScore]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -361,9 +473,30 @@ To initiate x402 metered diagnostics:
                   <div className="message-bubble">
                     {renderContent(msg.content)}
                   </div>
-                  {msg.bioScore && msg.bioScore !== "PENDING" && (
-                    <div className="bio-score" style={{ color: scoreColor }}>
-                      ▶ BIO-SCORE UPDATED: {msg.bioScore}%
+                  {msg.role === "assistant" && (
+                    <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "8px", flexWrap: "wrap" }}>
+                      {msg.bioScore && msg.bioScore !== "PENDING" && (
+                        <div className="bio-score" style={{ color: scoreColor, marginTop: 0 }}>
+                          ▶ BIO-SCORE UPDATED: {msg.bioScore}%
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setShareModalData({ content: msg.content, bioScore: msg.bioScore })}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--accent)",
+                          fontFamily: "var(--mono)",
+                          fontSize: "10px",
+                          cursor: "pointer",
+                          padding: "0",
+                          letterSpacing: "0.1em",
+                          textDecoration: "underline",
+                          display: "inline-block"
+                        }}
+                      >
+                        [ SHARE DOSSIER ]
+                      </button>
                     </div>
                   )}
                 </div>
@@ -558,6 +691,145 @@ To initiate x402 metered diagnostics:
           </div>
 
         </aside>
+
+        {/* Hidden Canvas for Generation */}
+        <canvas ref={canvasRef} style={{ display: "none" }} />
+
+        {/* Share Dossier Modal Overlay */}
+        {shareModalData && (
+          <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.85)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "20px"
+          }}>
+            <div style={{
+              background: "#050505",
+              border: "2px solid var(--accent)",
+              width: "100%",
+              maxWidth: "640px",
+              padding: "24px",
+              boxShadow: "0 0 30px rgba(255, 0, 51, 0.3)",
+              position: "relative"
+            }}>
+              <h2 className="glow-text" style={{
+                fontFamily: "var(--mono)",
+                fontSize: "18px",
+                margin: "0 0 16px",
+                color: "var(--accent)",
+                borderBottom: "1px solid rgba(255, 77, 77, 0.2)",
+                paddingBottom: "10px"
+              }}>
+                [ TRANSMISSION SHARE PROTOCOL ]
+              </h2>
+
+              {shareImageSrc ? (
+                <div style={{ textAlign: "center", marginBottom: "20px" }}>
+                  <img
+                    src={shareImageSrc}
+                    alt="Dossier Preview"
+                    style={{
+                      maxWidth: "100%",
+                      height: "auto",
+                      border: "1px solid var(--border)",
+                      boxShadow: "0 0 15px rgba(0,0,0,0.5)"
+                    }}
+                  />
+                </div>
+              ) : (
+                <div style={{
+                  height: "200px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "var(--text-dim)",
+                  fontFamily: "var(--mono)"
+                }}>
+                  GENERATING DOSSIER IMAGE...
+                </div>
+              )}
+
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "12px",
+                flexWrap: "wrap"
+              }}>
+                <div style={{ display: "flex", gap: "12px" }}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(shareImageSrc);
+                        const blob = await response.blob();
+                        await navigator.clipboard.write([
+                          new ClipboardItem({ "image/png": blob })
+                        ]);
+                        setCopySuccess(true);
+                        setTimeout(() => setCopySuccess(false), 2000);
+                      } catch (err) {
+                        console.error("Clipboard copy failed:", err);
+                      }
+                    }}
+                    style={{ minWidth: "120px" }}
+                  >
+                    {copySuccess ? "✓ COPIED" : "COPY IMAGE"}
+                  </button>
+
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                      "Intercepted transmission from the RED QUEEN. Digital survival status evaluated. ◉ @redqueen_agent"
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn"
+                    style={{
+                      background: "#1d9bf0",
+                      border: "none",
+                      color: "#fff",
+                      textDecoration: "none",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "8px 16px",
+                      fontFamily: "var(--mono)",
+                      fontSize: "11px",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                      borderRadius: "2px"
+                    }}
+                  >
+                    SHARE TO X
+                  </a>
+                </div>
+
+                <button
+                  onClick={() => setShareModalData(null)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-dim)",
+                    fontFamily: "var(--mono)",
+                    fontSize: "11px",
+                    cursor: "pointer",
+                    textDecoration: "underline"
+                  }}
+                >
+                  [ CLOSE ]
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
