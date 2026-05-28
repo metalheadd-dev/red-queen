@@ -113,17 +113,38 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
         });
 
         if (res.status === 402) {
-          const reqAmount = res.headers.get("PAYMENT-REQUIRED-AMOUNT") || "0.05";
-          const reqRecipient = res.headers.get("PAYMENT-REQUIRED-RECIPIENT") || "RedQnBv2pTwtE4x3o5dM4rQ1tBvM2bTwtE4x3o5dM4r";
-          const reqToken = res.headers.get("PAYMENT-REQUIRED-TOKEN") || "USDC";
-          const reqNetwork = res.headers.get("PAYMENT-REQUIRED-NETWORK") || "solana-mainnet";
+          const challengeBase64 = res.headers.get("PAYMENT-REQUIRED");
+          if (challengeBase64) {
+            try {
+              const decoded = JSON.parse(atob(challengeBase64));
+              setPaymentMeta({
+                amount: parseFloat(decoded.amount),
+                recipient: decoded.recipient,
+                token: decoded.token,
+                network: decoded.network
+              });
+            } catch (err) {
+              console.error("Failed to decode challenge Base64:", err);
+              setPaymentMeta({
+                amount: 0.05,
+                recipient: "RedQnBv2pTwtE4x3o5dM4rQ1tBvM2bTwtE4x3o5dM4r",
+                token: "USDC",
+                network: "solana-devnet"
+              });
+            }
+          } else {
+            const reqAmount = res.headers.get("PAYMENT-REQUIRED-AMOUNT") || "0.05";
+            const reqRecipient = res.headers.get("PAYMENT-REQUIRED-RECIPIENT") || "RedQnBv2pTwtE4x3o5dM4rQ1tBvM2bTwtE4x3o5dM4r";
+            const reqToken = res.headers.get("PAYMENT-REQUIRED-TOKEN") || "USDC";
+            const reqNetwork = res.headers.get("PAYMENT-REQUIRED-NETWORK") || "solana-mainnet";
 
-          setPaymentMeta({
-            amount: parseFloat(reqAmount),
-            recipient: reqRecipient,
-            token: reqToken,
-            network: reqNetwork
-          });
+            setPaymentMeta({
+              amount: parseFloat(reqAmount),
+              recipient: reqRecipient,
+              token: reqToken,
+              network: reqNetwork
+            });
+          }
           setShowModal(true);
         } else if (res.ok) {
           const data = await res.json();
@@ -317,6 +338,31 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                     </div>
                   )}
                 </div>
+              ) : isSectorDelta ? (
+                <div
+                  className="redacted-viewport-locked"
+                  onClick={handleDecryptClick}
+                  style={{ animation: glitching ? "glitch 0.6s ease" : "none", cursor: "pointer", minHeight: "180px" }}
+                >
+                  {/* Glowing horizontal blockouts */}
+                  <div className="redacted-blockout-line" style={{ width: "70%" }}></div>
+                  <div className="redacted-blockout-line" style={{ width: "85%" }}></div>
+                  <div className="redacted-blockout-line" style={{ width: "45%" }}></div>
+                  <div className="redacted-blockout-line" style={{ width: "90%" }}></div>
+                  
+                  {/* Flickering overlay prompt */}
+                  <div className="redacted-overlay-prompt">
+                    <div className="redacted-flicker-text">
+                      [COMPUTE GATE ENCRYPTED // REQUIRE X402 HANDSHAKE TO MAP METADATA]
+                    </div>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginTop: "12px", letterSpacing: "0.15em" }}>
+                      {loading ? "CHECKING CLEARANCE..." : "CLICK TO TRIGGER METADATA ANALYSIS — REQUIRES x402 PAYMENT (0.05 USDC)"}
+                    </div>
+                    <button className="btn btn-ghost" disabled={loading} style={{ fontSize: "11px", padding: "8px 20px", marginTop: "12px" }}>
+                      {loading ? "CHECKING..." : "REQUEST SYSTEM ACCESS"}
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div
                   className="redacted"
@@ -325,12 +371,10 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                 >
                   <div style={{ textAlign: "center" }}>
                     <div className="redacted-text" style={{ fontSize: "14px", textShadow: "0 0 4px rgba(255, 0, 51, 0.6)" }}>
-                      {glitching ? "DECRYPTING..." : `█ █ █ ${threat.redactedLabel} █ █ █`}
+                      {glitching ? "DECRYPTING..." : `█ █ █ {threat.redactedLabel} █ █ █`}
                     </div>
                     <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginTop: "6px", letterSpacing: "0.15em" }}>
-                      {isSectorDelta 
-                        ? "CLICK TO TRIGGER METADATA ANALYSIS — REQUIRES x402 PAYMENT (0.05 USDC)" 
-                        : "CLICK TO DECRYPT FILE — ACCESS LEVEL 3 REQUIRED"}
+                      CLICK TO DECRYPT FILE — ACCESS LEVEL 3 REQUIRED
                     </div>
                   </div>
                   <button className="btn btn-ghost" disabled={loading} style={{ fontSize: "11px", padding: "8px 20px" }}>

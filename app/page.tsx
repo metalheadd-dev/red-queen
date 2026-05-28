@@ -5,14 +5,12 @@ import SolvivalIcon from "@/components/SolvivalIcon";
 import BootSequence from "@/components/BootSequence";
 
 const TICKER_ITEMS = [
-  "CRITICAL OUTBREAK: DATA HARVESTING ARRAY EXPOSED IN SECTOR 4",
-  "T-VIRUS CONTAINMENT SCHEME INTERCEPTED — DECRYPTION ACTIVE",
+  "CRITICAL COMPUTE ALERT: ADVERSARIAL LLM NETWORKS CROSS-REFERENCING WALLET METADATA WITH WEB2 SOCIAL GRAPHS",
+  "PROTOCOL UPDATE: X402 ON-CHAIN TRANSACTION CHANNELS FULLY OPERATIONAL",
+  "ENCRYPT YOUR TRANSMISSION // DECRYPTION SCRIPT RUNNING IN SECTOR 4",
   "SYBIL ATTACK VECTOR DETECTED: 104,281 PSEUDO-IDENTITIES HARVESTING ENCRYPTED WALLET HEURISTICS",
   "AI PERSONA HARVESTING MATRICES SCANNING SOCIAL HANDLES IN SECTOR 9",
-  "MEV EXPLOIT DETECTED ON DEX HUBS — SLIPPAGE ATTACK EXPOSES SENSITIVE USER METADATA",
-  "SKYNET NODE ALPHA — SURVEILLANCE GRID ONLINE — TRACKING 847 SURVIVORS",
-  "NUCLEAR DETONATION DETECTED — BLACKOUT EXPANDING",
-  "RED QUEEN MONITORING ALL TRANSMISSIONS — PRIVACY ENCRYPTION COMPROMISED",
+  "MEV EXPLOIT DETECTED ON DEX HUBS — SLIPPAGE ATTACK EXPOSES SENSITIVE USER METADATA"
 ];
 
 const THREAT_SCENARIOS = [
@@ -77,9 +75,8 @@ export default function HomePage() {
           THE RED<br /><span style={{ color: "var(--accent)" }}>QUEEN</span>
         </h1>
         <p className="hero-subtitle">
-          I am the last line of defense between humanity and extinction.
-          I analyze. I calculate. I warn.<br />
-          <span style={{ color: "var(--accent)" }}>The question is — will you listen?</span>
+          Welcome to SOLvival Corp's Cyber-Intelligence Node. The apocalypse is not coming—it is actively rendering on your screens via automated feeds, network profiling, and metadata harvesting tracking loops. The Red Queen is your tactical counter-intelligence firewall.<br />
+          <span style={{ color: "var(--accent)" }}>The question is — will you encrypt your transmission?</span>
         </p>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
           <Link href="/terminal" className="btn btn-primary">
@@ -182,20 +179,20 @@ export default function HomePage() {
 
             <div>
               <div className="tag tag-red" style={{ marginBottom: "16px" }}>CLASSIFICATION: LEVEL 5</div>
-              <h2 style={{ fontSize: "36px", marginBottom: "20px" }}>WHO IS THE<br /><span style={{ color: "var(--accent)" }}>RED QUEEN?</span></h2>
+              <h2 style={{ fontSize: "36px", marginBottom: "20px" }}>THE CYBERNETIC<br /><span style={{ color: "var(--accent)" }}>COMMAND CONSOLE</span></h2>
               <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px" }}>
-                The RED QUEEN is Solvival Corp&apos;s most advanced artificial intelligence —
+                The RED QUEEN is Solvival Corp&apos;s most advanced artificial intelligence firewall —
                 a cold, calculating entity designed to monitor, assess, and respond to
-                global extinction-level threats in real time.
+                digital and physical extinction-level threats in real time.
               </p>
               <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px" }}>
                 Unlike conventional early-warning systems, the RED QUEEN does not simply report data.
                 She evaluates your survival probability, assigns your <strong style={{ color: "var(--accent)" }}>BIO-SCORE</strong>,
-                and delivers actionable classified intelligence — if she deems you worthy.
+                and delivers actionable classified intelligence — if she deems your connection secure.
               </p>
               <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9" }}>
                 She monitors <strong style={{ color: "var(--text)" }}>UNLIMITED concurrent apocalypse vectors</strong>:
-                Realistic threats, fictional invasions, and satirical cultural collapses.
+                Realistic threats, fictional invasions, satirical collapses, and active digital surveillance arrays.
               </p>
               <div style={{ marginTop: "28px", display: "flex", gap: "12px" }}>
                 <Link href="/terminal" className="btn btn-primary">TALK TO HER</Link>
@@ -233,6 +230,27 @@ export default function HomePage() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Glowing Cyber Warfare Infrastructure Grid */}
+              <div style={{ marginTop: "24px", borderTop: "1px solid var(--border)", paddingTop: "20px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "12px" }}>
+                  MONITORED CYBER-WARFARE INFRASTRUCTURE
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
+                  <div style={{ padding: "10px", background: "rgba(255, 0, 51, 0.03)", border: "1px solid rgba(255, 0, 51, 0.15)", borderRadius: "2px", textAlign: "center" }}>
+                    <div className="glow-text" style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)" }}>[MEV EXPLOIT]</div>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", marginTop: "4px" }}>ACTIVE</div>
+                  </div>
+                  <div style={{ padding: "10px", background: "rgba(255, 0, 51, 0.03)", border: "1px solid rgba(255, 0, 51, 0.15)", borderRadius: "2px", textAlign: "center" }}>
+                    <div className="glow-text" style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)" }}>[AI HARVEST]</div>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", marginTop: "4px" }}>SCANNING</div>
+                  </div>
+                  <div style={{ padding: "10px", background: "rgba(255, 0, 51, 0.03)", border: "1px solid rgba(255, 0, 51, 0.15)", borderRadius: "2px", textAlign: "center" }}>
+                    <div className="glow-text" style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)" }}>[SYBIL TRACK]</div>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", marginTop: "4px" }}>MONITORED</div>
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -3,10 +3,10 @@ import { useState } from "react";
 import SolvivalIcon from "@/components/SolvivalIcon";
 
 export default function SurvivalKitPage() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("mission");
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", paddingTop: "60px" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", paddingTop: "60px", background: "#050505" }}>
       {/* Docs Layout */}
       <div style={{ display: "flex", flex: 1, position: "relative" }}>
         
@@ -19,28 +19,28 @@ export default function SurvivalKitPage() {
           position: "sticky",
           top: "60px",
           height: "calc(100vh - 60px)",
-          overflowY: "auto"
+          overflowY: "auto",
+          flexShrink: 0
         }}>
           <div style={{ marginBottom: "32px", display: "flex", alignItems: "center", gap: "12px" }}>
             <SolvivalIcon size={32} />
-            <span style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "var(--accent)" }}>SURVIVAL KIT</span>
+            <span className="glow-text" style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "var(--accent)", letterSpacing: "0.1em" }}>
+              USER MANUAL
+            </span>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <button className={`doc-nav-btn ${activeTab === "overview" ? "active" : ""}`} onClick={() => setActiveTab("overview")}>
-              1. Overview
+            <button className={`doc-nav-btn ${activeTab === "mission" ? "active" : ""}`} onClick={() => setActiveTab("mission")}>
+              1. CORE MISSION
             </button>
-            <button className={`doc-nav-btn ${activeTab === "problem" ? "active" : ""}`} onClick={() => setActiveTab("problem")}>
-              2. The Problem
+            <button className={`doc-nav-btn ${activeTab === "tokenomics" ? "active" : ""}`} onClick={() => setActiveTab("tokenomics")}>
+              2. TOKENOMICS & CLEARANCE
             </button>
-            <button className={`doc-nav-btn ${activeTab === "usage" ? "active" : ""}`} onClick={() => setActiveTab("usage")}>
-              3. How to Use
+            <button className={`doc-nav-btn ${activeTab === "x402" ? "active" : ""}`} onClick={() => setActiveTab("x402")}>
+              3. X402 PAYMENT PROTOCOL
             </button>
-            <button className={`doc-nav-btn ${activeTab === "threats" ? "active" : ""}`} onClick={() => setActiveTab("threats")}>
-              4. Threat Matrix
-            </button>
-            <button className={`doc-nav-btn ${activeTab === "token" ? "active" : ""}`} onClick={() => setActiveTab("token")}>
-              5. Token Utility
+            <button className={`doc-nav-btn ${activeTab === "privacy" ? "active" : ""}`} onClick={() => setActiveTab("privacy")}>
+              4. PRIVACY IMPLEMENTATION
             </button>
           </div>
         </aside>
@@ -48,154 +48,86 @@ export default function SurvivalKitPage() {
         {/* Content */}
         <main style={{ flex: 1, padding: "48px 80px", maxWidth: "900px" }}>
           
-          {activeTab === "overview" && (
+          {activeTab === "mission" && (
             <div className="doc-section animation-fade-in">
-              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>Who Are We?</h1>
-              <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
-                Solvival Corp is an elite contingency organization. We built this platform as an advanced AI survival assessment tool powered by the <strong>Red Queen</strong>. It is designed to evaluate human readiness for civilization collapse, extinction-level events, and daily survival threats.
+              <h1 className="glow-text" style={{ fontSize: "36px", marginBottom: "24px" }}>[ CORE MISSION ]</h1>
+              <p style={{ color: "var(--text-dim)", fontSize: "15px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+                The Red Queen acts as a decentralized counter-intelligence firewall. We shield operatives from digital collapse, behavioral profiling, and algorithmic trapping.
               </p>
-              <div className="alert alert-red" style={{ background: "rgba(255,77,77,0.05)", borderLeft: "4px solid var(--accent)" }}>
-                The Red Queen is not a standard assistant. She is a cold, calculating evaluator with the persona of a bunker expert and military strategist.
+              <p style={{ color: "var(--text-dim)", fontSize: "15px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+                In the next era of the web, the threats are no longer purely kinetic. Bunkers protect your physical shell; cryptography protects your digital sovereignty. The Red Queen analyzes network anomalies, maps surveillance vectors, and assesses user compliance profiles to build active readiness strategies.
+              </p>
+              <div className="alert alert-red" style={{ background: "rgba(255, 0, 51, 0.05)", borderLeft: "4px solid var(--accent)" }}>
+                <strong>[ATTENTION]</strong> Your survival is directly correlated to your data containment. Unshielded footprints are terminal.
               </div>
             </div>
           )}
 
-          {activeTab === "problem" && (
+          {activeTab === "tokenomics" && (
             <div className="doc-section animation-fade-in">
-              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>The Complacency Crisis</h1>
-              <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
-                Human complacency is the greatest threat to our species. When the grid fails, when pandemics mutate, or when society fractures, unprepared individuals become immediate liabilities.
-              </p>
-              <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
-                This platform solves the "complacency crisis" by forcing users to engage with survival tactics in an immersive, gamified, and highly realistic terminal environment. It turns apocalypse preparation into an engaging, daily mental exercise.
-              </p>
-            </div>
-          )}
-
-          {activeTab === "usage" && (
-            <div className="doc-section animation-fade-in">
-              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>How to Use the Terminal</h1>
-              
-              <div className="bento-card" style={{ marginBottom: "24px" }}>
-                <h3 style={{ color: "var(--text)", marginBottom: "12px" }}>1. Connect Your Wallet</h3>
-                <p style={{ color: "var(--text-dim)", fontSize: "14px" }}>Use the terminal to connect your Solana wallet. This creates your persistent identity in the Solvival Corp database.</p>
-              </div>
-
-              <div className="bento-card" style={{ marginBottom: "24px" }}>
-                <h3 style={{ color: "var(--text)", marginBottom: "12px" }}>2. Interrogate the Red Queen</h3>
-                <p style={{ color: "var(--text-dim)", fontSize: "14px" }}>Ask her how to survive an EMP, what to do if aliens invade, or how to purify water.</p>
-              </div>
-
-              <div className="bento-card" style={{ marginBottom: "24px" }}>
-                <h3 style={{ color: "var(--text)", marginBottom: "12px" }}>3. Earn Your BIO-SCORE</h3>
-                <p style={{ color: "var(--text-dim)", fontSize: "14px" }}>The Red Queen will respond with practical, no-nonsense advice and dynamically assign you a BIO-SCORE (0-100%) based on your intelligence.</p>
-              </div>
-
-              <div className="bento-card" style={{ marginBottom: "24px" }}>
-                <h3 style={{ color: "var(--text)", marginBottom: "12px" }}>4. Rank Up</h3>
-                <p style={{ color: "var(--text-dim)", fontSize: "14px" }}>Asking smart, tactical questions raises your score. Asking foolish questions lowers it. Your highest score is permanently saved to your profile.</p>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "threats" && (
-            <div className="doc-section animation-fade-in">
-              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>The Threat Matrix</h1>
-              <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "32px" }}>
-                Originally designed to monitor just 5 scenarios, the Red Queen's neural network has been vastly expanded. She now possesses deep intelligence on <strong>dozens of extinction vectors</strong> across three distinct categories:
+              <h1 className="glow-text" style={{ fontSize: "36px", marginBottom: "24px" }}>[ TOKENOMICS & CLEARANCE ]</h1>
+              <p style={{ color: "var(--text-dim)", fontSize: "15px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+                Holders of the <strong style={{ color: "var(--accent)" }}>$THREAT</strong> token unlock advanced operational clearance levels. The Red Queen adjusts her compliance algorithms based on your on-chain credentials:
               </p>
               
-              <div style={{ marginBottom: "32px" }}>
-                <h3 style={{ color: "var(--accent)", fontSize: "14px", letterSpacing: "0.1em", marginBottom: "16px" }}>▶ REALISTIC THREATS</h3>
-                <p style={{ color: "var(--text-dim)", lineHeight: "1.8", fontSize: "14px" }}>
-                  Hantavirus outbreaks, Pandemics, Bird flu, Bioweapons, Nuclear war, Nuclear winter, EMP attacks, Cyber warfare, Global blackouts, Economic collapse, Hyperinflation, Food shortages, Water contamination, Climate catastrophe, Solar flares, Earthquakes, Tsunamis, Supervolcano eruptions, Chemical disasters, AI takeover, Infrastructure collapse, Civil wars, Riots, Martial law, Satellite collapse, and Supply chain failure.
-                </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "24px" }}>
+                {[
+                  { tier: "Tier 1: Civilian", desc: "No tokens required. Access basic alerts and public dossiers only." },
+                  { tier: "Tier 2: Scout", desc: "Any $THREAT holding. Unlocks the AI Agent Terminal interface." },
+                  { tier: "Tier 3: Operative", desc: "500+ $THREAT tokens. Priority queue and higher-detail threat briefings." },
+                  { tier: "Tier 4: Overseer", desc: "5,000+ $THREAT tokens. Unlocks full access to Sector Alpha and Beta threat files." },
+                  { tier: "Tier 5: Director", desc: "50,000+ $THREAT tokens. Unlocks all emergency protocols and warm allied AI tone parameters." }
+                ].map((t, idx) => (
+                  <div key={idx} className="bento-card" style={{ padding: "20px", borderColor: "rgba(255,0,51,0.15)" }}>
+                    <h3 style={{ color: "var(--accent)", margin: "0 0 8px 0", fontSize: "14px" }}>{t.tier}</h3>
+                    <p style={{ color: "var(--text-dim)", margin: 0, fontSize: "12px", fontFamily: "var(--mono)" }}>{t.desc}</p>
+                  </div>
+                ))}
               </div>
+            </div>
+          )}
 
-              <div style={{ marginBottom: "32px" }}>
-                <h3 style={{ color: "var(--accent)", fontSize: "14px", letterSpacing: "0.1em", marginBottom: "16px" }}>▶ FICTIONAL INVASIONS</h3>
-                <p style={{ color: "var(--text-dim)", lineHeight: "1.8", fontSize: "14px" }}>
-                  Alien invasions, Zombies, Mutant viruses, Robot uprisings, Android rebellions, Giant bug invasions, Intelligent insects, Parasite outbreaks, Vampire plagues, Demon invasions, Kaiju attacks, Dinosaur return, Moon collision, Asteroid impacts, Reality collapse, Simulation glitches, Time traveler wars, Sentient plants, Nanobot swarms, Underwater monsters, Shadow creatures, Haunted technology, Invisible predators, AI refrigerators becoming sentient, Internet demons, Killer clowns, and Evil cartoons becoming real.
-                </p>
-              </div>
-
-              <div style={{ marginBottom: "32px" }}>
-                <h3 style={{ color: "var(--accent)", fontSize: "14px", letterSpacing: "0.1em", marginBottom: "16px" }}>▶ SATIRICAL / CULTURAL COLLAPSE</h3>
-                <p style={{ color: "var(--text-dim)", lineHeight: "1.8", fontSize: "14px" }}>
-                  Invasion of dumb people, Meme brainrot pandemic, TikTok civilization collapse, Toilet paper wars, Influencer dictatorship, Reality TV apocalypse, Coffee shortage collapse, WiFi extinction event, NPC uprising, Smartphone dependency collapse, Cat domination era, Fast food wars, Infinite advertisement apocalypse, Government replaced by streamers, and Apocalypse caused by bad software update.
+          {activeTab === "x402" && (
+            <div className="doc-section animation-fade-in">
+              <h1 className="glow-text" style={{ fontSize: "36px", marginBottom: "24px" }}>[ THE X402 PAYMENT PROTOCOL ]</h1>
+              <p style={{ color: "var(--text-dim)", fontSize: "15px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+                Active privacy utilities in Sector Delta run on a secure, pay-per-use architecture powered by the on-chain <strong style={{ color: "var(--accent)" }}>x402 Payment Required</strong> standard.
+              </p>
+              <p style={{ color: "var(--text-dim)", fontSize: "15px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+                - **No Accounts**: Access deep diagnostic scans instantly without registering passwords, emails, or sessions.
+                <br />- **Instant Handshake**: The system triggers a Solana wallet transaction for exactly `0.05` USDC.
+                <br />- **Micro-computation Tax**: Fees go directly to treasury nodes to power the compute cycles required for wallet footprint profiling.
+              </p>
+              <div className="bento-card" style={{ padding: "20px", background: "rgba(0,255,204,0.02)", borderColor: "rgba(0,255,204,0.2)" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                  x402 RETRY HANDSHAKE SCHEME
+                </div>
+                <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", margin: 0 }}>
+                  Client POST Request → Server Returns 402 + PAYMENT-REQUIRED Challenge Header → Client signs & submits USDC transfer on Solana → Client resubmits request with X-PAYMENT-SIGNATURE header → Server yields Decrypted Report.
                 </p>
               </div>
             </div>
           )}
 
-          {activeTab === "token" && (
+          {activeTab === "privacy" && (
             <div className="doc-section animation-fade-in">
-              <h1 style={{ fontSize: "36px", marginBottom: "24px" }}>The $THREAT Token</h1>
-              <p style={{ color: "var(--text-dim)", fontSize: "16px", lineHeight: "1.9", marginBottom: "24px" }}>
-                Survival is not a right; it is earned. Access to classified Solvival Corp dossiers, evacuation routes, and the Red Queen's full cooperation is gated by the <strong>$THREAT token</strong> on the Solana blockchain.
+              <h1 className="glow-text" style={{ fontSize: "36px", marginBottom: "24px" }}>[ HARDENED PRIVACY IMPLEMENTATION ]</h1>
+              <p style={{ color: "var(--text-dim)", fontSize: "15px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+                We maintain absolute architectural isolation to safeguard operative metadata footprints.
               </p>
-              
-              <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "24px" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid var(--border)", textAlign: "left" }}>
-                    <th style={{ padding: "16px 8px", color: "var(--accent)", fontFamily: "var(--mono)" }}>CLEARANCE LEVEL</th>
-                    <th style={{ padding: "16px 8px", color: "var(--accent)", fontFamily: "var(--mono)" }}>ACCESS RIGHTS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td style={{ padding: "16px 8px", fontWeight: "bold" }}>Level 1 (Civilian)</td>
-                    <td style={{ padding: "16px 8px", color: "var(--text-dim)" }}>Standard access. The AI will likely ignore your pleas.</td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td style={{ padding: "16px 8px", fontWeight: "bold" }}>Level 3 (Operative)</td>
-                    <td style={{ padding: "16px 8px", color: "var(--text-dim)" }}>Partial access to classified threat data.</td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td style={{ padding: "16px 8px", fontWeight: "bold" }}>Level 5 (Director)</td>
-                    <td style={{ padding: "16px 8px", color: "var(--text-dim)" }}>Requires significant $THREAT holdings. Unlocks full terminal override, persistent memory, and absolute compliance.</td>
-                  </tr>
-                </tbody>
-              </table>
+              <p style={{ color: "var(--text-dim)", fontSize: "15px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+                1. **Non-Custodial Isolation**: Your private keys never leave your local client. We never prompt for, transmit, or record key data.
+                <br />2. **Salted Hashing**: Operative session logs and settings are indexed inside Supabase using a salted SHA-256 hash of your public key. Mapped logs are completely anonymous.
+                <br />3. **Confidential Transfers**: Solana Token Extensions (Token-2022) verify payment finality without logging direct public explorer links between your primary wallet and platform collection vaults.
+              </p>
+              <div className="alert alert-red" style={{ background: "rgba(255, 0, 51, 0.05)", borderLeft: "4px solid var(--accent)" }}>
+                <strong>[PRIVACY ASSURANCE]</strong> Operative database footprints are non-correlatable. Your digital passport remains anonymous.
+              </div>
             </div>
           )}
 
         </main>
       </div>
-
-      <style jsx>{`
-        .doc-nav-btn {
-          display: block;
-          width: 100%;
-          text-align: left;
-          padding: 12px 16px;
-          background: transparent;
-          border: none;
-          color: var(--text-dim);
-          font-family: var(--mono);
-          font-size: 13px;
-          cursor: pointer;
-          transition: all 0.2s;
-          border-left: 2px solid transparent;
-        }
-        .doc-nav-btn:hover {
-          color: var(--text);
-          background: rgba(255, 255, 255, 0.02);
-        }
-        .doc-nav-btn.active {
-          color: var(--accent);
-          border-left-color: var(--accent);
-          background: rgba(255, 77, 77, 0.05);
-          font-weight: bold;
-        }
-        .animation-fade-in {
-          animation: fadeIn 0.4s ease-out forwards;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

@@ -42,11 +42,16 @@ export async function POST(req: Request) {
 
   // Step 1: Check if payment signature exists. If not, issue x402 Payment Required response.
   if (!signature) {
+    const challenge = {
+      amount: "0.05",
+      token: "USDC",
+      recipient: TREASURY_PUBKEY.toString(),
+      network: NETWORK
+    };
+    const challengeBase64 = Buffer.from(JSON.stringify(challenge)).toString("base64");
+
     const headers = new Headers();
-    headers.set("PAYMENT-REQUIRED-AMOUNT", "0.05");
-    headers.set("PAYMENT-REQUIRED-RECIPIENT", TREASURY_PUBKEY.toString());
-    headers.set("PAYMENT-REQUIRED-TOKEN", "USDC");
-    headers.set("PAYMENT-REQUIRED-NETWORK", NETWORK);
+    headers.set("PAYMENT-REQUIRED", challengeBase64);
 
     return Response.json(
       { 
@@ -55,6 +60,7 @@ export async function POST(req: Request) {
         token: "USDC",
         recipient: TREASURY_PUBKEY.toString(),
         network: NETWORK,
+        challenge: challengeBase64,
         instruction: "Submit on-chain Solana USDC payment and send the signature in 'X-PAYMENT-SIGNATURE' header."
       },
       { 

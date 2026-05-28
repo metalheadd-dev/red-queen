@@ -1126,4 +1126,101 @@ pre, code, .mono, .chat-input, .redacted-text, .navbar-logo-text, .glow-text, .b
   background-size: 100% 3px, 4px 100% !important;
 }
 
+/* Chromatic aberration hover styles for headings */
+h1:hover, h2:hover, h3:hover, .glow-text:hover, .navbar-logo-text:hover {
+  text-shadow: 1px 0 #ff0033, -1px 0 #00ffff !important;
+  transition: text-shadow 0.15s ease;
+}
+
+/* Sector Delta tab pulse and jitter skew */
+.sector-delta-tab {
+  animation: delta-pulse-glow 2s infinite ease-in-out, delta-skew-jitter 4s infinite linear;
+}
+
+@keyframes delta-pulse-glow {
+  0%, 100% {
+    background-color: #8b0000 !important;
+    color: #ff0033 !important;
+    box-shadow: 0 0 5px #8b0000;
+  }
+  50% {
+    background-color: #ff0033 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 15px #ff0033;
+  }
+}
+
+@keyframes delta-skew-jitter {
+  0%, 95%, 100% { transform: skewX(0deg); }
+  96% { transform: skewX(1deg); }
+  97% { transform: skewX(-1deg); }
+  98% { transform: skewX(0deg); }
+}
+
+/* Redacted Terminal Blockouts */
+.redacted-viewport-locked {
+  position: relative;
+  overflow: hidden;
+  background: #080808;
+  border: 1px solid rgba(255, 0, 51, 0.2);
+  border-radius: 2px;
+  padding: 24px;
+}
+
+.redacted-blockout-line {
+  height: 14px;
+  background: rgba(255, 0, 51, 0.85);
+  margin: 12px 0;
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(255, 0, 51, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.redacted-blockout-line::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transform: translateX(-100%);
+  animation: blockout-shimmer 2.5s infinite;
+}
+
+@keyframes blockout-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+.redacted-overlay-prompt {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 5, 5, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 10;
+  border-radius: 2px;
+  backdrop-filter: blur(2px);
+}
+
+.redacted-flicker-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-align: center;
+  padding: 12px 24px;
+  background: rgba(255, 0, 51, 0.05);
+  border: 1px solid rgba(255, 0, 51, 0.2);
+  animation: text-flicker-prompt 0.8s infinite alternate;
+}
+
+@keyframes text-flicker-prompt {
+  0%, 100% { opacity: 1; text-shadow: 0 0 8px rgba(255, 0, 51, 0.8); }
+  45% { opacity: 0.95; }
+  50% { opacity: 0.3; text-shadow: none; }
+  55% { opacity: 0.9; }
+}
+
+
 
