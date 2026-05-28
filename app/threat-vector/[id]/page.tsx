@@ -409,36 +409,30 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
             borderRadius: "4px",
             boxShadow: "0 0 30px rgba(255, 0, 51, 0.2)"
           }}>
-            <div className="tag tag-red" style={{ marginBottom: "20px", display: "inline-block" }}>
-              WARNING: PAYMENT REQUIRED
+            <div className="tag tag-red" style={{ marginBottom: "20px", display: "inline-block", fontFamily: "var(--mono)" }}>
+              [FIREWALL PROMPT]
             </div>
             
-            <h3 style={{ fontSize: "20px", marginBottom: "16px", letterSpacing: "0.05em" }}>
-              x402 DECRYPTION UPLINK
+            <h3 style={{ fontSize: "16px", marginBottom: "24px", letterSpacing: "0.05em", fontFamily: "var(--mono)", lineHeight: "1.6", color: "var(--text)" }}>
+              Running deep digital trace requires an immediate 0.05 USDC computation tax. Proceed?
             </h3>
-            
-            <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
-              Running a deep-network metadata trace on vector <strong style={{ color: "var(--accent)" }}>{threat.id}</strong> requires a <strong style={{ color: "var(--text)" }}>0.05 USDC</strong> micro-computation tax. 
-              <br /><br />
-              This non-custodial transaction goes directly to the Red Queen computational treasury balance to power dynamic diagnostic scans.
-            </p>
             
             <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
               <button 
                 className="btn btn-ghost" 
                 onClick={() => setShowModal(false)}
                 disabled={submittingPayment}
-                style={{ fontSize: "11px" }}
+                style={{ fontSize: "11px", fontFamily: "var(--mono)" }}
               >
-                DECLINE
+                [ DECLINE ]
               </button>
               <button 
                 className="btn btn-primary" 
                 onClick={handleConfirmPayment}
                 disabled={submittingPayment}
-                style={{ fontSize: "11px" }}
+                style={{ fontSize: "11px", fontFamily: "var(--mono)" }}
               >
-                {submittingPayment ? "CONFIRMING..." : "APPROVE & TRANSMIT"}
+                {submittingPayment ? "[ APPROVING... ]" : "[ APPROVE ]"}
               </button>
             </div>
           </div>

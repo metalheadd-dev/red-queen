@@ -169,6 +169,18 @@ export default function ThreatVectorPage() {
                     </div>
                     
                     <h3 style={{ fontSize: "18px", margin: "0 0 8px", color: "var(--text)" }}>{threat.name}</h3>
+                    
+                    {activeCategory === "algorithmic" && (
+                      <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "16px", lineHeight: "1.6" }}>
+                        {threat.id === "WALLET-TRAIL" && "Scans open ledger records to analyze if your transactional footprints expose real-world identity markers."}
+                        {threat.id === "AI-PROFILING" && "Evaluates your data footprint to predict how behavioral LLMs model and trap your market actions."}
+                        {threat.id === "FEED-MANIP" && "Analyzes social handle metadata to trace if your active feeds are being targeted by automated sentiment scripts."}
+                        {threat.id === "DEEPFAKE-SE" && "Runs a secure mock-interaction check to assess your vulnerability against autonomous phishing agents."}
+                        {threat.id === "REPUTATION-X" && "Sweeps multi-chain telemetry grids to evaluate if your wallet address has been flagged by algorithmic blacklists."}
+                        {threat.id === "META-LEAK" && "Detects leaking configuration parameters bridging your cryptographic keys to public databases."}
+                      </p>
+                    )}
+
                     <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "16px" }}>
                       CLASSIFICATION: {threat.classification}
                     </div>

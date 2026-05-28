@@ -75,7 +75,7 @@ export default function HomePage() {
           THE RED<br /><span style={{ color: "var(--accent)" }}>QUEEN</span>
         </h1>
         <p className="hero-subtitle">
-          The apocalypse isn&apos;t a future biological outbreak—it is happening right now inside your browser. Your digital identity is actively under fire from chain-surveillance crawlers, metadata harvesting tracking loops, and predatory AI profiling networks. The Red Queen is your tactical counter-intelligence terminal. Connect your Solana wallet, deploy defensive agent utilities, and secure your digital footprint before the network profiles you.
+          The threats on the next internet aren&apos;t zombies—they are chain-surveillance crawlers, automated wallet doxxing grids, and AI profile scrapers tracking your transactions. Connect your Solana wallet to run live, non-custodial counter-intelligence scans. Clear your digital footprint before predatory networks profile you.
         </p>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
           <Link href="/terminal" className="btn btn-primary">
@@ -251,6 +251,10 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
+
+              <div style={{ marginTop: "16px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", fontStyle: "italic" }}>
+                * Sector Delta elements require a mandatory 0.05 USDC x402 computation handshake to decrypt classified datasets.
+              </div>
             </div>
 
             {/* Daily interception */}
@@ -346,6 +350,43 @@ export default function HomePage() {
               </div>
               <div className="bento-cta">→ CHECK CLEARANCE</div>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* System Architecture & Integrated Capabilities v2.0 */}
+      <section className="page-section" style={{ borderTop: "1px solid var(--border)", paddingTop: "60px" }}>
+        <div className="container">
+          <div className="section-header">
+            <span className="section-line" />
+            <span className="section-tag">[ SYSTEM ARCHITECTURE & INTEGRATED CAPABILITIES v2.0 ]</span>
+            <span className="section-line" />
+          </div>
+          
+          <div style={{ display: "grid", gap: "24px", marginTop: "32px" }} className="bento-2">
+            {/* CARD 01 */}
+            <div className="bento-card" style={{ borderColor: "#ff0033", background: "#050505", padding: "32px", cursor: "default" }}>
+              <div className="bento-number">CARD 01: [ INTEGRATION MODULE // PROGRAMMATIC X402 MICROPAYMENTS ]</div>
+              <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "16px", textTransform: "uppercase", fontWeight: "bold" }}>Accountless On-Demand Computation</h3>
+              <p style={{ color: "var(--text-dim)", fontSize: "13px", lineHeight: "1.7", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+                Access premium threat vector reports instantly without usernames, passwords, emails, or subscriptions. The terminal utilizes the open HTTP 402 &apos;Payment Required&apos; standard to trigger frictionless, pay-per-use computing. Run advanced diagnostic scripts via a 0.05 USDC handshake transaction settled directly on Solana mainnet.
+              </p>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.1em" }}>
+                [ PROTOCOL SCHEME: EXACT // HEADER CHECK: PAYMENT-REQUIRED ]
+              </div>
+            </div>
+
+            {/* CARD 02 */}
+            <div className="bento-card" style={{ borderColor: "#ff0033", background: "#050505", padding: "32px", cursor: "default" }}>
+              <div className="bento-number">CARD 02: [ INTEGRATION MODULE // ADVERSARIAL AGENT MATRIX ]</div>
+              <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "16px", textTransform: "uppercase", fontWeight: "bold" }}>Autonomous Defense Scanners</h3>
+              <p style={{ color: "var(--text-dim)", fontSize: "13px", lineHeight: "1.7", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+                The Red Queen deploys real-time AI security agents to assess your digital vulnerability. Our algorithms evaluate your on-chain reputation, calculate live wallet-tracking risks, and construct an active AI Survival Profile based on historical transaction footprints to shield your digital sovereignty.
+              </p>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.1em" }}>
+                [ AGENT STATE: SECURITY ARMED // NET INTEGRITY: TRACKING ]
+              </div>
+            </div>
           </div>
         </div>
       </section>

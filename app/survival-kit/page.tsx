@@ -35,28 +35,28 @@ export default function SurvivalKitPage() {
               onClick={() => setActiveTab("mission")}
               style={{ textAlign: "left", padding: "12px 16px", fontSize: "11px" }}
             >
-              01. MISSION OVERVIEW
+              01. DECENTRALIZED CORE MISSION
             </button>
             <button 
               className={`doc-nav-btn ${activeTab === "x402" ? "active" : ""}`} 
               onClick={() => setActiveTab("x402")}
               style={{ textAlign: "left", padding: "12px 16px", fontSize: "11px" }}
             >
-              02. HOW X402 WORKS
+              02. THE PRIVACY ENGINE: HOW X402 WORKS
             </button>
             <button 
               className={`doc-nav-btn ${activeTab === "privacy" ? "active" : ""}`} 
               onClick={() => setActiveTab("privacy")}
               style={{ textAlign: "left", padding: "12px 16px", fontSize: "11px" }}
             >
-              03. PRIVACY STACK
+              03. OPERATIVE DATA PROTECTION
             </button>
             <button 
               className={`doc-nav-btn ${activeTab === "threats" ? "active" : ""}`} 
               onClick={() => setActiveTab("threats")}
               style={{ textAlign: "left", padding: "12px 16px", fontSize: "11px" }}
             >
-              04. THREAT ENCYCLOPEDIA
+              04. SYSTEM ENCYCLOPEDIA
             </button>
           </div>
         </aside>
@@ -66,11 +66,11 @@ export default function SurvivalKitPage() {
           
           {activeTab === "mission" && (
             <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "24px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 01 / RE-DEFINING THE APOCALYPSE: MISSION OVERVIEW ]
+              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                [ 01 / DECENTRALIZED CORE MISSION ]
               </h1>
               <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)", whiteSpace: "pre-wrap" }}>
-                Welcome to SOLvival Corp&apos;s Advanced Intelligence Division. Bunkers protect your physical shell; cryptography protects your digital sovereignty. The Red Queen AI acts as an autonomous counter-intelligence firewall. We analyze network anomalies, monitor metadata leaks, and deploy defensive AI agents to calculate your survival probability across the next internet. Your privacy is your only armor.
+                The Red Queen AI is an autonomous web3 security console. Traditional security utilities scan files; the Red Queen scans public blockchains to identify vulnerabilities in your digital footprint. By matching public transaction signatures, cross-chain metadata, and social media data layers, our engine maps exactly what predatory tracking databases know about your wallet identity.
               </p>
               <div className="alert alert-red" style={{ background: "rgba(255, 0, 51, 0.05)", borderLeft: "4px solid var(--accent)", padding: "16px", marginTop: "24px" }}>
                 <strong style={{ fontFamily: "var(--mono)" }}>[ATTENTION]</strong> Operative database footprints are non-correlatable. Your digital passport remains anonymous.
@@ -80,48 +80,37 @@ export default function SurvivalKitPage() {
 
           {activeTab === "x402" && (
             <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "24px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
                 [ 02 / THE PRIVACY ENGINE: HOW X402 WORKS ]
               </h1>
-              <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
-                Our high-tier active diagnostic utilities operate entirely on the open, internet-native x402 payment standard. 
+              <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)", whiteSpace: "pre-wrap" }}>
+                Active privacy utilities inside Sector Delta operate completely independent of traditional software registrations. We utilize the open internet standard incubated by the Coinbase Development Platform team and supported by the X402 Foundation and Solana Foundation.
+
+                No Accounts: Access deep diagnostic scans instantly without usernames, emails, passwords, or subscriptions.
+
+                The Scheme: Programmed via the x402 &apos;exact&apos; format. Triggering a diagnostic script queries the server, which issues an HTTP 402 Payment Required challenge header. Your wallet adapter settles a 0.05 USDC micro-fee over Solana. The server instantly verifies transaction finality from the RPC pool and returns your un-redacted report directly into client memory.
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
-                <div className="bento-card" style={{ padding: "20px", borderColor: "rgba(255,0,51,0.15)", background: "rgba(5,5,5,0.6)" }}>
-                  <h3 style={{ color: "var(--accent)", margin: "0 0 8px 0", fontSize: "13px", fontFamily: "var(--mono)" }}>1. No Accounts, No Friction</h3>
-                  <p style={{ color: "var(--text-dim)", margin: 0, fontSize: "13px", fontFamily: "var(--mono)", lineHeight: "1.7" }}>
-                    You never register an email, configure passwords, or buy subscriptions.
-                  </p>
-                </div>
-                
-                <div className="bento-card" style={{ padding: "20px", borderColor: "rgba(255,0,51,0.15)", background: "rgba(5,5,5,0.6)" }}>
-                  <h3 style={{ color: "var(--accent)", margin: "0 0 8px 0", fontSize: "13px", fontFamily: "var(--mono)" }}>2. The Compute Tax Loop</h3>
-                  <p style={{ color: "var(--text-dim)", margin: 0, fontSize: "13px", fontFamily: "var(--mono)", lineHeight: "1.7" }}>
-                    When you launch a diagnostic script, our server issues an HTTP 402 &apos;Payment Required&apos; response challenge. Your browser wallet adapter intercepts this challenge, prompts you for a quick signature, and settles a micro-fee (0.05 USDC) over Solana. The server instantly verifies transaction finality and delivers your un-redacted report directly into client memory.
-                  </p>
-                </div>
-              </div>
             </div>
           )}
 
           {activeTab === "privacy" && (
             <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "24px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
                 [ 03 / OPERATIVE DATA PROTECTION & PRIVACY STACK ]
               </h1>
               <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
-                To protect you while scanning public vectors, the platform enforces a zero-exposure security architecture:
+                To protect you while tracing public vulnerabilities, the architecture enforces strict anonymity features:
               </p>
               
               <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "16px" }}>
                 <li style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8" }}>
-                  <strong style={{ color: "var(--accent)" }}>• Non-Custodial Isolation:</strong> The system operates entirely via wallet signatures. We never touch, read, or request a private key.
+                  <strong style={{ color: "var(--accent)" }}>1. Non-Custodial Isolation:</strong> The console never touches private keys.
                 </li>
                 <li style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8" }}>
-                  <strong style={{ color: "var(--accent)" }}>• SHA-256 Profile Salting:</strong> All transaction logs, diagnostic data, and bio-scores are written to Supabase using a one-way salted hash of your wallet address. If your wallet disconnects, your data trace ceases to exist on our servers.
+                  <strong style={{ color: "var(--accent)" }}>2. SHA-256 Database Salting:</strong> User histories and bio-scores are indexed in Supabase using a salted hash of your wallet key—wiping any trace if the wallet is unlinked.
                 </li>
                 <li style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8" }}>
-                  <strong style={{ color: "var(--accent)" }}>• On-Chain Transaction Blinding:</strong> Incoming x402 payments are verified using Solana Token Extensions (Token-2022) Confidential Transfers, blinding the public connection link between your public key and our collection nodes.
+                  <strong style={{ color: "var(--accent)" }}>3. Transaction Blinding:</strong> Incoming x402 fees are processed through Token-2022 confidential verification rules, splitting public ledger connections to our primary treasury wallet.
                 </li>
               </ul>
             </div>
@@ -129,35 +118,35 @@ export default function SurvivalKitPage() {
 
           {activeTab === "threats" && (
             <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "24px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 04 / ENCYCLOPEDIA OF ALGOMETRIC THREATS ]
+              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                [ 04 / SYSTEM ENCYCLOPEDIA OF ALGORITHMIC THREATS ]
               </h1>
               <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "32px", fontFamily: "var(--mono)" }}>
-                Review the official operational dossiers for the six primary threat vectors monitored inside Sector Delta:
+                Review the comprehensive threat model specifications monitored under active scanning parameters:
               </p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
                 <div>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>
-                    • WALLET-TRAIL (Chain-Surveillance & Spatial Physical Tracking)
+                    • WALLET-TRAIL (Chain-Surveillance Footprint tracking)
                   </h3>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: "0 0 6px 0", lineHeight: "1.7" }}>
-                    <strong>Threat Model:</strong> Public ledgers are fully transparent. Tracking algorithms scan transaction histories and correlate times with physical metadata (IP routing, local Wi-Fi logs) to geo-locate your real-world routine.
+                    <strong>Threat Model:</strong> Public ledger tracking algorithms correlate open wallet addresses with metadata like IP routing or local Wi-Fi logs to geo-locate your real-world routine.
                   </p>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#00ffcc", margin: 0 }}>
-                    <strong>Counter-Measure:</strong> The Red Queen runs a tracking-vulnerability trace to isolate structural pattern exposures.
+                    <strong>Counter-Measure:</strong> Runs a pattern trace to isolate transactional spatial exposure profiles.
                   </p>
                 </div>
 
                 <div>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>
-                    • AI-PROFILING (LLM Persona Harvesting & Target Trapping)
+                    • AI-PROFILING (LLM Persona Harvesting Radar)
                   </h3>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: "0 0 6px 0", lineHeight: "1.7" }}>
-                    <strong>Threat Model:</strong> Advanced scrapers monitor your trades and posts to build behavioral profiles of your mind. Once an LLM predicts how you react to hype or panic, it designs targeted feeds to manipulate your market decisions.
+                    <strong>Threat Model:</strong> Scraper networks track address actions to model your mental thresholds. Behavioral LLMs calculate exactly how you react to market panic or hype to design custom targeted traps.
                   </p>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#00ffcc", margin: 0 }}>
-                    <strong>Counter-Measure:</strong> Evaluates your historical address variance to construct an encrypted AI Survival Profile.
+                    <strong>Counter-Measure:</strong> Generates an AI Survival Profile defining transaction anomalies.
                   </p>
                 </div>
 
@@ -166,46 +155,46 @@ export default function SurvivalKitPage() {
                     • FEED-MANIP (Social Sentiment Timeline Injection)
                   </h3>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: "0 0 6px 0", lineHeight: "1.7" }}>
-                    <strong>Threat Model:</strong> Timelines are psychological vectors. Algorithmic nodes inject tailored packets of misinformation or panic into your feeds to alter your emotional state and force you into making predictable, sub-optimal moves.
+                    <strong>Threat Model:</strong> Algorithmic vectors feed accounts specific packets of misinformation or panic to alter timeline trends, forcing humans into panic-driven financial actions.
                   </p>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#00ffcc", margin: 0 }}>
-                    <strong>Counter-Measure:</strong> Runs analysis filters on public handle data to isolate injection vulnerabilities.
+                    <strong>Counter-Measure:</strong> Traces public handle metrics for timeline manipulation indicators.
                   </p>
                 </div>
 
                 <div>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>
-                    • DEEPFAKE-SE (Autonomous Agent Social Engineering Arrays)
+                    • DEEPFAKE-SE (Autonomous Agent Social Engineering)
                   </h3>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: "0 0 6px 0", lineHeight: "1.7" }}>
-                    <strong>Threat Model:</strong> Phishing has evolved. Autonomous AI agents can fully clone the writing styles, voices, and avatars of trusted web3 figures, executing automated, highly realistic social engineering scams against you.
+                    <strong>Threat Model:</strong> Multi-modal AI structures clone trusted web3 developer voices and avatars to execute autonomous, highly targeted phishing scripts.
                   </p>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#00ffcc", margin: 0 }}>
-                    <strong>Counter-Measure:</strong> Launches a secure, closed-sandbox script simulation checking your exploit susceptibility.
+                    <strong>Counter-Measure:</strong> Launches a secure, closed-sandbox loop simulation checking your exploit susceptibility.
                   </p>
                 </div>
 
                 <div>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>
-                    • REPUTATION-X (Algorithmic Blacklisting & Identity Smear)
+                    • REPUTATION-X (Algorithmic Network Blacklisting)
                   </h3>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: "0 0 6px 0", lineHeight: "1.7" }}>
-                    <strong>Threat Model:</strong> Compliance metrics attach automated risk scores to public keys. If an algorithm mistakenly associates your wallet with a malicious pool, your on-chain reputation drops, instantly freezing you out of dApps.
+                    <strong>Threat Model:</strong> Compliance engines assign risk weights to public ledger public keys. Association with malicious routing pools automatically drops your on-chain reputation, freezing asset access.
                   </p>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#00ffcc", margin: 0 }}>
-                    <strong>Counter-Measure:</strong> Sweeps multi-chain compliance registries to verify your ledger clearance level.
+                    <strong>Counter-Measure:</strong> Sweeps multi-chain compliance registries to map ledger clearance verification.
                   </p>
                 </div>
 
                 <div>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>
-                    • META-LEAK (Web2-to-Web3 Cross-Graph Doxxing Arrays)
+                    • META-LEAK (Web2-to-Web3 Cross-Graph Doxxing)
                   </h3>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: "0 0 6px 0", lineHeight: "1.7" }}>
-                    <strong>Threat Model:</strong> The invisible bridge. A meta-leak occurs when central web databases leak configurations that cross-reference your private Web2 footprints (emails, phone registries) directly to your cryptographic keys.
+                    <strong>Threat Model:</strong> Central web services leak private metadata databases (emails, phone registries), which automated scrapers cross-reference directly to open cryptographic keys to unmask offline identities.
                   </p>
                   <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#00ffcc", margin: 0 }}>
-                    <strong>Counter-Measure:</strong> Scans database leaks to trace if your wallet public key has been mapped to your offline identity.
+                    <strong>Counter-Measure:</strong> Scans historic database leaks to trace public-to-private graph tracking exposure.
                   </p>
                 </div>
               </div>
