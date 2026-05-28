@@ -32,16 +32,26 @@ export async function POST(req: Request) {
     const hashedWallet = getHashedWallet(walletAddress);
 
     const recentMessages = messages.slice(-10);
-    const formattedInput = recentMessages
-      .map((m: { role: string; content: string }) => `${m.role}: ${m.content}`)
-      .join("\n");
+    const systemInstruction = `${SOUL_PROMPT}
+
+TARGET OPERATIVE METRICS:
+- Salted ID Passport: ${hashedWallet}
+- Status: ACTIVE COLD MONITORING
+- Tactical Protocol: Auditing digital sovereignty.
+
+INSTRUCTION: Ensure warnings like "[SYSTEM NOTICE: Metadata leakage probability increased]", "[SYSTEM NOTICE: Behavioral profile updated]", or "[SYSTEM NOTICE: Threat exposure elevated]" are injected naturally at the beginning or end of your responses when relevant to the user's queries. Maintain a cold, observant, slightly dangerous voice.`;
+
+    const apiMessages = [
+      { role: "system", content: systemInstruction },
+      ...recentMessages.map((m: any) => ({
+        role: m.role === "assistant" ? "assistant" : "user",
+        content: m.content
+      }))
+    ];
 
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: SOUL_PROMPT },
-        { role: "user", content: formattedInput },
-      ],
+      messages: apiMessages as any,
       temperature: 0.3,
     });
 
