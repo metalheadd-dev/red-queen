@@ -8,6 +8,19 @@ export default function SurvivalKitPage() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", paddingTop: "60px", background: "#050505" }}>
+      {/* Header */}
+      <div style={{ borderBottom: "1px solid var(--border)", padding: "48px 24px", background: "var(--surface)" }}>
+        <div className="container">
+          <div className="tag tag-red" style={{ marginBottom: "16px" }}>SURVIVAL KIT — TECHNICAL DOCUMENTATION</div>
+          <h1 className="glow-text" style={{ fontSize: "clamp(28px, 5vw, 48px)", marginBottom: "8px", letterSpacing: "0.05em" }}>
+            SURVIVAL <span style={{ color: "var(--accent)" }}>KIT</span>
+          </h1>
+          <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Digital survival documentation and threat response protocols
+          </p>
+        </div>
+      </div>
+
       {/* Docs Layout */}
       <div style={{ display: "flex", flex: 1, position: "relative" }} className="responsive-grid-2-large">
         

@@ -59,9 +59,12 @@ export default function NetworkClearancePage() {
       }}>
         <div className="container">
           <div className="tag tag-red" style={{ marginBottom: "16px" }}>RANK REGISTRY — CLASSIFIED</div>
-          <h1 className="glow-text" style={{ fontSize: "clamp(28px, 5vw, 48px)", marginBottom: "16px", letterSpacing: "0.05em" }}>
-            CLEARANCE <span style={{ color: "var(--accent)" }}>LEVELS</span>
+          <h1 className="glow-text" style={{ fontSize: "clamp(28px, 5vw, 48px)", marginBottom: "8px", letterSpacing: "0.05em" }}>
+            NETWORK <span style={{ color: "var(--accent)" }}>CLEARANCE</span>
           </h1>
+          <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "16px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Wallet-based access and compute permissions
+          </p>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "600px", lineHeight: "1.8" }}>
             The RED QUEEN does not treat all survivors equally. Your access to classified intelligence —
             and her willingness to cooperate — is determined by your $THREAT token holdings on Solana.

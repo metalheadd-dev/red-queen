@@ -146,6 +146,56 @@ export default function TerminalPage() {
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
+
+    // Command Interceptor
+    if (text.startsWith("/")) {
+      setLoading(true);
+      await new Promise(r => setTimeout(r, 600)); // satisfy typing animation
+      
+      const cmd = text.toLowerCase().split(" ")[0];
+      let reply = "";
+      
+      if (cmd === "/help") {
+        reply = `[SYSTEM HELP INDEX]
+
+Available commands:
+- /help : Displays this technical manual (Free).
+- /bio : Queries your current active survival assessment score (Free).
+- /scan : Instructs Red Queen to run deep metadata checks (x402 Compute).
+- /decrypt [ID] : Decrypts a specific vector file (x402 Compute).
+
+Note: Custom computed actions must be triggered from the specific dossier pages in Sector Delta.`;
+      } else if (cmd === "/bio") {
+        reply = `[BIO-SCORE TELEMETRY RECON]
+
+Subject Passport: ${walletAddress ? walletAddress.slice(0, 4) + "..." + walletAddress.slice(-4) : "UNKNOWN"}
+Active Score: ${currentScore ? currentScore + "%" : "PENDING (Speak to Red Queen to evaluate)"}
+Status: ${currentScore && parseInt(currentScore) < 20 ? "CRITICAL OUTLOOK" : currentScore && parseInt(currentScore) < 60 ? "STABLE THREATENED" : "OPTIMAL RESISTANCE"}
+
+Maintain vigilance.`;
+      } else if (cmd === "/scan" || cmd === "/decrypt") {
+        reply = `[COMPUTE GATE FAILURE]
+
+Running direct trace commands from the terminal root is restricted. 
+To initiate x402 metered diagnostics:
+1. Navigate to the [THREAT ARCHIVES](/threat-vector).
+2. Choose a dossier file under SECTOR DELTA (Algorithmic Warfare).
+3. Click "REQUEST SYSTEM ACCESS" to authorize compute node allocation.`;
+      } else {
+        reply = `[ERR_0x1E] UNKNOWN COMMAND: "${cmd}". Type /help for active protocols.`;
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: reply,
+        },
+      ]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -333,102 +383,200 @@ export default function TerminalPage() {
         <strong>[NOTICE]</strong> All communications are monitored. Your survival intelligence is being evaluated. Claim Level 5 access by connecting your wallet if you hold <strong>$THREAT tokens</strong>.
       </div>
 
-      {/* Messages */}
-      <div style={{
-        flex: 1,
-        overflowY: "auto",
-        padding: "24px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-        minHeight: 0,
-        maxHeight: "calc(100vh - 320px)",
-      }}>
-        {loadingHistory ? (
-          <div className="message message-ai">
-            <div className="message-label">[ SYSTEM — SEARCHING RECORDS ]</div>
-            <div className="message-bubble" style={{ color: "var(--text-dim)" }}>
-              RESTORING CLASSIFIED UPLINK DATA STREAM<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
-            </div>
-          </div>
-        ) : (
-          messages.map((msg, i) => (
-            <div key={i} className={`message message-${msg.role === "user" ? "user" : "ai"}`}>
-              <div className="message-label">
-                {msg.role === "user" ? `[ YOU — ${apocalypticName || "SUBJECT"} ]` : "[ RED QUEEN — LEVEL 5 ]"}
-              </div>
-              <div className="message-bubble">
-                {renderContent(msg.content)}
-              </div>
-              {msg.bioScore && msg.bioScore !== "PENDING" && (
-                <div className="bio-score" style={{ color: scoreColor }}>
-                  ▶ BIO-SCORE UPDATED: {msg.bioScore}%
+      {/* Main split workspace */}
+      <div style={{ display: "flex", flex: 1, minHeight: 0, position: "relative" }} className="responsive-grid-2-large">
+        
+        {/* Left Side: Chat Panel */}
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+          {/* Messages */}
+          <div style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "20px",
+            minHeight: 0,
+            maxHeight: "calc(100vh - 320px)",
+          }}>
+            {loadingHistory ? (
+              <div className="message message-ai">
+                <div className="message-label">[ SYSTEM — SEARCHING RECORDS ]</div>
+                <div className="message-bubble" style={{ color: "var(--text-dim)" }}>
+                  RESTORING CLASSIFIED UPLINK DATA STREAM<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
                 </div>
-              )}
-            </div>
-          ))
-        )}
+              </div>
+            ) : (
+              messages.map((msg, i) => (
+                <div key={i} className={`message message-${msg.role === "user" ? "user" : "ai"}`}>
+                  <div className="message-label">
+                    {msg.role === "user" ? `[ YOU — ${apocalypticName || "SUBJECT"} ]` : "[ RED QUEEN — LEVEL 5 ]"}
+                  </div>
+                  <div className="message-bubble">
+                    {renderContent(msg.content)}
+                  </div>
+                  {msg.bioScore && msg.bioScore !== "PENDING" && (
+                    <div className="bio-score" style={{ color: scoreColor }}>
+                      ▶ BIO-SCORE UPDATED: {msg.bioScore}%
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
 
-        {loading && (
-          <div className="message message-ai">
-            <div className="message-label">[ RED QUEEN — PROCESSING ]</div>
-            <div className="message-bubble" style={{ color: "var(--text-dim)" }}>
-              ANALYZING<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+            {loading && (
+              <div className="message message-ai">
+                <div className="message-label">[ RED QUEEN — PROCESSING ]</div>
+                <div className="message-bubble" style={{ color: "var(--text-dim)" }}>
+                  ANALYZING<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="chat-input-row">
+            <textarea
+              className="chat-input"
+              rows={2}
+              placeholder="> STATE YOUR QUERY, SUBJECT..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKey}
+              disabled={loading}
+            />
+            <button
+              className="btn btn-primary"
+              onClick={sendMessage}
+              disabled={loading || !input.trim()}
+              style={{ height: "100%", minWidth: "120px" }}
+            >
+              {loading ? "PROCESSING..." : "TRANSMIT ▶"}
+            </button>
+          </div>
+
+          {/* Hint row */}
+          <div style={{
+            padding: "10px 24px",
+            display: "flex",
+            gap: "24px",
+            flexWrap: "wrap",
+            background: "#050505",
+            borderTop: "1px solid var(--border)"
+          }}>
+            {["Hantavirus", "Alien invasion", "Zombie outbreak", "Nuclear winter", "AI takeover", "Bug apocalypse", "Dumb people uprising", "Vampire plague", "Internet collapse"].map((hint) => (
+              <button
+                key={hint}
+                onClick={() => setInput(hint)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontFamily: "var(--mono)",
+                  fontSize: "10px",
+                  color: "var(--text-muted)",
+                  cursor: "pointer",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  padding: "4px 0"
+                }}
+              >
+                ↗ {hint}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Side: Compute Allocation HUD Sidebar */}
+        <aside style={{
+          width: "320px",
+          borderLeft: "1px solid var(--border)",
+          background: "var(--surface)",
+          padding: "24px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "24px",
+          overflowY: "auto",
+          fontFamily: "var(--mono)",
+          fontSize: "11.5px",
+          color: "var(--text-dim)",
+          flexShrink: 0
+        }}>
+          <div>
+            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "12px" }}>
+              [ COMPUTE ALLOCATION HUD ]
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "#0c0c0c", border: "1px solid #161616", padding: "12px", borderRadius: "2px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>OPERATIVE:</span>
+                <span style={{ color: "var(--text)" }}>{apocalypticName || "SUBJECT"}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>UPLINK TIER:</span>
+                <span style={{ color: "var(--accent)" }}>{connected ? "LEVEL 5 (DIRECTOR)" : "LEVEL 1 (PUBLIC)"}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>METERED RATE:</span>
+                <span style={{ color: "#00ffcc" }}>0.05 USDC / SCAN</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>STATUS:</span>
+                <span style={{ color: "#2ecc40" }}>ACTIVE CONNECT</span>
+              </div>
             </div>
           </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
 
-      {/* Input */}
-      <div className="chat-input-row">
-        <textarea
-          className="chat-input"
-          rows={2}
-          placeholder="> STATE YOUR QUERY, SUBJECT..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKey}
-          disabled={loading}
-        />
-        <button
-          className="btn btn-primary"
-          onClick={sendMessage}
-          disabled={loading || !input.trim()}
-          style={{ height: "100%", minWidth: "120px" }}
-        >
-          {loading ? "PROCESSING..." : "TRANSMIT ▶"}
-        </button>
-      </div>
+          <div>
+            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text)", letterSpacing: "0.15em", marginBottom: "8px" }}>
+              COMMAND PROTOCOL INDEX
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "6px" }}>
+                <span style={{ color: "#2ecc40", fontWeight: "bold" }}>/help</span>
+                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
+                  Display technical helper documentation (FREE).
+                </div>
+              </div>
 
-      {/* Hint row */}
-      <div style={{
-        padding: "10px 24px",
-        display: "flex",
-        gap: "24px",
-        flexWrap: "wrap",
-        background: "#050505",
-        borderTop: "1px solid var(--border)"
-      }}>
-        {["Hantavirus", "Alien invasion", "Zombie outbreak", "Nuclear winter", "AI takeover", "Bug apocalypse", "Dumb people uprising", "Vampire plague", "Internet collapse"].map((hint) => (
-          <button
-            key={hint}
-            onClick={() => setInput(hint)}
-            style={{
-              background: "none",
-              border: "none",
-              fontFamily: "var(--mono)",
-              fontSize: "10px",
-              color: "var(--text-muted)",
-              cursor: "pointer",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              padding: "4px 0"
-            }}
-          >
-            ↗ {hint}
-          </button>
-        ))}
+              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "6px" }}>
+                <span style={{ color: "#2ecc40", fontWeight: "bold" }}>/bio</span>
+                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
+                  Retrieve active Bio-Score security scans (FREE).
+                </div>
+              </div>
+
+              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "6px" }}>
+                <span style={{ color: "var(--accent)", fontWeight: "bold" }}>/scan</span>
+                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
+                  Run deep metadata leak analysis (x402 COMPUTE).
+                </div>
+              </div>
+
+              <div>
+                <span style={{ color: "var(--accent)", fontWeight: "bold" }}>/decrypt [ID]</span>
+                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
+                  Force-decrypt classified threat records (x402 COMPUTE).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: "auto", borderTop: "1px dashed var(--border)", paddingTop: "16px" }}>
+            <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", letterSpacing: "0.15em", marginBottom: "6px" }}>
+              SYSTEM TELEMETRY INTEGRITY
+            </div>
+            <div style={{ fontSize: "10px", display: "flex", flexDirection: "column", gap: "4px", color: "var(--text-muted)" }}>
+              <div>• CORE TEMP: 34.2°C (STABLE)</div>
+              <div>• RPC LATENCY: 38ms (SOLANA MAINNET)</div>
+              <div>• SHIELD STATE: BUFFER SECURED</div>
+              <div>• MEMORY MATRIX: CONTEXT INJECTED</div>
+            </div>
+          </div>
+
+        </aside>
+
       </div>
     </div>
   );

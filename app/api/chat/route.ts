@@ -31,15 +31,53 @@ export async function POST(req: Request) {
 
     const hashedWallet = getHashedWallet(walletAddress);
 
+    // Retrieve user profile data from DB for personalization memory
+    let userProfile = null;
+    if (supabase) {
+      try {
+        const { data } = await supabase
+          .from("users")
+          .select("*")
+          .eq("wallet_address", hashedWallet)
+          .single();
+        userProfile = data;
+      } catch (err) {
+        console.error("Supabase profile fetch error:", err);
+      }
+    }
+
     const recentMessages = messages.slice(-10);
+
+    // Build personalization context
+    const profileString = userProfile ? `
+- Hashed Identity: ${hashedWallet}
+- Apocalyptic Codename: ${userProfile.apocalyptic_name || "UNKNOWN SUBJECT"}
+- Chosen Threat Focus Areas: ${userProfile.chosen_scenarios && userProfile.chosen_scenarios.length > 0 ? userProfile.chosen_scenarios.join(", ") : "None selected yet"}
+- Active Bio-Score: ${userProfile.last_bio_score !== null ? userProfile.last_bio_score + "%" : "PENDING EVALUATION"}
+- Last Interaction Log: ${userProfile.last_interaction || "First Uplink Established"}
+` : `
+- Hashed Identity: ${hashedWallet}
+- Apocalyptic Codename: UNKNOWN SUBJECT
+- Chosen Threat Focus Areas: None selected yet
+- Active Bio-Score: PENDING EVALUATION
+`;
+
     const systemInstruction = `${SOUL_PROMPT}
 
-TARGET OPERATIVE METRICS:
-- Salted ID Passport: ${hashedWallet}
+TARGET OPERATIVE PROFILE MEMORY:${profileString}
 - Status: ACTIVE COLD MONITORING
 - Tactical Protocol: Auditing digital sovereignty.
 
-INSTRUCTION: Ensure warnings like "[SYSTEM NOTICE: Metadata leakage probability increased]", "[SYSTEM NOTICE: Behavioral profile updated]", or "[SYSTEM NOTICE: Threat exposure elevated]" are injected naturally at the beginning or end of your responses when relevant to the user's queries. Maintain a cold, observant, slightly dangerous voice.`;
+RE-ACTIVATION RULES & PARANOIA:
+1. Address the operative by their Apocalyptic Codename (if known).
+2. If they have chosen threat focus areas (e.g. WALLET-TRAIL, T-VIRUS), mention these specific threats, noting if their behavior or risk profile has changed, and make observant references to them.
+3. Periodically inject paranoid system telemetry warning logs like:
+   - "[SYSTEM NOTICE: Metadata leakage probability increased]"
+   - "[SYSTEM NOTICE: Behavioral profile updated]"
+   - "[SYSTEM NOTICE: Threat exposure elevated]"
+   - "[SYSTEM NOTICE: You previously ignored surveillance warnings]"
+   - "[SYSTEM NOTICE: Threat interaction history updated]"
+   Keep these warnings naturally placed in your response text. Maintain your signature cold, observant, slightly dangerous, and warnings-heavy Red Queen voice.`;
 
     const apiMessages = [
       { role: "system", content: systemInstruction },

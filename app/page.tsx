@@ -37,7 +37,19 @@ const FEED_TEMPLATES = [
   "[WARN] Sentiment injection detected. Outrage bot clusters actively boosting panic posts in DeFi tags.",
   "[CRITICAL] Autonomous clone agent successfully bypassed voice authentication on OTC router.",
   "[ALERT] Algorithmic blacklist sweep flagged 4 liquidity pools on Raydium. Swaps blocked.",
-  "[WARN] Web2 data broker breach leaked 42,000 OAuth session tokens linked to Solana addresses."
+  "[WARN] Web2 data broker breach leaked 42,000 OAuth session tokens linked to Solana addresses.",
+  "[ALERT] Jupiter routing latency registered on Node 14. Automated frontrunning bots detected.",
+  "[CRITICAL] Smart contract drain alert: Malicious bytecodes injected into newly deployed pump.fun token routers.",
+  "[INFO] Sentinel node blocked metadata harvesting sweep from 4 malicious Chrome extensions.",
+  "[SATIRICAL] Meme brainrot spike: Autonomous AGI agent launches 'AGI-RUG' token and rug-pulls itself within 12 seconds.",
+  "[ALERT] DNS hijack warning: Phishing replica of jup.ag registered on external registrar. Do not authorize signatures.",
+  "[WARN] Cognitive Timeline Attack: Sentiment steering AI networks registered active manipulation spikes in Solana tags.",
+  "[CRITICAL] Level 5 threat detected: Cross-protocol address matching engine unmasking identities of Tornado Cash depositors.",
+  "[INFO] Red Queen intercepted synthetic voice attack trying to bypass hardware key confirmation routes.",
+  "[ALERT] Minor magnetosphere solar storm registered: Packet loss estimated at 0.8% across satcom relays.",
+  "[WARN] Satirical collapse threat: Global coffee supply chain disruptions causing 300% surge in workspace violence telemetry.",
+  "[INFO] Secure Sandbox verified: 12 key-exfiltration cookies purged from local browser memory caches.",
+  "[CRITICAL] Dynamic blacklist event: Raydium AMM liquidity providers flagged by automated compliance bots."
 ];
 
 export default function HomePage() {

@@ -5,6 +5,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import Link from "next/link";
 import { CATEGORIES, Threat } from "@/lib/threats";
+import { getThreatMetadata } from "@/lib/threatMetadata";
 
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
@@ -74,6 +75,9 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
   
   // Custom Dynamic Report for Sector Delta
   const [diagnosticsReport, setDiagnosticsReport] = useState<string | null>(null);
+
+  const [logs, setLogs] = useState<string[]>([]);
+  const [paymentStep, setPaymentStep] = useState<"idle" | "requesting" | "signing" | "settling" | "verifying" | "processing" | "compiling" | "completed">("idle");
 
   useEffect(() => {
     let foundThreat: Threat | null = null;
@@ -179,7 +183,16 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
     }
 
     setSubmittingPayment(true);
+    setPaymentStep("requesting");
+    setLogs(["[ REQUEST ] Allocating Red Queen compute node..."]);
+    
+    const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
     try {
+      await sleep(800);
+      setLogs(prev => [...prev, `[ CHALLENGE ] HTTP 402 challenge generated: ${paymentMeta?.amount || 0.05} USDC required.`]);
+      await sleep(600);
+      
       // Determine the RPC Connection based on network
       const networkUrl = paymentMeta.network === "solana-devnet" 
         ? "https://api.devnet.solana.com" 
@@ -206,12 +219,29 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = publicKey;
 
+      setPaymentStep("signing");
+      setLogs(prev => [...prev, "[ TRANSACTION ] Awaiting client wallet signature handshake..."]);
+      await sleep(400);
+
       // Request user signature
       const signature = await sendTransaction(transaction, connection);
       
+      setPaymentStep("settling");
+      setLogs(prev => [...prev, `[ SETTLE ] Signature received: ${signature.slice(0, 12)}...`]);
+      setLogs(prev => [...prev, "[ SETTLE ] Broadcasting transaction payload to Solana mainnet..."]);
+      await sleep(800);
+
+      setPaymentStep("verifying");
+      setLogs(prev => [...prev, "[ VERIFY ] Confirming on-chain transaction block inclusion..."]);
+      
       // Wait for confirmation
       await connection.confirmTransaction(signature, "confirmed");
+      setLogs(prev => [...prev, "[ VERIFY ] Block confirmed on-chain successfully."]);
+      await sleep(600);
 
+      setPaymentStep("processing");
+      setLogs(prev => [...prev, "[ PROCESS ] Signature validated. Decrypting payload files..."]);
+      
       // Resubmit with signature header
       const res = await fetch(`/api/terminal/analyze-wallet?vector=${threat!.id}&wallet=${publicKey.toString()}`, {
         method: "POST",
@@ -227,16 +257,31 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
       }
 
       const data = await res.json();
+      setLogs(prev => [...prev, "[ PROCESS ] Neural diagnostic processing loops initialized..."]);
+      await sleep(800);
+
+      setPaymentStep("compiling");
+      setLogs(prev => [...prev, "[ COMPILE ] Generating custom threat diagnostics report..."]);
+      await sleep(800);
+
+      setPaymentStep("completed");
+      setLogs(prev => [...prev, "[ COMPLETE ] Decryption complete. Access yielded."]);
+      await sleep(600);
+
       setDiagnosticsReport(data.report);
       setShowModal(false);
       triggerDecryptAnimation();
+      setPaymentStep("idle");
     } catch (err: any) {
       console.error("Payment confirmation failed:", err);
-      alert(`[ERR_0x42] TRANSACTION FAILED: ${err.message || "Ensure you have USDC in your wallet"}`);
-    } finally {
+      setLogs(prev => [...prev, `[ ERROR ] Operation aborted: ${err.message || "Ensure you have USDC in your wallet"}`]);
+      await sleep(2500);
+      setPaymentStep("idle");
       setSubmittingPayment(false);
     }
   }
+
+  const meta = getThreatMetadata(threat.id, threat.level, threat.status, category.key);
 
   return (
     <div style={{ padding: "80px 0 60px", minHeight: "100vh", background: "#050505" }}>
@@ -278,7 +323,7 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
 
           {/* Indicators & Actions */}
           <div className="threat-card-body">
-            <div className="responsive-grid-2" style={{ display: "grid", gap: "24px" }}>
+            <div className="responsive-grid-2" style={{ display: "grid", gap: "24px", marginBottom: "32px" }}>
               <div>
                 <div style={{ fontFamily: "var(--mono)", fontSize: "10px", letterSpacing: "0.2em", color: "var(--text-dim)", marginBottom: "12px" }}>
                   REPORTED SYMPTOMS & ANOMALIES
@@ -305,38 +350,161 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
 
-            {/* Decryption Portal */}
-            <div style={{ marginTop: "32px", borderTop: "1px solid var(--border)", paddingTop: "32px" }}>
-              {revealed ? (
-                <div style={{ background: "rgba(0, 255, 204, 0.03)", border: "1px solid rgba(0, 255, 204, 0.2)", borderRadius: "2px", padding: "20px 24px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.2em", marginBottom: "12px" }}>
-                    [CLEARANCE LEVEL 5 GRANTED] — SYSTEM DOSSIER DECRYPTED
+            {/* Always Visible Live Database Telemetry Grid */}
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "32px", marginBottom: "32px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: category.color, letterSpacing: "0.2em", marginBottom: "20px" }}>
+                [ LIVE DATABASE METRICS & SIGNAL STABILITY ]
+              </div>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
+                <div style={{ background: "#0c0c0c", border: "1px solid #181818", padding: "16px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "6px" }}>
+                    THREAT PROBABILITY
                   </div>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", margin: 0 }}>
-                    {threat.classified}
-                  </p>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "20px", color: "var(--text)", fontWeight: "bold" }}>
+                    {meta.probability}
+                  </div>
+                </div>
+                
+                <div style={{ background: "#0c0c0c", border: "1px solid #181818", padding: "16px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "6px" }}>
+                    SURVIVAL DIFFICULTY
+                  </div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text)", fontWeight: "bold", textTransform: "uppercase" }}>
+                    {meta.difficulty}
+                  </div>
+                </div>
+
+                <div style={{ background: "#0c0c0c", border: "1px solid #181818", padding: "16px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "6px" }}>
+                    CONTAINMENT STATUS
+                  </div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#ff4d4d", fontWeight: "bold", textTransform: "uppercase" }}>
+                    {meta.containmentStatus}
+                  </div>
+                </div>
+
+                <div style={{ background: "#0c0c0c", border: "1px solid #181818", padding: "16px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "6px" }}>
+                    RELATED VECTORS
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "4px" }}>
+                    {meta.relatedThreats.map((rt) => (
+                      <Link key={rt} href={`/threat-vector/${rt}`} style={{ fontFamily: "var(--mono)", fontSize: "11px", color: category.color, textDecoration: "underline" }}>
+                        {rt}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Live Updates & Incidents Row */}
+              <div className="responsive-grid-2" style={{ display: "grid", gap: "20px" }}>
+                <div style={{ background: "#080808", border: "1px dashed var(--border)", padding: "16px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text)", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                    📡 LIVE INCIDENT TELEMETRY
+                  </div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
+                    {meta.liveUpdates}
+                  </div>
+                </div>
+
+                <div style={{ background: "#080808", border: "1px dashed var(--border)", padding: "16px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text)", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                    ⚠️ RECENT SPECIFIC INCIDENTS
+                  </div>
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {meta.recentIncidents.map((incident, idx) => (
+                      <li key={idx} style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", display: "flex", gap: "6px" }}>
+                        <span style={{ color: "var(--accent)" }}>•</span>{incident}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Decryption Portal */}
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "32px" }}>
+              {revealed ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                   
-                  {isSectorDelta && diagnosticsReport && (
-                    <div style={{ marginTop: "20px", borderTop: "1px dashed rgba(0, 255, 204, 0.2)", paddingTop: "20px" }}>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "8px" }}>
-                        ▶ DIAGNOSTICS REPORT
-                      </div>
-                      <pre style={{
-                        fontFamily: "var(--mono)",
-                        fontSize: "12px",
-                        color: "var(--text)",
-                        background: "#080808",
-                        border: "1px solid #111",
-                        padding: "16px",
-                        whiteSpace: "pre-wrap",
-                        margin: 0,
-                        lineHeight: "1.7",
-                        textShadow: "0 0 2px rgba(0, 255, 204, 0.4)"
-                      }}>
-                        {diagnosticsReport}
-                      </pre>
+                  {/* RED QUEEN AI Commentary */}
+                  <div style={{ background: "rgba(255, 0, 51, 0.02)", borderLeft: "3px solid var(--accent)", padding: "20px", borderRadius: "0 2px 2px 0" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                      [ RED QUEEN DIRECTIVE // CLASSIFIED COMMENTARY ]
                     </div>
-                  )}
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.7" }}>
+                      "{meta.aiCommentary}"
+                    </div>
+                  </div>
+
+                  {/* Core Decrypted File content */}
+                  <div style={{ background: "rgba(0, 255, 204, 0.03)", border: "1px solid rgba(0, 255, 204, 0.2)", borderRadius: "2px", padding: "20px 24px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.2em", marginBottom: "12px" }}>
+                      [CLEARANCE LEVEL 5 GRANTED] — SECURE DOSSIER PAYLOAD
+                    </div>
+                    <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", margin: 0 }}>
+                      {threat.classified}
+                    </p>
+                    
+                    {isSectorDelta && diagnosticsReport && (
+                      <div style={{ marginTop: "20px", borderTop: "1px dashed rgba(0, 255, 204, 0.2)", paddingTop: "20px" }}>
+                        <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                          ▶ DIAGNOSTICS REPORT
+                        </div>
+                        <pre style={{
+                          fontFamily: "var(--mono)",
+                          fontSize: "12px",
+                          color: "var(--text)",
+                          background: "#080808",
+                          border: "1px solid #111",
+                          padding: "16px",
+                          whiteSpace: "pre-wrap",
+                          margin: 0,
+                          lineHeight: "1.7",
+                          textShadow: "0 0 2px rgba(0, 255, 204, 0.4)"
+                        }}>
+                          {diagnosticsReport}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Vector Escalation Timeline */}
+                  <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px", borderRadius: "2px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px" }}>
+                      [ SHIELD ANALYSIS: VECTOR ESCALATION PIPELINE ]
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      {meta.timelineProgression.map((step, idx) => (
+                        <div key={idx} style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold", background: "rgba(0, 255, 204, 0.05)", border: "1px solid rgba(0, 255, 204, 0.2)", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "2px", flexShrink: 0 }}>
+                            0{idx + 1}
+                          </span>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", marginTop: "3px" }}>
+                            {step}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Action Plan */}
+                  <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px", borderRadius: "2px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px" }}>
+                      [ COUNTER-MEASURE ACTIONS RECON ]
+                    </div>
+                    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {meta.recommendedActions.map((action, idx) => (
+                        <li key={idx} style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)", display: "flex", gap: "10px", alignItems: "center" }}>
+                          <span style={{ color: "#00ffcc", fontWeight: "bold" }}>✔</span>
+                          <span>{action}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
                 </div>
               ) : isSectorDelta ? (
                 <div
@@ -409,32 +577,102 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
             borderRadius: "4px",
             boxShadow: "0 0 30px rgba(255, 0, 51, 0.2)"
           }}>
-            <div className="tag tag-red" style={{ marginBottom: "20px", display: "inline-block", fontFamily: "var(--mono)" }}>
-              [FIREWALL PROMPT]
-            </div>
-            
-            <h3 style={{ fontSize: "16px", marginBottom: "24px", letterSpacing: "0.05em", fontFamily: "var(--mono)", lineHeight: "1.6", color: "var(--text)" }}>
-              Running deep digital trace requires an immediate 0.05 USDC computation tax. Proceed?
-            </h3>
-            
-            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
-              <button 
-                className="btn btn-ghost" 
-                onClick={() => setShowModal(false)}
-                disabled={submittingPayment}
-                style={{ fontSize: "11px", fontFamily: "var(--mono)" }}
-              >
-                [ DECLINE ]
-              </button>
-              <button 
-                className="btn btn-primary" 
-                onClick={handleConfirmPayment}
-                disabled={submittingPayment}
-                style={{ fontSize: "11px", fontFamily: "var(--mono)" }}
-              >
-                {submittingPayment ? "[ APPROVING... ]" : "[ APPROVE ]"}
-              </button>
-            </div>
+            {paymentStep !== "idle" ? (
+              <div>
+                <div className="tag tag-red" style={{ marginBottom: "20px", display: "inline-block", fontFamily: "var(--mono)" }}>
+                  [ COMPUTE HANDSHAKE LOGS ]
+                </div>
+                
+                <div style={{
+                  background: "#020202",
+                  border: "1px solid #151515",
+                  padding: "20px",
+                  borderRadius: "2px",
+                  height: "220px",
+                  overflowY: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                  fontFamily: "var(--mono)",
+                  fontSize: "11.5px",
+                  color: "var(--accent)",
+                  marginBottom: "24px",
+                  boxShadow: "inset 0 0 10px rgba(0,0,0,0.8)"
+                }}>
+                  {logs.map((log, i) => {
+                    const isError = log.includes("[ ERROR ]");
+                    const isComplete = log.includes("[ COMPLETE ]");
+                    return (
+                      <div 
+                        key={i} 
+                        style={{ 
+                          color: isError 
+                            ? "#ff4d4d" 
+                            : isComplete 
+                            ? "#00ffcc" 
+                            : "var(--accent)",
+                          textShadow: isComplete 
+                            ? "0 0 4px rgba(0, 255, 204, 0.4)" 
+                            : "none"
+                        }}
+                      >
+                        {log}
+                      </div>
+                    );
+                  })}
+                  {paymentStep !== "completed" && !logs.some(l => l.includes("[ ERROR ]")) && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  {logs.some(l => l.includes("[ ERROR ]")) && (
+                    <button 
+                      className="btn btn-ghost" 
+                      onClick={() => { setPaymentStep("idle"); setSubmittingPayment(false); }}
+                      style={{ fontSize: "11px", fontFamily: "var(--mono)" }}
+                    >
+                      [ RETRY / CLOSE ]
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="tag tag-red" style={{ marginBottom: "20px", display: "inline-block", fontFamily: "var(--mono)" }}>
+                  [ COMPUTE REQUEST DETECTED ]
+                </div>
+                
+                <h3 style={{ fontSize: "16px", marginBottom: "16px", letterSpacing: "0.05em", fontFamily: "var(--mono)", lineHeight: "1.6", color: "var(--text)" }}>
+                  Advanced intelligence analysis requires additional processing allocation.
+                </h3>
+                
+                <p style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)", marginBottom: "24px", lineHeight: "1.6" }}>
+                  x402 settlement required: <span style={{ color: "var(--accent)" }}>{paymentMeta?.amount || 0.05} USDC</span>. This handles server-side OpenAI compute cycles and private cryptographic indexing key processing.
+                </p>
+                
+                <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+                  <button 
+                    className="btn btn-ghost" 
+                    onClick={() => setShowModal(false)}
+                    disabled={submittingPayment}
+                    style={{ fontSize: "11px", fontFamily: "var(--mono)" }}
+                  >
+                    [ DECLINE ]
+                  </button>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleConfirmPayment}
+                    disabled={submittingPayment}
+                    style={{ fontSize: "11px", fontFamily: "var(--mono)" }}
+                  >
+                    [ INITIATE SETTLEMENT ]
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

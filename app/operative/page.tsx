@@ -268,6 +268,12 @@ export default function OperativeProfilePage() {
       <div style={{ borderBottom: "1px solid var(--border)", padding: "40px 24px", background: "var(--surface)" }}>
         <div className="container">
           <div className="tag tag-red" style={{ marginBottom: "16px" }}>OPERATIVE PASSPORT — SECURE LINK</div>
+          <h1 className="glow-text" style={{ fontSize: "clamp(24px, 4vw, 36px)", marginBottom: "8px", letterSpacing: "0.05em" }}>
+            OPERATIVE <span style={{ color: "var(--accent)" }}>PROFILE</span>
+          </h1>
+          <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "20px" }}>
+            Your AI-generated survival identity
+          </p>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "32px", flexWrap: "wrap" }}>
             {/* Logo initials avatar */}
             <div style={{

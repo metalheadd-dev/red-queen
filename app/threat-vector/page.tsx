@@ -54,9 +54,12 @@ export default function ThreatVectorPage() {
       <div style={{ borderBottom: "1px solid var(--border)", padding: "48px 24px", background: "var(--surface)" }}>
         <div className="container">
           <div className="tag tag-red" style={{ marginBottom: "16px" }}>SECURE DATAFEED — RED QUEEN NODE 7.4</div>
-          <h1 className="glow-text" style={{ fontSize: "clamp(28px, 5vw, 48px)", marginBottom: "16px", letterSpacing: "0.05em" }}>
-            THREAT <span style={{ color: "var(--accent)" }}>VECTORS</span>
+          <h1 className="glow-text" style={{ fontSize: "clamp(28px, 5vw, 48px)", marginBottom: "8px", letterSpacing: "0.05em" }}>
+            THREAT <span style={{ color: "var(--accent)" }}>ARCHIVES</span>
           </h1>
+          <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "16px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Interactive database of monitored digital and societal threats
+          </p>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "680px", lineHeight: "1.8" }}>
             Classified central node directory of threats. Select a hardware sector below. 
             Sector Alpha & Beta require holding <span style={{ color: "var(--accent)" }}>$THREAT</span> tokens. 
@@ -163,8 +166,39 @@ export default function ThreatVectorPage() {
                       <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: currentCat.color, letterSpacing: "0.15em" }}>
                         {threat.id}
                       </div>
-                      <div className={`tag ${threat.level > 90 ? "tag-red" : threat.level > 70 ? "tag-yellow" : "tag-green"}`} style={{ fontSize: "9px" }}>
-                        {threat.status}
+                      <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                        <span style={{
+                          fontFamily: "var(--mono)",
+                          fontSize: "9px",
+                          padding: "2px 6px",
+                          borderRadius: "2px",
+                          fontWeight: "bold",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          background: activeCategory === "algorithmic"
+                            ? "rgba(0, 255, 204, 0.1)"
+                            : activeCategory === "satirical"
+                            ? "rgba(46, 204, 64, 0.1)"
+                            : "rgba(255, 77, 77, 0.1)",
+                          color: activeCategory === "algorithmic"
+                            ? "#00ffcc"
+                            : activeCategory === "satirical"
+                            ? "#2ecc40"
+                            : "#ff4d4d",
+                          border: activeCategory === "algorithmic"
+                            ? "1px solid rgba(0, 255, 204, 0.3)"
+                            : activeCategory === "satirical"
+                            ? "1px solid rgba(46, 204, 64, 0.3)"
+                            : "1px solid rgba(255, 77, 77, 0.3)"
+                        }}>
+                          {activeCategory === "algorithmic" && "x402 Compute"}
+                          {activeCategory === "satirical" && "Free"}
+                          {activeCategory === "realistic" && "$THREAT Gated"}
+                          {activeCategory === "fictional" && "$THREAT Gated"}
+                        </span>
+                        <div className={`tag ${threat.level > 90 ? "tag-red" : threat.level > 70 ? "tag-yellow" : "tag-green"}`} style={{ fontSize: "9px" }}>
+                          {threat.status}
+                        </div>
                       </div>
                     </div>
                     

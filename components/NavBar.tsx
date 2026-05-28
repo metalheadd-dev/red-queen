@@ -28,11 +28,11 @@ export default function NavBar() {
   };
 
   const links = [
-    { href: "/", label: "HUB" },
-    { href: "/terminal", label: "TERMINAL" },
-    { href: "/threat-vector", label: "THREAT VECTORS" },
-    { href: "/network-clearance", label: "CLEARANCE" },
-    { href: "/survival-kit", label: "SURVIVAL KIT" },
+    { href: "/", label: "HUB", subtitle: "Central Command Center & Cyber Threat Map" },
+    { href: "/terminal", label: "TERMINAL", subtitle: "Direct communication channel with RED QUEEN AI" },
+    { href: "/threat-vector", label: "THREAT VECTORS", subtitle: "Interactive database of monitored digital and societal threats" },
+    { href: "/network-clearance", label: "CLEARANCE", subtitle: "Wallet-based access and compute permissions" },
+    { href: "/survival-kit", label: "SURVIVAL KIT", subtitle: "Digital survival documentation and threat response protocols" },
   ];
 
   const legalLinks = [
@@ -56,14 +56,17 @@ export default function NavBar() {
           {/* Desktop Links */}
           <ul className="navbar-nav desktop-only">
             {links.map((l) => (
-              <li key={l.href}>
+              <li key={l.href} className="nav-item-wrap">
                 <Link href={l.href} className={pathname === l.href ? "active" : ""}>
                   {l.label}
                 </Link>
+                <div className="nav-item-tooltip">
+                  {l.subtitle}
+                </div>
               </li>
             ))}
             {connected && (
-              <li>
+              <li className="nav-item-wrap">
                 <Link
                   href="/operative"
                   className={pathname === "/operative" ? "active" : ""}
@@ -71,6 +74,9 @@ export default function NavBar() {
                 >
                   ◉ PROFILE
                 </Link>
+                <div className="nav-item-tooltip">
+                  Your AI-generated survival identity
+                </div>
               </li>
             )}
           </ul>
@@ -157,7 +163,7 @@ export default function NavBar() {
             {/* Nav Links */}
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "16px" }}>
               {links.map((l) => (
-                <li key={l.href}>
+                <li key={l.href} style={{ borderBottom: "1px dashed rgba(255, 0, 51, 0.1)", paddingBottom: "12px" }}>
                   <Link 
                     href={l.href} 
                     onClick={() => setMenuOpen(false)}
@@ -173,10 +179,22 @@ export default function NavBar() {
                   >
                     {pathname === l.href ? "▶ " : ""}{l.label}
                   </Link>
+                  <div style={{
+                    fontFamily: "var(--sans)",
+                    fontSize: "11px",
+                    color: "var(--text-dim)",
+                    marginTop: "4px",
+                    lineHeight: "1.4",
+                    textTransform: "none",
+                    fontWeight: "normal",
+                    letterSpacing: "normal"
+                  }}>
+                    {l.subtitle}
+                  </div>
                 </li>
               ))}
               {connected && (
-                <li>
+                <li style={{ borderBottom: "1px dashed rgba(255, 0, 51, 0.1)", paddingBottom: "12px" }}>
                   <Link 
                     href="/operative" 
                     onClick={() => setMenuOpen(false)}
@@ -192,6 +210,18 @@ export default function NavBar() {
                   >
                     {pathname === "/operative" ? "▶ " : ""}◉ PROFILE
                   </Link>
+                  <div style={{
+                    fontFamily: "var(--sans)",
+                    fontSize: "11px",
+                    color: "var(--text-dim)",
+                    marginTop: "4px",
+                    lineHeight: "1.4",
+                    textTransform: "none",
+                    fontWeight: "normal",
+                    letterSpacing: "normal"
+                  }}>
+                    Your AI-generated survival identity
+                  </div>
                 </li>
               )}
             </ul>

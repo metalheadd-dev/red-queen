@@ -184,6 +184,37 @@ h1, h2, h3, h4, h5 {
   background: var(--accent-glow);
 }
 
+.nav-item-wrap {
+  position: relative;
+}
+
+.nav-item-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: rgba(5, 5, 5, 0.98);
+  border: 1px solid var(--border-red);
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 10px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(255, 0, 51, 0.3);
+  letter-spacing: 0.05em;
+  text-transform: none;
+}
+
+.nav-item-wrap:hover .nav-item-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(6px);
+}
+
 .navbar-status {
   display: flex;
   align-items: center;
