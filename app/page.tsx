@@ -246,13 +246,13 @@ export default function HomePage() {
                   VECTOR TYPE: <span style={{ color: "var(--accent)" }}>{selectedHotspot.type}</span>
                 </div>
                 
-                <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "16px" }}>
+                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "16px" }}>
                   <strong>Description:</strong> {selectedHotspot.desc}
                 </p>
-                <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "16px" }}>
+                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "16px" }}>
                   <strong style={{ color: "#ff4d4d" }}>Risk Profile:</strong> {selectedHotspot.risk}
                 </p>
-                <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#00ffcc", lineHeight: "1.8", margin: 0 }}>
+                <p style={{ fontSize: "13.5px", color: "#00ffcc", lineHeight: "1.8", margin: 0 }}>
                   <strong>Counter-Measure:</strong> {selectedHotspot.solution}
                 </p>
               </div>
@@ -380,7 +380,7 @@ export default function HomePage() {
                 <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "16px", fontFamily: "var(--mono)", fontWeight: "bold" }}>
                   {card.title}
                 </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "12.5px" }}>
                   <p style={{ color: "var(--text-dim)", margin: 0 }}>
                     <strong style={{ color: "#777" }}>PROBLEM:</strong> {card.problem}
                   </p>
@@ -439,7 +439,7 @@ export default function HomePage() {
               {activeX402Step === 1 && (
                 <div>
                   <h4 style={{ color: "var(--accent)", fontFamily: "var(--mono)", marginBottom: "8px" }}>STEP 1: Operative Launches Diagnostic Script</h4>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
+                  <p style={{ fontSize: "14px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
                     The client initiates an API query to decrypt a secured threat dossier. No session parameters, logins, or cookie keys are transmitted, keeping the request completely anonymous.
                   </p>
                 </div>
@@ -447,7 +447,7 @@ export default function HomePage() {
               {activeX402Step === 2 && (
                 <div>
                   <h4 style={{ color: "var(--accent)", fontFamily: "var(--mono)", marginBottom: "8px" }}>STEP 2: Server Emits HTTP 402 Challenge Header</h4>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
+                  <p style={{ fontSize: "14px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
                     The backend API intercepts the request, blocks output compilation, and triggers an HTTP `402 Payment Required` status. It outputs a Base64-encoded `PAYMENT-REQUIRED` JSON challenge.
                   </p>
                 </div>
@@ -455,7 +455,7 @@ export default function HomePage() {
               {activeX402Step === 3 && (
                 <div>
                   <h4 style={{ color: "var(--accent)", fontFamily: "var(--mono)", marginBottom: "8px" }}>STEP 3: Wallet Settles Micro-USDC Fee</h4>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
+                  <p style={{ fontSize: "14px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
                     The user&apos;s browser wallet adapter catches the 402 challenge, decodes the required amount (0.05 USDC), and requests approval for a transaction settled natively on Solana.
                   </p>
                 </div>
@@ -463,7 +463,7 @@ export default function HomePage() {
               {activeX402Step === 4 && (
                 <div>
                   <h4 style={{ color: "var(--accent)", fontFamily: "var(--mono)", marginBottom: "8px" }}>STEP 4: Server Verifies Ledger Transaction</h4>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
+                  <p style={{ fontSize: "14px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
                     The client retries the endpoint with the transaction signature in the `X-PAYMENT-SIGNATURE` header. The server parses the Solana ledger via RPC to confirm payment finality and checks replay registries.
                   </p>
                 </div>
@@ -471,7 +471,7 @@ export default function HomePage() {
               {activeX402Step === 5 && (
                 <div>
                   <h4 style={{ color: "#00ffcc", fontFamily: "var(--mono)", marginBottom: "8px" }}>STEP 5: Dossier Decrypted In Client Memory</h4>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
+                  <p style={{ fontSize: "14px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
                     Verification matches. The server releases the custom security diagnostic data. Unredacted reports are rendered directly into local memory, leaving no permanent transaction tracing links.
                   </p>
                 </div>

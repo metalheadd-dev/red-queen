@@ -71,7 +71,7 @@ export default function SurvivalKitPage() {
                 [ 01 / CODENAME: PROTOCOL SPECS & X402 ON-CHAIN SETTLEMENT ]
               </h1>
               
-              <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+              <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px" }}>
                 Active counter-intelligence operations inside Sector Delta utilize the internet-native x402 payment standard. This handles machine-to-machine micro-computations autonomously.
               </p>
 
@@ -94,10 +94,10 @@ export default function SurvivalKitPage() {
                 Protocol Specifications Overview
               </h3>
               <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
-                <li style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                <li style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8" }}>
                   <strong style={{ color: "var(--accent)" }}>• No Accounts, No Subscriptions:</strong> Operatives interact frictionlessly. Access is authorized directly via on-chain validation signatures attached to requests.
                 </li>
-                <li style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                <li style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8" }}>
                   <strong style={{ color: "var(--accent)" }}>• Solana Operational Security:</strong> Transaction routing settles over the Token-2022 standard, enabling payload confidentiality and blinding linkage to backend index logs.
                 </li>
               </ul>
@@ -132,14 +132,14 @@ export default function SurvivalKitPage() {
                 [ 02 / CODENAME: ADVERSARIAL THREATS & DIGITAL APOCALYPSE ]
               </h1>
               
-              <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+              <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px" }}>
                 The collapse of digital civilization is orchestrated through network vectors tracking physical targets. We catalog these activities across Sector Delta.
               </p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "24px", marginTop: "16px" }}>
                 <div style={{ border: "1px dashed var(--accent)", padding: "20px", background: "rgba(255,0,51,0.02)" }}>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>• AI MANIPULATION & CONSENSUS STEERING</h3>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: "0 0 10px 0", lineHeight: "1.7" }}>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", margin: "0 0 10px 0", lineHeight: "1.7" }}>
                     LLM neural networks scrape social timelines to construct psychological profiles of the populace. By targeting reactive accounts with tailored packets of panic or hype, models force predictable market trades and coordinate mock-narrative consensus.
                   </p>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#777" }}>[ CLASSIFIED DOSSIER STATE: DECRYPTED // SEC: DELTA ]</span>
@@ -147,7 +147,7 @@ export default function SurvivalKitPage() {
 
                 <div style={{ border: "1px dashed var(--accent)", padding: "20px", background: "rgba(255,0,51,0.02)" }}>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>• DEEPFAKE SOCIAL ENGINEERING ARRAYS</h3>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: "0 0 10px 0", lineHeight: "1.7" }}>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", margin: "0 0 10px 0", lineHeight: "1.7" }}>
                     Autonomous voice-cloning agents target OTC desks by replicating verbal validation passcodes. A 3-second public audio sample is sufficient to bypass secondary audio confirmation channels.
                   </p>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#777" }}>[ CLASSIFIED DOSSIER STATE: DECRYPTED // SEC: DELTA ]</span>
@@ -155,7 +155,7 @@ export default function SurvivalKitPage() {
 
                 <div style={{ border: "1px dashed var(--accent)", padding: "20px", background: "rgba(255,0,51,0.02)" }}>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>• ALGORITHMIC NETWORK BLACKLISTING</h3>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", margin: "0 0 10px 0", lineHeight: "1.7" }}>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", margin: "0 0 10px 0", lineHeight: "1.7" }}>
                     Compliance scrapers tag clean user addresses interacting with decentralized router pools linked to contaminated nodes, automatically dropping reputation scores and blocking API access across web3 frontends.
                   </p>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#777" }}>[ CLASSIFIED DOSSIER STATE: DECRYPTED // SEC: DELTA ]</span>
@@ -170,14 +170,14 @@ export default function SurvivalKitPage() {
                 [ 03 / CODENAME: DEFENSE MANUAL & DIGITAL PRIVET PROFILE ]
               </h1>
               
-              <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+              <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px" }}>
                 Operatives must execute active counter-measures to shield their cryptographic footprints from correlation crawlers:
               </p>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }} className="responsive-grid-2-large">
                 <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.2)" }}>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "12px" }}>METADATA DEFENSE PROTOCOL</h3>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
                     1. Purge all Web3 session cookies after swapping.<br />
                     2. Use isolated browsers for financial ledgers and social media.<br />
                     3. Do not link OAuth Web2 logins to public addresses.<br />
@@ -187,7 +187,7 @@ export default function SurvivalKitPage() {
 
                 <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.2)" }}>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "12px" }}>PSYCHOLOGICAL WARFARE SHIELD</h3>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
                     1. Disable algorithmic timelines and opt for clean static feeds.<br />
                     2. Inject noise and adversarial prompt logs into LLM chat uplinks.<br />
                     3. Disregard narrative outbreaks engineered to force panic assets dumps.<br />
@@ -204,7 +204,7 @@ export default function SurvivalKitPage() {
                 [ 04 / CODENAME: AUTONOMOUS AGENT ARCHITECTURE ]
               </h1>
               
-              <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px", fontFamily: "var(--mono)" }}>
+              <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.9", marginBottom: "24px" }}>
                 Future network infrastructure relies on autonomous AI security entities exchanging diagnostics telemetry parameters natively without human middle-men.
               </p>
 
@@ -216,7 +216,7 @@ export default function SurvivalKitPage() {
                 <h3 style={{ fontSize: "15px", color: "var(--accent)", marginBottom: "12px", fontFamily: "var(--mono)" }}>
                   Autonomous Agent Interaction Loop
                 </h3>
-                <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
                   In the evolved model, autonomous agents act as defensive shields. A wallet intelligence agent representing an operative requests metadata scanning from the Red Queen. The Red Queen triggers an x402 challenge, which the client agent settles instantly using treasury allocations. Data is exchanged privately inside temporary compute memory.
                 </p>
               </div>
