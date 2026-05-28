@@ -81,6 +81,13 @@ export default function TerminalPage() {
   const [apocalypticName, setApocalypticName] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [limitBlocked, setLimitBlocked] = useState(false);
+
+  useEffect(() => {
+    if (connected) {
+      setLimitBlocked(false);
+    }
+  }, [connected]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -210,6 +217,18 @@ To initiate x402 metered diagnostics:
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
+        if (res.status === 403 && errJson.error?.includes("LIMIT_EXCEEDED")) {
+          setLimitBlocked(true);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: `[ TELEMETRY LIMIT REACHED ] Unregistered trace quota exceeded. Connect Solana wallet to verify clearance and bypass IP limit.`,
+            },
+          ]);
+          setLoading(false);
+          return;
+        }
         throw new Error(errJson.error || `Server error ${res.status}`);
       }
       const data = await res.json();
@@ -265,81 +284,8 @@ To initiate x402 metered diagnostics:
     scoreNum < 60 ? "#f0c929" :
     "#2ecc40";
 
-  if (!connected) {
-    return (
-      <div style={{ padding: "60px 0 0", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#050505" }}>
-        <div style={{
-          textAlign: "center",
-          maxWidth: "500px",
-          padding: "48px 32px",
-          border: "1px solid var(--border)",
-          background: "var(--surface)",
-          borderRadius: "4px",
-          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 77, 77, 0.05)"
-        }}>
-          <div className="tag tag-red" style={{ marginBottom: "24px", letterSpacing: "0.2em" }}>SECURE UPLINK REQUIRED</div>
-          
-          <div style={{
-            width: "80px",
-            height: "80px",
-            borderRadius: "50%",
-            border: "1px solid rgba(255, 77, 77, 0.3)",
-            background: "rgba(255, 77, 77, 0.03)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 24px",
-            boxShadow: "0 0 20px rgba(255, 77, 77, 0.1)"
-          }}>
-            <SolvivalIcon size={40} />
-          </div>
-
-          <h1 className="glow-text" style={{ fontSize: "28px", marginBottom: "16px", letterSpacing: "0.05em" }}>
-            RED QUEEN <span style={{ color: "var(--accent)" }}>UPLINK</span>
-          </h1>
-          
-          <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "32px" }}>
-            [WARN_0x1E] Unauthorized access detected. The RED QUEEN AI survival intelligence is restricted to verified operatives. 
-            <br />
-            <br />
-            Connect your Solana wallet to establish a secure neural link and begin survival assessment.
-          </p>
-
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", justifyContent: "center" }}>
-            <WalletMultiButton style={{
-              background: "var(--accent)",
-              border: "none",
-              color: "#000",
-              fontFamily: "var(--mono)",
-              fontSize: "13px",
-              padding: "12px 28px",
-              height: "auto",
-              lineHeight: "1.5",
-              fontWeight: "bold",
-              cursor: "pointer",
-              borderRadius: "2px",
-            }} />
-            {wallet && !connected && (
-              <button 
-                onClick={handleChangeWallet}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "var(--text-dim)",
-                  textDecoration: "underline",
-                  fontSize: "11px",
-                  cursor: "pointer",
-                  fontFamily: "var(--mono)",
-                }}
-              >
-                [CHANGE WALLET]
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const userMessageCount = messages.filter((m) => m.role === "user").length;
+  const isLocked = !connected && (userMessageCount >= 4 || limitBlocked);
 
   return (
     <div style={{ padding: "60px 0 0", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -436,25 +382,61 @@ To initiate x402 metered diagnostics:
           </div>
 
           {/* Input */}
-          <div className="chat-input-row">
-            <textarea
-              className="chat-input"
-              rows={2}
-              placeholder="> STATE YOUR QUERY, SUBJECT..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKey}
-              disabled={loading}
-            />
-            <button
-              className="btn btn-primary"
-              onClick={sendMessage}
-              disabled={loading || !input.trim()}
-              style={{ height: "100%", minWidth: "120px" }}
-            >
-              {loading ? "PROCESSING..." : "TRANSMIT ▶"}
-            </button>
-          </div>
+          {isLocked ? (
+            <div style={{
+              padding: "24px",
+              background: "rgba(255, 77, 77, 0.03)",
+              borderTop: "1px solid var(--border-red)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "16px",
+              textAlign: "center"
+            }}>
+              <div className="tag tag-red" style={{ animation: "pulse-dot 2s infinite" }}>
+                [ UPLINK LOCKED // TELEMETRY LIMIT REACHED ]
+              </div>
+              <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", maxWidth: "550px", lineHeight: "1.7", margin: 0 }}>
+                You have sent 4 telemetry packets. To protect the integrity of the network, the RED QUEEN requires operative passport verification to continue neural analysis. Connect your Solana wallet now to unlock permanent clearance.
+              </p>
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <WalletMultiButton style={{
+                  background: "var(--accent)",
+                  border: "none",
+                  color: "#000",
+                  fontFamily: "var(--mono)",
+                  fontSize: "13px",
+                  padding: "12px 32px",
+                  height: "auto",
+                  lineHeight: "1.5",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  borderRadius: "2px",
+                  boxShadow: "0 0 15px rgba(255,0,51,0.4)"
+                }} />
+              </div>
+            </div>
+          ) : (
+            <div className="chat-input-row">
+              <textarea
+                className="chat-input"
+                rows={2}
+                placeholder="> STATE YOUR QUERY, SUBJECT..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKey}
+                disabled={loading}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={sendMessage}
+                disabled={loading || !input.trim()}
+                style={{ height: "100%", minWidth: "120px" }}
+              >
+                {loading ? "PROCESSING..." : "TRANSMIT ▶"}
+              </button>
+            </div>
+          )}
 
           {/* Hint row */}
           <div style={{

@@ -22,14 +22,37 @@ export async function POST(req: Request) {
     const messages = body.messages || [];
     const walletAddress = body.walletAddress;
 
-    if (!walletAddress) {
-      return Response.json(
-        { error: "[ERR_0x1E] Unauthorized access. Connected Solana wallet required to initiate uplink." },
-        { status: 401 }
-      );
-    }
+    let hashedWallet = "";
+    let isUnregistered = false;
 
-    const hashedWallet = getHashedWallet(walletAddress);
+    if (!walletAddress) {
+      isUnregistered = true;
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "127.0.0.1";
+      const hashedIP = getHashedWallet(ip);
+      hashedWallet = `IP_${hashedIP}`;
+
+      // Enforce 4-message IP limit check
+      if (supabase) {
+        try {
+          const { count } = await supabase
+            .from("messages")
+            .select("*", { count: "exact", head: true })
+            .eq("wallet_address", hashedWallet)
+            .eq("role", "user");
+          
+          if (count !== null && count >= 4) {
+            return Response.json(
+              { error: "[LIMIT_EXCEEDED] Unregistered telemetry quota exceeded. Connect Solana wallet to establish persistent clearance." },
+              { status: 403 }
+            );
+          }
+        } catch (err) {
+          console.error("Supabase count check failed:", err);
+        }
+      }
+    } else {
+      hashedWallet = getHashedWallet(walletAddress);
+    }
 
     // Retrieve user profile data from DB for personalization memory
     let userProfile = null;
