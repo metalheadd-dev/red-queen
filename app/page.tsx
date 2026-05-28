@@ -70,13 +70,12 @@ export default function HomePage() {
       {/* Hero */}
       <section className="hero" style={{ minHeight: "80vh", paddingTop: "60px" }}>
         <div className="hero-glow" />
-        <div className="hero-tag">SOLVIVAL CORP — CLASSIFIED INTELLIGENCE</div>
+        <div className="hero-tag">[ CODENAME: RED QUEEN AI // CORE NET FIREWALL ]</div>
         <h1 className="hero-title glitch">
           THE RED<br /><span style={{ color: "var(--accent)" }}>QUEEN</span>
         </h1>
         <p className="hero-subtitle">
-          Welcome to SOLvival Corp's Cyber-Intelligence Node. The apocalypse is not coming—it is actively rendering on your screens via automated feeds, network profiling, and metadata harvesting tracking loops. The Red Queen is your tactical counter-intelligence firewall.<br />
-          <span style={{ color: "var(--accent)" }}>The question is — will you encrypt your transmission?</span>
+          The apocalypse isn&apos;t a future biological outbreak—it is happening right now inside your browser. Your digital identity is actively under fire from chain-surveillance crawlers, metadata harvesting tracking loops, and predatory AI profiling networks. The Red Queen is your tactical counter-intelligence terminal. Connect your Solana wallet, deploy defensive agent utilities, and secure your digital footprint before the network profiles you.
         </p>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
           <Link href="/terminal" className="btn btn-primary">
