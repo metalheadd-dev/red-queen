@@ -679,7 +679,7 @@ export default function OperativeProfilePage() {
                       {[
                         { op: "OP-043", action: "Console Diagnostic Audit", date: "2026-05-30", reward: "+15 XP", stat: "Threat Awareness +2, Technical Prep +1", type: "SUCCESS" },
                         { op: "OP-042", action: "Footprint Entropy Scan", date: "2026-05-29", reward: "+10 XP", stat: "Surveillance Resistance +2", type: "SUCCESS" },
-                        { op: "OP-041", action: "x402 Sandbox Handshake Check", date: "2026-05-28", reward: "+8 XP", stat: "Adaptability +1", type: "SUCCESS" },
+                        { op: "OP-041", action: "Algorithmic Sandbox Verification", date: "2026-05-28", reward: "+8 XP", stat: "Adaptability +1", type: "SUCCESS" },
                         { op: "OP-DECAY", action: "Footprint Degradation Decay", date: "2026-05-27", reward: "-2 XP", stat: "Technical Preparedness -1", type: "DECAY" }
                       ].map((log, idx) => (
                         <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#090909", border: "1px solid #141414", padding: "10px 16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>

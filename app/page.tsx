@@ -7,7 +7,7 @@ import { THREAT_OF_THE_DAY } from "@/lib/threatOfTheDay";
 
 const TICKER_ITEMS = [
   "CRITICAL COMPUTE ALERT: ADVERSARIAL LLM NETWORKS CROSS-REFERENCING WALLET METADATA WITH WEB2 SOCIAL GRAPHS",
-  "PROTOCOL UPDATE: X402 ON-CHAIN TRANSACTION CHANNELS FULLY OPERATIONAL",
+  "EXPERIMENTAL LOG: X402 PROTOCOL INFRASTRUCTURE CURRENTLY UNDER INTERNAL INTEGRATION",
   "ENCRYPT YOUR TRANSMISSION // DECRYPTION SCRIPT RUNNING IN SECTOR 4",
   "SYBIL ATTACK VECTOR DETECTED: 104,281 PSEUDO-IDENTITIES HARVESTING ENCRYPTED WALLET HEURISTICS",
   "AI PERSONA HARVESTING MATRICES SCANNING SOCIAL HANDLES IN SECTOR 9",
@@ -64,9 +64,7 @@ export default function HomePage() {
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [loadingMap, setLoadingMap] = useState(false);
   const [hoveredNode, setHoveredNode] = useState<any>(null);
-  const [activeX402Step, setActiveX402Step] = useState(1);
   const [liveFeed, setLiveFeed] = useState<Array<{ id: number; time: string; msg: string }>>([]);
-
   // Onboarding wizard states
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
@@ -689,44 +687,44 @@ export default function HomePage() {
         <div className="container">
           <div className="section-header">
             <span className="section-line" />
-            <span className="section-tag">[ COMPUTE ALLOCATION SCHEME: FREE VS. GATED ]</span>
+            <span className="section-tag">[ ADVANCED CRYPTOGRAPHIC INFRASTRUCTURE ]</span>
             <span className="section-line" />
           </div>
 
           <div style={{ display: "grid", gap: "24px", marginTop: "32px" }} className="bento-2">
-            {/* FREE TIER CARD */}
+            {/* CORE PROGRESSION LAYER */}
             <div className="bento-card" style={{ borderColor: "var(--border)", background: "rgba(10,10,10,0.5)", padding: "32px", cursor: "default" }}>
               <h3 style={{ fontSize: "16px", color: "var(--text-dim)", marginBottom: "16px", fontFamily: "var(--mono)", fontWeight: "bold" }}>
-                [ PUBLIC ACCESS TIER: FREE ]
+                [ SYSTEM ACCESS & CLEARANCE TIERS ]
               </h3>
               <p style={{ color: "var(--text-dim)", fontSize: "13px", lineHeight: "1.7", marginBottom: "20px" }}>
-                Access basic early-warning signals and read public threat dossiers.
+                Access public briefings freely. Connect your wallet to decrypt security signatures and build your BIO-SCORE.
               </p>
               <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>
-                <li>✔ Basic Red Queen Chat (Pending status)</li>
-                <li>✔ Public Threat Archives (Sector Gamma)</li>
-                <li>✔ Real-Time Incident Alerts Feed</li>
-                <li>✔ Basic Bio-Score calculation</li>
+                <li>✔ Level 1 (Civilian) - Public Archives & Threat Indexes</li>
+                <li>✔ Level 3 (Operative) - Decrypt Sector Alpha & Beta Dossiers</li>
+                <li>✔ Level 5 (Director) - Decrypt Sector Delta Algorithmic Telemetry</li>
+                <li>✔ Wallet Identity Handshake preserves persistent XP & Score history</li>
               </ul>
             </div>
 
-            {/* x402 COMPUTE CARD */}
+            {/* x402 FUTURE INFRASTRUCTURE */}
             <div className="bento-card" style={{ borderColor: "var(--accent)", background: "rgba(255, 0, 51, 0.02)", padding: "32px", cursor: "default", position: "relative" }}>
               {/* Development status badge */}
               <div style={{ position: "absolute", top: "12px", right: "12px", fontSize: "8.5px", fontFamily: "var(--mono)", color: "var(--accent)", border: "1px solid var(--border-red)", padding: "3px 8px", background: "rgba(255,0,51,0.06)", borderRadius: "2px" }}>
                 EXPERIMENTAL // IN DEVELOPMENT
               </div>
               <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "16px", fontFamily: "var(--mono)", fontWeight: "bold", paddingRight: "160px" }}>
-                [ COMPUTE-ON-DEMAND: x402 METERED ]
+                [ x402 PROTOCOL INTEGRATION ]
               </h3>
               <p style={{ color: "var(--text-dim)", fontSize: "13px", lineHeight: "1.7", marginBottom: "20px" }}>
-                Experimental integration of machine-to-machine payment protocol, currently under development for token-gate AI compute cycles.
+                Experimental integration of machine-to-machine validation layer. Designed to automate autonomous trust protocols natively on Solana.
               </p>
               <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)" }}>
-                <li>✔ Decentralized Compute Settle (0.05 USDC) — *Beta Trial*</li>
-                <li>✔ Psychological Profiling & Threat Vectors Decryption — *In Development*</li>
-                <li>✔ Advanced AI Counter-Intelligence Reports — *Beta Trial*</li>
-                <li>✔ Sector Delta Gated Archive Decryption — *Active Test*</li>
+                <li>✔ Machine-to-Machine Autonomous Handshakes — *In Testing*</li>
+                <li>✔ Frictionless Cryptographic Session Isolation — *Prototype*</li>
+                <li>✔ Under-Development API Protection Routing Layers — *Active Development*</li>
+                <li>✔ Zero Static Storage Credential Verification — *Internal Sandbox*</li>
               </ul>
             </div>
           </div>
@@ -774,7 +772,7 @@ export default function HomePage() {
               </div>
 
               <div style={{ marginTop: "16px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", fontStyle: "italic" }}>
-                * Sector Delta elements require a mandatory 0.05 USDC x402 computation handshake to decrypt classified datasets.
+                * Sector Delta elements verify user signature clearance level to decrypt advanced diagnostics.
               </div>
             </div>
 
@@ -818,10 +816,10 @@ export default function HomePage() {
                 solution: "Scans public handle records to map timeline injection vulnerabilities."
               },
               {
-                title: "x402 Autonomous Payments",
-                problem: "Mandatory logins and subscriptions require static data storage.",
-                risk: "Leaked credentials compromise linked on-chain portfolios.",
-                solution: "Accountless pay-per-scan settled natively over Solana via micro-fees."
+                title: "x402 Protocol Layer",
+                problem: "Traditional system handshakes expose structural identity metadata.",
+                risk: "Vulnerabilities can be exploited by scanning agents tracking network loops.",
+                solution: "Under-development machine-to-machine validation layers to encrypt operations."
               },
               {
                 title: "Privacy Diagnostics",
@@ -863,85 +861,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* x402 Interactive Education Flow Section */}
-      <section className="page-section" style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "60px 0" }}>
-        <div className="container">
-          <div className="section-header">
-            <span className="section-line" />
-            <span className="section-tag">X402 AUTONOMOUS PAYMENT PROTOCOL FLOW</span>
-            <span className="section-line" />
-          </div>
-
-          <div style={{ maxWidth: "800px", margin: "32px auto 0" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", flexWrap: "wrap", marginBottom: "24px" }}>
-              {[
-                { step: 1, label: "1. REQUEST" },
-                { step: 2, label: "2. 402 CHALLENGE" },
-                { step: 3, label: "3. PAYMENT" },
-                { step: 4, label: "4. VERIFY" },
-                { step: 5, label: "5. ACCESS" }
-              ].map((s) => (
-                <button
-                  key={s.step}
-                  onClick={() => setActiveX402Step(s.step)}
-                  className="btn"
-                  style={{
-                    flex: 1,
-                    minWidth: "120px",
-                    justifyContent: "center",
-                    fontSize: "11px",
-                    background: activeX402Step === s.step ? "var(--accent)" : "transparent",
-                    color: activeX402Step === s.step ? "#000" : "var(--text-dim)",
-                    border: "1px solid var(--border-red)",
-                    borderRadius: "2px"
-                  }}
-                >
-                  {s.label}
-                </button>
-              ))}
+      {/* x402 Experimental Infrastructure Section */}
+      <section className="page-section" style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 0" }}>
+        <div className="container" style={{ maxWidth: "800px", textAlign: "center" }}>
+          <div className="tag tag-red" style={{ marginBottom: "20px" }}>EXPERIMENTAL MODULE // PROTOTYPE CLASS</div>
+          <h2 style={{ fontSize: "28px", fontFamily: "var(--title-font)", color: "var(--text)", marginBottom: "16px", letterSpacing: "0.05em" }}>
+            EXPERIMENTAL <span style={{ color: "var(--accent)" }}>x402 Systems</span> CURRENTLY UNDER INTEGRATION
+          </h2>
+          <p style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.8", margin: "0 auto", maxWidth: "640px" }}>
+            The RED QUEEN is integrating experimental x402 protocol layers internally to automate autonomous machine-to-machine trust handshakes. This is a future system architecture, under active development and testing. Access channels will remain closed until security validation loops complete.
+          </p>
+          <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginTop: "32px" }}>
+            <div style={{ background: "#0c0c0c", border: "1px dashed var(--border-red)", padding: "16px 24px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>
+              STATUS: <span style={{ color: "var(--accent)" }}>INTEGRATION IN PROGRESS</span>
             </div>
-
-            <div className="panel" style={{ background: "rgba(255, 0, 51, 0.02)", borderColor: "rgba(255, 0, 51, 0.2)" }}>
-              {activeX402Step === 1 && (
-                <div>
-                  <h4 style={{ color: "var(--accent)", fontFamily: "var(--mono)", marginBottom: "8px" }}>STEP 1: Operative Launches Diagnostic Script</h4>
-                  <p style={{ fontSize: "14px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
-                    The client initiates an API query to decrypt a secured threat dossier. No session parameters, logins, or cookie keys are transmitted, keeping the request completely anonymous.
-                  </p>
-                </div>
-              )}
-              {activeX402Step === 2 && (
-                <div>
-                  <h4 style={{ color: "var(--accent)", fontFamily: "var(--mono)", marginBottom: "8px" }}>STEP 2: Server Emits HTTP 402 Challenge Header</h4>
-                  <p style={{ fontSize: "14px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
-                    The backend API intercepts the request, blocks output compilation, and triggers an HTTP `402 Payment Required` status. It outputs a Base64-encoded `PAYMENT-REQUIRED` JSON challenge.
-                  </p>
-                </div>
-              )}
-              {activeX402Step === 3 && (
-                <div>
-                  <h4 style={{ color: "var(--accent)", fontFamily: "var(--mono)", marginBottom: "8px" }}>STEP 3: Wallet Settles Micro-USDC Fee</h4>
-                  <p style={{ fontSize: "14px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
-                    The user&apos;s browser wallet adapter catches the 402 challenge, decodes the required amount (0.05 USDC), and requests approval for a transaction settled natively on Solana.
-                  </p>
-                </div>
-              )}
-              {activeX402Step === 4 && (
-                <div>
-                  <h4 style={{ color: "var(--accent)", fontFamily: "var(--mono)", marginBottom: "8px" }}>STEP 4: Server Verifies Ledger Transaction</h4>
-                  <p style={{ fontSize: "14px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
-                    The client retries the endpoint with the transaction signature in the `X-PAYMENT-SIGNATURE` header. The server parses the Solana ledger via RPC to confirm payment finality and checks replay registries.
-                  </p>
-                </div>
-              )}
-              {activeX402Step === 5 && (
-                <div>
-                  <h4 style={{ color: "#00ffcc", fontFamily: "var(--mono)", marginBottom: "8px" }}>STEP 5: Dossier Decrypted In Client Memory</h4>
-                  <p style={{ fontSize: "14px", color: "var(--text-dim)", margin: 0, lineHeight: "1.7" }}>
-                    Verification matches. The server releases the custom security diagnostic data. Unredacted reports are rendered directly into local memory, leaving no permanent transaction tracing links.
-                  </p>
-                </div>
-              )}
+            <div style={{ background: "#0c0c0c", border: "1px dashed #00ffcc20", padding: "16px 24px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>
+              INFRASTRUCTURE: <span style={{ color: "#00ffcc" }}>SOLANA V2 SHIELD</span>
             </div>
           </div>
         </div>
@@ -1080,9 +1015,9 @@ export default function HomePage() {
             )}
             {onboardingStep === 3 && (
               <div>
-                <h3 style={{ fontSize: "18px", color: "var(--text)", marginBottom: "16px" }}>THE PRIVACY ENGINE: HOW X402 WORKS</h3>
+                <h3 style={{ fontSize: "18px", color: "var(--text)", marginBottom: "16px" }}>BIO-SCORE & XP PROGRESSION</h3>
                 <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
-                  We do not ask for accounts, emails, passwords, or subscriptions. To run advanced diagnostic scans, we utilize the open on-chain x402 protocol. This is an **experimental integration currently under active development** (not production-ready). It executes a frictionless micro-payment (0.05 USDC) settled natively over Solana to fund the AI compute cycle in real-time.
+                  Every interaction inside the terminal builds your permanent experience points (XP) to unlock higher clearance levels. Meanwhile, your BIO-SCORE evaluates real-time preparedness and digital survival intelligence based on recent threat selections and tactical decisions.
                 </p>
               </div>
             )}

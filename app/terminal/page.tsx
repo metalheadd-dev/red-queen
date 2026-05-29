@@ -310,10 +310,10 @@ export default function TerminalPage() {
 Available commands:
 - /help : Displays this technical manual (Free).
 - /bio : Queries your current active survival assessment score (Free).
-- /scan : Instructs Red Queen to run deep metadata checks (x402 Compute).
-- /decrypt [ID] : Decrypts a specific vector file (x402 Compute).
+- /scan : Instructs Red Queen to run deep metadata checks (Requires connected wallet).
+- /decrypt [ID] : Decrypts a specific vector file (Requires Level-3 clearance).
 
-Note: Custom computed actions must be triggered from the specific dossier pages in Sector Delta.`;
+Note: Custom computed actions must be triggered from the specific dossier pages in Sector Alpha.`;
       } else if (cmd === "/bio") {
         reply = `[BIO-SCORE TELEMETRY RECON]
 
@@ -323,13 +323,13 @@ Status: ${currentScore && parseInt(currentScore) < 20 ? "CRITICAL OUTLOOK" : cur
 
 Maintain vigilance.`;
       } else if (cmd === "/scan" || cmd === "/decrypt") {
-        reply = `[COMPUTE GATE FAILURE]
+        reply = `[CLEARANCE GATE FAILURE]
 
 Running direct trace commands from the terminal root is restricted. 
-To initiate x402 metered diagnostics:
+To decrypt or scan target files:
 1. Navigate to the [THREAT ARCHIVES](/threat-vector).
-2. Choose a dossier file under SECTOR DELTA (Algorithmic Warfare).
-3. Click "REQUEST SYSTEM ACCESS" to authorize compute node allocation.`;
+2. Choose a dossier file under SECTOR ALPHA or BETA.
+3. Verify your clearance level to decrypt the intelligence data.`;
       } else {
         reply = `[ERR_0x1E] UNKNOWN COMMAND: "${cmd}". Type /help for active protocols.`;
       }
@@ -734,14 +734,14 @@ To initiate x402 metered diagnostics:
               <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "6px" }}>
                 <span style={{ color: "var(--accent)", fontWeight: "bold" }}>/scan</span>
                 <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
-                  Run deep metadata leak analysis (x402 COMPUTE).
+                  Run deep metadata leak analysis.
                 </div>
               </div>
 
               <div>
                 <span style={{ color: "var(--accent)", fontWeight: "bold" }}>/decrypt [ID]</span>
                 <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
-                  Force-decrypt classified threat records (x402 COMPUTE).
+                  Decrypt classified threat records.
                 </div>
               </div>
             </div>

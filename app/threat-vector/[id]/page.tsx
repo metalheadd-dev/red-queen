@@ -2,63 +2,14 @@
 import { useState, useEffect, use } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import Link from "next/link";
 import { CATEGORIES, Threat } from "@/lib/threats";
 import { getThreatMetadata } from "@/lib/threatMetadata";
 
-const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-
-// Decides token mint based on network endpoint
-function getUSDCMint(endpoint: string): PublicKey {
-  if (endpoint.includes("devnet")) {
-    return new PublicKey("4zMMC9srt5Ri5X14GAgXwiHii3tzconxEksHXrTXst6H"); // Devnet USDC
-  }
-  return new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"); // Mainnet USDC
-}
-
-function getAssociatedTokenAddress(mint: PublicKey, owner: PublicKey): PublicKey {
-  const [address] = PublicKey.findProgramAddressSync(
-    [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-    ASSOCIATED_TOKEN_PROGRAM_ID
-  );
-  return address;
-}
-
-function createTransferInstruction(
-  source: PublicKey,
-  destination: PublicKey,
-  owner: PublicKey,
-  amount: number
-): TransactionInstruction {
-  const keys = [
-    { pubkey: source, isSigner: false, isWritable: true },
-    { pubkey: destination, isSigner: false, isWritable: true },
-    { pubkey: owner, isSigner: true, isWritable: false },
-  ];
-
-  // Manual byte construction to avoid client-side Buffer errors
-  const data = new Uint8Array(9);
-  data[0] = 3; // Transfer instruction index
-  // Write little endian u64 for amount
-  let temp = amount;
-  for (let i = 1; i <= 8; i++) {
-    data[i] = temp & 0xff;
-    temp = temp >> 8;
-  }
-
-  return new TransactionInstruction({
-    keys,
-    programId: TOKEN_PROGRAM_ID,
-    data: data as any,
-  });
-}
-
 export default function ThreatDossierPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
-  const { publicKey, connected, sendTransaction } = useWallet();
+  const { publicKey, connected } = useWallet();
   const { setVisible } = useWalletModal();
 
   const [threat, setThreat] = useState<Threat | null>(null);
@@ -68,16 +19,13 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
   const [glitching, setGlitching] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  // x402 payment requirements
-  const [showModal, setShowModal] = useState(false);
-  const [paymentMeta, setPaymentMeta] = useState<any>(null);
-  const [submittingPayment, setSubmittingPayment] = useState(false);
-  
   // Custom Dynamic Report for Sector Delta
   const [diagnosticsReport, setDiagnosticsReport] = useState<string | null>(null);
 
-  const [logs, setLogs] = useState<string[]>([]);
-  const [paymentStep, setPaymentStep] = useState<"idle" | "requesting" | "signing" | "settling" | "verifying" | "processing" | "compiling" | "completed">("idle");
+  // User stats & decrypt warning states
+  const [userStats, setUserStats] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [decryptError, setDecryptError] = useState<string | null>(null);
 
   useEffect(() => {
     let foundThreat: Threat | null = null;
@@ -96,6 +44,32 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
     setCategory(foundCat);
   }, [id]);
 
+  useEffect(() => {
+    async function loadStats() {
+      if (!connected || !publicKey) {
+        setUserStats(null);
+        return;
+      }
+      setLoadingStats(true);
+      try {
+        const res = await fetch(`/api/profile?wallet=${publicKey.toString()}`);
+        const data = await res.json();
+        if (data.profile && data.profile.stats) {
+          setUserStats(data.profile.stats);
+        } else {
+          setUserStats({ level: 1 });
+        }
+      } catch (err) {
+        console.error("Failed to load user stats:", err);
+        setUserStats({ level: 1 });
+      } finally {
+        setLoadingStats(false);
+      }
+    }
+    loadStats();
+    setDecryptError(null);
+  }, [connected, publicKey]);
+
   if (!threat || !category) {
     return (
       <div style={{ padding: "120px 24px 60px", textTransform: "uppercase", fontFamily: "var(--mono)", color: "var(--accent)", background: "#050505", minHeight: "100vh" }} className="container">
@@ -109,62 +83,45 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
   const isSectorDelta = category.key === "algorithmic";
 
   async function handleDecryptClick() {
+    setDecryptError(null);
+    
+    if (!connected || !publicKey) {
+      setDecryptError("IDENTITY HANDSHAKE REQUIRED. Please connect your Solana wallet in the navigation bar to verify your operative clearance level and preserve your progression history.");
+      return;
+    }
+
+    const currentLevel = userStats?.level || 1;
+    const requiredLevel = isSectorDelta ? 5 : 3;
+
+    if (currentLevel < requiredLevel) {
+      setDecryptError(`[ACCESS DENIED] INSUFFICIENT OPERATIVE CLEARANCE. Sector requires Level ${requiredLevel} (${requiredLevel === 5 ? "DIRECTOR" : "OPERATIVE"}). Your active signature profile registers as Level ${currentLevel} (${currentLevel >= 4 ? "ANALYST" : currentLevel >= 3 ? "OPERATIVE" : currentLevel >= 2 ? "OBSERVER" : "CIVILIAN"}). Submit diagnostics inside the Terminal to earn XP and upgrade clearance.`);
+      return;
+    }
+
+    setLoading(true);
     if (isSectorDelta) {
-      setLoading(true);
       try {
-        const res = await fetch(`/api/terminal/analyze-wallet?vector=${threat!.id}&wallet=${publicKey?.toString() || ""}`, {
+        const res = await fetch(`/api/terminal/analyze-wallet?vector=${threat!.id}&wallet=${publicKey.toString()}`, {
           method: "POST"
         });
 
-        if (res.status === 402) {
-          const challengeBase64 = res.headers.get("PAYMENT-REQUIRED");
-          if (challengeBase64) {
-            try {
-              const decoded = JSON.parse(atob(challengeBase64));
-              setPaymentMeta({
-                amount: parseFloat(decoded.amount),
-                recipient: decoded.recipient,
-                token: decoded.token,
-                network: decoded.network
-              });
-            } catch (err) {
-              console.error("Failed to decode challenge Base64:", err);
-              setPaymentMeta({
-                amount: 0.05,
-                recipient: "RedQnBv2pTwtE4x3o5dM4rQ1tBvM2bTwtE4x3o5dM4r",
-                token: "USDC",
-                network: "solana-devnet"
-              });
-            }
-          } else {
-            const reqAmount = res.headers.get("PAYMENT-REQUIRED-AMOUNT") || "0.05";
-            const reqRecipient = res.headers.get("PAYMENT-REQUIRED-RECIPIENT") || "RedQnBv2pTwtE4x3o5dM4rQ1tBvM2bTwtE4x3o5dM4r";
-            const reqToken = res.headers.get("PAYMENT-REQUIRED-TOKEN") || "USDC";
-            const reqNetwork = res.headers.get("PAYMENT-REQUIRED-NETWORK") || "solana-mainnet";
-
-            setPaymentMeta({
-              amount: parseFloat(reqAmount),
-              recipient: reqRecipient,
-              token: reqToken,
-              network: reqNetwork
-            });
-          }
-          setShowModal(true);
-        } else if (res.ok) {
+        if (res.ok) {
           const data = await res.json();
           setDiagnosticsReport(data.report);
           triggerDecryptAnimation();
         } else {
           const err = await res.json().catch(() => ({}));
-          alert(err.error || "[ERR_0x9B] Decryption trigger failed.");
+          setDecryptError(err.error || "[ERR_0x9B] Decryption analysis sweep trigger failed.");
         }
       } catch (err) {
         console.error(err);
+        setDecryptError("System timeout: Connection to telemetry processing node lost.");
       } finally {
         setLoading(false);
       }
     } else {
       triggerDecryptAnimation();
+      setLoading(false);
     }
   }
 
@@ -174,111 +131,6 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
       setGlitching(false);
       setRevealed(true);
     }, 650);
-  }
-
-  async function handleConfirmPayment() {
-    if (!connected || !publicKey) {
-      setVisible(true);
-      return;
-    }
-
-    setSubmittingPayment(true);
-    setPaymentStep("requesting");
-    setLogs(["[ REQUEST ] Allocating Red Queen compute node..."]);
-    
-    const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-
-    try {
-      await sleep(800);
-      setLogs(prev => [...prev, `[ CHALLENGE ] HTTP 402 challenge generated: ${paymentMeta?.amount || 0.05} USDC required.`]);
-      await sleep(600);
-      
-      // Determine the RPC Connection based on network
-      const networkUrl = paymentMeta.network === "solana-devnet" 
-        ? "https://api.devnet.solana.com" 
-        : "https://api.mainnet-beta.solana.com";
-
-      const connection = new Connection(networkUrl, "confirmed");
-      const usdcMint = getUSDCMint(networkUrl);
-      const recipientPubkey = new PublicKey(paymentMeta.recipient);
-
-      // Derive token accounts
-      const userAta = getAssociatedTokenAddress(usdcMint, publicKey);
-      const recipientAta = getAssociatedTokenAddress(usdcMint, recipientPubkey);
-
-      // Decimals is 6, 0.05 USDC = 50,000 base units
-      const amountBase = Math.round(paymentMeta.amount * 1_000_000);
-
-      // Create transaction
-      const transaction = new Transaction().add(
-        createTransferInstruction(userAta, recipientAta, publicKey, amountBase)
-      );
-
-      // Fetch latest blockhash
-      const { blockhash } = await connection.getLatestBlockhash("confirmed");
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
-
-      setPaymentStep("signing");
-      setLogs(prev => [...prev, "[ TRANSACTION ] Awaiting client wallet signature handshake..."]);
-      await sleep(400);
-
-      // Request user signature
-      const signature = await sendTransaction(transaction, connection);
-      
-      setPaymentStep("settling");
-      setLogs(prev => [...prev, `[ SETTLE ] Signature received: ${signature.slice(0, 12)}...`]);
-      setLogs(prev => [...prev, "[ SETTLE ] Broadcasting transaction payload to Solana mainnet..."]);
-      await sleep(800);
-
-      setPaymentStep("verifying");
-      setLogs(prev => [...prev, "[ VERIFY ] Confirming on-chain transaction block inclusion..."]);
-      
-      // Wait for confirmation
-      await connection.confirmTransaction(signature, "confirmed");
-      setLogs(prev => [...prev, "[ VERIFY ] Block confirmed on-chain successfully."]);
-      await sleep(600);
-
-      setPaymentStep("processing");
-      setLogs(prev => [...prev, "[ PROCESS ] Signature validated. Decrypting payload files..."]);
-      
-      // Resubmit with signature header
-      const res = await fetch(`/api/terminal/analyze-wallet?vector=${threat!.id}&wallet=${publicKey.toString()}`, {
-        method: "POST",
-        headers: {
-          "X-PAYMENT-SIGNATURE": signature,
-          "X-USER-WALLET": publicKey.toString()
-        }
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Server validation failed.");
-      }
-
-      const data = await res.json();
-      setLogs(prev => [...prev, "[ PROCESS ] Neural diagnostic processing loops initialized..."]);
-      await sleep(800);
-
-      setPaymentStep("compiling");
-      setLogs(prev => [...prev, "[ COMPILE ] Generating custom threat diagnostics report..."]);
-      await sleep(800);
-
-      setPaymentStep("completed");
-      setLogs(prev => [...prev, "[ COMPLETE ] Decryption complete. Access yielded."]);
-      await sleep(600);
-
-      setDiagnosticsReport(data.report);
-      setShowModal(false);
-      triggerDecryptAnimation();
-      setPaymentStep("idle");
-    } catch (err: any) {
-      console.error("Payment confirmation failed:", err);
-      setLogs(prev => [...prev, `[ ERROR ] Operation aborted: ${err.message || "Ensure you have USDC in your wallet"}`]);
-      await sleep(2500);
-      setPaymentStep("idle");
-      setSubmittingPayment(false);
-    }
   }
 
   const meta = getThreatMetadata(threat.id, threat.level, threat.status, category.key);
@@ -600,7 +452,6 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                         ))}
                       </div>
                     </div>
-
                     {/* Action Plan */}
                     <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px", borderRadius: "2px" }}>
                       <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px" }}>
@@ -621,7 +472,7 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                 <div
                   className="redacted-viewport-locked"
                   onClick={handleDecryptClick}
-                  style={{ animation: glitching ? "glitch 0.6s ease" : "none", cursor: "pointer", minHeight: "180px" }}
+                  style={{ animation: glitching ? "glitch 0.6s ease" : "none", cursor: "pointer", minHeight: "220px" }}
                 >
                   {/* Glowing horizontal blockouts */}
                   <div className="redacted-blockout-line" style={{ width: "70%" }}></div>
@@ -631,15 +482,31 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                   
                   {/* Flickering overlay prompt */}
                   <div className="redacted-overlay-prompt">
-                    <div className="redacted-flicker-text">
-                      [COMPUTE GATE ENCRYPTED // REQUIRE X402 HANDSHAKE TO MAP METADATA]
+                    <div className="redacted-flicker-text" style={{ color: "#ff4d4d", fontWeight: "bold" }}>
+                      [COMPUTE GATE ENCRYPTED // REQUIRE LEVEL 5 DIRECTOR CLEARANCE]
                     </div>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginTop: "12px", letterSpacing: "0.15em" }}>
-                      {loading ? "CHECKING CLEARANCE..." : "CLICK TO TRIGGER METADATA ANALYSIS — REQUIRES x402 PAYMENT (0.05 USDC)"}
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginTop: "12px", letterSpacing: "0.15em", textAlign: "center", padding: "0 12px" }}>
+                      {loading ? "VALIDATING KEY PROFILE..." : "CLICK TO INITIATE COGNITIVE TELEMETRY SWEEP"}
                     </div>
                     <button className="btn btn-ghost" disabled={loading} style={{ fontSize: "11px", padding: "8px 20px", marginTop: "12px" }}>
-                      {loading ? "CHECKING..." : "REQUEST SYSTEM ACCESS"}
+                      {loading ? "PROCESSING..." : "REQUEST DIAGNOSTIC ACCESS"}
                     </button>
+                    {decryptError && (
+                      <div style={{
+                        marginTop: "16px",
+                        padding: "10px 14px",
+                        background: "rgba(255, 77, 77, 0.1)",
+                        border: "1px solid rgba(255, 77, 77, 0.3)",
+                        color: "#ff4d4d",
+                        fontFamily: "var(--mono)",
+                        fontSize: "11px",
+                        maxWidth: "420px",
+                        lineHeight: "1.5",
+                        textAlign: "center"
+                      }}>
+                        {decryptError}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -650,7 +517,7 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                 >
                   <div style={{ textAlign: "center" }}>
                     <div className="redacted-text" style={{ fontSize: "14px", textShadow: "0 0 4px rgba(255, 0, 51, 0.6)" }}>
-                      {glitching ? "DECRYPTING..." : `█ █ █ {threat.redactedLabel} █ █ █`}
+                      {glitching ? "DECRYPTING..." : `█ █ █ ${threat.name} █ █ █`}
                     </div>
                     <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginTop: "6px", letterSpacing: "0.15em" }}>
                       CLICK TO DECRYPT FILE — ACCESS LEVEL 3 REQUIRED
@@ -659,134 +526,28 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                   <button className="btn btn-ghost" disabled={loading} style={{ fontSize: "11px", padding: "8px 20px" }}>
                     {loading ? "CHECKING CLEARANCE..." : "REQUEST SYSTEM ACCESS"}
                   </button>
+                  {decryptError && (
+                    <div style={{
+                      marginTop: "12px",
+                      padding: "10px 14px",
+                      background: "rgba(255, 77, 77, 0.1)",
+                      border: "1px solid rgba(255, 77, 77, 0.3)",
+                      color: "#ff4d4d",
+                      fontFamily: "var(--mono)",
+                      fontSize: "11px",
+                      maxWidth: "420px",
+                      lineHeight: "1.5",
+                      textAlign: "center"
+                    }}>
+                      {decryptError}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* x402 Payment Warning Modal */}
-      {showModal && (
-        <div style={{
-          position: "fixed",
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: "rgba(0, 0, 0, 0.9)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1000,
-          padding: "20px",
-          backdropFilter: "blur(5px)"
-        }}>
-          <div style={{
-            maxWidth: "500px",
-            width: "100%",
-            border: "1px solid var(--accent)",
-            background: "#080808",
-            padding: "32px",
-            borderRadius: "4px",
-            boxShadow: "0 0 30px rgba(255, 0, 51, 0.2)"
-          }}>
-            {paymentStep !== "idle" ? (
-              <div>
-                <div className="tag tag-red" style={{ marginBottom: "20px", display: "inline-block", fontFamily: "var(--mono)" }}>
-                  [ COMPUTE HANDSHAKE LOGS ]
-                </div>
-                
-                <div style={{
-                  background: "#020202",
-                  border: "1px solid #151515",
-                  padding: "20px",
-                  borderRadius: "2px",
-                  height: "220px",
-                  overflowY: "auto",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                  fontFamily: "var(--mono)",
-                  fontSize: "11.5px",
-                  color: "var(--accent)",
-                  marginBottom: "24px",
-                  boxShadow: "inset 0 0 10px rgba(0,0,0,0.8)"
-                }}>
-                  {logs.map((log, i) => {
-                    const isError = log.includes("[ ERROR ]");
-                    const isComplete = log.includes("[ COMPLETE ]");
-                    return (
-                      <div 
-                        key={i} 
-                        style={{ 
-                          color: isError 
-                            ? "#ff4d4d" 
-                            : isComplete 
-                            ? "#00ffcc" 
-                            : "var(--accent)",
-                          textShadow: isComplete 
-                            ? "0 0 4px rgba(0, 255, 204, 0.4)" 
-                            : "none"
-                        }}
-                      >
-                        {log}
-                      </div>
-                    );
-                  })}
-                  {paymentStep !== "completed" && !logs.some(l => l.includes("[ ERROR ]")) && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  {logs.some(l => l.includes("[ ERROR ]")) && (
-                    <button 
-                      className="btn btn-ghost" 
-                      onClick={() => { setPaymentStep("idle"); setSubmittingPayment(false); }}
-                      style={{ fontSize: "11px", fontFamily: "var(--mono)" }}
-                    >
-                      [ RETRY / CLOSE ]
-                    </button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div>
-                <div className="tag tag-red" style={{ marginBottom: "20px", display: "inline-block", fontFamily: "var(--mono)" }}>
-                  [ COMPUTE REQUEST DETECTED ]
-                </div>
-                
-                <h3 style={{ fontSize: "16px", marginBottom: "16px", letterSpacing: "0.05em", fontFamily: "var(--mono)", lineHeight: "1.6", color: "var(--text)" }}>
-                  Advanced intelligence analysis requires additional processing allocation.
-                </h3>
-                
-                <p style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)", marginBottom: "24px", lineHeight: "1.6" }}>
-                  x402 settlement required: <span style={{ color: "var(--accent)" }}>{paymentMeta?.amount || 0.05} USDC</span>. This handles server-side OpenAI compute cycles and private cryptographic indexing key processing.
-                </p>
-                
-                <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
-                  <button 
-                    className="btn btn-ghost" 
-                    onClick={() => setShowModal(false)}
-                    disabled={submittingPayment}
-                    style={{ fontSize: "11px", fontFamily: "var(--mono)" }}
-                  >
-                    [ DECLINE ]
-                  </button>
-                  <button 
-                    className="btn btn-primary" 
-                    onClick={handleConfirmPayment}
-                    disabled={submittingPayment}
-                    style={{ fontSize: "11px", fontFamily: "var(--mono)" }}
-                  >
-                    [ INITIATE SETTLEMENT ]
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

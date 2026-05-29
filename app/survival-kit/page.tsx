@@ -13,9 +13,8 @@ export default function SurvivalKitPage() {
     { id: "terminal-guide", label: "04. CLI OPERATIONS", title: "AI TERMINAL GUIDE" },
     { id: "wallet-privacy", label: "05. OPSEC STANDARD", title: "WALLET PRIVACY & SOVEREIGNTY" },
     { id: "solana-infra", label: "06. BLOCKCHAIN LEDGER", title: "SOLANA INFRASTRUCTURE" },
-    { id: "x402-infra", label: "07. X402 PROTOCOL", title: "EXPERIMENTAL X402 INFRASTRUCTURE" },
-    { id: "faq", label: "08. INTELLIGENCE FAQ", title: "COMMON INQUIRIES" },
-    { id: "roadmap", label: "09. HORIZON HORIZON", title: "FUTURE SYSTEMS ROADMAP" }
+    { id: "faq", label: "07. INTELLIGENCE FAQ", title: "COMMON INQUIRIES" },
+    { id: "roadmap", label: "08. HORIZON HORIZON", title: "FUTURE SYSTEMS ROADMAP" }
   ];
 
   const getCodeExplainer = () => {
@@ -325,7 +324,7 @@ export default function SurvivalKitPage() {
                 </div>
                 <div style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: "12px", display: "flex", gap: "12px" }}>
                   <span style={{ color: "var(--accent)", width: "120px", flexShrink: 0 }}>decrypt [id]</span>
-                  <span style={{ color: "var(--text-dim)" }}>- requests Level-3 clearance bypass on a specific secure sector dossier (requires x402 settlement).</span>
+                  <span style={{ color: "var(--text-dim)" }}>- Requests Level-3 clearance decryption on a specific secure sector dossier.</span>
                 </div>
               </div>
 
@@ -424,78 +423,11 @@ export default function SurvivalKitPage() {
             </div>
           )}
 
-          {/* 7. Experimental x402 Infrastructure */}
-          {activeTab === "x402-infra" && (
-            <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 07 / CODENAME: X402 PROTOCOL ]
-              </h1>
-              
-              <div className="alert alert-red" style={{ background: "rgba(255, 0, 51, 0.05)", borderLeft: "4px solid var(--accent)", padding: "20px", marginBottom: "24px" }}>
-                <strong style={{ fontFamily: "var(--mono)", color: "var(--accent)" }}>[ SYSTEM DISCLAIMER: EXPERIMENTAL PROTOCOL ]</strong>
-                <p style={{ fontSize: "13.5px", color: "var(--text)", marginTop: "8px", lineHeight: "1.7", margin: 0 }}>
-                  The x402 payment handshake protocol is an **experimental infrastructure currently in development**. Do NOT market it as production-ready. It is deployed inside Sector Delta strictly for technical evaluation and stress testing.
-                </p>
-              </div>
-
-              <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>
-                The x402 protocol handles automated token-gate challenge checks for classified dossiers natively inside HTTP request cycles. It allows machines to settle compute fees without database accounts.
-              </p>
-
-              {/* ASCII Diagram */}
-              <pre style={{ background: "#020202", border: "1px solid var(--border)", padding: "20px", color: "var(--accent)", fontFamily: "var(--mono)", fontSize: "11px", overflowX: "auto", marginBottom: "24px", lineHeight: "1.5" }}>
-{`       [ OPERATIVE CLIENT ]                           [ RED QUEEN GATEWAY ]
-                |                                               |
-                |--- (1) GET Gated Archive Dossier ------------>|
-                |                                               |
-                |<-- (2) HTTP 402 + Base64 Challenge -----------| (Gated)
-                |                                               |
-                |--- (3) Sign & Settle 0.05 USDC (On-Chain) ---->| (Treasury)
-                |                                               |
-                |--- (4) GET Dossier + X-PAYMENT-SIGNATURE ---->|
-                |                                               |
-                |<-- (5) Verify Signature & Decrypt Archive ---| (Status 200)`}
-              </pre>
-
-              {/* Interactive Code Example */}
-              <div style={{ border: "1px solid var(--border)", background: "#050505", borderRadius: "2px", overflow: "hidden", marginBottom: "20px" }}>
-                <div style={{ background: "var(--surface)", padding: "10px 16px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--border)" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)" }}>HTTP HEADER CHALLENGE SPECIFICATION</span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>CLICK CODE LINES TO DECRYPT DETAILS</span>
-                </div>
-                <pre style={{ padding: "16px", margin: 0, fontSize: "11.5px", fontFamily: "var(--mono)", overflowX: "auto", lineHeight: "1.6" }}>
-                  <div onClick={() => setHighlightedCode("status")} style={{ padding: "4px 8px", background: highlightedCode === "status" ? "rgba(255,0,51,0.12)" : "transparent", cursor: "pointer", transition: "background 0.2s" }}>
-                    <span style={{ color: "#777" }}>// Server challenges client with payment request status code</span><br />
-                    <span style={{ color: "var(--accent)" }}>Status:</span> 402 Payment Required
-                  </div>
-                  <div onClick={() => setHighlightedCode("challenge")} style={{ padding: "4px 8px", background: highlightedCode === "challenge" ? "rgba(255,0,51,0.12)" : "transparent", cursor: "pointer", transition: "background 0.2s" }}>
-                    <span style={{ color: "#777" }}>// Challenge body containing Base64 parameters</span><br />
-                    <span style={{ color: "var(--accent)" }}>PAYMENT-REQUIRED:</span> eyJhbW91bnQiOiIwLjA1IiwidG9rZW4iOiJVU0RDIiwibmV0d29yayI6InNvbGFuYS1kZXZuZXQifQ==
-                  </div>
-                  <div onClick={() => setHighlightedCode("signature")} style={{ padding: "4px 8px", background: highlightedCode === "signature" ? "rgba(255,0,51,0.12)" : "transparent", cursor: "pointer", transition: "background 0.2s" }}>
-                    <span style={{ color: "#777" }}>// Client retries with confirmed on-chain transaction hash</span><br />
-                    <span style={{ color: "var(--accent)" }}>X-PAYMENT-SIGNATURE:</span> 4xG9e2s...a911c82b3
-                  </div>
-                </pre>
-              </div>
-
-              {/* Dynamic Explainer */}
-              <div style={{ background: "#0c0c0c", border: "1px dashed var(--border)", padding: "16px", borderRadius: "2px", minHeight: "80px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "6px" }}>
-                  📡 PROTOCOL EXPLAINER PANEL
-                </div>
-                <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", margin: 0, lineHeight: "1.6" }}>
-                  {getCodeExplainer()}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* 8. FAQ */}
+          {/* 7. FAQ */}
           {activeTab === "faq" && (
             <div className="doc-section animation-fade-in">
               <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 08 / CODENAME: INTELLIGENCE FAQ ]
+                [ 07 / CODENAME: INTELLIGENCE FAQ ]
               </h1>
               
               <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>
@@ -534,11 +466,11 @@ export default function SurvivalKitPage() {
             </div>
           )}
 
-          {/* 9. Future Roadmap */}
+          {/* 8. Future Roadmap */}
           {activeTab === "roadmap" && (
             <div className="doc-section animation-fade-in">
               <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 09 / CODENAME: SYSTEM HORIZON ]
+                [ 08 / CODENAME: SYSTEM HORIZON ]
               </h1>
               
               <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>

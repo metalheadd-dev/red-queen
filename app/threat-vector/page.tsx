@@ -62,8 +62,8 @@ export default function ThreatVectorPage() {
           </p>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "680px", lineHeight: "1.8" }}>
             Classified central node directory of threats. Select a hardware sector below. 
-            Sector Alpha & Beta require holding <span style={{ color: "var(--accent)" }}>$THREAT</span> tokens. 
-            Sector Delta houses active diagnostic privacy modules, which require a micro-USDC computation fee via on-chain <span style={{ color: "var(--accent)" }}>x402</span> protocols.
+            Sector Alpha & Beta require holding <span style={{ color: "var(--accent)" }}>$THREAT</span> tokens to scan intelligence reports. 
+            Sector Delta houses active algorithmic diagnostic sweeps, which verify your cryptographic footprint to map potential digital vulnerabilities.
           </p>
         </div>
       </div>
@@ -205,7 +205,7 @@ export default function ThreatVectorPage() {
                             ? "1px solid rgba(46, 204, 64, 0.3)"
                             : "1px solid rgba(255, 77, 77, 0.3)"
                         }}>
-                          {activeCategory === "algorithmic" && "x402 Compute"}
+                          {activeCategory === "algorithmic" && "Algorithmic Sweep"}
                           {activeCategory === "satirical" && "Free"}
                           {activeCategory === "realistic" && "$THREAT Gated"}
                           {activeCategory === "fictional" && "$THREAT Gated"}
