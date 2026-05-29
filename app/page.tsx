@@ -170,7 +170,7 @@ export default function HomePage() {
           SURVIVE THE<br /><span style={{ color: "var(--accent)" }}>NEXT INTERNET</span>
         </h1>
         <p className="hero-subtitle" style={{ maxWidth: "700px" }}>
-          The threats on the next internet aren&apos;t zombies—they are chain-surveillance crawlers, automated wallet doxxing grids, and AI profile scrapers tracking your transactions. Connect your Solana wallet to run live, non-custodial counter-intelligence scans. Clear your digital footprint before predatory networks profile you.
+          AI survival intelligence for the next internet. Defend against AI profiling, metadata harvesting, chain-surveillance networks, and automated misinformation campaigns. Train your cognitive and physical preparedness, build your BIO-SCORE, and secure your digital footprint before the network profiles you.
         </p>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center", zIndex: 10 }}>
           <Link href="/terminal" className="btn btn-primary">
@@ -272,8 +272,7 @@ export default function HomePage() {
                   AI SURVIVAL <span style={{ color: "var(--accent)" }}>INTELLIGENCE SYSTEM</span>
                 </h2>
                 <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
-                  Analyze threats. Train preparedness. Talk to the RED QUEEN. Improve your BIO SCORE. 
-                  The RED QUEEN is a decentralized threat-intelligence network mapping physical and digital surveillance vectors.
+                  Defend your digital autonomy. Monitor live environmental and network risks, build your diagnostic BIO-SCORE clearance level, and secure your operative history from correlation tracking nets.
                 </p>
                 <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                   <Link href="/terminal" className="btn btn-primary" style={{ fontSize: "11px" }}>
@@ -288,48 +287,41 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* 3-Step Flow */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px" }}>
-                  [ OPERATIVE UPLINK PROTOCOL ]
+              {/* 4-Step Flow */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px" }}>
+                  [ OPERATIVE UPLINK FLOW ]
                 </div>
                 
-                {/* Step 1 */}
-                <div style={{ display: "flex", gap: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", padding: "16px", borderRadius: "2px" }}>
-                  <div style={{ fontFamily: "var(--title-font)", fontSize: "20px", fontWeight: "bold", color: "var(--accent)", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>
-                    1
-                  </div>
+                <div style={{ display: "flex", gap: "12px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.03)", padding: "12px 16px", borderRadius: "2px" }}>
+                  <span style={{ fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold", color: "var(--accent)", width: "24px", height: "24px", display: "flex", alignItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>1</span>
                   <div>
-                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--text)", margin: "0 0 6px 0", letterSpacing: "0.05em" }}>CHOOSE THREAT CATEGORY</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.6" }}>
-                      Select between Realistic hazards, Fictional simulations, and Satirical archives.
-                    </p>
+                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "12.5px", color: "var(--text)", margin: "0 0 2px 0" }}>READ THE THREAT RADAR</h4>
+                    <p style={{ fontSize: "12px", color: "var(--text-dim)", margin: 0 }}>Scan the global map below for active natural and cybernetic anomalies.</p>
                   </div>
                 </div>
 
-                {/* Step 2 */}
-                <div style={{ display: "flex", gap: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", padding: "16px", borderRadius: "2px" }}>
-                  <div style={{ fontFamily: "var(--title-font)", fontSize: "20px", fontWeight: "bold", color: "var(--accent)", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>
-                    2
-                  </div>
+                <div style={{ display: "flex", gap: "12px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.03)", padding: "12px 16px", borderRadius: "2px" }}>
+                  <span style={{ fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold", color: "var(--accent)", width: "24px", height: "24px", display: "flex", alignItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>2</span>
                   <div>
-                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--text)", margin: "0 0 6px 0", letterSpacing: "0.05em" }}>TALK TO RED QUEEN</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.6" }}>
-                      Query the terminal. Formulate survival tactics. Be evaluated in real-time.
-                    </p>
+                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "12.5px", color: "var(--text)", margin: "0 0 2px 0" }}>ENTER TERMINAL & CHAT</h4>
+                    <p style={{ fontSize: "12px", color: "var(--text-dim)", margin: 0 }}>Talk to RED QUEEN to evaluate your logic in simulated crises.</p>
                   </div>
                 </div>
 
-                {/* Step 3 */}
-                <div style={{ display: "flex", gap: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", padding: "16px", borderRadius: "2px" }}>
-                  <div style={{ fontFamily: "var(--title-font)", fontSize: "20px", fontWeight: "bold", color: "var(--accent)", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>
-                    3
-                  </div>
+                <div style={{ display: "flex", gap: "12px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.03)", padding: "12px 16px", borderRadius: "2px" }}>
+                  <span style={{ fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold", color: "var(--accent)", width: "24px", height: "24px", display: "flex", alignItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>3</span>
                   <div>
-                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--text)", margin: "0 0 6px 0", letterSpacing: "0.05em" }}>BUILD YOUR BIO SCORE</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.6" }}>
-                      Earn persistent XP and level up from Civilian to Director as you prove tactical intelligence.
-                    </p>
+                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "12.5px", color: "var(--text)", margin: "0 0 2px 0" }}>BUILD YOUR BIO-SCORE</h4>
+                    <p style={{ fontSize: "12px", color: "var(--text-dim)", margin: 0 }}>Accumulate XP to climb clearance levels from Civilian to Director.</p>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "12px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.03)", padding: "12px 16px", borderRadius: "2px" }}>
+                  <span style={{ fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold", color: "var(--accent)", width: "24px", height: "24px", display: "flex", alignItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>4</span>
+                  <div>
+                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "12.5px", color: "var(--text)", margin: "0 0 2px 0" }}>CONNECT WALLET & UNLOCK</h4>
+                    <p style={{ fontSize: "12px", color: "var(--text-dim)", margin: 0 }}>Secure your progress, prevent XP decay, and decrypt high-tier realistic files.</p>
                   </div>
                 </div>
 
@@ -542,7 +534,7 @@ export default function HomePage() {
                 </div>
               ) : (
                 <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                  <svg viewBox="0 0 800 400" style={{ width: "100%", height: "auto", opacity: 0.9 }}>
+                  <svg viewBox="0 0 800 400" style={{ width: "100%", height: "auto", opacity: 0.95 }}>
                     {/* Tactical grid background lines */}
                     <defs>
                       <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -552,20 +544,41 @@ export default function HomePage() {
                     <rect width="100%" height="100%" fill="url(#grid)" />
 
                     {/* Holographic Radar Concentric Circles */}
-                    <circle cx="400" cy="200" r="100" fill="none" stroke="rgba(255, 0, 51, 0.05)" strokeWidth="1" strokeDasharray="5 5" />
-                    <circle cx="400" cy="200" r="200" fill="none" stroke="rgba(255, 0, 51, 0.05)" strokeWidth="1" strokeDasharray="5 5" />
-                    <circle cx="400" cy="200" r="300" fill="none" stroke="rgba(255, 0, 51, 0.05)" strokeWidth="1" strokeDasharray="5 5" />
+                    <circle cx="400" cy="200" r="80" fill="none" stroke="rgba(255, 77, 77, 0.06)" strokeWidth="1" strokeDasharray="3 3" />
+                    <circle cx="400" cy="200" r="160" fill="none" stroke="rgba(255, 77, 77, 0.06)" strokeWidth="1" strokeDasharray="3 3" />
+                    <circle cx="400" cy="200" r="240" fill="none" stroke="rgba(255, 77, 77, 0.06)" strokeWidth="1" strokeDasharray="3 3" />
 
-                    {/* Continent Outlines (Tactical Wireframe) */}
-                    <path d="M 120 100 L 220 80 L 280 110 L 230 180 L 150 180 L 110 130 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
-                    <path d="M 180 200 L 250 230 L 240 300 L 200 360 L 170 280 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
-                    <path d="M 380 60 L 580 50 L 700 90 L 730 180 L 580 200 L 420 180 L 360 140 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
-                    <path d="M 380 190 L 460 180 L 490 240 L 440 310 L 380 270 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
-                    <path d="M 630 260 L 700 270 L 690 320 L 640 310 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
-                    <path d="M 300 40 L 340 30 L 320 60 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
+                    {/* Longitude and Latitude grid lines */}
+                    <line x1="50" y1="200" x2="750" y2="200" stroke="rgba(255, 77, 77, 0.1)" strokeWidth="1" strokeDasharray="5 5" />
+                    <line x1="400" y1="30" x2="400" y2="370" stroke="rgba(255, 77, 77, 0.1)" strokeWidth="1" strokeDasharray="5 5" />
+
+                    {/* Degree labels */}
+                    <text x="410" y="45" fill="rgba(255,77,77,0.3)" fontSize="8.5" fontFamily="var(--mono)">80°N</text>
+                    <text x="410" y="365" fill="rgba(255,77,77,0.3)" fontSize="8.5" fontFamily="var(--mono)">80°S</text>
+                    <text x="55" y="195" fill="rgba(255,77,77,0.3)" fontSize="8.5" fontFamily="var(--mono)">160°W</text>
+                    <text x="705" y="195" fill="rgba(255,77,77,0.3)" fontSize="8.5" fontFamily="var(--mono)">160°E</text>
+
+                    {/* Detailed Continent Outlines (Tactical Wireframe Geography) */}
+                    {/* North America */}
+                    <path d="M 120 70 L 140 60 L 175 55 L 220 50 L 235 60 L 220 80 L 260 85 L 270 100 L 250 110 L 220 115 L 180 120 L 185 140 L 175 160 L 190 190 L 195 210 L 185 210 L 170 180 L 160 145 L 145 130 L 130 135 L 110 120 L 105 90 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
+                    
+                    {/* South America */}
+                    <path d="M 195 215 L 210 220 L 235 230 L 230 270 L 205 320 L 190 350 L 185 365 L 180 350 L 175 300 L 170 260 L 180 230 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
+                    
+                    {/* Greenland */}
+                    <path d="M 280 40 L 310 35 L 305 65 L 285 60 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
+                    
+                    {/* Africa */}
+                    <path d="M 370 180 L 415 175 L 450 185 L 470 205 L 485 220 L 470 260 L 455 295 L 430 325 L 420 340 L 415 320 L 400 280 L 375 250 L 360 215 L 355 190 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
+                    
+                    {/* Eurasia */}
+                    <path d="M 360 110 L 380 90 L 410 75 L 440 60 L 490 55 L 560 50 L 620 55 L 670 65 L 720 80 L 740 100 L 710 125 L 720 155 L 685 185 L 660 170 L 640 185 L 595 190 L 570 210 L 550 190 L 525 200 L 485 170 L 460 175 L 420 160 L 400 165 L 385 150 L 380 130 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
+                    
+                    {/* Australia */}
+                    <path d="M 640 270 L 680 275 L 690 310 L 670 330 L 645 320 L 630 290 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
 
                     {/* Sonar Radar Sweep */}
-                    <line x1="400" y1="200" x2="800" y2="200" stroke="rgba(255, 77, 77, 0.2)" strokeWidth="2">
+                    <line x1="400" y1="200" x2="800" y2="200" stroke="rgba(255, 77, 77, 0.2)" strokeWidth="2" style={{ filter: "drop-shadow(0 0 3px rgba(255,77,77,0.4))" }}>
                       <animateTransform attributeName="transform" type="rotate" from="0 400 200" to="360 400 200" dur="12s" repeatCount="indefinite"/>
                     </line>
 
@@ -698,18 +711,22 @@ export default function HomePage() {
             </div>
 
             {/* x402 COMPUTE CARD */}
-            <div className="bento-card" style={{ borderColor: "var(--accent)", background: "rgba(255, 0, 51, 0.02)", padding: "32px", cursor: "default" }}>
-              <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "16px", fontFamily: "var(--mono)", fontWeight: "bold" }}>
+            <div className="bento-card" style={{ borderColor: "var(--accent)", background: "rgba(255, 0, 51, 0.02)", padding: "32px", cursor: "default", position: "relative" }}>
+              {/* Development status badge */}
+              <div style={{ position: "absolute", top: "12px", right: "12px", fontSize: "8.5px", fontFamily: "var(--mono)", color: "var(--accent)", border: "1px solid var(--border-red)", padding: "3px 8px", background: "rgba(255,0,51,0.06)", borderRadius: "2px" }}>
+                EXPERIMENTAL // IN DEVELOPMENT
+              </div>
+              <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "16px", fontFamily: "var(--mono)", fontWeight: "bold", paddingRight: "160px" }}>
                 [ COMPUTE-ON-DEMAND: x402 METERED ]
               </h3>
               <p style={{ color: "var(--text-dim)", fontSize: "13px", lineHeight: "1.7", marginBottom: "20px" }}>
-                Fund decentralized AI compute cycles in real-time to run deep security traces.
+                Experimental integration of machine-to-machine payment protocol, currently under development for token-gate AI compute cycles.
               </p>
               <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)" }}>
-                <li>✔ Deep Wallet Metadata Diagnostic Scans (0.05 USDC)</li>
-                <li>✔ Psychological Profiling & Threat Vectors Decryption</li>
-                <li>✔ Advanced AI Counter-Intelligence Reports</li>
-                <li>✔ Sector Delta Gated Archive Decryption</li>
+                <li>✔ Decentralized Compute Settle (0.05 USDC) — *Beta Trial*</li>
+                <li>✔ Psychological Profiling & Threat Vectors Decryption — *In Development*</li>
+                <li>✔ Advanced AI Counter-Intelligence Reports — *Beta Trial*</li>
+                <li>✔ Sector Delta Gated Archive Decryption — *Active Test*</li>
               </ul>
             </div>
           </div>
@@ -1065,7 +1082,7 @@ export default function HomePage() {
               <div>
                 <h3 style={{ fontSize: "18px", color: "var(--text)", marginBottom: "16px" }}>THE PRIVACY ENGINE: HOW X402 WORKS</h3>
                 <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
-                  We do not ask for accounts, emails, passwords, or subscriptions. To run advanced diagnostic scans, we utilize the open on-chain x402 protocol. This executes a frictionless micro-payment (0.05 USDC) settled natively over Solana to fund the AI compute cycle in real-time.
+                  We do not ask for accounts, emails, passwords, or subscriptions. To run advanced diagnostic scans, we utilize the open on-chain x402 protocol. This is an **experimental integration currently under active development** (not production-ready). It executes a frictionless micro-payment (0.05 USDC) settled natively over Solana to fund the AI compute cycle in real-time.
                 </p>
               </div>
             )}

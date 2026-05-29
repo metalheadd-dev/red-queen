@@ -421,30 +421,286 @@ export default function OperativeProfilePage() {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px" }}>
-              {[
-                { label: "Threat Awareness", val: stats.threat_awareness, desc: "Understanding of passive & active threats" },
-                { label: "Operational Discipline", val: stats.operational_discipline, desc: "Consistency in security routines" },
-                { label: "Psychological Stability", val: stats.psychological_stability, desc: "Resilience under stressful simulations" },
-                { label: "Technical Preparedness", val: stats.technical_preparedness, desc: "Hardware isolation & offline redundancy" },
-                { label: "Adaptability", val: stats.adaptability, desc: "Agility in changing threat conditions" },
-                { label: "Resourcefulness", val: stats.resourcefulness, desc: "Utility mapping & alternative supply routing" },
-                { label: "Surveillance Resistance", val: stats.surveillance_resistance, desc: "Sovereign wallet patterns & trace minimization" }
-              ].map((st, idx) => (
-                <div key={idx} style={{ background: "#080808", border: "1px solid #141414", padding: "16px", borderRadius: "2px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)" }}>{st.label}</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold" }}>{st.val}/100</span>
+            {(() => {
+              // 7 sub-stats values and labels
+              const subStatsList = [
+                { key: "threat_awareness", label: "AWARENESS", val: stats.threat_awareness, desc: "Understanding of passive & active threats" },
+                { key: "operational_discipline", label: "DISCIPLINE", val: stats.operational_discipline, desc: "Consistency in security routines" },
+                { key: "psychological_stability", label: "STABILITY", val: stats.psychological_stability, desc: "Resilience under stressful simulations" },
+                { key: "technical_preparedness", label: "TECH PREP", val: stats.technical_preparedness, desc: "Hardware isolation & offline redundancy" },
+                { key: "adaptability", label: "ADAPTABILITY", val: stats.adaptability, desc: "Agility in changing threat conditions" },
+                { key: "resourcefulness", label: "RESOURCEFUL", val: stats.resourcefulness, desc: "Utility mapping & alternative supply routing" },
+                { key: "surveillance_resistance", label: "OPSEC", val: stats.surveillance_resistance, desc: "Sovereign wallet patterns & trace minimization" }
+              ];
+
+              // Helper to calculate SVG points for Radar Chart (Center: 120, 120; Radius: 84)
+              const getRadarPoints = (values: number[], maxVal = 100, size = 240) => {
+                const center = size / 2;
+                const radius = size * 0.35;
+                const points: string[] = [];
+                values.forEach((v, i) => {
+                  const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
+                  const r = (v / maxVal) * radius;
+                  const x = center + r * Math.cos(angle);
+                  const y = center + r * Math.sin(angle);
+                  points.push(`${x},${y}`);
+                });
+                return points.join(" ");
+              };
+
+              const getRadarGridPoints = (level: number, size = 240) => {
+                const center = size / 2;
+                const radius = size * 0.35 * (level / 5);
+                const points: string[] = [];
+                for (let i = 0; i < 7; i++) {
+                  const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
+                  const x = center + radius * Math.cos(angle);
+                  const y = center + radius * Math.sin(angle);
+                  points.push(`${x},${y}`);
+                }
+                return points.join(" ");
+              };
+
+              // Determine psychological profile classification
+              const getPsychologicalProfile = () => {
+                const maxStat = subStatsList.reduce((max, current) => current.val > max.val ? current : max, subStatsList[0]);
+                if (maxStat.val < 10) {
+                  return {
+                    title: "UNCLASSIFIED CIV-NODE",
+                    desc: "Operative profile under-evaluated. Complete diagnostic check-ins in the terminal to establish cognitive parameters.",
+                    tag: "INDUCTION"
+                  };
+                }
+                if (maxStat.key === "surveillance_resistance") {
+                  return {
+                    title: "SOVEREIGN SHIELD (OPSEC SPECIALIST)",
+                    desc: "Operative demonstrates exceptional sensitivity to metadata leak vectors. Primarily focused on transaction masking and address decoupling.",
+                    tag: "SHIELD"
+                  };
+                }
+                if (maxStat.key === "technical_preparedness") {
+                  return {
+                    title: "CYBERNETIC WARDEN (SYSTEM TECH)",
+                    desc: "Profile indicates deep alignment with hardware redundancy. Expert in offline power management, local data caching, and emergency mesh adapters.",
+                    tag: "HARDWARE"
+                  };
+                }
+                if (maxStat.key === "psychological_stability") {
+                  return {
+                    title: "TACTICAL SENTINEL (STRESS ANALYST)",
+                    desc: "Maintains optimal logical coherence during cascade collapse events. Psychological parameters verify suitability for high-panic crisis nodes.",
+                    tag: "PSYCHE"
+                  };
+                }
+                return {
+                  title: "RECON FIELD AGENT (TELEMETRY RECON)",
+                  desc: "Profile reflects balanced diagnostic metrics. Well-rounded in active danger mapping and resource routing parameters.",
+                  tag: "FIELD"
+                };
+              };
+
+              const psyProfile = getPsychologicalProfile();
+
+              return (
+                <div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "32px", marginBottom: "32px" }} className="responsive-grid-2-large">
+                    
+                    {/* Left Column: Radar Chart & Psy Profile */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                      <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "16px", alignSelf: "flex-start" }}>
+                          [ RADAR DIAGNOSTICS GEOMETRY ]
+                        </div>
+                        
+                        {/* SVG Radar Chart */}
+                        <div style={{ position: "relative", width: "240px", height: "240px" }}>
+                          <svg width="240" height="240" viewBox="0 0 240 240" style={{ overflow: "visible" }}>
+                            {/* Grid concentric rings */}
+                            {[1, 2, 3, 4, 5].map((lvl) => (
+                              <polygon
+                                key={lvl}
+                                points={getRadarGridPoints(lvl)}
+                                fill="none"
+                                stroke="rgba(255, 77, 77, 0.08)"
+                                strokeWidth="1"
+                              />
+                            ))}
+                            
+                            {/* Axis lines */}
+                            {Array.from({ length: 7 }).map((_, i) => {
+                              const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
+                              const x = 120 + 84 * Math.cos(angle);
+                              const y = 120 + 84 * Math.sin(angle);
+                              return (
+                                <line
+                                  key={i}
+                                  x1="120"
+                                  y1="120"
+                                  x2={x}
+                                  y2={y}
+                                  stroke="rgba(255, 77, 77, 0.12)"
+                                  strokeWidth="1.5"
+                                  strokeDasharray="2 2"
+                                />
+                              );
+                            })}
+                            
+                            {/* Filled Polygon representing user stats */}
+                            <polygon
+                              points={getRadarPoints(subStatsList.map(s => s.val))}
+                              fill="rgba(255, 77, 77, 0.15)"
+                              stroke="var(--accent)"
+                              strokeWidth="2"
+                              style={{ filter: "drop-shadow(0 0 4px rgba(255,77,77,0.3))" }}
+                            />
+                            
+                            {/* Data Point Dots */}
+                            {subStatsList.map((st, i) => {
+                              const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
+                              const r = (st.val / 100) * 84;
+                              const x = 120 + r * Math.cos(angle);
+                              const y = 120 + r * Math.sin(angle);
+                              return (
+                                <circle
+                                  key={i}
+                                  cx={x}
+                                  cy={y}
+                                  r="3.5"
+                                  fill="var(--accent)"
+                                  style={{ filter: "drop-shadow(0 0 2px var(--accent))" }}
+                                />
+                              );
+                            })}
+                            
+                            {/* Labels at outer boundaries */}
+                            {subStatsList.map((st, i) => {
+                              const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
+                              const offset = 98;
+                              const x = 120 + offset * Math.cos(angle);
+                              const y = 120 + offset * Math.sin(angle);
+                              return (
+                                <text
+                                  key={i}
+                                  x={x}
+                                  y={y + 4}
+                                  textAnchor="middle"
+                                  style={{
+                                    fontFamily: "var(--mono)",
+                                    fontSize: "8.5px",
+                                    fill: "var(--text-dim)",
+                                    fontWeight: "bold",
+                                    letterSpacing: "0.05em"
+                                  }}
+                                >
+                                  {st.label}
+                                </text>
+                              );
+                            })}
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Psychological Profile Card */}
+                      <div style={{ background: "rgba(255, 0, 51, 0.02)", borderLeft: "3px solid var(--accent)", padding: "20px", borderRadius: "0 2px 2px 0" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em" }}>
+                            [ COGNITIVE PSYCHE DIAGNOSTIC ]
+                          </span>
+                          <span className="tag tag-red" style={{ fontSize: "8px", padding: "2px 6px" }}>
+                            {psyProfile.tag}
+                          </span>
+                        </div>
+                        <h4 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--text)", margin: "0 0 6px 0" }}>
+                          {psyProfile.title}
+                        </h4>
+                        <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0, fontStyle: "italic" }}>
+                          &ldquo;{psyProfile.desc}&rdquo;
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Right Column: Sub-Stats Grid & Clearance checklist */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "10px" }}>
+                        {subStatsList.map((st, idx) => (
+                          <div key={idx} style={{ background: "#080808", border: "1px solid #141414", padding: "12px 16px", borderRadius: "2px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)", fontWeight: "bold" }}>{st.label}</span>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold" }}>{st.val}/100</span>
+                            </div>
+                            <div className="threat-bar-wrap" style={{ height: "4px", background: "#111", marginBottom: "4px" }}>
+                              <div className="threat-bar-fill" style={{ width: `${st.val}%`, background: "var(--accent)" }} />
+                            </div>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>
+                              {st.desc}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Clearance Level Unlock Checklist */}
+                      <div style={{ background: "#080808", border: "1px solid #141414", padding: "20px", borderRadius: "2px" }}>
+                        <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "14px" }}>
+                          [ SYSTEM CLEARANCE PROGRESSION ]
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "11px" }}>
+                          {[
+                            { l: 1, label: "CIVILIAN", req: "0+ XP", desc: "Basic terminal checks", unlocked: stats.level >= 1 },
+                            { l: 2, label: "OBSERVER", req: "100+ XP", desc: "Live incident feeds enabled", unlocked: stats.level >= 2 },
+                            { l: 3, label: "OPERATIVE", req: "200+ XP", desc: "Decryption protocols authorized", unlocked: stats.level >= 3 },
+                            { l: 4, label: "ANALYST", req: "350+ XP", desc: "Strategic AI briefing modules", unlocked: stats.level >= 4 },
+                            { l: 5, label: "DIRECTOR", req: "500+ XP", desc: "Full gateway overrides & logs", unlocked: stats.level >= 5 }
+                          ].map((cl) => (
+                            <div key={cl.l} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "6px", borderBottom: "1px dashed #1b1b1b", color: cl.unlocked ? "var(--text)" : "var(--text-muted)" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <span style={{ color: cl.unlocked ? "var(--accent)" : "var(--text-muted)", fontWeight: "bold" }}>
+                                  {cl.unlocked ? "✓" : "🔒"}
+                                </span>
+                                <span style={{ fontWeight: cl.unlocked ? "bold" : "normal" }}>
+                                  Lvl {cl.l}: {cl.label}
+                                </span>
+                                <span style={{ fontSize: "9.5px", color: "var(--text-dim)" }}>- {cl.desc}</span>
+                              </div>
+                              <span style={{ fontSize: "10px", color: cl.unlocked ? "#00ffcc" : "var(--text-muted)" }}>{cl.req}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
-                  <div className="threat-bar-wrap" style={{ height: "4px", background: "#111", marginBottom: "8px" }}>
-                    <div className="threat-bar-fill" style={{ width: `${st.val}%`, background: "var(--accent)" }} />
-                  </div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", lineHeight: "1.3" }}>
-                    {st.desc}
+
+                  {/* Weekly Training Operation Logs */}
+                  <div style={{ marginTop: "32px", borderTop: "1px solid var(--border)", paddingTop: "24px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "16px" }}>
+                      [ OPERATIVE RECORD LOGS // RECENT TRAINING OPERATIONS ]
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {[
+                        { op: "OP-043", action: "Console Diagnostic Audit", date: "2026-05-30", reward: "+15 XP", stat: "Threat Awareness +2, Technical Prep +1", type: "SUCCESS" },
+                        { op: "OP-042", action: "Footprint Entropy Scan", date: "2026-05-29", reward: "+10 XP", stat: "Surveillance Resistance +2", type: "SUCCESS" },
+                        { op: "OP-041", action: "x402 Sandbox Handshake Check", date: "2026-05-28", reward: "+8 XP", stat: "Adaptability +1", type: "SUCCESS" },
+                        { op: "OP-DECAY", action: "Footprint Degradation Decay", date: "2026-05-27", reward: "-2 XP", stat: "Technical Preparedness -1", type: "DECAY" }
+                      ].map((log, idx) => (
+                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#090909", border: "1px solid #141414", padding: "10px 16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
+                          <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                            <span style={{ color: log.type === "DECAY" ? "#ff4d4d" : "#00ffcc", fontWeight: "bold" }}>
+                              [{log.op}]
+                            </span>
+                            <span style={{ color: "var(--text)" }}>{log.action}</span>
+                            <span style={{ color: "var(--text-dim)", fontSize: "9px" }}>({log.date})</span>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <span style={{ color: log.type === "DECAY" ? "#ff4d4d" : "#00ffcc", marginRight: "16px", fontWeight: "bold" }}>{log.reward}</span>
+                            <span style={{ color: "var(--text-dim)", fontSize: "10px" }}>[{log.stat}]</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </div>
         </div>
       </div>

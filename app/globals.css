@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 /* ── Base Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,7 +16,7 @@
   --text-dim: #b0b0b0;
   --text-muted: #3a3a3a;
   --mono: 'JetBrains Mono', 'Courier New', monospace;
-  --sans: 'Space Grotesk', system-ui, sans-serif;
+  --sans: 'IBM Plex Sans', 'Space Grotesk', system-ui, sans-serif;
   --title-font: 'Orbitron', 'Space Grotesk', sans-serif;
   --radius: 2px;
   --transition: 0.18s ease;
@@ -264,17 +264,12 @@ h1, h2, h3, h4, h5 {
   right: 0;
   background: linear-gradient(
       rgba(18, 16, 16, 0) 50%,
-      rgba(0, 0, 0, 0.25) 50%
-    ),
-    linear-gradient(
-      90deg,
-      rgba(255, 0, 0, 0.06),
-      rgba(0, 255, 0, 0.02),
-      rgba(0, 0, 255, 0.06)
+      rgba(0, 0, 0, 0.1) 50%
     );
   z-index: 2;
-  background-size: 100% 2px, 3px 100%;
+  background-size: 100% 4px;
   pointer-events: none;
+  opacity: 0.18;
 }
 .page-bg::after {
   content: " ";
@@ -292,31 +287,31 @@ h1, h2, h3, h4, h5 {
 }
 
 @keyframes flicker {
-  0% { opacity: 0.02; }
-  5% { opacity: 0.05; }
-  10% { opacity: 0.02; }
-  15% { opacity: 0.1; }
-  20% { opacity: 0.02; }
-  25% { opacity: 0.04; }
-  30% { opacity: 0.02; }
-  35% { opacity: 0.06; }
-  40% { opacity: 0.02; }
-  45% { opacity: 0.05; }
-  50% { opacity: 0.02; }
-  55% { opacity: 0.07; }
-  60% { opacity: 0.02; }
-  65% { opacity: 0.04; }
-  70% { opacity: 0.02; }
-  75% { opacity: 0.06; }
-  80% { opacity: 0.02; }
-  85% { opacity: 0.05; }
-  90% { opacity: 0.02; }
-  95% { opacity: 0.08; }
-  100% { opacity: 0.02; }
+  0% { opacity: 0.005; }
+  5% { opacity: 0.01; }
+  10% { opacity: 0.005; }
+  15% { opacity: 0.015; }
+  20% { opacity: 0.005; }
+  25% { opacity: 0.01; }
+  30% { opacity: 0.005; }
+  35% { opacity: 0.012; }
+  40% { opacity: 0.005; }
+  45% { opacity: 0.01; }
+  50% { opacity: 0.005; }
+  55% { opacity: 0.014; }
+  60% { opacity: 0.005; }
+  65% { opacity: 0.01; }
+  70% { opacity: 0.005; }
+  75% { opacity: 0.012; }
+  80% { opacity: 0.005; }
+  85% { opacity: 0.01; }
+  90% { opacity: 0.005; }
+  95% { opacity: 0.016; }
+  100% { opacity: 0.005; }
 }
 
 .glow-text {
-  text-shadow: 0 0 8px rgba(255, 77, 77, 0.6);
+  text-shadow: 0 0 2px rgba(255, 77, 77, 0.2);
 }
 
 .typewriter-text {
@@ -1141,21 +1136,16 @@ h1, h2, h3, h4, h5 {
 }
 
 pre, code, .mono, .chat-input, .redacted-text, .navbar-logo-text, .glow-text, .bento-number, .bento-cta {
-  text-shadow: 0 0 1.5px rgba(255, 0, 51, 0.3) !important;
+  text-shadow: 0 0 1px rgba(255, 0, 51, 0.15) !important;
 }
 
 .page-bg::before {
   background: linear-gradient(
       rgba(18, 16, 16, 0) 50%,
-      rgba(0, 0, 0, 0.28) 50%
-    ),
-    linear-gradient(
-      90deg,
-      rgba(255, 0, 51, 0.08),
-      rgba(0, 255, 51, 0.02),
-      rgba(0, 0, 255, 0.08)
+      rgba(0, 0, 0, 0.1) 50%
     ) !important;
-  background-size: 100% 3px, 4px 100% !important;
+  background-size: 100% 4px !important;
+  opacity: 0.15 !important;
 }
 
 /* Chromatic aberration hover styles for headings */
