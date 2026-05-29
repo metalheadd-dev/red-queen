@@ -442,7 +442,7 @@ To initiate x402 metered diagnostics:
       </div>
 
       {/* Main split workspace */}
-      <div style={{ display: "flex", flex: 1, minHeight: 0, position: "relative" }} className="responsive-grid-2-large">
+      <div style={{ display: "flex", flex: 1, minHeight: 0, position: "relative" }}>
         
         {/* Left Side: Chat Panel */}
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
@@ -603,7 +603,7 @@ To initiate x402 metered diagnostics:
         </div>
 
         {/* Right Side: Compute Allocation HUD Sidebar */}
-        <aside style={{
+        <aside className="desktop-only" style={{
           width: "320px",
           borderLeft: "1px solid var(--border)",
           background: "var(--surface)",
