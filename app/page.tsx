@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import SolvivalIcon from "@/components/SolvivalIcon";
 import BootSequence from "@/components/BootSequence";
+import { THREAT_OF_THE_DAY } from "@/lib/threatOfTheDay";
 
 const TICKER_ITEMS = [
   "CRITICAL COMPUTE ALERT: ADVERSARIAL LLM NETWORKS CROSS-REFERENCING WALLET METADATA WITH WEB2 SOCIAL GRAPHS",
@@ -215,6 +216,93 @@ export default function HomePage() {
           >
             PUMP.FUN ↗
           </a>
+        </div>
+      </section>
+
+      {/* Threat of the Day Section */}
+      <section className="page-section" style={{ borderTop: "1px solid var(--border)", padding: "60px 0", background: "var(--background)" }}>
+        <div className="container">
+          <div className="section-header">
+            <span className="section-line" />
+            <span className="section-tag">CLASSIFIED // THREAT OF THE DAY</span>
+            <span className="section-line" />
+          </div>
+
+          <div className="panel" style={{
+            marginTop: "32px",
+            background: "rgba(255, 0, 51, 0.02)",
+            borderColor: "var(--accent)",
+            boxShadow: "0 0 20px rgba(255, 0, 51, 0.05)",
+            padding: "32px",
+            position: "relative"
+          }}>
+            <div style={{
+              position: "absolute",
+              top: "12px",
+              right: "24px",
+              fontFamily: "var(--mono)",
+              fontSize: "10px",
+              color: "var(--text-dim)",
+              letterSpacing: "0.1em"
+            }}>
+              PUBLISHED: {THREAT_OF_THE_DAY.publishDate}
+            </div>
+
+            <div style={{ display: "flex", gap: "24px", flexDirection: "column" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
+                <div>
+                  <span className="tag tag-red" style={{ fontSize: "10px", fontFamily: "var(--mono)", marginBottom: "8px" }}>
+                    [ DAILY INTELLIGENCE BRIEFING ]
+                  </span>
+                  <h2 className="glow-text" style={{ fontSize: "28px", margin: "8px 0 4px", color: "var(--text)" }}>
+                    {THREAT_OF_THE_DAY.name}
+                  </h2>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", textTransform: "uppercase" }}>
+                    CODENAME: <span style={{ color: "var(--accent)" }}>{THREAT_OF_THE_DAY.codename}</span>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: "right", minWidth: "150px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.1em", marginBottom: "4px" }}>
+                    ACTIVE RISK LEVEL
+                  </div>
+                  <div style={{
+                    fontFamily: "var(--mono)",
+                    fontSize: "36px",
+                    fontWeight: 700,
+                    color: "var(--accent)",
+                    lineHeight: 1
+                  }}>
+                    {THREAT_OF_THE_DAY.severity}%
+                  </div>
+                  <div style={{
+                    fontFamily: "var(--mono)",
+                    fontSize: "11px",
+                    color: "var(--accent)",
+                    letterSpacing: "0.2em",
+                    marginTop: "4px"
+                  }}>
+                    [{THREAT_OF_THE_DAY.status}]
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "20px" }}>
+                <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.8", margin: "0 0 20px" }}>
+                  <strong>Intelligence Assessment:</strong> {THREAT_OF_THE_DAY.description}
+                </p>
+                <p style={{ fontSize: "14px", color: "#00ffcc", lineHeight: "1.8", margin: 0 }}>
+                  <strong>Survival Countermeasure:</strong> {THREAT_OF_THE_DAY.countermeasure}
+                </p>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
+                <Link href="/terminal" className="btn btn-outline" style={{ fontSize: "11px" }}>
+                  ASK RED QUEEN ABOUT THIS THREAT ↗
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
