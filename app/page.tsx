@@ -220,87 +220,181 @@ export default function HomePage() {
       </section>
 
       {/* Threat of the Day Section */}
-      <section className="page-section" style={{ borderTop: "1px solid var(--border)", padding: "60px 0", background: "var(--background)" }}>
+      <section className="page-section" style={{
+        borderTop: "1px solid var(--border)",
+        borderBottom: "1px solid var(--border)",
+        padding: "80px 0",
+        background: "radial-gradient(circle at center, rgba(255, 0, 51, 0.05) 0%, rgba(5, 5, 5, 1) 100%)",
+        position: "relative",
+        overflow: "hidden"
+      }}>
+        {/* Flashing alert overlay background lines */}
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "6px",
+          background: "repeating-linear-gradient(45deg, var(--accent), var(--accent) 10px, #000 10px, #000 20px)",
+          boxShadow: "0 2px 10px rgba(255, 0, 51, 0.5)"
+        }} />
+
         <div className="container">
-          <div className="section-header">
-            <span className="section-line" />
-            <span className="section-tag">CLASSIFIED // THREAT OF THE DAY</span>
-            <span className="section-line" />
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: "40px" }}>
+            <div className="tag tag-red" style={{
+              fontSize: "14px",
+              fontFamily: "var(--mono)",
+              padding: "6px 16px",
+              animation: "pulse-dot 1.5s infinite",
+              letterSpacing: "0.2em",
+              display: "inline-block",
+              marginBottom: "16px",
+              boxShadow: "0 0 15px rgba(255, 0, 51, 0.3)"
+            }}>
+              🚨 IMMEDIATE SYSTEM ALERT 🚨
+            </div>
+            <h2 className="glitch glow-text" style={{
+              fontSize: "clamp(28px, 5vw, 48px)",
+              fontFamily: "var(--mono)",
+              fontWeight: 900,
+              color: "#ff0033",
+              margin: 0,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase"
+            }}>
+              THREAT OF THE DAY DETECTED
+            </h2>
+            <p style={{
+              fontFamily: "var(--mono)",
+              fontSize: "11px",
+              color: "var(--text-muted)",
+              marginTop: "8px",
+              letterSpacing: "0.15em"
+            }}>
+              [ SECURE NODE UPLINK SHIELD IMMEDIATELY // VECTOR LOGIC LOADED ]
+            </p>
           </div>
 
+          {/* Aggressive Layout Panel */}
           <div className="panel" style={{
-            marginTop: "32px",
-            background: "rgba(255, 0, 51, 0.02)",
-            borderColor: "var(--accent)",
-            boxShadow: "0 0 20px rgba(255, 0, 51, 0.05)",
-            padding: "32px",
-            position: "relative"
+            background: "#080808",
+            border: "3px solid #ff0033",
+            boxShadow: "0 0 40px rgba(255, 0, 51, 0.2)",
+            padding: "40px",
+            position: "relative",
+            borderRadius: "4px"
           }}>
+            {/* Corner Bracket Details */}
+            <div style={{ position: "absolute", top: "10px", left: "10px", width: "20px", height: "20px", borderTop: "2px solid #ff0033", borderLeft: "2px solid #ff0033" }} />
+            <div style={{ position: "absolute", top: "10px", right: "10px", width: "20px", height: "20px", borderTop: "2px solid #ff0033", borderRight: "2px solid #ff0033" }} />
+            <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "20px", height: "20px", borderBottom: "2px solid #ff0033", borderLeft: "2px solid #ff0033" }} />
+            <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "20px", height: "20px", borderBottom: "2px solid #ff0033", borderRight: "2px solid #ff0033" }} />
+
             <div style={{
               position: "absolute",
-              top: "12px",
+              top: "16px",
               right: "24px",
               fontFamily: "var(--mono)",
-              fontSize: "10px",
-              color: "var(--text-dim)",
+              fontSize: "11px",
+              color: "rgba(255, 77, 77, 0.6)",
               letterSpacing: "0.1em"
             }}>
-              PUBLISHED: {THREAT_OF_THE_DAY.publishDate}
+              NODE STAMP: {THREAT_OF_THE_DAY.publishDate} // SYSTEM SCAN
             </div>
 
-            <div style={{ display: "flex", gap: "24px", flexDirection: "column" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
-                <div>
-                  <span className="tag tag-red" style={{ fontSize: "10px", fontFamily: "var(--mono)", marginBottom: "8px" }}>
-                    [ DAILY INTELLIGENCE BRIEFING ]
-                  </span>
-                  <h2 className="glow-text" style={{ fontSize: "28px", margin: "8px 0 4px", color: "var(--text)" }}>
-                    {THREAT_OF_THE_DAY.name}
-                  </h2>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", textTransform: "uppercase" }}>
-                    CODENAME: <span style={{ color: "var(--accent)" }}>{THREAT_OF_THE_DAY.codename}</span>
-                  </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.7fr", gap: "32px", alignItems: "center" }} className="responsive-grid-2-large">
+              
+              {/* Left Column: Info */}
+              <div>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", textTransform: "uppercase", marginBottom: "6px" }}>
+                  IDENTIFIED VECTOR: <span style={{ color: "var(--accent)" }}>{THREAT_OF_THE_DAY.codename}</span>
+                </div>
+                
+                <h1 className="glow-text" style={{
+                  fontSize: "clamp(32px, 4vw, 52px)",
+                  margin: "0 0 20px",
+                  color: "#ffffff",
+                  lineHeight: "1.1",
+                  fontWeight: "bold",
+                  textTransform: "uppercase",
+                  letterSpacing: "-0.02em"
+                }}>
+                  {THREAT_OF_THE_DAY.name}
+                </h1>
+
+                <div style={{ borderTop: "1px dashed rgba(255, 77, 77, 0.2)", paddingTop: "20px" }}>
+                  <p style={{ fontSize: "14.5px", color: "var(--text)", lineHeight: "1.8", margin: "0 0 24px" }}>
+                    <strong style={{ color: "#ff4d4d", fontFamily: "var(--mono)", fontSize: "11px", display: "block", marginBottom: "6px", letterSpacing: "0.1em" }}>
+                      [ ASSESSMENT & BIOLOGICAL TRACE ]
+                    </strong>
+                    {THREAT_OF_THE_DAY.description}
+                  </p>
+                  
+                  <p style={{ fontSize: "14.5px", color: "#00ffcc", lineHeight: "1.8", margin: 0 }}>
+                    <strong style={{ color: "#00ffcc", fontFamily: "var(--mono)", fontSize: "11px", display: "block", marginBottom: "6px", letterSpacing: "0.1em" }}>
+                      [ REQUIRED SURVIVAL PROTOCOL ]
+                    </strong>
+                    {THREAT_OF_THE_DAY.countermeasure}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right Column: Risk Gauge & CTA */}
+              <div style={{
+                background: "rgba(255, 0, 51, 0.03)",
+                border: "1px solid rgba(255, 77, 77, 0.15)",
+                padding: "32px 24px",
+                textAlign: "center",
+                borderRadius: "2px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                  CRITICALITY LEVEL
                 </div>
 
-                <div style={{ textAlign: "right", minWidth: "150px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.1em", marginBottom: "4px" }}>
-                    ACTIVE RISK LEVEL
-                  </div>
+                <div style={{
+                  position: "relative",
+                  width: "120px",
+                  height: "120px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "50%",
+                  border: "4px double #ff0033",
+                  boxShadow: "0 0 20px rgba(255, 0, 51, 0.2)",
+                  marginBottom: "16px",
+                  background: "#030303"
+                }}>
                   <div style={{
                     fontFamily: "var(--mono)",
                     fontSize: "36px",
-                    fontWeight: 700,
-                    color: "var(--accent)",
-                    lineHeight: 1
+                    fontWeight: 900,
+                    color: "#ff0033",
                   }}>
                     {THREAT_OF_THE_DAY.severity}%
                   </div>
-                  <div style={{
-                    fontFamily: "var(--mono)",
-                    fontSize: "11px",
-                    color: "var(--accent)",
-                    letterSpacing: "0.2em",
-                    marginTop: "4px"
-                  }}>
-                    [{THREAT_OF_THE_DAY.status}]
-                  </div>
                 </div>
-              </div>
 
-              <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "20px" }}>
-                <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.8", margin: "0 0 20px" }}>
-                  <strong>Intelligence Assessment:</strong> {THREAT_OF_THE_DAY.description}
-                </p>
-                <p style={{ fontSize: "14px", color: "#00ffcc", lineHeight: "1.8", margin: 0 }}>
-                  <strong>Survival Countermeasure:</strong> {THREAT_OF_THE_DAY.countermeasure}
-                </p>
-              </div>
+                <span className="tag tag-red" style={{
+                  fontSize: "12px",
+                  fontFamily: "var(--mono)",
+                  fontWeight: "bold",
+                  padding: "4px 12px",
+                  letterSpacing: "0.15em",
+                  marginBottom: "24px"
+                }}>
+                  STATUS: {THREAT_OF_THE_DAY.status}
+                </span>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
-                <Link href="/terminal" className="btn btn-outline" style={{ fontSize: "11px" }}>
-                  ASK RED QUEEN ABOUT THIS THREAT ↗
+                <Link href="/terminal" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "11px", boxShadow: "0 0 15px rgba(255,0,51,0.3)" }}>
+                  ASK RED QUEEN ABOUT THIS ↗
                 </Link>
               </div>
+
             </div>
           </div>
         </div>
