@@ -11,7 +11,7 @@ const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump"
 export default function ThreatVectorPage() {
   const { publicKey, connected } = useWallet();
   const { setVisible } = useWalletModal();
-  const [activeCategory, setActiveCategory] = useState("algorithmic");
+  const [activeCategory, setActiveCategory] = useState("realistic");
   const [threatBalance, setThreatBalance] = useState<number | null>(null);
   const [loadingBalance, setLoadingBalance] = useState(false);
 
@@ -71,27 +71,41 @@ export default function ThreatVectorPage() {
       {/* Category Tabs */}
       <div style={{ borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
         <div className="container" style={{ display: "flex", overflowX: "auto" }}>
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.key}
-              onClick={() => setActiveCategory(cat.key)}
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: "11px",
-                letterSpacing: "0.12em",
-                padding: "18px 24px",
-                background: "none",
-                border: "none",
-                borderBottom: activeCategory === cat.key ? `2px solid ${cat.color}` : "2px solid transparent",
-                color: activeCategory === cat.key ? cat.color : "var(--text-dim)",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {cat.label} <span style={{ opacity: 0.5 }}>({cat.threats.length})</span>
-            </button>
-          ))}
+          {CATEGORIES.map((cat) => {
+            let classification = "CORE ARCHIVE";
+            if (cat.key === "fictional") classification = "EXPERIMENTAL SIMULATION";
+            else if (cat.key === "satirical") classification = "ENTERTAINMENT ARCHIVE";
+            else if (cat.key === "algorithmic") classification = "ALGORITHMIC VECTOR";
+
+            return (
+              <button
+                key={cat.key}
+                onClick={() => setActiveCategory(cat.key)}
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: "11px",
+                  letterSpacing: "0.12em",
+                  padding: "14px 24px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: activeCategory === cat.key ? `2px solid ${cat.color}` : "2px solid transparent",
+                  color: activeCategory === cat.key ? cat.color : "var(--text-dim)",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                  whiteSpace: "nowrap",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  gap: "4px"
+                }}
+              >
+                <div>{cat.label} <span style={{ opacity: 0.5 }}>({cat.threats.length})</span></div>
+                <span style={{ fontSize: "8.5px", color: "var(--text-muted)", letterSpacing: "0.05em", fontWeight: "bold" }}>
+                  [{classification}]
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

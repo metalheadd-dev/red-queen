@@ -60,6 +60,10 @@ export default function HomePage() {
   
   // Interactive state
   const [selectedHotspot, setSelectedHotspot] = useState(MAP_HOTSPOTS[0]);
+  const [mapNodes, setMapNodes] = useState<any[]>([]);
+  const [selectedNode, setSelectedNode] = useState<any>(null);
+  const [loadingMap, setLoadingMap] = useState(false);
+  const [hoveredNode, setHoveredNode] = useState<any>(null);
   const [activeX402Step, setActiveX402Step] = useState(1);
   const [liveFeed, setLiveFeed] = useState<Array<{ id: number; time: string; msg: string }>>([]);
 
@@ -70,6 +74,21 @@ export default function HomePage() {
   useEffect(() => {
     if (booted) {
       fetchThreat();
+      
+      // Fetch live threat map nodes
+      async function loadMapNodes() {
+        setLoadingMap(true);
+        try {
+          const res = await fetch("/api/threat-map");
+          const data = await res.json();
+          setMapNodes(data);
+          if (data.length > 0) setSelectedNode(data[0]);
+        } catch (err) {
+          console.error("Failed to load threat map nodes:", err);
+        }
+        setLoadingMap(false);
+      }
+      loadMapNodes();
       
       // Initialize dynamic alerts feed
       const initFeed = Array.from({ length: 4 }).map((_, idx) => {
@@ -216,6 +235,107 @@ export default function HomePage() {
           >
             PUMP.FUN ↗
           </a>
+        </div>
+      </section>
+
+      {/* Onboarding Start Here Section */}
+      <section className="page-section" style={{
+        borderTop: "1px solid var(--border)",
+        background: "var(--surface)",
+        padding: "60px 0",
+        position: "relative"
+      }}>
+        <div className="container">
+          <div className="section-header" style={{ marginBottom: "32px" }}>
+            <span className="section-line" />
+            <span className="section-tag">AI SURVIVAL INTELLIGENCE SYSTEM</span>
+            <span className="section-line" />
+          </div>
+
+          <div className="panel" style={{
+            background: "rgba(10, 10, 10, 0.6)",
+            borderColor: "rgba(255, 77, 77, 0.2)",
+            padding: "40px",
+            boxShadow: "0 0 30px rgba(255, 0, 51, 0.05)",
+            position: "relative",
+            overflow: "hidden"
+          }}>
+            {/* Top Corner brackets for high-tech look */}
+            <div style={{ position: "absolute", top: "10px", left: "10px", width: "15px", height: "15px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
+            <div style={{ position: "absolute", top: "10px", right: "10px", width: "15px", height: "15px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
+            <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "15px", height: "15px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
+            <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "15px", height: "15px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px" }} className="responsive-grid-2-large">
+              <div>
+                <h2 style={{ fontFamily: "var(--title-font)", fontSize: "28px", color: "var(--text)", marginBottom: "16px", letterSpacing: "0.05em" }}>
+                  AI SURVIVAL <span style={{ color: "var(--accent)" }}>INTELLIGENCE SYSTEM</span>
+                </h2>
+                <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
+                  Analyze threats. Train preparedness. Talk to the RED QUEEN. Improve your BIO SCORE. 
+                  The RED QUEEN is a decentralized threat-intelligence network mapping physical and digital surveillance vectors.
+                </p>
+                <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                  <Link href="/terminal" className="btn btn-primary" style={{ fontSize: "11px" }}>
+                    ▶ ENTER TERMINAL
+                  </Link>
+                  <Link href="/threat-vector" className="btn btn-ghost" style={{ fontSize: "11px", border: "1px solid var(--border)" }}>
+                    EXPLORE THREATS
+                  </Link>
+                  <Link href="/survival-kit" className="btn btn-ghost" style={{ fontSize: "11px", border: "1px solid var(--border)", color: "#00ffcc" }}>
+                    OPEN SURVIVAL KIT
+                  </Link>
+                </div>
+              </div>
+
+              {/* 3-Step Flow */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px" }}>
+                  [ OPERATIVE UPLINK PROTOCOL ]
+                </div>
+                
+                {/* Step 1 */}
+                <div style={{ display: "flex", gap: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", padding: "16px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--title-font)", fontSize: "20px", fontWeight: "bold", color: "var(--accent)", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>
+                    1
+                  </div>
+                  <div>
+                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--text)", margin: "0 0 6px 0", letterSpacing: "0.05em" }}>CHOOSE THREAT CATEGORY</h4>
+                    <p style={{ fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.6" }}>
+                      Select between Realistic hazards, Fictional simulations, and Satirical archives.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div style={{ display: "flex", gap: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", padding: "16px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--title-font)", fontSize: "20px", fontWeight: "bold", color: "var(--accent)", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>
+                    2
+                  </div>
+                  <div>
+                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--text)", margin: "0 0 6px 0", letterSpacing: "0.05em" }}>TALK TO RED QUEEN</h4>
+                    <p style={{ fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.6" }}>
+                      Query the terminal. Formulate survival tactics. Be evaluated in real-time.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div style={{ display: "flex", gap: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", padding: "16px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--title-font)", fontSize: "20px", fontWeight: "bold", color: "var(--accent)", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>
+                    3
+                  </div>
+                  <div>
+                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--text)", margin: "0 0 6px 0", letterSpacing: "0.05em" }}>BUILD YOUR BIO SCORE</h4>
+                    <p style={{ fontSize: "13px", color: "var(--text-dim)", margin: 0, lineHeight: "1.6" }}>
+                      Earn persistent XP and level up from Civilian to Director as you prove tactical intelligence.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -409,72 +529,144 @@ export default function HomePage() {
             <span className="section-line" />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "32px", marginTop: "32px" }} className="responsive-grid-2-large">
+          <div style={{ display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "32px", marginTop: "32px" }} className="responsive-grid-2-large">
             {/* SVG Network Map */}
-            <div className="panel" style={{ background: "#020202", borderColor: "rgba(255,0,51,0.15)", position: "relative", minHeight: "360px", padding: "16px" }}>
-              <div style={{ position: "absolute", top: "16px", left: "16px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em" }}>
-                [ SYSTEM RADAR MONITORING NETWORK ]
+            <div className="panel" style={{ background: "#020202", borderColor: "rgba(255,0,51,0.15)", position: "relative", minHeight: "420px", padding: "16px", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "16px", left: "16px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", zIndex: 10 }}>
+                [ SYSTEM RADAR MONITORING NETWORK // LIVE GEOGRAPHY ]
               </div>
-              
-              <svg viewBox="0 0 700 400" style={{ width: "100%", height: "100%", opacity: 0.85 }}>
-                {/* Tactical grid background lines */}
-                <defs>
-                  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 0, 51, 0.05)" strokeWidth="1" />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
 
-                {/* Abstract network connections */}
-                <path d="M120 150 L190 220 L420 240 M580 180 L380 110 L420 240 M490 310 L420 240 M190 220 L490 310" stroke="rgba(255, 0, 51, 0.15)" strokeWidth="1" strokeDasharray="3 3" />
-                
-                {/* Hotspots */}
-                {MAP_HOTSPOTS.map((spot) => {
-                  const isSelected = selectedHotspot.id === spot.id;
-                  return (
-                    <g key={spot.id} onClick={() => setSelectedHotspot(spot)} style={{ cursor: "pointer" }}>
-                      {/* Pulse circle */}
-                      <circle cx={spot.coords.x} cy={spot.coords.y} r={isSelected ? "15" : "8"} fill="none" stroke={spot.type === "WALLET-TRAIL" || spot.type === "AI-PROFILING" ? "var(--accent)" : "#f0c929"} strokeWidth="1.5" opacity={isSelected ? 0.8 : 0.4}>
-                        <animate attributeName="r" values="6;22;6" dur="3s" repeatCount="indefinite" />
-                      </circle>
-                      {/* Center dot */}
-                      <circle cx={spot.coords.x} cy={spot.coords.y} r="5" fill={isSelected ? "var(--accent)" : "#ff0033"} />
-                    </g>
-                  );
-                })}
-              </svg>
+              {loadingMap || mapNodes.length === 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", justifyContent: "center", height: "360px", fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "12px" }}>
+                  <span className="loading-dots">SYNCHRONIZING TACTICAL RADAR NODES<span>.</span><span>.</span><span>.</span></span>
+                </div>
+              ) : (
+                <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                  <svg viewBox="0 0 800 400" style={{ width: "100%", height: "auto", opacity: 0.9 }}>
+                    {/* Tactical grid background lines */}
+                    <defs>
+                      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 0, 51, 0.04)" strokeWidth="1" />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+
+                    {/* Holographic Radar Concentric Circles */}
+                    <circle cx="400" cy="200" r="100" fill="none" stroke="rgba(255, 0, 51, 0.05)" strokeWidth="1" strokeDasharray="5 5" />
+                    <circle cx="400" cy="200" r="200" fill="none" stroke="rgba(255, 0, 51, 0.05)" strokeWidth="1" strokeDasharray="5 5" />
+                    <circle cx="400" cy="200" r="300" fill="none" stroke="rgba(255, 0, 51, 0.05)" strokeWidth="1" strokeDasharray="5 5" />
+
+                    {/* Continent Outlines (Tactical Wireframe) */}
+                    <path d="M 120 100 L 220 80 L 280 110 L 230 180 L 150 180 L 110 130 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
+                    <path d="M 180 200 L 250 230 L 240 300 L 200 360 L 170 280 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
+                    <path d="M 380 60 L 580 50 L 700 90 L 730 180 L 580 200 L 420 180 L 360 140 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
+                    <path d="M 380 190 L 460 180 L 490 240 L 440 310 L 380 270 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
+                    <path d="M 630 260 L 700 270 L 690 320 L 640 310 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
+                    <path d="M 300 40 L 340 30 L 320 60 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.12)" strokeWidth="1.5" strokeDasharray="3 3" />
+
+                    {/* Sonar Radar Sweep */}
+                    <line x1="400" y1="200" x2="800" y2="200" stroke="rgba(255, 77, 77, 0.2)" strokeWidth="2">
+                      <animateTransform attributeName="transform" type="rotate" from="0 400 200" to="360 400 200" dur="12s" repeatCount="indefinite"/>
+                    </line>
+
+                    {/* Threat Nodes */}
+                    {mapNodes.map((node) => {
+                      const isSelected = selectedNode?.id === node.id;
+                      const color = node.type === "GEOLOGICAL" ? "#ff4d4d" : node.type === "ALGORITHMIC" ? "#00ffcc" : "#f0c929";
+                      return (
+                        <g key={node.id} 
+                           onClick={() => setSelectedNode(node)} 
+                           onMouseEnter={() => setHoveredNode(node)}
+                           onMouseLeave={() => setHoveredNode(null)}
+                           style={{ cursor: "pointer" }}>
+                          {/* Pulsing ring */}
+                          <circle cx={node.coords.x} cy={node.coords.y} r={isSelected ? 16 : 8} fill="none" stroke={color} strokeWidth="1.5" opacity={isSelected ? 0.9 : 0.5}>
+                            <animate attributeName="r" values="5;22;5" dur="3s" repeatCount="indefinite" />
+                          </circle>
+                          {/* Inner core */}
+                          <circle cx={node.coords.x} cy={node.coords.y} r="5" fill={color} />
+                        </g>
+                      );
+                    })}
+                  </svg>
+
+                  {/* Compact Hover Card */}
+                  {hoveredNode && (
+                    <div style={{
+                      position: "absolute",
+                      left: `${(hoveredNode.coords.x / 800) * 100}%`,
+                      top: `${(hoveredNode.coords.y / 400) * 100}%`,
+                      transform: "translate(-50%, -115%)",
+                      background: "rgba(5, 5, 5, 0.95)",
+                      border: "1px solid var(--accent)",
+                      padding: "10px 14px",
+                      borderRadius: "2px",
+                      pointerEvents: "none",
+                      zIndex: 100,
+                      minWidth: "180px",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.8)"
+                    }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>
+                        [{hoveredNode.type} // {hoveredNode.region}]
+                      </div>
+                      <div style={{ fontSize: "12px", fontWeight: "bold", color: "#fff", marginBottom: "2px" }}>
+                        {hoveredNode.name}
+                      </div>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>
+                        Severity: <span style={{ color: "var(--accent)" }}>{hoveredNode.severity}%</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Tactical Info Pane */}
-            <div className="panel" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-              <div>
-                <div className="tag tag-red" style={{ marginBottom: "16px", fontSize: "10px", fontFamily: "var(--mono)" }}>
-                  [ THREAT VECTOR IDENTIFIED ]
-                </div>
-                <h3 className="glow-text" style={{ fontSize: "20px", marginBottom: "12px", textTransform: "uppercase" }}>
-                  {selectedHotspot.name}
-                </h3>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "20px", textTransform: "uppercase" }}>
-                  VECTOR TYPE: <span style={{ color: "var(--accent)" }}>{selectedHotspot.type}</span>
-                </div>
-                
-                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "16px" }}>
-                  <strong>Description:</strong> {selectedHotspot.desc}
-                </p>
-                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "16px" }}>
-                  <strong style={{ color: "#ff4d4d" }}>Risk Profile:</strong> {selectedHotspot.risk}
-                </p>
-                <p style={{ fontSize: "13.5px", color: "#00ffcc", lineHeight: "1.8", margin: 0 }}>
-                  <strong>Counter-Measure:</strong> {selectedHotspot.solution}
-                </p>
-              </div>
+            {selectedNode ? (
+              <div className="panel" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", background: "rgba(10,10,10,0.6)", borderColor: "rgba(255,0,51,0.2)" }}>
+                <div>
+                  <div className="tag tag-red" style={{ marginBottom: "16px", fontSize: "10px", fontFamily: "var(--mono)" }}>
+                    [ RADAR DIAGNOSTIC DOSSIER ]
+                  </div>
+                  <h3 className="glow-text" style={{ fontSize: "20px", marginBottom: "8px", textTransform: "uppercase" }}>
+                    {selectedNode.name}
+                  </h3>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "20px", textTransform: "uppercase" }}>
+                    REGION: <span style={{ color: "var(--accent)" }}>{selectedNode.region}</span><br />
+                    LAT/LNG: <span style={{ color: "#00ffcc" }}>{selectedNode.lat.toFixed(4)}, {selectedNode.lng.toFixed(4)}</span>
+                  </div>
+                  
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "16px" }}>
+                    <strong>Description:</strong> {selectedNode.desc}
+                  </p>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "16px" }}>
+                    <strong style={{ color: "var(--accent)" }}>Criticality:</strong> {selectedNode.severity}% Severity Rating
+                  </p>
+                  <p style={{ fontSize: "13.5px", color: "#00ffcc", lineHeight: "1.7", marginBottom: "16px" }}>
+                    <strong>Defense Protocol:</strong> {selectedNode.solution}
+                  </p>
 
-              <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--border)" }}>
-                <Link href={`/threat-vector/${selectedHotspot.type}`} className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "11px" }}>
-                  RUN THREAT SCAN ON PORTAL
-                </Link>
+                  <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px", marginTop: "14px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.1em", marginBottom: "6px" }}>
+                      [ RED QUEEN CRITICAL FEED ]
+                    </div>
+                    <p style={{ fontSize: "12px", color: "var(--text)", fontStyle: "italic", lineHeight: "1.6", margin: 0 }}>
+                      {selectedNode.analysis}
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--border)" }}>
+                  <Link href="/terminal" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "11px" }}>
+                    COMMUNICATE WITH RED QUEEN OVER UPLINK ↗
+                  </Link>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="panel" style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "12px" }}>
+                [ CHOOSE RADAR NODE TO SCAN ]
+              </div>
+            )}
           </div>
         </div>
       </section>

@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { SOUL_PROMPT } from "@/lib/soul";
 import { supabase } from "@/lib/supabase";
 import { getHashedWallet } from "@/lib/crypto";
+import { getStatsFromScenarios, updateStatsInScenarios, getCleanScenarios, parseStatsFromAI, applyStatGains, calculateBioScore } from "@/lib/progression";
 
 export const maxDuration = 30;
 
@@ -72,17 +73,30 @@ export async function POST(req: Request) {
     const recentMessages = messages.slice(-10);
 
     // Build personalization context
+    const stats = getStatsFromScenarios(userProfile?.chosen_scenarios);
+    const cleanScenarios = getCleanScenarios(userProfile?.chosen_scenarios);
+    const currentBioScore = userProfile ? calculateBioScore(stats) : 0;
+
     const profileString = userProfile ? `
 - Hashed Identity: ${hashedWallet}
 - Apocalyptic Codename: ${userProfile.apocalyptic_name || "UNKNOWN SUBJECT"}
-- Chosen Threat Focus Areas: ${userProfile.chosen_scenarios && userProfile.chosen_scenarios.length > 0 ? userProfile.chosen_scenarios.join(", ") : "None selected yet"}
-- Active Bio-Score: ${userProfile.last_bio_score !== null ? userProfile.last_bio_score + "%" : "PENDING EVALUATION"}
+- Chosen Threat Focus Areas: ${cleanScenarios.length > 0 ? cleanScenarios.join(", ") : "None selected yet"}
+- Active Bio-Score: ${currentBioScore}% (Level ${stats.level}, XP ${stats.xp})
+- Sub-Stats:
+  * Threat Awareness: ${stats.threat_awareness}
+  * Operational Discipline: ${stats.operational_discipline}
+  * Psychological Stability: ${stats.psychological_stability}
+  * Technical Preparedness: ${stats.technical_preparedness}
+  * Adaptability: ${stats.adaptability}
+  * Resourcefulness: ${stats.resourcefulness}
+  * Surveillance Resistance: ${stats.surveillance_resistance}
 - Last Interaction Log: ${userProfile.last_interaction || "First Uplink Established"}
 ` : `
 - Hashed Identity: ${hashedWallet}
 - Apocalyptic Codename: UNKNOWN SUBJECT
 - Chosen Threat Focus Areas: None selected yet
-- Active Bio-Score: PENDING EVALUATION
+- Active Bio-Score: PENDING EVALUATION (0%)
+- Sub-Stats: All at 0
 `;
 
     const systemInstruction = `${SOUL_PROMPT}
@@ -121,8 +135,6 @@ RE-ACTIVATION RULES & PARANOIA:
     // Save to Supabase
     if (supabase) {
       try {
-        const scoreMatch = outputText.match(/\[BIO-SCORE:\s*(\d+)%?\]/i);
-        const bioScore = scoreMatch ? parseInt(scoreMatch[1]) : null;
         const lastUserMsg = recentMessages[recentMessages.length - 1];
 
         await supabase.from("messages").insert([
@@ -130,9 +142,31 @@ RE-ACTIVATION RULES & PARANOIA:
           { role: "assistant", content: outputText, wallet_address: hashedWallet || null },
         ]);
 
-        if (walletAddress && bioScore !== null) {
+        if (walletAddress) {
+          const parsed = parseStatsFromAI(outputText);
+          const currentStats = getStatsFromScenarios(userProfile?.chosen_scenarios);
+          let updatedStats = currentStats;
+
+          if (parsed) {
+            updatedStats = applyStatGains(currentStats, parsed.xpGain, parsed.gains, userProfile?.last_interaction);
+          } else {
+            const scoreMatch = outputText.match(/\[BIO-SCORE:\s*(\d+)%?\]/i);
+            const fallbackScore = scoreMatch ? parseInt(scoreMatch[1]) : null;
+            if (fallbackScore !== null) {
+              updatedStats = applyStatGains(currentStats, 5, { threat_awareness: 1 }, userProfile?.last_interaction);
+            }
+          }
+
+          const newBioScore = calculateBioScore(updatedStats);
+          const updatedScenarios = updateStatsInScenarios(userProfile?.chosen_scenarios || [], updatedStats);
+
           await supabase.from("users").upsert(
-            { wallet_address: hashedWallet, last_bio_score: bioScore, last_interaction: new Date().toISOString() },
+            { 
+              wallet_address: hashedWallet, 
+              last_bio_score: newBioScore, 
+              chosen_scenarios: updatedScenarios,
+              last_interaction: new Date().toISOString() 
+            },
             { onConflict: "wallet_address" }
           );
         }

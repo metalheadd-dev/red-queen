@@ -5,6 +5,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import SolvivalIcon from "@/components/SolvivalIcon";
 import dynamic from "next/dynamic";
 import { generateApocalypticName } from "@/lib/names";
+import { DEFAULT_STATS, calculateBioScore, parseStatsFromAI, applyStatGains, getClearanceLevel } from "@/lib/progression";
 
 
 const WalletMultiButton = dynamic(
@@ -58,6 +59,31 @@ I monitor unlimited active extinction scenarios simultaneously. I have assessed 
 [BIO-SCORE: PENDING — ASSESSMENT REQUIRED]
 [WARN_0x4F] Every second of inaction reduces your survival probability.`;
 
+function getLocalStatsAndScore(messages: Message[]) {
+  let stats = { ...DEFAULT_STATS };
+  for (const msg of messages) {
+    if (msg.role === "assistant") {
+      const parsed = parseStatsFromAI(msg.content);
+      if (parsed) {
+        stats = applyStatGains(stats, parsed.xpGain, parsed.gains);
+      } else {
+        const match = msg.content.match(/\[BIO-SCORE:\s*(\d+)%?\]/i);
+        if (match) {
+          const val = parseInt(match[1]);
+          stats.threat_awareness = val;
+          stats.operational_discipline = val;
+          stats.psychological_stability = val;
+          stats.technical_preparedness = val;
+          stats.adaptability = val;
+          stats.resourcefulness = val;
+          stats.surveillance_resistance = val;
+        }
+      }
+    }
+  }
+  return { stats, score: calculateBioScore(stats) };
+}
+
 export default function TerminalPage() {
   const { publicKey, connected, wallet, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
@@ -78,6 +104,7 @@ export default function TerminalPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentScore, setCurrentScore] = useState<string | null>(null);
+  const [profileStats, setProfileStats] = useState<any>(null);
   const [apocalypticName, setApocalypticName] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -224,6 +251,9 @@ export default function TerminalPage() {
           if (profileRes.profile.last_bio_score !== null) {
             setCurrentScore(profileRes.profile.last_bio_score.toString());
           }
+          if (profileRes.profile.stats) {
+            setProfileStats(profileRes.profile.stats);
+          }
         }
 
         if (historyRes && historyRes.history && historyRes.history.length > 0) {
@@ -368,6 +398,17 @@ To initiate x402 metered diagnostics:
         };
         return updated;
       });
+
+      const newUserMsgCount = newMessages.filter((m) => m.role === "user").length;
+      if (!connected && newUserMsgCount === 2) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "[SYSTEM NOTICE: Connect wallet to preserve your operative profile and continue BIO SCORE progression.]"
+          }
+        ]);
+      }
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -389,12 +430,11 @@ To initiate x402 metered diagnostics:
     }
   }
 
-  const scoreNum = currentScore ? parseInt(currentScore) : null;
-  const scoreColor =
-    scoreNum === null ? "var(--text-dim)" :
-    scoreNum < 20 ? "#ff4d4d" :
-    scoreNum < 60 ? "#f0c929" :
-    "#2ecc40";
+  const localProgression = getLocalStatsAndScore(messages);
+  const scoreNum = connected ? (currentScore ? parseInt(currentScore) : localProgression.score) : localProgression.score;
+  const stats = connected ? (profileStats || localProgression.stats) : localProgression.stats;
+  const clearance = getClearanceLevel(scoreNum);
+  const scoreColor = scoreNum === 0 ? "var(--text-dim)" : clearance.color;
 
   const userMessageCount = messages.filter((m) => m.role === "user").length;
   const isLocked = !connected && (userMessageCount >= 4 || limitBlocked);
@@ -418,7 +458,7 @@ To initiate x402 metered diagnostics:
           </div>
           <h1 className="glow-text" style={{ fontSize: "24px", margin: 0 }}>RED QUEEN TERMINAL</h1>
         </div>
-        {currentScore && (
+        {connected ? (
           <div style={{ marginLeft: "auto", textAlign: "right" }}>
             <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.2em", marginBottom: "4px" }}>
               YOUR BIO-SCORE
@@ -430,7 +470,36 @@ To initiate x402 metered diagnostics:
               color: scoreColor,
               lineHeight: 1,
             }}>
-              {currentScore}%
+              {scoreNum}%
+            </div>
+            <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: scoreColor, letterSpacing: "0.1em", marginTop: "4px" }}>
+              LEVEL {stats?.level || 1} // {clearance.label}
+            </div>
+          </div>
+        ) : (
+          <div style={{ 
+            marginLeft: "auto", 
+            textAlign: "right",
+            padding: "8px 16px",
+            border: "1px dashed rgba(255, 77, 77, 0.3)",
+            background: "rgba(255, 77, 77, 0.02)",
+            borderRadius: "2px",
+            animation: "pulse-border 2s infinite ease-in-out"
+          }}>
+            <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px", fontWeight: "bold" }}>
+              POTENTIAL BIO-SCORE
+            </div>
+            <div style={{
+              fontFamily: "var(--mono)",
+              fontSize: "28px",
+              fontWeight: 700,
+              color: scoreColor,
+              lineHeight: 1,
+            }}>
+              {scoreNum}%
+            </div>
+            <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", letterSpacing: "0.05em", marginTop: "4px" }}>
+              [SIMULATED TELEMETRY]
             </div>
           </div>
         )}
@@ -530,7 +599,7 @@ To initiate x402 metered diagnostics:
                 [ UPLINK LOCKED // TELEMETRY LIMIT REACHED ]
               </div>
               <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", maxWidth: "550px", lineHeight: "1.7", margin: 0 }}>
-                You have sent 4 telemetry packets. To protect the integrity of the network, the RED QUEEN requires operative passport verification to continue neural analysis. Connect your Solana wallet now to unlock permanent clearance.
+                You have sent 4 telemetry packets. To protect the integrity of the network, the RED QUEEN requires operative passport verification. Connect your Solana wallet now to preserve your operative profile and continue BIO SCORE progression.
               </p>
               <div style={{ display: "flex", justifyContent: "center" }}>
                 <WalletMultiButton style={{

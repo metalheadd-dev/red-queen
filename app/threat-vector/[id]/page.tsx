@@ -427,85 +427,196 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
             {/* Decryption Portal */}
             <div style={{ borderTop: "1px solid var(--border)", paddingTop: "32px" }}>
               {revealed ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                  
-                  {/* RED QUEEN AI Commentary */}
-                  <div style={{ background: "rgba(255, 0, 51, 0.02)", borderLeft: "3px solid var(--accent)", padding: "20px", borderRadius: "0 2px 2px 0" }}>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "8px" }}>
-                      [ RED QUEEN DIRECTIVE // CLASSIFIED COMMENTARY ]
+                category.key === "realistic" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "32px", marginTop: "24px" }}>
+                    {/* 1. Threat Overview */}
+                    <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
+                      <h3 style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: "var(--accent)", marginBottom: "12px", borderBottom: "1px dashed rgba(255, 77, 77, 0.2)", paddingBottom: "8px" }}>
+                        1. THREAT OVERVIEW
+                      </h3>
+                      <p style={{ fontSize: "14.5px", color: "var(--text-dim)", lineHeight: "1.8", margin: 0 }}>
+                        {threat.name} is classified as a {threat.classification} level hazard. This archive provides early-warning telemetry indicators and emergency tactical guides for civilian networks.
+                      </p>
                     </div>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.7" }}>
-                      "{meta.aiCommentary}"
-                    </div>
-                  </div>
 
-                  {/* Core Decrypted File content */}
-                  <div style={{ background: "rgba(0, 255, 204, 0.03)", border: "1px solid rgba(0, 255, 204, 0.2)", borderRadius: "2px", padding: "20px 24px" }}>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.2em", marginBottom: "12px" }}>
-                      [CLEARANCE LEVEL 5 GRANTED] — SECURE DOSSIER PAYLOAD
-                    </div>
-                    <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", margin: 0 }}>
-                      {threat.classified}
-                    </p>
-                    
-                    {isSectorDelta && diagnosticsReport && (
-                      <div style={{ marginTop: "20px", borderTop: "1px dashed rgba(0, 255, 204, 0.2)", paddingTop: "20px" }}>
-                        <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "8px" }}>
-                          ▶ DIAGNOSTICS REPORT
-                        </div>
-                        <pre style={{
-                          fontFamily: "var(--mono)",
-                          fontSize: "12px",
-                          color: "var(--text)",
-                          background: "#080808",
-                          border: "1px solid #111",
-                          padding: "16px",
-                          whiteSpace: "pre-wrap",
-                          margin: 0,
-                          lineHeight: "1.7",
-                          textShadow: "0 0 2px rgba(0, 255, 204, 0.4)"
-                        }}>
-                          {diagnosticsReport}
-                        </pre>
+                    {/* 2. How It Operates */}
+                    <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
+                      <h3 style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: "var(--accent)", marginBottom: "16px", borderBottom: "1px dashed rgba(255, 77, 77, 0.2)", paddingBottom: "8px" }}>
+                        2. HOW IT OPERATES
+                      </h3>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        {meta.timelineProgression.map((step, idx) => (
+                          <div key={idx} style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", background: "rgba(255, 77, 77, 0.05)", border: "1px solid rgba(255, 77, 77, 0.2)", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", borderRadius: "2px", flexShrink: 0 }}>
+                              0{idx + 1}
+                            </span>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6", marginTop: "3px" }}>
+                              {step}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </div>
-
-                  {/* Vector Escalation Timeline */}
-                  <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px", borderRadius: "2px" }}>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px" }}>
-                      [ SHIELD ANALYSIS: VECTOR ESCALATION PIPELINE ]
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                      {meta.timelineProgression.map((step, idx) => (
-                        <div key={idx} style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold", background: "rgba(0, 255, 204, 0.05)", border: "1px solid rgba(0, 255, 204, 0.2)", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "2px", flexShrink: 0 }}>
-                            0{idx + 1}
-                          </span>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", marginTop: "3px" }}>
-                            {step}
-                          </span>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2-large">
+                      {/* 3. Warning Signs */}
+                      <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
+                        <h3 style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: "var(--accent)", marginBottom: "12px", borderBottom: "1px dashed rgba(255, 77, 77, 0.2)", paddingBottom: "8px" }}>
+                          3. WARNING SIGNS
+                        </h3>
+                        <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
+                          {threat.symptoms.map((s, i) => (
+                            <li key={i} style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)", display: "flex", gap: "8px" }}>
+                              <span style={{ color: "var(--accent)" }}>▸</span>{s}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* 4. Survival Protocols */}
+                      <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
+                        <h3 style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: "var(--accent)", marginBottom: "12px", borderBottom: "1px dashed rgba(255, 77, 77, 0.2)", paddingBottom: "8px" }}>
+                          4. SURVIVAL PROTOCOLS
+                        </h3>
+                        <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
+                          {threat.survival.map((s, i) => (
+                            <li key={i} style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)", display: "flex", gap: "8px" }}>
+                              <span style={{ color: "#00ffcc" }}>✓</span>{s}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* 5. RED QUEEN Analysis */}
+                    <div style={{ background: "rgba(255, 0, 51, 0.03)", borderLeft: "4px solid var(--accent)", padding: "24px", borderRadius: "0 2px 2px 0" }}>
+                      <h3 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px", letterSpacing: "0.1em" }}>
+                        5. RED QUEEN ANALYSIS DIRECTIVE
+                      </h3>
+                      <p style={{ fontFamily: "var(--mono)", fontSize: "13px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.7", margin: 0 }}>
+                        "{meta.aiCommentary}"
+                      </p>
+                      <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px dashed rgba(255,77,77,0.15)", fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)" }}>
+                        <strong>Classified Payload:</strong> {threat.classified}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2-large">
+                      {/* 6. Risk Level */}
+                      <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
+                        <h3 style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: "var(--accent)", marginBottom: "12px", borderBottom: "1px dashed rgba(255, 77, 77, 0.2)", paddingBottom: "8px" }}>
+                          6. RISK LEVEL DIAGNOSTICS
+                        </h3>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "12.5px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <span>CRITICALITY RATING:</span>
+                            <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{threat.level}%</span>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <span>DIFFICULTY CLASS:</span>
+                            <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{meta.difficulty}</span>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <span>CONTAINMENT STATUS:</span>
+                            <span style={{ color: "#ff4d4d", fontWeight: "bold" }}>{meta.containmentStatus}</span>
+                          </div>
                         </div>
-                      ))}
+                      </div>
+
+                      {/* 7. Related Threats */}
+                      <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
+                        <h3 style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: "var(--accent)", marginBottom: "12px", borderBottom: "1px dashed rgba(255, 77, 77, 0.2)", paddingBottom: "8px" }}>
+                          7. RELATED DOSSIERS
+                        </h3>
+                        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                          {meta.relatedThreats.map((rt) => (
+                            <Link key={rt} href={`/threat-vector/${rt}`} style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", textDecoration: "underline", background: "rgba(255,77,77,0.04)", border: "1px solid rgba(255,77,77,0.1)", padding: "6px 12px", borderRadius: "2px" }}>
+                              ↗ {rt}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Action Plan */}
-                  <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px", borderRadius: "2px" }}>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px" }}>
-                      [ COUNTER-MEASURE ACTIONS RECON ]
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                    {/* RED QUEEN AI Commentary */}
+                    <div style={{ background: "rgba(255, 0, 51, 0.02)", borderLeft: "3px solid var(--accent)", padding: "20px", borderRadius: "0 2px 2px 0" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                        [ RED QUEEN DIRECTIVE // CLASSIFIED COMMENTARY ]
+                      </div>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.7" }}>
+                        "{meta.aiCommentary}"
+                      </div>
                     </div>
-                    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
-                      {meta.recommendedActions.map((action, idx) => (
-                        <li key={idx} style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)", display: "flex", gap: "10px", alignItems: "center" }}>
-                          <span style={{ color: "#00ffcc", fontWeight: "bold" }}>✔</span>
-                          <span>{action}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
 
-                </div>
+                    {/* Core Decrypted File content */}
+                    <div style={{ background: "rgba(0, 255, 204, 0.03)", border: "1px solid rgba(0, 255, 204, 0.2)", borderRadius: "2px", padding: "20px 24px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.2em", marginBottom: "12px" }}>
+                        [CLEARANCE LEVEL 5 GRANTED] — SECURE DOSSIER PAYLOAD
+                      </div>
+                      <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", margin: 0 }}>
+                        {threat.classified}
+                      </p>
+                      
+                      {isSectorDelta && diagnosticsReport && (
+                        <div style={{ marginTop: "20px", borderTop: "1px dashed rgba(0, 255, 204, 0.2)", paddingTop: "20px" }}>
+                          <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                            ▶ DIAGNOSTICS REPORT
+                          </div>
+                          <pre style={{
+                            fontFamily: "var(--mono)",
+                            fontSize: "12px",
+                            color: "var(--text)",
+                            background: "#080808",
+                            border: "1px solid #111",
+                            padding: "16px",
+                            whiteSpace: "pre-wrap",
+                            margin: 0,
+                            lineHeight: "1.7",
+                            textShadow: "0 0 2px rgba(0, 255, 204, 0.4)"
+                          }}>
+                            {diagnosticsReport}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Vector Escalation Timeline */}
+                    <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px", borderRadius: "2px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px" }}>
+                        [ SHIELD ANALYSIS: VECTOR ESCALATION PIPELINE ]
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        {meta.timelineProgression.map((step, idx) => (
+                          <div key={idx} style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold", background: "rgba(0, 255, 204, 0.05)", border: "1px solid rgba(0, 255, 204, 0.2)", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "2px", flexShrink: 0 }}>
+                              0{idx + 1}
+                            </span>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", marginTop: "3px" }}>
+                              {step}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Action Plan */}
+                    <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px", borderRadius: "2px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px" }}>
+                        [ COUNTER-MEASURE ACTIONS RECON ]
+                      </div>
+                      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {meta.recommendedActions.map((action, idx) => (
+                          <li key={idx} style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)", display: "flex", gap: "10px", alignItems: "center" }}>
+                            <span style={{ color: "#00ffcc", fontWeight: "bold" }}>✔</span>
+                            <span>{action}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )
               ) : isSectorDelta ? (
                 <div
                   className="redacted-viewport-locked"

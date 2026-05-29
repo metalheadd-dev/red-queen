@@ -5,6 +5,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { generateApocalypticName } from "@/lib/names";
+import { getClearanceLevel, DEFAULT_STATS } from "@/lib/progression";
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((m) => m.WalletMultiButton),
@@ -76,6 +77,7 @@ type Profile = {
   chosen_scenarios: string[];
   last_bio_score: number | null;
   last_interaction: string | null;
+  stats?: typeof DEFAULT_STATS;
 };
 
 // Client-side SHA-256 generator to display the Hashed Passport
@@ -210,7 +212,9 @@ export default function OperativeProfilePage() {
 
   const displayName = customName || generatedName;
   const scoreNum = profile?.last_bio_score ?? null;
-  const scoreColor = scoreNum === null ? "var(--text-dim)" : scoreNum < 20 ? "#ff4d4d" : scoreNum < 60 ? "#f0c929" : "#00ffcc";
+  const stats = profile?.stats || DEFAULT_STATS;
+  const clearance = getClearanceLevel(scoreNum || 0);
+  const scoreColor = scoreNum === null ? "var(--text-dim)" : clearance.color;
 
   const filteredScenarios = activeFilter === "ALL"
     ? ALL_SCENARIOS
@@ -386,6 +390,61 @@ export default function OperativeProfilePage() {
             <Link href="/threat-vector" className="btn btn-ghost" style={{ fontSize: "12px" }}>
               BROWSE SECTOR MATRIX
             </Link>
+          </div>
+        </div>
+
+        {/* Progression & Sub-Stats panel */}
+        <div className="container" style={{ padding: "0 24px 20px" }}>
+          <div className="panel" style={{
+            background: "rgba(5, 5, 5, 0.4)",
+            borderColor: "rgba(255, 77, 77, 0.15)",
+            padding: "32px",
+            marginTop: "12px",
+            boxShadow: "0 0 20px rgba(255, 0, 51, 0.02)"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed var(--border)", paddingBottom: "16px", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
+              <div>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", marginBottom: "4px" }}>
+                  [ CLASSIFIED DIAGNOSTICS SUB-STATS ]
+                </div>
+                <h3 style={{ fontFamily: "var(--mono)", fontSize: "18px", margin: 0, textTransform: "uppercase" }}>
+                  CLEARANCE STATUS: <span style={{ color: clearance.color }}>{clearance.label}</span>
+                </h3>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)" }}>
+                  LEVEL {stats.level} // <span style={{ color: "var(--accent)" }}>{stats.xp % 100}/100 XP</span>
+                </div>
+                <div className="threat-bar-wrap" style={{ marginTop: "8px", width: "150px", height: "6px", background: "#111" }}>
+                  <div className="threat-bar-fill" style={{ width: `${stats.xp % 100}%`, background: "var(--accent)" }} />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px" }}>
+              {[
+                { label: "Threat Awareness", val: stats.threat_awareness, desc: "Understanding of passive & active threats" },
+                { label: "Operational Discipline", val: stats.operational_discipline, desc: "Consistency in security routines" },
+                { label: "Psychological Stability", val: stats.psychological_stability, desc: "Resilience under stressful simulations" },
+                { label: "Technical Preparedness", val: stats.technical_preparedness, desc: "Hardware isolation & offline redundancy" },
+                { label: "Adaptability", val: stats.adaptability, desc: "Agility in changing threat conditions" },
+                { label: "Resourcefulness", val: stats.resourcefulness, desc: "Utility mapping & alternative supply routing" },
+                { label: "Surveillance Resistance", val: stats.surveillance_resistance, desc: "Sovereign wallet patterns & trace minimization" }
+              ].map((st, idx) => (
+                <div key={idx} style={{ background: "#080808", border: "1px solid #141414", padding: "16px", borderRadius: "2px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)" }}>{st.label}</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold" }}>{st.val}/100</span>
+                  </div>
+                  <div className="threat-bar-wrap" style={{ height: "4px", background: "#111", marginBottom: "8px" }}>
+                    <div className="threat-bar-fill" style={{ width: `${st.val}%`, background: "var(--accent)" }} />
+                  </div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", lineHeight: "1.3" }}>
+                    {st.desc}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
