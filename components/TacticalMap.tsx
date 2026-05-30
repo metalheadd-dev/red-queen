@@ -129,14 +129,17 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
         center: [15, 25],
         zoom: 1.4,
         pitch: 25,
-        projection: { name: "globe" } as any
+        projection: { name: "globe" } as any,
+        attributionControl: false
       });
 
       mapRef.current = map;
       map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), "top-right");
+      // Minimal attribution in bottom-right (required by Mapbox TOS)
+      map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
 
-      // When style loads: set fog then immediately build markers
-      map.on("style.load", () => {
+      // Use 'load' (fires after tiles ready) instead of 'style.load' for reliable marker placement
+      map.on("load", () => {
         try {
           map.setFog({
             color: "rgb(15, 10, 10)",
@@ -145,7 +148,8 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
             "horizon-blend": 0.02
           });
         } catch {}
-        rebuildMarkers(map);
+        // 100ms buffer to ensure globe projection is fully initialized
+        setTimeout(() => rebuildMarkers(map), 100);
       });
 
       return () => { map.remove(); };
@@ -235,6 +239,11 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
         .tactical-popup-satirical  .mapboxgl-popup-tip     { border-top-color:#f0c929!important;border-bottom-color:#f0c929!important; }
         .tactical-popup-algorithmic .mapboxgl-popup-content { border-color:#00ffcc!important; }
         .tactical-popup-algorithmic .mapboxgl-popup-tip    { border-top-color:#00ffcc!important;border-bottom-color:#00ffcc!important; }
+        /* Minimize watermark — attribution text kept (Mapbox TOS), logo hidden */
+        .mapboxgl-ctrl-logo { display:none!important; }
+        .mapboxgl-ctrl-attrib { background:rgba(0,0,0,0.4)!important;font-size:9px!important;opacity:0.4!important;transition:opacity 0.2s; }
+        .mapboxgl-ctrl-attrib:hover { opacity:1!important; }
+        .mapboxgl-ctrl-attrib a { color:#666!important; }
       `}</style>
     </div>
   );
