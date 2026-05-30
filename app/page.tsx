@@ -649,6 +649,7 @@ export default function HomePage() {
                 });
                 return (
                   <TacticalMap
+                    key={mapFilter}
                     nodes={filteredNodes}
                     onSelectNode={setSelectedNode}
                     selectedNode={selectedNode}
