@@ -45,8 +45,8 @@ export default function ThreatVectorPage() {
   }, [publicKey]);
 
   const currentCat = CATEGORIES.find((c) => c.key === activeCategory)!;
-  const isGated = activeCategory === "realistic" || activeCategory === "fictional";
-  const hasAccess = !isGated || (connected && threatBalance !== null && threatBalance > 0);
+  const isGated = false;
+  const hasAccess = true;
 
   return (
     <div style={{ padding: "60px 0 0", minHeight: "100vh", background: "#050505" }}>
@@ -61,9 +61,10 @@ export default function ThreatVectorPage() {
             Interactive database of monitored digital and societal threats
           </p>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", maxWidth: "680px", lineHeight: "1.8" }}>
-            Classified central node directory of threats. Select a hardware sector below. 
-            Sector Alpha & Beta require holding <span style={{ color: "var(--accent)" }}>$THREAT</span> tokens to scan intelligence reports. 
+            Classified central node directory of threats. Select a sector below. 
+            Sector Alpha (Kinetic) and Sector Beta (Anomalies) are open to all operators.
             Sector Delta houses active algorithmic diagnostic sweeps, which verify your cryptographic footprint to map potential digital vulnerabilities.
+            Sector Gamma contains entertainment-classified simulations. Hold <span style={{ color: "var(--accent)" }}>$THREAT</span> tokens for expanded clearance tiers.
           </p>
         </div>
       </div>
@@ -195,8 +196,8 @@ export default function ThreatVectorPage() {
                         }}>
                           {activeCategory === "algorithmic" && "Algorithmic Sweep"}
                           {activeCategory === "satirical" && "Free"}
-                          {activeCategory === "realistic" && "$THREAT Gated"}
-                          {activeCategory === "fictional" && "$THREAT Gated"}
+                          {activeCategory === "realistic" && "Open Access"}
+                          {activeCategory === "fictional" && "Open Access"}
                         </span>
                         <div className={`tag ${threat.level > 90 ? "tag-red" : threat.level > 70 ? "tag-yellow" : "tag-green"}`} style={{ fontSize: "9px" }}>
                           {threat.status}
