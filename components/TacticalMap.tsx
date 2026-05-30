@@ -87,13 +87,13 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
         el.className = "tactical-marker";
         
         const typeColor = 
+          node.category === "fictional" ? "#a855f7" : 
+          node.category === "satirical" ? "#f0c929" : 
+          node.category === "algorithmic" ? "#00ffcc" :
+          node.category === "realistic" ? "#ff4d4d" :
           node.type === "ANOMALY" ? "#a855f7" : 
           node.type === "DEGENERACY" ? "#f0c929" : 
           node.type === "ALGORITHMIC" ? "#00ffcc" :
-          node.type === "GEOLOGICAL" ? "#ff4d4d" : 
-          node.type === "BIOLOGICAL" ? "#ff4d4d" : 
-          node.type === "METEOROLOGICAL" ? "#ff4d4d" : 
-          node.type === "KINETIC" ? "#ff4d4d" : 
           "#ff4d4d";
 
         el.innerHTML = `
@@ -132,7 +132,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
         const popup = new mapboxgl.Popup({
           offset: 15,
           closeButton: false,
-          className: "tactical-popup"
+          className: "tactical-popup tactical-popup-" + (node.category || "realistic")
         }).setHTML(popupHtml);
 
         // Add marker to map
@@ -295,15 +295,48 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
         }
         .mapboxgl-popup-content {
           background: rgba(5, 5, 5, 0.95) !important;
-          border: 1px solid var(--border-red) !important;
+          border: 1px solid #ff4d4d !important;
           border-radius: 2px !important;
           padding: 10px 14px !important;
           color: var(--text) !important;
           box-shadow: 0 4px 20px rgba(0,0,0,0.8) !important;
         }
         .mapboxgl-popup-tip {
-          border-top-color: var(--border-red) !important;
-          border-bottom-color: var(--border-red) !important;
+          border-top-color: #ff4d4d !important;
+          border-bottom-color: #ff4d4d !important;
+        }
+
+        /* Category specific popup borders and tips */
+        .tactical-popup-realistic .mapboxgl-popup-content {
+          border-color: #ff4d4d !important;
+        }
+        .tactical-popup-realistic .mapboxgl-popup-tip {
+          border-top-color: #ff4d4d !important;
+          border-bottom-color: #ff4d4d !important;
+        }
+
+        .tactical-popup-fictional .mapboxgl-popup-content {
+          border-color: #a855f7 !important;
+        }
+        .tactical-popup-fictional .mapboxgl-popup-tip {
+          border-top-color: #a855f7 !important;
+          border-bottom-color: #a855f7 !important;
+        }
+
+        .tactical-popup-satirical .mapboxgl-popup-content {
+          border-color: #f0c929 !important;
+        }
+        .tactical-popup-satirical .mapboxgl-popup-tip {
+          border-top-color: #f0c929 !important;
+          border-bottom-color: #f0c929 !important;
+        }
+
+        .tactical-popup-algorithmic .mapboxgl-popup-content {
+          border-color: #00ffcc !important;
+        }
+        .tactical-popup-algorithmic .mapboxgl-popup-tip {
+          border-top-color: #00ffcc !important;
+          border-bottom-color: #00ffcc !important;
         }
       `}</style>
     </div>

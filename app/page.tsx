@@ -645,47 +645,82 @@ export default function HomePage() {
             </div>
 
             {/* Tactical Info Pane */}
-            {selectedNode ? (
-              <div className="panel" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", background: "rgba(10,10,10,0.6)", borderColor: "rgba(255,0,51,0.2)" }}>
-                <div>
-                  <div className="tag tag-red" style={{ marginBottom: "16px", fontSize: "10px", fontFamily: "var(--mono)" }}>
-                    [ RADAR DIAGNOSTIC DOSSIER ]
-                  </div>
-                  <h3 className="glow-text" style={{ fontSize: "20px", marginBottom: "8px", textTransform: "uppercase" }}>
-                    {selectedNode.name}
-                  </h3>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "20px", textTransform: "uppercase" }}>
-                    REGION: <span style={{ color: "var(--accent)" }}>{selectedNode.region}</span><br />
-                    LAT/LNG: <span style={{ color: "#00ffcc" }}>{selectedNode.lat.toFixed(4)}, {selectedNode.lng.toFixed(4)}</span>
-                  </div>
-                  
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "16px" }}>
-                    <strong>Description:</strong> {selectedNode.desc}
-                  </p>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "16px" }}>
-                    <strong style={{ color: "var(--accent)" }}>Criticality:</strong> {selectedNode.severity}% Severity Rating
-                  </p>
-                  <p style={{ fontSize: "13.5px", color: "#00ffcc", lineHeight: "1.7", marginBottom: "16px" }}>
-                    <strong>Defense Protocol:</strong> {selectedNode.solution}
-                  </p>
-
-                  <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px", marginTop: "14px" }}>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.1em", marginBottom: "6px" }}>
-                      [ RED QUEEN CRITICAL FEED ]
+            {selectedNode ? (() => {
+              const nodeColor = 
+                selectedNode.category === "realistic" ? "#ff4d4d" :
+                selectedNode.category === "fictional" ? "#a855f7" :
+                selectedNode.category === "satirical" ? "#f0c929" :
+                selectedNode.category === "algorithmic" ? "#00ffcc" :
+                "#ff4d4d";
+              return (
+                <div className="panel" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", background: "rgba(10,10,10,0.6)", borderColor: nodeColor + "30" }}>
+                  <div>
+                    <div 
+                      className="tag" 
+                      style={{ 
+                        marginBottom: "16px", 
+                        fontSize: "10px", 
+                        fontFamily: "var(--mono)",
+                        color: nodeColor,
+                        borderColor: nodeColor + "40",
+                        background: nodeColor + "10",
+                        borderWidth: "1px",
+                        borderStyle: "solid",
+                        display: "inline-block",
+                        padding: "2px 6px"
+                      }}
+                    >
+                      [ RADAR DIAGNOSTIC DOSSIER ]
                     </div>
-                    <p style={{ fontSize: "12px", color: "var(--text)", fontStyle: "italic", lineHeight: "1.6", margin: 0 }}>
-                      {selectedNode.analysis}
+                    <h3 className="glow-text" style={{ fontSize: "20px", marginBottom: "8px", textTransform: "uppercase", textShadow: `0 0 10px ${nodeColor}40` }}>
+                      {selectedNode.name}
+                    </h3>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "20px", textTransform: "uppercase" }}>
+                      REGION: <span style={{ color: nodeColor }}>{selectedNode.region}</span><br />
+                      LAT/LNG: <span style={{ color: "#00ffcc" }}>{selectedNode.lat.toFixed(4)}, {selectedNode.lng.toFixed(4)}</span>
+                    </div>
+                    
+                    <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "16px" }}>
+                      <strong>Description:</strong> {selectedNode.desc}
                     </p>
+                    <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "16px" }}>
+                      <strong style={{ color: nodeColor }}>Criticality:</strong> {selectedNode.severity}% Severity Rating
+                    </p>
+                    <p style={{ fontSize: "13.5px", color: "#00ffcc", lineHeight: "1.7", marginBottom: "16px" }}>
+                      <strong>Defense Protocol:</strong> {selectedNode.solution}
+                    </p>
+
+                    <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px", marginTop: "14px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: nodeColor, letterSpacing: "0.1em", marginBottom: "6px" }}>
+                        [ RED QUEEN CRITICAL FEED ]
+                      </div>
+                      <p style={{ fontSize: "12px", color: "var(--text)", fontStyle: "italic", lineHeight: "1.6", margin: 0 }}>
+                        {selectedNode.analysis}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--border)" }}>
+                    <Link 
+                      href="/terminal" 
+                      className="btn" 
+                      style={{ 
+                        width: "100%", 
+                        justifyContent: "center", 
+                        fontSize: "11px", 
+                        borderColor: nodeColor, 
+                        color: nodeColor, 
+                        background: nodeColor + "0A",
+                        borderStyle: "solid",
+                        borderWidth: "1px"
+                      }}
+                    >
+                      COMMUNICATE WITH RED QUEEN OVER UPLINK ↗
+                    </Link>
                   </div>
                 </div>
-
-                <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--border)" }}>
-                  <Link href="/terminal" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "11px" }}>
-                    COMMUNICATE WITH RED QUEEN OVER UPLINK ↗
-                  </Link>
-                </div>
-              </div>
-            ) : (
+              );
+            })() : (
               <div className="panel" style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "12px" }}>
                 [ CHOOSE RADAR NODE TO SCAN ]
               </div>

@@ -343,7 +343,7 @@ export default function OperativeProfilePage() {
                   border: "none",
                   color: "var(--text-dim)",
                   textDecoration: "underline",
-                  fontSize: "11px",
+                  fontSize: "14px",
                   cursor: "pointer",
                   fontFamily: "var(--mono)",
                 }}
@@ -369,7 +369,7 @@ export default function OperativeProfilePage() {
                 boxSizing: "border-box"
               }}
             >
-              LOG IN WITH EMAIL PASSPORT
+              [ LOG IN TO SECURITY SYSTEM ]
             </Link>
           </div>
         </div>
@@ -386,7 +386,7 @@ export default function OperativeProfilePage() {
           <h1 className="glow-text" style={{ fontSize: "clamp(24px, 4vw, 36px)", marginBottom: "8px", letterSpacing: "0.05em" }}>
             OPERATIVE <span style={{ color: "var(--accent)" }}>PROFILE</span>
           </h1>
-          <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "20px" }}>
+          <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", marginBottom: "20px" }}>
             Your AI-generated survival identity
           </p>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "32px", flexWrap: "wrap" }}>
@@ -436,33 +436,33 @@ export default function OperativeProfilePage() {
                   </h1>
                   <button
                     onClick={() => setEditingName(true)}
-                    style={{ background: "none", border: "1px solid var(--border)", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "10px", padding: "3px 10px", cursor: "pointer", borderRadius: "2px", letterSpacing: "0.1em" }}
+                    style={{ background: "none", border: "1px solid var(--border)", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "14px", padding: "4px 12px", cursor: "pointer", borderRadius: "2px", letterSpacing: "0.1em" }}
                   >✎ RENAME</button>
                 </div>
               )}
 
               {/* Hashed Passport display */}
-              <div style={{ background: "#0c0c0c", border: "1px solid #151515", padding: "10px 14px", borderRadius: "2px", marginBottom: "16px", maxWidth: "580px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "4px" }}>
+              <div style={{ background: "#0c0c0c", border: "1px solid #151515", padding: "12px 16px", borderRadius: "2px", marginBottom: "16px", maxWidth: "580px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "4px" }}>
                   HASHED PASSPORT (SALTED SHA-256)
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", wordBreak: "break-all", textShadow: "0 0 2px rgba(255, 0, 51, 0.4)" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "15.5px", color: "var(--accent)", wordBreak: "break-all", textShadow: "0 0 2px rgba(255, 0, 51, 0.4)" }}>
                   {hashedPassport || "COMPUTING ANONYMOUS PASSPORT..."}
                 </div>
               </div>
 
               <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "15.5px" }}>
                   <span style={{ color: "var(--text-dim)" }}>BIO-SCORE: </span>
                   <span style={{ color: scoreColor, fontWeight: 700 }}>
                     {scoreNum !== null ? `${scoreNum}%` : "PENDING"}
                   </span>
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "15.5px" }}>
                   <span style={{ color: "var(--text-dim)" }}>MONITORED VECTORS: </span>
                   <span style={{ color: "var(--accent)", fontWeight: 700 }}>{chosenScenarios.length}</span>
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "15.5px" }}>
                   <span style={{ color: "var(--text-dim)" }}>STATUS: </span>
                   <span style={{ color: "#00ffcc", fontWeight: 700 }}>ANONYMIZED OPERATIVE</span>
                 </div>
@@ -480,7 +480,7 @@ export default function OperativeProfilePage() {
                 borderRadius: "2px",
                 maxWidth: "580px"
               }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
                   <span>$THREAT BOOST:</span>
                   <span style={{ 
                     color: threatBalance && threatBalance > 0 ? "#00ffcc" : "var(--text-muted)", 
@@ -493,7 +493,7 @@ export default function OperativeProfilePage() {
                     {threatBalance && threatBalance > 0 ? "ACTIVE (2.0x)" : "INACTIVE (1.0x)"}
                   </span>
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
                   <span>CLEARANCE BOOST:</span>
                   <span style={{ 
                     color: "var(--accent)", 
@@ -510,7 +510,7 @@ export default function OperativeProfilePage() {
                      "ACTIVE (1.0x)"}
                   </span>
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text)", display: "flex", alignItems: "center", gap: "6px" }}>
                   <span>TOTAL MULTIPLIER:</span>
                   <span style={{ 
                     color: "#00ffcc", 
@@ -531,7 +531,7 @@ export default function OperativeProfilePage() {
             {/* Score display with live glowing bar */}
             {scoreNum !== null && (
               <div style={{ textAlign: "right", marginLeft: "auto", minWidth: "160px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "4px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "4px" }}>
                   SURVIVAL READINESS (BIO-SCORE)
                 </div>
                 <div style={{ fontFamily: "var(--mono)", fontSize: "56px", fontWeight: 900, color: scoreColor, lineHeight: 1, textShadow: `0 0 6px ${scoreColor}80` }}>
@@ -550,14 +550,14 @@ export default function OperativeProfilePage() {
               className="btn btn-primary"
               onClick={saveProfile}
               disabled={saving}
-              style={{ fontSize: "12px" }}
+              style={{ fontSize: "15px" }}
             >
               {saving ? "SAVING..." : saved ? "✓ PROFILE SECURED" : "SAVE PROFILE"}
             </button>
-            <Link href="/terminal" className="btn btn-ghost" style={{ fontSize: "12px" }}>
+            <Link href="/terminal" className="btn btn-ghost" style={{ fontSize: "15px" }}>
               ▶ OPEN TERMINAL
             </Link>
-            <Link href="/threat-vector" className="btn btn-ghost" style={{ fontSize: "12px" }}>
+            <Link href="/threat-vector" className="btn btn-ghost" style={{ fontSize: "15px" }}>
               BROWSE SECTOR MATRIX
             </Link>
           </div>
@@ -572,19 +572,19 @@ export default function OperativeProfilePage() {
               borderRadius: "2px",
               maxWidth: "580px"
             }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "8px", fontWeight: "bold" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "8px", fontWeight: "bold" }}>
                 // CRYPTOGRAPHIC KEY REGISTRY (WEB3 LINKAGE)
               </div>
-              <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 16px 0" }}>
+              <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 16px 0" }}>
                 Establish a cryptographic link between your email session and your Solana wallet. By binding your public key, the Red Queen can query your on-chain $THREAT token holdings and activate your 2.0x XP multiplier.
               </p>
 
               {profile?.linked_wallet_address ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "#00ffcc" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "15.5px", color: "#00ffcc" }}>
                     Status: LINKED TO WALLET ADDRESS
                   </div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)", wordBreak: "break-all", background: "rgba(0,0,0,0.4)", padding: "8px 12px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text)", wordBreak: "break-all", background: "rgba(0,0,0,0.4)", padding: "8px 12px", border: "1px solid rgba(255,255,255,0.05)" }}>
                     {profile.linked_wallet_address}
                   </div>
                   
@@ -608,14 +608,14 @@ export default function OperativeProfilePage() {
                 <div>
                   {solanaWalletAddress ? (
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "10px" }}>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text)" }}>
                         Connected Solana Wallet: <span style={{ color: "var(--accent)" }}>{solanaWalletAddress.slice(0, 6)}...{solanaWalletAddress.slice(-6)}</span>
                       </div>
                       <button
                         onClick={linkSolanaWallet}
                         disabled={saving}
                         className="btn btn-primary"
-                        style={{ fontSize: "11px", padding: "6px 16px", boxShadow: "0 0 10px rgba(255,0,51,0.1)" }}
+                        style={{ fontSize: "14px", padding: "6px 16px", boxShadow: "0 0 10px rgba(255,0,51,0.1)" }}
                       >
                         {saving ? "LINKING..." : "LINK CONNECTED WALLET NOW"}
                       </button>
@@ -627,12 +627,12 @@ export default function OperativeProfilePage() {
                         border: "1px solid var(--accent)",
                         color: "var(--accent)",
                         fontFamily: "var(--mono)",
-                        fontSize: "11px",
+                        fontSize: "14px",
                         padding: "6px 16px",
                         height: "auto",
                         lineHeight: "1.5",
                       }} />
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text-muted)" }}>
                         Connect your wallet to enable link sequence.
                       </span>
                     </div>
@@ -654,7 +654,7 @@ export default function OperativeProfilePage() {
             boxShadow: "0 0 20px rgba(255, 0, 51, 0.02)"
           }}>
             <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "16px", marginBottom: "24px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", marginBottom: "4px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", letterSpacing: "0.2em", marginBottom: "4px" }}>
                 [ SYSTEM DIAGNOSTIC XP REPORT ]
               </div>
               <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase" }}>
@@ -662,7 +662,7 @@ export default function OperativeProfilePage() {
               </h3>
             </div>
 
-            <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
+            <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
               <strong>What is this?</strong> Your Level and Experience Points (XP) represent your permanent training record on the platform. You earn XP by checking in, talking to the terminal, and performing audits. This score <strong>never decreases or decays</strong>. Raising your XP unlocks higher clearance tiers.
             </p>
 
@@ -671,10 +671,10 @@ export default function OperativeProfilePage() {
               {/* Level & Unlock Progress Checklist */}
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)", fontWeight: "bold" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "15px", color: "var(--text)", fontWeight: "bold" }}>
                     OPERATIVE PROGRESS: LEVEL {stats.level}
                   </span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "15px", color: "var(--accent)", fontWeight: "bold" }}>
                     {stats.xp % 100}/100 XP
                   </span>
                 </div>
@@ -682,10 +682,10 @@ export default function OperativeProfilePage() {
                   <div className="threat-bar-fill" style={{ width: `${stats.xp % 100}%`, background: "var(--accent)" }} />
                 </div>
 
-                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "14px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "14px" }}>
                   [ CLEARANCE TIER LOCKS ]
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "14.5px" }}>
                   {[
                     { l: 1, label: "CIVILIAN", req: "0+ XP", desc: "Basic terminal checks", unlocked: stats.level >= 1 },
                     { l: 2, label: "OBSERVER", req: "100+ XP", desc: "Live incident feeds enabled", unlocked: stats.level >= 2 },
@@ -701,9 +701,9 @@ export default function OperativeProfilePage() {
                         <span style={{ fontWeight: cl.unlocked ? "bold" : "normal" }}>
                           Lvl {cl.l}: {cl.label}
                         </span>
-                        <span style={{ fontSize: "9.5px", color: "var(--text-dim)" }}>- {cl.desc}</span>
+                        <span style={{ fontSize: "12.5px", color: "var(--text-dim)" }}>- {cl.desc}</span>
                       </div>
-                      <span style={{ fontSize: "10px", color: cl.unlocked ? "#00ffcc" : "var(--text-muted)" }}>{cl.req}</span>
+                      <span style={{ fontSize: "13.5px", color: cl.unlocked ? "#00ffcc" : "var(--text-muted)" }}>{cl.req}</span>
                     </div>
                   ))}
                 </div>
@@ -711,14 +711,14 @@ export default function OperativeProfilePage() {
 
               {/* Multiplier Boosters Summary */}
               <div style={{ background: "rgba(255, 255, 255, 0.01)", border: "1px solid rgba(255, 255, 255, 0.03)", padding: "20px", borderRadius: "2px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "12px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "12px" }}>
                   [ ACTIVE REWARD BOOSTERS ]
                 </div>
-                <p style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
+                <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
                   Boosters multiply the amount of XP you gain for every interaction. You can stack boosters by holding the token and unlocking higher clearance.
                 </p>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "14.5px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span style={{ color: "var(--text-dim)" }}>$THREAT TOKEN MULTIPLIER:</span>
                     <span style={{ color: threatBalance && threatBalance > 0 ? "#00ffcc" : "var(--text-muted)", fontWeight: "bold" }}>
@@ -752,16 +752,16 @@ export default function OperativeProfilePage() {
 
             {/* XP Audit History Logs */}
             <div style={{ borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "24px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "16px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "16px" }}>
                 [ SYSTEM DIAGNOSTICS & XP AUDIT HISTORY ]
               </div>
               {loadingHistory ? (
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", padding: "10px 0" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--text-dim)", padding: "10px 0" }}>
                   DECRYPTING TRANSACTIONAL AUDIT PATHS...
                 </div>
               ) : history.filter(m => m.role === "assistant").length === 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase" }}>
                     [ Showing Simulated Training Operations — Connect & Chat to Log Real Data ]
                   </div>
                   {[
@@ -769,17 +769,17 @@ export default function OperativeProfilePage() {
                     { op: "OP-042", action: "Footprint Entropy Scan", date: "2026-05-29", reward: "+10 XP", stat: "Surveillance Resistance +2", type: "SUCCESS" },
                     { op: "OP-041", action: "Algorithmic Sandbox Verification", date: "2026-05-28", reward: "+8 XP", stat: "Adaptability +1", type: "SUCCESS" }
                   ].map((log, idx) => (
-                    <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#090909", border: "1px solid #141414", padding: "10px 16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
+                    <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#090909", border: "1px solid #141414", padding: "10px 16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "13.5px" }}>
                       <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
                         <span style={{ color: "#00ffcc", fontWeight: "bold" }}>
                           [{log.op}]
                         </span>
                         <span style={{ color: "var(--text)" }}>{log.action}</span>
-                        <span style={{ color: "var(--text-dim)", fontSize: "9px" }}>({log.date})</span>
+                        <span style={{ color: "var(--text-dim)", fontSize: "11px" }}>({log.date})</span>
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <span style={{ color: "#00ffcc", marginRight: "16px", fontWeight: "bold" }}>{log.reward}</span>
-                        <span style={{ color: "var(--text-dim)", fontSize: "10px" }}>[{log.stat}]</span>
+                        <span style={{ color: "var(--text-dim)", fontSize: "12px" }}>[{log.stat}]</span>
                       </div>
                     </div>
                   ))}
@@ -818,7 +818,7 @@ export default function OperativeProfilePage() {
                           padding: "10px 16px", 
                           borderRadius: "2px", 
                           fontFamily: "var(--mono)", 
-                          fontSize: "11.5px",
+                          fontSize: "13px",
                           flexWrap: "wrap",
                           gap: "8px"
                         }}>
@@ -829,11 +829,11 @@ export default function OperativeProfilePage() {
                             <span style={{ color: "var(--text)", textOverflow: "ellipsis", maxWidth: "250px", overflow: "hidden", whiteSpace: "nowrap" }}>
                               {msg.content.replace(/\[BIO-SCORE:.*?\]/gi, "").trim().slice(0, 45)}...
                             </span>
-                            <span style={{ color: "var(--text-dim)", fontSize: "9px" }}>({dateStr})</span>
+                             <span style={{ color: "var(--text-dim)", fontSize: "12px" }}>({dateStr})</span>
                           </div>
                           <div style={{ textAlign: "right", display: "flex", gap: "16px", alignItems: "center" }}>
                             <span style={{ color: "#00ffcc", fontWeight: "bold" }}>+{xpVal} XP</span>
-                            <span style={{ color: "var(--text-dim)", fontSize: "10px" }}>[{statGains}]</span>
+                             <span style={{ color: "var(--text-dim)", fontSize: "12px" }}>[{statGains}]</span>
                           </div>
                         </div>
                       );
@@ -930,7 +930,7 @@ export default function OperativeProfilePage() {
                 boxShadow: "0 0 20px rgba(0, 255, 204, 0.01)"
               }}>
                 <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "16px", marginBottom: "24px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.2em", marginBottom: "4px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#00ffcc", letterSpacing: "0.2em", marginBottom: "4px" }}>
                     [ OPERATIVE READINESS METRICS ]
                   </div>
                   <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase" }}>
@@ -938,8 +938,8 @@ export default function OperativeProfilePage() {
                   </h3>
                 </div>
 
-                <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
-                  <strong>What is this?</strong> Your BIO-SCORE is a dynamic rating between 0% and 100% that measures your current survival preparedness. It is calculated by averaging your 7 individual sub-stats. <strong>Warning: If you do not interact with the terminal for 24 hours, this score will decay by 5% per day.</strong> Check in daily to stop decay and restore your stats.
+                <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
+              <strong>What is this?</strong> Your BIO-SCORE is a dynamic rating between 0% and 100% that measures your current survival preparedness. It is calculated by averaging your 7 individual sub-stats. <strong>Warning: If you do not interact with the terminal for 24 hours, this score will decay by 5% per day.</strong> Check in daily to stop decay and restore your stats.
                 </p>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "32px", marginBottom: "32px" }} className="responsive-grid-2-large">
@@ -947,7 +947,7 @@ export default function OperativeProfilePage() {
                   {/* Left Column: Radar geometry & Psy Profile */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                     <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px", alignSelf: "flex-start" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px", alignSelf: "flex-start" }}>
                         [ RADAR DIAGNOSTICS GEOMETRY ]
                       </div>
                       
@@ -1033,17 +1033,17 @@ export default function OperativeProfilePage() {
                     {/* Psychological Profile Card */}
                     <div style={{ background: "rgba(0, 255, 204, 0.02)", borderLeft: "3px solid #00ffcc", padding: "20px", borderRadius: "0 2px 2px 0" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em" }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#00ffcc", letterSpacing: "0.15em" }}>
                           [ COGNITIVE PSYCHE DIAGNOSTIC ]
                         </span>
-                        <span className="tag tag-green" style={{ fontSize: "8px", padding: "2px 6px", background: "rgba(0, 255, 204, 0.1)", color: "#00ffcc", borderColor: "rgba(0, 255, 204, 0.2)" }}>
+                        <span className="tag tag-green" style={{ fontSize: "10px", padding: "2px 6px", background: "rgba(0, 255, 204, 0.1)", color: "#00ffcc", borderColor: "rgba(0, 255, 204, 0.2)" }}>
                           {psyProfile.tag}
                         </span>
                       </div>
                       <h4 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--text)", margin: "0 0 6px 0" }}>
                         {psyProfile.title}
                       </h4>
-                      <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0, fontStyle: "italic" }}>
+                      <p style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0, fontStyle: "italic" }}>
                         &ldquo;{psyProfile.desc}&rdquo;
                       </p>
                     </div>
@@ -1054,13 +1054,13 @@ export default function OperativeProfilePage() {
                     {subStatsList.map((st, idx) => (
                       <div key={idx} style={{ background: "#080808", border: "1px solid #141414", padding: "12px 16px", borderRadius: "2px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)", fontWeight: "bold" }}>{st.label}</span>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", fontWeight: "bold" }}>{st.val}/100</span>
+                           <span style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text)", fontWeight: "bold" }}>{st.label}</span>
+                           <span style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "#00ffcc", fontWeight: "bold" }}>{st.val}/100</span>
                         </div>
                         <div className="threat-bar-wrap" style={{ height: "4px", background: "#111", marginBottom: "4px" }}>
                           <div className="threat-bar-fill" style={{ width: `${st.val}%`, background: "#00ffcc" }} />
                         </div>
-                        <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>
+                         <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)" }}>
                           {st.desc}
                         </div>
                       </div>
@@ -1079,7 +1079,7 @@ export default function OperativeProfilePage() {
             boxShadow: "0 0 20px rgba(240, 201, 41, 0.01)"
           }}>
             <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "16px", marginBottom: "24px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#f0c929", letterSpacing: "0.2em", marginBottom: "4px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#f0c929", letterSpacing: "0.2em", marginBottom: "4px" }}>
                 [ COMMUNITY OPERATIONS & MISSIONS ]
               </div>
               <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase" }}>
@@ -1087,7 +1087,7 @@ export default function OperativeProfilePage() {
               </h3>
             </div>
 
-            <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
+            <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
               <strong>What is this?</strong> Participate in targeted community challenges and network drills. Completing active quests earns massive XP rewards, upgrades your clearance tier, and grants permanent sub-stat boosts.
             </p>
 
@@ -1113,13 +1113,13 @@ export default function OperativeProfilePage() {
                     userSelect: "none"
                   }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-                      <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240, 201, 41, 0.3)", background: "rgba(240, 201, 41, 0.05)", fontSize: "8.5px" }}>
+                      <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240, 201, 41, 0.3)", background: "rgba(240, 201, 41, 0.05)", fontSize: "10.5px" }}>
                         QUEST 0{idx + 1}
                       </span>
                     </div>
-                    <h4 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#ffffff", margin: "0 0 6px 0" }}>{q.title}</h4>
-                    <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 16px 0" }}>{q.desc}</p>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc" }}>
+                    <h4 style={{ fontFamily: "var(--mono)", fontSize: "15px", color: "#ffffff", margin: "0 0 6px 0" }}>{q.title}</h4>
+                    <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 16px 0" }}>{q.desc}</p>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#00ffcc" }}>
                       REWARD: {q.reward}
                     </div>
                   </div>
@@ -1137,7 +1137,7 @@ export default function OperativeProfilePage() {
                   }}>
                     <span style={{
                       fontFamily: "var(--title-font)",
-                      fontSize: "13px",
+                      fontSize: "15.5px",
                       fontWeight: "bold",
                       color: "#f0c929",
                       letterSpacing: "0.18em",
@@ -1147,7 +1147,7 @@ export default function OperativeProfilePage() {
                     </span>
                     <span style={{
                       fontFamily: "var(--mono)",
-                      fontSize: "9px",
+                      fontSize: "11px",
                       color: "rgba(240, 201, 41, 0.6)",
                       letterSpacing: "0.1em"
                     }}>
@@ -1169,7 +1169,7 @@ export default function OperativeProfilePage() {
           <span className="section-tag">CHOOSE TARGET BREACH VECTORS</span>
           <span className="section-line" />
         </div>
-        <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", textAlign: "center", marginBottom: "32px", lineHeight: "1.7" }}>
+        <p style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text-dim)", textAlign: "center", marginBottom: "32px", lineHeight: "1.7" }}>
           Select the active threat fields you seek to monitor. The RED QUEEN will customize briefing streams to prioritize these alerts.
           <br /><span style={{ color: "var(--accent)" }}>{chosenScenarios.length} vectors enabled</span>
         </p>
@@ -1181,7 +1181,7 @@ export default function OperativeProfilePage() {
               key={cat}
               onClick={() => setActiveFilter(cat)}
               style={{
-                fontFamily: "var(--mono)", fontSize: "11px", letterSpacing: "0.15em",
+                fontFamily: "var(--mono)", fontSize: "12.5px", letterSpacing: "0.15em",
                 padding: "12px 20px", background: "none", border: "none",
                 borderBottom: activeFilter === cat
                   ? `2px solid ${cat === "ALL" ? "var(--accent)" : CAT_COLORS[cat]}`
@@ -1228,10 +1228,10 @@ export default function OperativeProfilePage() {
                   {selected && <span style={{ color: "#000", fontSize: "11px", fontWeight: 900 }}>✓</span>}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)", fontWeight: selected ? 700 : 400, lineHeight: 1.4 }}>
+                   <div style={{ fontFamily: "var(--mono)", fontSize: "15px", color: "var(--text)", fontWeight: selected ? 700 : 400, lineHeight: 1.4 }}>
                     {scenario.label}
                   </div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: color, letterSpacing: "0.15em", marginTop: "4px" }}>
+                   <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: color, letterSpacing: "0.15em", marginTop: "4px" }}>
                     {scenario.cat}
                   </div>
                 </div>
@@ -1251,14 +1251,14 @@ export default function OperativeProfilePage() {
             justifyContent: "center",
             boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
           }}>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--text-dim)" }}>
               <span style={{ color: "var(--accent)" }}>{chosenScenarios.length}</span> vectors monitored
             </span>
             <button
               className="btn btn-primary"
               onClick={saveProfile}
               disabled={saving}
-              style={{ fontSize: "12px", padding: "10px 28px" }}
+              style={{ fontSize: "13.5px", padding: "10px 28px" }}
             >
               {saving ? "SAVING..." : saved ? "✓ SECURED" : "SAVE SYSTEM PROFILE"}
             </button>

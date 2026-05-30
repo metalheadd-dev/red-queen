@@ -310,28 +310,34 @@ export default function SurvivalKitPage() {
           {activeTab === "threat-categories" && (
             <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
-                To prioritize security responses, RED QUEEN catalogs systemic vulnerabilities across three distinct sectors:
+                To prioritize security responses, RED QUEEN catalogs systemic vulnerabilities across four distinct sectors:
               </p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 {[
                   {
                     sector: "SECTOR ALPHA (KINETIC / REALISTIC)",
-                    type: "LIVE DATA",
-                    color: "var(--accent)",
+                    type: "LIVE TELEMETRY",
+                    color: "#ff4d4d",
                     desc: "Dossiers charting real-world environmental hazards. These threats are fed directly from global telemetry arrays: USGS earthquake sensors, NASA EONET thermal sensors, and disease.sh infection databases. Focuses on viral outbreaks, extreme weather vectors, seismic shifts, and energy grids."
                   },
                   {
                     sector: "SECTOR BETA (SIMULATED / FICTIONAL)",
-                    type: "TRAINING ONLY",
-                    color: "#f0c929",
+                    type: "TRAINING BRIEFINGS",
+                    color: "#a855f7",
                     desc: "Fictional training scenarios designed to test cognitive responses under severe grid collapse parameters (e.g. robotic sweeps, automated drone rogue outbreaks, localized containment breaches). Builds mental agility without actual danger."
                   },
                   {
                     sector: "SECTOR GAMMA (SATIRICAL / COGNITIVE STRAIN)",
                     type: "NOISE TEST",
-                    color: "#a855f7",
+                    color: "#f0c929",
                     desc: "Satirical, media-focused threats designed to evaluate an operative's capability to separate critical information from background noise (e.g., social feed timeline steering, brainrot spikes, global coffee trade splits)."
+                  },
+                  {
+                    sector: "SECTOR DELTA (ALGORITHMIC / DATA SHIELDS)",
+                    type: "CYBER TELEMETRY",
+                    color: "#00ffcc",
+                    desc: "Systemic cybersecurity hazards, network exploit anomalies, cryptographic pipeline vulnerabilities, and AI model poisoning vectors targeting the core progression nodes."
                   }
                 ].map((sec, idx) => (
                   <div key={idx} style={{ background: "#0c0c0c", border: `1px solid rgba(255,255,255,0.03)`, borderLeft: `4px solid ${sec.color}`, padding: "20px 24px", borderRadius: "2px" }}>

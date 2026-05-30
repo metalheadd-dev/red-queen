@@ -398,8 +398,8 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                     {/* RED QUEEN AI Commentary */}
-                    <div style={{ background: "rgba(255, 0, 51, 0.02)", borderLeft: "3px solid var(--accent)", padding: "20px", borderRadius: "0 2px 2px 0" }}>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                    <div style={{ background: category.color + "05", borderLeft: `3px solid ${category.color}`, padding: "20px", borderRadius: "0 2px 2px 0" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: category.color, letterSpacing: "0.15em", marginBottom: "8px" }}>
                         [ RED QUEEN DIRECTIVE // CLASSIFIED COMMENTARY ]
                       </div>
                       <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.7" }}>
@@ -408,17 +408,17 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     {/* Core Decrypted File content */}
-                    <div style={{ background: "rgba(0, 255, 204, 0.03)", border: "1px solid rgba(0, 255, 204, 0.2)", borderRadius: "2px", padding: "20px 24px" }}>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.2em", marginBottom: "12px" }}>
-                        [CLEARANCE LEVEL 5 GRANTED] — SECURE DOSSIER PAYLOAD
+                    <div style={{ background: category.color + "0A", border: `1px solid ${category.color}33`, borderRadius: "2px", padding: "20px 24px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: category.color, letterSpacing: "0.2em", marginBottom: "12px" }}>
+                        [CLEARANCE LEVEL {isSectorDelta ? "5" : "3"} GRANTED] — SECURE DOSSIER PAYLOAD
                       </div>
                       <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", margin: 0 }}>
                         {threat.classified}
                       </p>
                       
                       {isSectorDelta && diagnosticsReport && (
-                        <div style={{ marginTop: "20px", borderTop: "1px dashed rgba(0, 255, 204, 0.2)", paddingTop: "20px" }}>
-                          <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                        <div style={{ marginTop: "20px", borderTop: `1px dashed ${category.color}40`, paddingTop: "20px" }}>
+                          <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: category.color, letterSpacing: "0.15em", marginBottom: "8px" }}>
                             ▶ DIAGNOSTICS REPORT
                           </div>
                           <pre style={{
@@ -431,7 +431,7 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                             whiteSpace: "pre-wrap",
                             margin: 0,
                             lineHeight: "1.7",
-                            textShadow: "0 0 2px rgba(0, 255, 204, 0.4)"
+                            textShadow: `0 0 2px ${category.color}66`
                           }}>
                             {diagnosticsReport}
                           </pre>
@@ -440,14 +440,14 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     {/* Vector Escalation Timeline */}
-                    <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px", borderRadius: "2px" }}>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px" }}>
+                    <div style={{ background: "#080808", border: `1px solid ${category.color}20`, padding: "24px", borderRadius: "2px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: category.color, letterSpacing: "0.15em", marginBottom: "16px" }}>
                         [ SHIELD ANALYSIS: VECTOR ESCALATION PIPELINE ]
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                         {meta.timelineProgression.map((step, idx) => (
                           <div key={idx} style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold", background: "rgba(0, 255, 204, 0.05)", border: "1px solid rgba(0, 255, 204, 0.2)", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "2px", flexShrink: 0 }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: category.color, fontWeight: "bold", background: category.color + "0F", border: `1px solid ${category.color}40`, width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "2px", flexShrink: 0 }}>
                               0{idx + 1}
                             </span>
                             <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", marginTop: "3px" }}>
@@ -458,14 +458,14 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
                       </div>
                     </div>
                     {/* Action Plan */}
-                    <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px", borderRadius: "2px" }}>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px" }}>
+                    <div style={{ background: "#080808", border: `1px solid ${category.color}20`, padding: "24px", borderRadius: "2px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: category.color, letterSpacing: "0.15em", marginBottom: "16px" }}>
                         [ COUNTER-MEASURE ACTIONS RECON ]
                       </div>
                       <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
                         {meta.recommendedActions.map((action, idx) => (
                           <li key={idx} style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)", display: "flex", gap: "10px", alignItems: "center" }}>
-                            <span style={{ color: "#00ffcc", fontWeight: "bold" }}>✔</span>
+                            <span style={{ color: category.color, fontWeight: "bold" }}>✔</span>
                             <span>{action}</span>
                           </li>
                         ))}

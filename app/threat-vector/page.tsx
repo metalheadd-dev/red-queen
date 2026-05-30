@@ -189,21 +189,9 @@ export default function ThreatVectorPage() {
                           fontWeight: "bold",
                           textTransform: "uppercase",
                           letterSpacing: "0.05em",
-                          background: activeCategory === "algorithmic"
-                            ? "rgba(0, 255, 204, 0.1)"
-                            : activeCategory === "satirical"
-                            ? "rgba(46, 204, 64, 0.1)"
-                            : "rgba(255, 77, 77, 0.1)",
-                          color: activeCategory === "algorithmic"
-                            ? "#00ffcc"
-                            : activeCategory === "satirical"
-                            ? "#2ecc40"
-                            : "#ff4d4d",
-                          border: activeCategory === "algorithmic"
-                            ? "1px solid rgba(0, 255, 204, 0.3)"
-                            : activeCategory === "satirical"
-                            ? "1px solid rgba(46, 204, 64, 0.3)"
-                            : "1px solid rgba(255, 77, 77, 0.3)"
+                          background: currentCat.color + "1A",
+                          color: currentCat.color,
+                          border: `1px solid ${currentCat.color}4D`
                         }}>
                           {activeCategory === "algorithmic" && "Algorithmic Sweep"}
                           {activeCategory === "satirical" && "Free"}
