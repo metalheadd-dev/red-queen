@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useAuth } from "@/components/AuthProvider";
 import SolvivalIcon from "@/components/SolvivalIcon";
 import dynamic from "next/dynamic";
 import { generateApocalypticName } from "@/lib/names";
@@ -87,7 +88,10 @@ function getLocalStatsAndScore(messages: Message[]) {
 export default function TerminalPage() {
   const { publicKey, connected, wallet, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
-  const walletAddress = publicKey ? publicKey.toString() : null;
+  const { user, authIdentifier } = useAuth();
+  
+  const solanaWalletAddress = publicKey ? publicKey.toString() : null;
+  const walletAddress = authIdentifier || solanaWalletAddress;
 
   const handleChangeWallet = async () => {
     try {
@@ -115,10 +119,10 @@ export default function TerminalPage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    if (connected) {
+    if (connected || user) {
       setLimitBlocked(false);
     }
-  }, [connected]);
+  }, [connected, user]);
 
   useEffect(() => {
     if (!shareModalData || !canvasRef.current) return;
@@ -236,7 +240,7 @@ export default function TerminalPage() {
 
   useEffect(() => {
     async function loadProfileAndHistory() {
-      if (!connected || !walletAddress) return;
+      if (!walletAddress) return;
       setLoadingHistory(true);
 
       const generated = generateApocalypticName(walletAddress);
@@ -287,7 +291,7 @@ export default function TerminalPage() {
       setLoadingHistory(false);
     }
     loadProfileAndHistory();
-  }, [connected, walletAddress]);
+  }, [walletAddress]);
 
   async function sendMessage() {
     const text = input.trim();
@@ -319,7 +323,7 @@ Note: Custom computed actions must be triggered from the specific dossier pages 
       } else if (cmd === "/bio") {
         reply = `[BIO-SCORE TELEMETRY RECON]
 
-Subject Passport: ${walletAddress ? walletAddress.slice(0, 4) + "..." + walletAddress.slice(-4) : "UNKNOWN"}
+Subject Passport: ${user ? user.email : (walletAddress ? walletAddress.slice(0, 4) + "..." + walletAddress.slice(-4) : "UNKNOWN")}
 Active Score: ${currentScore ? currentScore + "%" : "PENDING (Speak to Red Queen to evaluate)"}
 Status: ${currentScore && parseInt(currentScore) < 20 ? "CRITICAL OUTLOOK" : currentScore && parseInt(currentScore) < 60 ? "STABLE THREATENED" : "OPTIMAL RESISTANCE"}
 

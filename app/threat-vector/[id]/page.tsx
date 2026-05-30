@@ -2,6 +2,7 @@
 import { useState, useEffect, use } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import { CATEGORIES, Threat } from "@/lib/threats";
 import { getThreatMetadata } from "@/lib/threatMetadata";
@@ -11,6 +12,10 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
   const id = resolvedParams.id;
   const { publicKey, connected } = useWallet();
   const { setVisible } = useWalletModal();
+  const { user, authIdentifier } = useAuth();
+
+  const solanaWalletAddress = publicKey ? publicKey.toString() : null;
+  const activeIdentity = authIdentifier || solanaWalletAddress;
 
   const [threat, setThreat] = useState<Threat | null>(null);
   const [category, setCategory] = useState<any>(null);
@@ -46,13 +51,13 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     async function loadStats() {
-      if (!connected || !publicKey) {
+      if (!activeIdentity) {
         setUserStats(null);
         return;
       }
       setLoadingStats(true);
       try {
-        const res = await fetch(`/api/profile?wallet=${publicKey.toString()}`);
+        const res = await fetch(`/api/profile?wallet=${activeIdentity}`);
         const data = await res.json();
         if (data.profile && data.profile.stats) {
           setUserStats(data.profile.stats);
@@ -68,7 +73,7 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
     }
     loadStats();
     setDecryptError(null);
-  }, [connected, publicKey]);
+  }, [activeIdentity]);
 
   if (!threat || !category) {
     return (
@@ -85,8 +90,8 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
   async function handleDecryptClick() {
     setDecryptError(null);
     
-    if (!connected || !publicKey) {
-      setDecryptError("IDENTITY HANDSHAKE REQUIRED. Please connect your Solana wallet in the navigation bar to verify your operative clearance level and preserve your progression history.");
+    if (!activeIdentity) {
+      setDecryptError("IDENTITY HANDSHAKE REQUIRED. Please connect your Solana wallet or log in with your email credentials to verify your operative clearance level.");
       return;
     }
 
@@ -101,7 +106,7 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
     setLoading(true);
     if (isSectorDelta) {
       try {
-        const res = await fetch(`/api/terminal/analyze-wallet?vector=${threat!.id}&wallet=${publicKey.toString()}`, {
+        const res = await fetch(`/api/terminal/analyze-wallet?vector=${threat!.id}&wallet=${activeIdentity}`, {
           method: "POST"
         });
 

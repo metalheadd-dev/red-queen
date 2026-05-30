@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   if (!supabase) return Response.json({ error: "DB not configured" }, { status: 500 });
 
   const body = await req.json();
-  const { wallet_address, apocalyptic_name, chosen_scenarios } = body;
+  const { wallet_address, apocalyptic_name, chosen_scenarios, email, linked_wallet_address } = body;
   if (!wallet_address) return Response.json({ error: "wallet_address required" }, { status: 400 });
 
   const hashedWallet = getHashedWallet(wallet_address);
@@ -74,6 +74,8 @@ export async function POST(req: Request) {
         apocalyptic_name: apocalyptic_name || null,
         chosen_scenarios: updatedScenarios,
         last_interaction: new Date().toISOString(),
+        ...(email !== undefined && { email: email || null }),
+        ...(linked_wallet_address !== undefined && { linked_wallet_address: linked_wallet_address || null }),
       },
       { onConflict: "wallet_address" }
     )

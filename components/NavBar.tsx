@@ -6,6 +6,7 @@ import SolvivalIcon from "./SolvivalIcon";
 import dynamic from "next/dynamic";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useAuth } from "./AuthProvider";
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
@@ -17,6 +18,7 @@ export default function NavBar() {
   const { connected, wallet, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   const handleChangeWallet = async () => {
     try {
@@ -65,7 +67,7 @@ export default function NavBar() {
                 </div>
               </li>
             ))}
-            {connected && (
+            {(connected || user) && (
               <li className="nav-item-wrap">
                 <Link
                   href="/operative"
@@ -86,6 +88,43 @@ export default function NavBar() {
               <span className="status-dot" />
               RED QUEEN ONLINE
             </div>
+            
+            {user ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text)" }}>
+                <span style={{ color: "var(--text-dim)" }}>[ {user.email} ]</span>
+                <button
+                  onClick={() => logout()}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--accent)",
+                    color: "var(--accent)",
+                    fontFamily: "var(--mono)",
+                    fontSize: "10px",
+                    padding: "3px 8px",
+                    cursor: "pointer",
+                    borderRadius: "2px"
+                  }}
+                >
+                  LOGOUT
+                </button>
+              </div>
+            ) : (
+              <Link 
+                href="/login" 
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: "11.5px",
+                  color: "var(--text-dim)",
+                  border: "1px dashed rgba(255, 77, 77, 0.2)",
+                  padding: "4px 10px",
+                  textDecoration: "none",
+                  borderRadius: "2px"
+                }}
+              >
+                [ LOGIN / SIGN UP ]
+              </Link>
+            )}
+
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <WalletMultiButton style={{
                 background: "transparent",
@@ -193,7 +232,7 @@ export default function NavBar() {
                   </div>
                 </li>
               ))}
-              {connected && (
+              {(connected || user) && (
                 <li style={{ borderBottom: "1px dashed rgba(255, 0, 51, 0.1)", paddingBottom: "12px" }}>
                   <Link 
                     href="/operative" 
@@ -253,6 +292,48 @@ export default function NavBar() {
 
           {/* Footer of Mobile Drawer */}
           <div style={{ marginTop: "40px", display: "flex", flexDirection: "column", gap: "16px" }}>
+            {user ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", border: "1px dashed rgba(255, 77, 77, 0.2)", padding: "12px", background: "rgba(255, 77, 77, 0.02)" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", wordBreak: "break-all" }}>OPERATIVE: {user.email}</span>
+                <button 
+                  onClick={() => {
+                    logout();
+                    setMenuOpen(false);
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--accent)",
+                    color: "var(--accent)",
+                    fontFamily: "var(--mono)",
+                    fontSize: "11px",
+                    padding: "8px 16px",
+                    cursor: "pointer",
+                    borderRadius: "2px",
+                    width: "100%",
+                    textAlign: "center"
+                  }}
+                >
+                  LOGOUT UPLINK
+                </button>
+              </div>
+            ) : (
+              <Link 
+                href="/login" 
+                onClick={() => setMenuOpen(false)}
+                className="btn btn-primary"
+                style={{
+                  width: "100%",
+                  justifyContent: "center",
+                  fontSize: "12.5px",
+                  padding: "12px",
+                  fontWeight: "bold",
+                  textAlign: "center"
+                }}
+              >
+                LOGIN / SIGN UP
+              </Link>
+            )}
+
             <WalletMultiButton style={{
               width: "100%",
               justifyContent: "center",

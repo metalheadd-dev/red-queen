@@ -170,9 +170,15 @@ RE-ACTIVATION RULES & PARANOIA:
 
           // Compute multipliers
           let tokenMultiplier = 1.0;
-          const balance = await getThreatBalance(walletAddress);
-          if (balance > 0) {
-            tokenMultiplier = 2.0;
+          const addressToCheck = walletAddress.startsWith("email-auth:")
+            ? userProfile?.linked_wallet_address
+            : walletAddress;
+
+          if (addressToCheck) {
+            const balance = await getThreatBalance(addressToCheck);
+            if (balance > 0) {
+              tokenMultiplier = 2.0;
+            }
           }
           const level = currentStats.level || 1;
           const clearanceMultiplier = level >= 5 ? 2.0 : 

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useAuth } from "@/components/AuthProvider";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { generateApocalypticName } from "@/lib/names";
@@ -80,6 +81,8 @@ type Profile = {
   chosen_scenarios: string[];
   last_bio_score: number | null;
   last_interaction: string | null;
+  email?: string | null;
+  linked_wallet_address?: string | null;
   stats?: typeof DEFAULT_STATS;
 };
 
@@ -94,7 +97,10 @@ async function generateHashedPassport(pubkey: string): Promise<string> {
 export default function OperativeProfilePage() {
   const { publicKey, connected, wallet: walletObj, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
-  const wallet = publicKey?.toString() ?? null;
+  const { user, authIdentifier } = useAuth();
+
+  const solanaWalletAddress = publicKey?.toString() ?? null;
+  const wallet = authIdentifier || solanaWalletAddress;
 
   const handleChangeWallet = async () => {
     try {
@@ -166,14 +172,21 @@ export default function OperativeProfilePage() {
 
   useEffect(() => {
     async function checkBalance() {
-      if (!wallet) {
+      let addressToCheck = "";
+      if (wallet && wallet.startsWith("email-auth:")) {
+        addressToCheck = profile?.linked_wallet_address || solanaWalletAddress || "";
+      } else {
+        addressToCheck = wallet || "";
+      }
+
+      if (!addressToCheck) {
         setThreatBalance(null);
         return;
       }
       setLoadingBalance(true);
       try {
         const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
-        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(new PublicKey(wallet), {
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(new PublicKey(addressToCheck), {
           mint: THREAT_MINT,
         });
         if (tokenAccounts.value.length === 0) {
@@ -184,20 +197,45 @@ export default function OperativeProfilePage() {
         }
       } catch (err) {
         console.error("Failed to query $THREAT balance:", err);
-        // Fallback
         setThreatBalance(0); 
       }
       setLoadingBalance(false);
     }
     checkBalance();
-  }, [wallet]);
+  }, [wallet, profile?.linked_wallet_address, solanaWalletAddress]);
+
+  async function linkSolanaWallet() {
+    if (!authIdentifier || !solanaWalletAddress) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          wallet_address: authIdentifier,
+          linked_wallet_address: solanaWalletAddress,
+          email: user?.email
+        })
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert("Failed to link wallet: " + data.error);
+      } else {
+        alert("Success: Solana wallet linked to your operative profile!");
+        fetchProfile();
+      }
+    } catch (e: any) {
+      alert("Error linking wallet: " + e.message);
+    }
+    setSaving(false);
+  }
 
   useEffect(() => {
-    if (connected && wallet) {
+    if (wallet) {
       fetchProfile();
       fetchHistory();
     }
-  }, [connected, wallet, fetchProfile, fetchHistory]);
+  }, [wallet, fetchProfile, fetchHistory]);
 
   function toggleScenario(id: string) {
     setChosenScenarios((prev) =>
@@ -273,18 +311,18 @@ export default function OperativeProfilePage() {
     ? ALL_SCENARIOS
     : ALL_SCENARIOS.filter((s) => s.cat === activeFilter);
 
-  if (!connected) {
+  if (!wallet) {
     return (
       <div style={{ padding: "60px 0 0", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#050505" }}>
         <div style={{ textAlign: "center", maxWidth: "480px", padding: "48px 24px", border: "1px solid var(--border)", background: "var(--surface)" }}>
           <div className="tag tag-red" style={{ marginBottom: "24px" }}>IDENTITY VERIFICATION REQUIRED</div>
           <h1 className="glow-text" style={{ fontSize: "36px", marginBottom: "16px", letterSpacing: "0.05em" }}>
-            CONNECT <span style={{ color: "var(--accent)" }}>WALLET</span>
+            CONNECT <span style={{ color: "var(--accent)" }}>IDENTITY</span>
           </h1>
           <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "32px" }}>
-            The RED QUEEN cannot retrieve an anonymous identity dossier. Connect your wallet to decrypt your encrypted network passport and active BIO-SCORE status.
+            The RED QUEEN cannot retrieve an anonymous identity dossier. Connect your Solana wallet or log in with your email credentials to decrypt your profile status.
           </p>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", justifyContent: "center" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", justifyContent: "center" }}>
             <WalletMultiButton style={{
               background: "var(--accent)",
               border: "none",
@@ -313,6 +351,26 @@ export default function OperativeProfilePage() {
                 [CHANGE WALLET]
               </button>
             )}
+            
+            <div style={{ borderTop: "1px dashed var(--border)", width: "100%", margin: "8px 0", paddingTop: "12px" }} />
+            
+            <Link 
+              href="/login" 
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: "12px",
+                border: "1px solid var(--accent)",
+                color: "var(--accent)",
+                padding: "10px 24px",
+                textDecoration: "none",
+                borderRadius: "2px",
+                width: "100%",
+                textAlign: "center",
+                boxSizing: "border-box"
+              }}
+            >
+              LOG IN WITH EMAIL PASSPORT
+            </Link>
           </div>
         </div>
       </div>
@@ -503,6 +561,86 @@ export default function OperativeProfilePage() {
               BROWSE SECTOR MATRIX
             </Link>
           </div>
+
+          {/* Solana Wallet Linkage Panel for Email Users */}
+          {user && (
+            <div style={{
+              marginTop: "32px",
+              padding: "20px 24px",
+              background: "rgba(255, 77, 77, 0.03)",
+              border: "1px dashed rgba(255, 77, 77, 0.2)",
+              borderRadius: "2px",
+              maxWidth: "580px"
+            }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "8px", fontWeight: "bold" }}>
+                // CRYPTOGRAPHIC KEY REGISTRY (WEB3 LINKAGE)
+              </div>
+              <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 16px 0" }}>
+                Establish a cryptographic link between your email session and your Solana wallet. By binding your public key, the Red Queen can query your on-chain $THREAT token holdings and activate your 2.0x XP multiplier.
+              </p>
+
+              {profile?.linked_wallet_address ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "#00ffcc" }}>
+                    Status: LINKED TO WALLET ADDRESS
+                  </div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)", wordBreak: "break-all", background: "rgba(0,0,0,0.4)", padding: "8px 12px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                    {profile.linked_wallet_address}
+                  </div>
+                  
+                  {solanaWalletAddress && solanaWalletAddress !== profile.linked_wallet_address && (
+                    <div style={{ marginTop: "12px" }}>
+                      <p style={{ fontSize: "11.5px", color: "var(--text-muted)", margin: "0 0 8px 0" }}>
+                        Connected wallet ({solanaWalletAddress.slice(0, 4)}...{solanaWalletAddress.slice(-4)}) differs from linked wallet. Do you want to update the link?
+                      </p>
+                      <button 
+                        onClick={linkSolanaWallet}
+                        disabled={saving}
+                        className="btn btn-ghost"
+                        style={{ fontSize: "10.5px", padding: "4px 12px", borderColor: "var(--accent)", color: "var(--accent)" }}
+                      >
+                        {saving ? "LINKING..." : "UPDATE LINKED WALLET"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  {solanaWalletAddress ? (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "10px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)" }}>
+                        Connected Solana Wallet: <span style={{ color: "var(--accent)" }}>{solanaWalletAddress.slice(0, 6)}...{solanaWalletAddress.slice(-6)}</span>
+                      </div>
+                      <button
+                        onClick={linkSolanaWallet}
+                        disabled={saving}
+                        className="btn btn-primary"
+                        style={{ fontSize: "11px", padding: "6px 16px", boxShadow: "0 0 10px rgba(255,0,51,0.1)" }}
+                      >
+                        {saving ? "LINKING..." : "LINK CONNECTED WALLET NOW"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                      <WalletMultiButton style={{
+                        background: "transparent",
+                        border: "1px solid var(--accent)",
+                        color: "var(--accent)",
+                        fontFamily: "var(--mono)",
+                        fontSize: "11px",
+                        padding: "6px 16px",
+                        height: "auto",
+                        lineHeight: "1.5",
+                      }} />
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
+                        Connect your wallet to enable link sequence.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Progression & Sub-Stats panel */}
