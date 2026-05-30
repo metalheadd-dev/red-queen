@@ -7,6 +7,7 @@ interface ThreatNode {
   id: string;
   name: string;
   type: "KINETIC" | "ANOMALY" | "DEGENERACY" | "ALGORITHMIC" | "GEOLOGICAL" | "BIOLOGICAL" | "METEOROLOGICAL";
+  category: "realistic" | "fictional" | "satirical" | "algorithmic";
   severity: number;
   lat: number;
   lng: number;
@@ -160,6 +161,7 @@ export async function GET() {
       id: "usgs-eq-1",
       name: "M 5.8 Seismic Activity",
       type: "GEOLOGICAL",
+      category: "realistic",
       severity: 78,
       lat: 35.6762,
       lng: 139.6503,
@@ -173,6 +175,7 @@ export async function GET() {
       id: "nasa-fire-1",
       name: "Wildfire Active Burn Loop",
       type: "METEOROLOGICAL",
+      category: "realistic",
       severity: 85,
       lat: -33.8688,
       lng: 151.2093,
@@ -204,6 +207,7 @@ export async function GET() {
             id: `usgs-${index}-${e.id}`,
             name: `M ${mag} Earthquake`,
             type: "GEOLOGICAL" as const,
+            category: "realistic" as const,
             severity,
             lat,
             lng,
@@ -234,6 +238,7 @@ export async function GET() {
             id: `nasa-${index}-${e.id}`,
             name: `${cat} Detected`,
             type: type as any,
+            category: "realistic" as const,
             severity: 82,
             lat,
             lng,
@@ -263,6 +268,7 @@ export async function GET() {
             id: `disease-${index}-${c.countryInfo?.iso2 || c.country}`,
             name: `${c.country} Pathogen Spike`,
             type: "BIOLOGICAL" as const,
+            category: "realistic" as const,
             severity,
             lat,
             lng,
@@ -311,6 +317,7 @@ export async function GET() {
         id: `archive-${categoryKey}-${threat.id.toLowerCase()}`,
         name: threat.name,
         type,
+        category: categoryKey,
         severity: threat.level,
         lat: loc.lat,
         lng: loc.lng,

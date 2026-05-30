@@ -4,9 +4,17 @@ import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SolvivalIcon from "@/components/SolvivalIcon";
+import dynamic from "next/dynamic";
+import { useWallet } from "@solana/wallet-adapter-react";
+
+const WalletMultiButton = dynamic(
+  () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
+  { ssr: false }
+);
 
 export default function LoginPage() {
   const { user, loginWithEmail, signUpWithEmail } = useAuth();
+  const { connected } = useWallet();
   const router = useRouter();
 
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,12 +24,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
 
-  // Redirect if already logged in
+  // Redirect if already logged in or wallet is connected
   useEffect(() => {
-    if (user) {
+    if (user || connected) {
       router.push("/operative");
     }
-  }, [user, router]);
+  }, [user, connected, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -307,8 +315,41 @@ export default function LoginPage() {
           </button>
         </div>
 
+        {/* Wallet Connection Alternative */}
+        <div style={{
+          marginTop: "24px",
+          paddingTop: "20px",
+          borderTop: "1px dashed var(--border)",
+          textAlign: "center"
+        }}>
+          <div style={{
+            fontFamily: "var(--mono)",
+            fontSize: "10px",
+            color: "var(--text-muted)",
+            letterSpacing: "0.15em",
+            marginBottom: "12px",
+            textTransform: "uppercase"
+          }}>
+            // OR CONNECT CRYPTOGRAPHIC PASSPORT
+          </div>
+          <WalletMultiButton style={{
+            width: "100%",
+            justifyContent: "center",
+            background: "transparent",
+            border: "1px solid var(--accent)",
+            color: "var(--accent)",
+            fontFamily: "var(--mono)",
+            fontSize: "12px",
+            padding: "10px",
+            height: "auto",
+            lineHeight: "1.5",
+            fontWeight: "bold",
+            letterSpacing: "0.1em"
+          }} />
+        </div>
+
         {/* Return to Hub */}
-        <div style={{ marginTop: "14px", textAlign: "center" }}>
+        <div style={{ marginTop: "24px", textAlign: "center" }}>
           <Link href="/" style={{
             fontFamily: "var(--mono)",
             fontSize: "11px",

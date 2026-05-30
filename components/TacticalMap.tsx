@@ -11,6 +11,7 @@ interface MapNode {
   id: string;
   name: string;
   type: string;
+  category?: string;
   severity: number;
   lat: number;
   lng: number;
@@ -107,9 +108,20 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
         el.style.cursor = "pointer";
 
         // Popup content on hover
+        let sectorLabel = node.type;
+        if (node.category === "realistic") {
+          sectorLabel = `SECTOR ALPHA // ${node.type}`;
+        } else if (node.category === "fictional") {
+          sectorLabel = "SECTOR BETA // ANOMALY";
+        } else if (node.category === "satirical") {
+          sectorLabel = "SECTOR GAMMA // DEGENERACY";
+        } else if (node.category === "algorithmic") {
+          sectorLabel = "SECTOR DELTA // ALGORITHMIC";
+        }
+
         const popupHtml = `
           <div style="font-family: var(--mono); font-size: 10px; color: ${typeColor}; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 4px; text-transform: uppercase;">
-            [${node.type} // ${node.region}]
+            [${sectorLabel} // ${node.region}]
           </div>
           <div style="font-family: var(--sans); font-size: 12px; font-weight: bold; color: #fff;">${node.name}</div>
           <div style="font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 4px;">

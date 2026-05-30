@@ -1102,20 +1102,57 @@ export default function OperativeProfilePage() {
                   border: "1px solid rgba(240, 201, 41, 0.1)", 
                   padding: "20px", 
                   borderRadius: "2px",
-                  position: "relative"
+                  position: "relative",
+                  overflow: "hidden"
                 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-                    <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240, 201, 41, 0.3)", background: "rgba(240, 201, 41, 0.05)", fontSize: "8.5px" }}>
-                      QUEST 0{idx + 1}
-                    </span>
-                    <span className="tag" style={{ color: "#f0c929", borderColor: "#f0c929", fontSize: "9px", fontWeight: "bold" }}>
+                  {/* Blurred locked content */}
+                  <div style={{
+                    opacity: 0.12,
+                    filter: "blur(3px)",
+                    pointerEvents: "none",
+                    userSelect: "none"
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                      <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240, 201, 41, 0.3)", background: "rgba(240, 201, 41, 0.05)", fontSize: "8.5px" }}>
+                        QUEST 0{idx + 1}
+                      </span>
+                    </div>
+                    <h4 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#ffffff", margin: "0 0 6px 0" }}>{q.title}</h4>
+                    <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 16px 0" }}>{q.desc}</p>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc" }}>
+                      REWARD: {q.reward}
+                    </div>
+                  </div>
+
+                  {/* Absolute Coming Soon Overlay */}
+                  <div style={{
+                    position: "absolute",
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "column",
+                    gap: "6px",
+                    background: "rgba(8, 8, 8, 0.6)"
+                  }}>
+                    <span style={{
+                      fontFamily: "var(--title-font)",
+                      fontSize: "13px",
+                      fontWeight: "bold",
+                      color: "#f0c929",
+                      letterSpacing: "0.18em",
+                      textShadow: "0 0 8px rgba(240, 201, 41, 0.3)"
+                    }}>
                       COMING SOON
                     </span>
-                  </div>
-                  <h4 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#ffffff", margin: "0 0 6px 0" }}>{q.title}</h4>
-                  <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 16px 0" }}>{q.desc}</p>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc" }}>
-                    REWARD: {q.reward}
+                    <span style={{
+                      fontFamily: "var(--mono)",
+                      fontSize: "9px",
+                      color: "rgba(240, 201, 41, 0.6)",
+                      letterSpacing: "0.1em"
+                    }}>
+                      [ LOCKED // CLEARANCE ACCESS ]
+                    </span>
                   </div>
                 </div>
               ))}

@@ -71,6 +71,7 @@ export default function HomePage() {
   // Interactive state
   const [selectedHotspot, setSelectedHotspot] = useState(MAP_HOTSPOTS[0]);
   const [mapNodes, setMapNodes] = useState<any[]>([]);
+  const [mapFilter, setMapFilter] = useState<string>("all");
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [loadingMap, setLoadingMap] = useState(false);
   const [hoveredNode, setHoveredNode] = useState<any>(null);
@@ -250,8 +251,8 @@ export default function HomePage() {
       <section style={{ 
         borderTop: "1px solid var(--border)", 
         borderBottom: "1px solid var(--border)", 
-        padding: "24px 0", 
-        background: "rgba(255, 77, 77, 0.02)",
+        padding: "48px 0", 
+        background: "rgba(255, 77, 77, 0.03)",
         position: "relative",
         overflow: "hidden"
       }}>
@@ -260,27 +261,30 @@ export default function HomePage() {
             display: "inline-flex", 
             flexDirection: "column",
             alignItems: "center", 
-            gap: "12px", 
-            padding: "20px 40px", 
-            background: "rgba(10, 10, 10, 0.8)", 
-            border: "1px solid rgba(255, 77, 77, 0.3)", 
+            gap: "16px", 
+            padding: "36px 60px", 
+            background: "rgba(10, 10, 10, 0.9)", 
+            border: "2px solid rgba(255, 77, 77, 0.4)", 
             borderRadius: "4px",
-            boxShadow: "0 0 25px rgba(255, 77, 77, 0.08)"
+            boxShadow: "0 0 35px rgba(255, 77, 77, 0.12)",
+            width: "100%",
+            maxWidth: "920px",
+            boxSizing: "border-box"
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <span style={{ 
-                width: "10px", 
-                height: "10px", 
+                width: "12px", 
+                height: "12px", 
                 background: "var(--accent)", 
                 borderRadius: "50%", 
-                boxShadow: "0 0 10px var(--accent)",
+                boxShadow: "0 0 12px var(--accent)",
                 animation: "pulse-dot 1.5s infinite" 
               }} />
               <span style={{ 
                 fontFamily: "var(--mono)", 
-                fontSize: "14px", 
+                fontSize: "16px", 
                 color: "var(--accent)", 
-                letterSpacing: "0.2em", 
+                letterSpacing: "0.25em", 
                 fontWeight: "bold",
                 textTransform: "uppercase"
               }}>
@@ -289,11 +293,11 @@ export default function HomePage() {
             </div>
             <div style={{ 
               fontFamily: "var(--mono)", 
-              fontSize: "11.5px", 
-              color: "var(--text-dim)", 
-              letterSpacing: "0.08em",
-              lineHeight: "1.6",
-              maxWidth: "600px"
+              fontSize: "13px", 
+              color: "var(--text)", 
+              letterSpacing: "0.1em",
+              lineHeight: "1.7",
+              maxWidth: "800px"
             }}>
               STATUS: INTERNAL INTEGRATION IN PROGRESS // CORE RE-ENGINEERING SUB-PROTOCOL ACTIVE. ALL WALLET CONNECTIONS REMAIN SECURED UNDER SALTED SHA-256 PARITY.
             </div>
@@ -584,7 +588,37 @@ export default function HomePage() {
             <span className="section-line" />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "32px", marginTop: "32px" }} className="responsive-grid-2-large">
+          {/* Map Category Filter Toggles */}
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", marginTop: "24px" }}>
+            {[
+              { key: "all", label: "[ ALL SECTORS ]", color: "#ffffff" },
+              { key: "realistic", label: "[ SECTOR ALPHA (KINETIC) ]", color: "#ff4d4d" },
+              { key: "fictional", label: "[ SECTOR BETA (ANOMALIES) ]", color: "#a855f7" },
+              { key: "satirical", label: "[ SECTOR GAMMA (DEGENERACY) ]", color: "#f0c929" },
+              { key: "algorithmic", label: "[ SECTOR DELTA (ALGORITHMIC) ]", color: "#00ffcc" }
+            ].map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setMapFilter(f.key)}
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: "10.5px",
+                  letterSpacing: "0.08em",
+                  padding: "6px 14px",
+                  background: mapFilter === f.key ? "rgba(255, 255, 255, 0.03)" : "none",
+                  border: `1px solid ${mapFilter === f.key ? f.color : "rgba(255,255,255,0.08)"}`,
+                  color: mapFilter === f.key ? f.color : "var(--text-dim)",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                  borderRadius: "2px"
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "32px", marginTop: "24px" }} className="responsive-grid-2-large">
             {/* Mapbox Network Map */}
             <div className="panel" style={{ background: "#020202", borderColor: "rgba(255,0,51,0.15)", position: "relative", minHeight: "420px", padding: "0", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: "16px", left: "16px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", zIndex: 10, background: "rgba(0,0,0,0.6)", padding: "4px 8px", borderRadius: "2px" }}>
@@ -595,13 +629,19 @@ export default function HomePage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", justifyContent: "center", height: "420px", fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "12px" }}>
                   <span className="loading-dots">SYNCHRONIZING TACTICAL RADAR NODES<span>.</span><span>.</span><span>.</span></span>
                 </div>
-              ) : (
-                <TacticalMap
-                  nodes={mapNodes}
-                  onSelectNode={setSelectedNode}
-                  selectedNode={selectedNode}
-                />
-              )}
+              ) : (() => {
+                const filteredNodes = mapNodes.filter((node: any) => {
+                  if (mapFilter === "all") return true;
+                  return node.category === mapFilter;
+                });
+                return (
+                  <TacticalMap
+                    nodes={filteredNodes}
+                    onSelectNode={setSelectedNode}
+                    selectedNode={selectedNode}
+                  />
+                );
+              })()}
             </div>
 
             {/* Tactical Info Pane */}
@@ -670,13 +710,13 @@ export default function HomePage() {
                 [ SYSTEM ACCESS & CLEARANCE TIERS ]
               </h3>
               <p style={{ color: "var(--text-dim)", fontSize: "13px", lineHeight: "1.7", marginBottom: "20px" }}>
-                Access public briefings freely. Connect your wallet to decrypt security signatures and build your BIO-SCORE.
+                System Access Clearance levels are unlocked via permanent XP progression. Connect your wallet to verify active $THREAT credentials for XP boosters and secure your operative dossier.
               </p>
               <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>
-                <li>✔ Level 1 (Civilian) - Public Archives & Threat Indexes</li>
-                <li>✔ Level 3 (Operative) - Decrypt Sector Alpha & Beta Dossiers</li>
-                <li>✔ Level 5 (Director) - Decrypt Sector Delta Algorithmic Telemetry</li>
-                <li>✔ Wallet Identity Handshake preserves persistent XP & Score history</li>
+                <li>✔ Clearance Level 1 (Civilian) - Public Archives & Threat Indexes</li>
+                <li>✔ Clearance Level 3 (Operative) - Decrypt Sector Alpha & Beta Dossiers</li>
+                <li>✔ Clearance Level 5 (Director) - Decrypt Sector Delta Algorithmic Telemetry</li>
+                <li>✔ Wallet Identity Handshake grants XP Multipliers & secures persistent data</li>
               </ul>
             </div>
 

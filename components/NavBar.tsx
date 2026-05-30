@@ -89,71 +89,79 @@ export default function NavBar() {
               RED QUEEN ONLINE
             </div>
             
-            {user ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text)" }}>
-                <span style={{ color: "var(--text-dim)" }}>[ {user.email} ]</span>
-                <button
-                  onClick={() => logout()}
-                  style={{
-                    background: "transparent",
-                    border: "1px solid var(--accent)",
-                    color: "var(--accent)",
-                    fontFamily: "var(--mono)",
-                    fontSize: "10px",
-                    padding: "3px 8px",
-                    cursor: "pointer",
-                    borderRadius: "2px"
-                  }}
-                >
-                  LOGOUT
-                </button>
-              </div>
-            ) : (
+            {!user && !connected ? (
               <Link 
                 href="/login" 
                 style={{
                   fontFamily: "var(--mono)",
-                  fontSize: "11.5px",
-                  color: "var(--text-dim)",
-                  border: "1px dashed rgba(255, 77, 77, 0.2)",
-                  padding: "4px 10px",
+                  fontSize: "11px",
+                  color: "var(--accent)",
+                  border: "1px solid var(--accent)",
+                  padding: "6px 14px",
                   textDecoration: "none",
-                  borderRadius: "2px"
+                  borderRadius: "2px",
+                  fontWeight: "bold",
+                  letterSpacing: "0.08em",
+                  boxShadow: "0 0 10px rgba(255, 77, 77, 0.15)",
+                  transition: "all 0.2s"
                 }}
               >
-                [ LOGIN / SIGN UP ]
+                [ ACCESS PORTAL ]
               </Link>
-            )}
+            ) : (
+              <>
+                {user && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)" }}>
+                    <span style={{ color: "var(--text-dim)" }}>[ {user.email} ]</span>
+                    <button
+                      onClick={() => logout()}
+                      style={{
+                        background: "transparent",
+                        border: "1px solid rgba(255, 77, 77, 0.4)",
+                        color: "var(--text-dim)",
+                        fontFamily: "var(--mono)",
+                        fontSize: "9.5px",
+                        padding: "3px 8px",
+                        cursor: "pointer",
+                        borderRadius: "2px"
+                      }}
+                    >
+                      LOGOUT
+                    </button>
+                  </div>
+                )}
 
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <WalletMultiButton style={{
-                background: "transparent",
-                border: "1px solid var(--accent)",
-                color: "var(--accent)",
-                fontFamily: "var(--mono)",
-                fontSize: "12px",
-                padding: "5px 15px",
-                height: "auto",
-                lineHeight: "1.5",
-              }} />
-              {wallet && !connected && (
-                <button
-                  onClick={handleChangeWallet}
-                  style={{
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <WalletMultiButton style={{
                     background: "transparent",
-                    border: "none",
-                    color: "var(--text-dim)",
-                    textDecoration: "underline",
-                    fontSize: "11px",
-                    cursor: "pointer",
+                    border: connected ? "1px solid var(--accent)" : "1px dashed rgba(255,255,255,0.2)",
+                    color: connected ? "var(--accent)" : "var(--text-dim)",
                     fontFamily: "var(--mono)",
-                    padding: 0,
-                  }}
-                >
-                  [CHANGE]
-                </button>
-              )}
-            </div>
+                    fontSize: "12px",
+                    padding: "5px 15px",
+                    height: "auto",
+                    lineHeight: "1.5",
+                  }} />
+                  {wallet && !connected && (
+                    <button
+                      onClick={handleChangeWallet}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "var(--text-dim)",
+                        textDecoration: "underline",
+                        fontSize: "11px",
+                        cursor: "pointer",
+                        fontFamily: "var(--mono)",
+                        padding: 0,
+                      }}
+                    >
+                      [CHANGE]
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Hamburger Button */}
@@ -292,31 +300,7 @@ export default function NavBar() {
 
           {/* Footer of Mobile Drawer */}
           <div style={{ marginTop: "40px", display: "flex", flexDirection: "column", gap: "16px" }}>
-            {user ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", border: "1px dashed rgba(255, 77, 77, 0.2)", padding: "12px", background: "rgba(255, 77, 77, 0.02)" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", wordBreak: "break-all" }}>OPERATIVE: {user.email}</span>
-                <button 
-                  onClick={() => {
-                    logout();
-                    setMenuOpen(false);
-                  }}
-                  style={{
-                    background: "transparent",
-                    border: "1px solid var(--accent)",
-                    color: "var(--accent)",
-                    fontFamily: "var(--mono)",
-                    fontSize: "11px",
-                    padding: "8px 16px",
-                    cursor: "pointer",
-                    borderRadius: "2px",
-                    width: "100%",
-                    textAlign: "center"
-                  }}
-                >
-                  LOGOUT UPLINK
-                </button>
-              </div>
-            ) : (
+            {!user && !connected ? (
               <Link 
                 href="/login" 
                 onClick={() => setMenuOpen(false)}
@@ -324,45 +308,74 @@ export default function NavBar() {
                 style={{
                   width: "100%",
                   justifyContent: "center",
-                  fontSize: "12.5px",
+                  fontSize: "13px",
                   padding: "12px",
                   fontWeight: "bold",
-                  textAlign: "center"
-                }}
-              >
-                LOGIN / SIGN UP
-              </Link>
-            )}
-
-            <WalletMultiButton style={{
-              width: "100%",
-              justifyContent: "center",
-              background: "var(--accent)",
-              border: "none",
-              color: "#000",
-              fontFamily: "var(--mono)",
-              fontSize: "13px",
-              padding: "12px",
-              height: "auto",
-              lineHeight: "1.5",
-              fontWeight: "bold",
-            }} />
-            {wallet && !connected && (
-              <button 
-                onClick={handleChangeWallet}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "var(--text-dim)",
-                  textDecoration: "underline",
-                  fontSize: "11px",
-                  cursor: "pointer",
-                  fontFamily: "var(--mono)",
                   textAlign: "center",
+                  letterSpacing: "0.1em"
                 }}
               >
-                [CHANGE WALLET]
-              </button>
+                ACCESS PORTAL
+              </Link>
+            ) : (
+              <>
+                {user && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", border: "1px dashed rgba(255, 77, 77, 0.2)", padding: "12px", background: "rgba(255, 77, 77, 0.02)" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", wordBreak: "break-all" }}>OPERATIVE: {user.email}</span>
+                    <button 
+                      onClick={() => {
+                        logout();
+                        setMenuOpen(false);
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "1px solid var(--accent)",
+                        color: "var(--accent)",
+                        fontFamily: "var(--mono)",
+                        fontSize: "11px",
+                        padding: "8px 16px",
+                        cursor: "pointer",
+                        borderRadius: "2px",
+                        width: "100%",
+                        textAlign: "center"
+                      }}
+                    >
+                      LOGOUT UPLINK
+                    </button>
+                  </div>
+                )}
+
+                <WalletMultiButton style={{
+                  width: "100%",
+                  justifyContent: "center",
+                  background: connected ? "var(--accent)" : "rgba(255,255,255,0.05)",
+                  border: connected ? "none" : "1px dashed rgba(255,255,255,0.2)",
+                  color: connected ? "#000" : "var(--text-dim)",
+                  fontFamily: "var(--mono)",
+                  fontSize: "13px",
+                  padding: "12px",
+                  height: "auto",
+                  lineHeight: "1.5",
+                  fontWeight: "bold",
+                }} />
+                {wallet && !connected && (
+                  <button 
+                    onClick={handleChangeWallet}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--text-dim)",
+                      textDecoration: "underline",
+                      fontSize: "11px",
+                      cursor: "pointer",
+                      fontFamily: "var(--mono)",
+                      textAlign: "center",
+                    }}
+                  >
+                    [CHANGE WALLET]
+                  </button>
+                )}
+              </>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>
               <span className="status-dot" />
