@@ -13,7 +13,8 @@ export default function SurvivalKitPage() {
     { id: "threat-categories", label: "05. HAZARD SECTORS", title: "THREAT CATEGORIES" },
     { id: "wallet-connection", label: "06. IDENTITY", title: "WALLET & IDENTITY SECURITY" },
     { id: "clearance-levels", label: "07. TIERS", title: "SYSTEM CLEARANCE LEVELS" },
-    { id: "faq", label: "08. INQUIRIES", title: "FREQUENTLY ASKED QUESTIONS" }
+    { id: "faq", label: "08. INQUIRIES", title: "FREQUENTLY ASKED QUESTIONS" },
+    { id: "map-config", label: "09. MAP API", title: "MAP API CONFIGURATION" }
   ];
 
   return (
@@ -182,12 +183,22 @@ export default function SurvivalKitPage() {
                 ))}
               </div>
 
+              <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "24px" }}>
+                <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px", fontFamily: "var(--mono)" }}>📊 MATHEMATICAL FORMULA</h3>
+                <code style={{ display: "block", background: "#060606", padding: "12px", borderRadius: "2px", color: "#00ffcc", fontFamily: "var(--mono)", fontSize: "13px", marginBottom: "12px" }}>
+                  BIO-SCORE = sum(sub_stats) / 7
+                </code>
+                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                  Each of the 7 stats is graded on a scale of 0 to 100. The total sum is divided by 7 to yield your overall rating. Performing terminal challenges updates individual sub-stats.
+                </p>
+              </div>
+
               <div className="alert alert-red" style={{ background: "rgba(255, 77, 77, 0.03)", borderLeft: "4px solid var(--accent)", padding: "20px" }}>
                 <strong style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", display: "block", marginBottom: "4px" }}>
                   ⚠️ TELEMETRY INACTIVITY DECAY
                 </strong>
                 <span style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7" }}>
-                  Operational readiness degrades when not actively maintained. If 24 hours pass without checking in at the terminal console, the system applies a gradual decay to your sub-stats, reducing your BIO-SCORE. Performing terminal diagnostics halts decay and rebuilds your readiness rating.
+                  Operational readiness degrades when not actively maintained. If 24 hours pass without checking in at the terminal console, the system applies a gradual decay to your sub-stats, reducing your BIO-SCORE by <strong>5% per day</strong> until it hits a baseline minimum of 10%. Performing terminal diagnostics halts decay and restores active scores.
                 </span>
               </div>
             </div>
@@ -230,6 +241,37 @@ export default function SurvivalKitPage() {
                   </ul>
                 </div>
 
+              </div>
+
+              <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "28px" }}>
+                <h3 style={{ fontSize: "16px", color: "#ffffff", marginBottom: "16px", fontFamily: "var(--mono)" }}>🛠️ XP PROGRESSION SYSTEM</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <div style={{ borderBottom: "1px dashed rgba(255, 255, 255, 0.05)", paddingBottom: "10px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold" }}>BASE XP REWARDS:</span>
+                    <ul style={{ margin: "6px 0 0 0", paddingLeft: "20px", color: "var(--text-dim)", fontSize: "13.5px" }}>
+                      <li><strong>Console Diagnostic Check-in:</strong> +20 XP</li>
+                      <li><strong>Terminal Crisis Interaction (Chat):</strong> +10 to +30 XP (dynamically analyzed)</li>
+                      <li><strong>On-Chain Metadata Scan:</strong> +15 XP</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold" }}>XP BOOSTERS (STACKED MULTIPLIERS):</span>
+                    <ul style={{ margin: "6px 0 0 0", paddingLeft: "20px", color: "var(--text-dim)", fontSize: "13.5px" }}>
+                      <li><strong>$THREAT Token Hold:</strong> Holding any balance of <code>$THREAT</code> applies a flat <strong>2.00x multiplier</strong>.</li>
+                      <li><strong>Clearance Level Multipliers:</strong>
+                        <ul style={{ paddingLeft: "16px", margin: "4px 0" }}>
+                          <li>Level 1: 1.00x</li>
+                          <li>Level 2: 1.25x</li>
+                          <li>Level 3: 1.50x</li>
+                          <li>Level 4: 1.75x</li>
+                          <li>Level 5: 2.00x</li>
+                        </ul>
+                      </li>
+                      <li><strong>Formula:</strong> <code>Total XP Gained = Base XP * Token Booster * Clearance Booster</code></li>
+                      <li style={{ marginTop: "4px", fontStyle: "italic", color: "#ffffff" }}>Example: A Level 5 Director holding $THREAT tokens gets a 4.00x total XP multiplier!</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -402,6 +444,48 @@ export default function SurvivalKitPage() {
                     </p>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* 9. Map API Configuration */}
+          {activeTab === "map-config" && (
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                Connecting the Mapbox API enables full geographic tracking and high-fidelity rendering of active global threat vectors. Follow these instructions to authenticate and deploy the live tactical map:
+              </p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {[
+                  {
+                    step: "1. CREATE MAPBOX ACCOUNT",
+                    desc: "Visit Mapbox (mapbox.com) and register for a developer account. The base tier is free and offers generous monthly tile loading allowances."
+                  },
+                  {
+                    step: "2. OBTAIN PUBLIC ACCESS TOKEN",
+                    desc: "Navigate to your Account Dashboard and copy the default public access token. Public tokens always start with the prefix 'pk.eyJ...'."
+                  },
+                  {
+                    step: "3. ROOT ENVIRONMENT CONFIGURATION",
+                    desc: "Create or open a '.env.local' file in the root directory of your project. Inject your token using the public client prefix: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.your_token_here"
+                  },
+                  {
+                    step: "4. VERCEL DEPLOYMENT CONFIGURATION",
+                    desc: "When deploying to Vercel, navigate to Project Settings > Environment Variables. Add the key 'NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN' with your copied token as the value, then trigger a redeploy to inject the environment build variable."
+                  }
+                ].map((item, idx) => (
+                  <div key={idx} style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.03)", padding: "16px 20px", borderRadius: "2px" }}>
+                    <h4 style={{ fontSize: "14px", color: "var(--accent)", margin: "0 0 6px 0", fontFamily: "var(--mono)" }}>{item.step}</h4>
+                    <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(0, 255, 204, 0.15)", padding: "24px" }}>
+                <h3 style={{ fontSize: "15px", color: "#00ffcc", marginBottom: "8px", fontFamily: "var(--mono)" }}>🛰️ AUTOMATED GRID FALLBACK</h3>
+                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                  If the <code>NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code> environment variable is missing, the RED QUEEN will automatically fallback to a low-fidelity local terminal matrix simulator, preserving the tactical interface styling while logging diagnostic warning events in the console.
+                </p>
               </div>
             </div>
           )}

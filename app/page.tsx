@@ -246,6 +246,61 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* x402 Experimental Infrastructure Section - Prominent Position */}
+      <section style={{ 
+        borderTop: "1px solid var(--border)", 
+        borderBottom: "1px solid var(--border)", 
+        padding: "24px 0", 
+        background: "rgba(255, 77, 77, 0.02)",
+        position: "relative",
+        overflow: "hidden"
+      }}>
+        <div className="container" style={{ textAlign: "center" }}>
+          <div style={{ 
+            display: "inline-flex", 
+            flexDirection: "column",
+            alignItems: "center", 
+            gap: "12px", 
+            padding: "20px 40px", 
+            background: "rgba(10, 10, 10, 0.8)", 
+            border: "1px solid rgba(255, 77, 77, 0.3)", 
+            borderRadius: "4px",
+            boxShadow: "0 0 25px rgba(255, 77, 77, 0.08)"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ 
+                width: "10px", 
+                height: "10px", 
+                background: "var(--accent)", 
+                borderRadius: "50%", 
+                boxShadow: "0 0 10px var(--accent)",
+                animation: "pulse-dot 1.5s infinite" 
+              }} />
+              <span style={{ 
+                fontFamily: "var(--mono)", 
+                fontSize: "14px", 
+                color: "var(--accent)", 
+                letterSpacing: "0.2em", 
+                fontWeight: "bold",
+                textTransform: "uppercase"
+              }}>
+                x402 INFRASTRUCTURE BROADCAST
+              </span>
+            </div>
+            <div style={{ 
+              fontFamily: "var(--mono)", 
+              fontSize: "11.5px", 
+              color: "var(--text-dim)", 
+              letterSpacing: "0.08em",
+              lineHeight: "1.6",
+              maxWidth: "600px"
+            }}>
+              STATUS: INTERNAL INTEGRATION IN PROGRESS // CORE RE-ENGINEERING SUB-PROTOCOL ACTIVE. ALL WALLET CONNECTIONS REMAIN SECURED UNDER SALTED SHA-256 PARITY.
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Onboarding Start Here Section */}
       <section className="page-section" style={{
         borderTop: "1px solid var(--border)",
@@ -774,17 +829,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* x402 Experimental Infrastructure Section */}
-      <section className="page-section" style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "48px 0", background: "rgba(255, 0, 51, 0.01)" }}>
-        <div className="container" style={{ maxWidth: "680px", textAlign: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "8px 16px", background: "rgba(255, 77, 77, 0.05)", border: "1px solid rgba(255, 77, 77, 0.25)", borderRadius: "2px" }}>
-            <span style={{ width: "6px", height: "6px", background: "var(--accent)", borderRadius: "50%", animation: "pulse 2s infinite" }} />
-            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-              x402 Infrastructure — Internal Integration In Progress
-            </span>
-          </div>
-        </div>
-      </section>
+
 
       {/* Access Terminals */}
       <section className="page-section">
@@ -942,21 +987,31 @@ export default function HomePage() {
               </div>
             )}
 
-            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", borderTop: "1px solid var(--border)", paddingTop: "20px" }}>
-              {onboardingStep > 1 && (
-                <button className="btn btn-ghost" onClick={() => setOnboardingStep(onboardingStep - 1)} style={{ fontSize: "11px" }}>
-                  [ PREVIOUS ]
+            <div style={{ display: "flex", gap: "12px", justifyContent: "space-between", borderTop: "1px solid var(--border)", paddingTop: "20px", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button className="btn btn-ghost" onClick={handleCloseOnboarding} style={{ fontSize: "11px", color: "var(--accent)" }}>
+                  [ EXIT ]
                 </button>
-              )}
-              {onboardingStep < 5 ? (
-                <button className="btn btn-primary" onClick={() => setOnboardingStep(onboardingStep + 1)} style={{ fontSize: "11px" }}>
-                  [ NEXT ]
-                </button>
-              ) : (
-                <button className="btn btn-primary" onClick={handleCloseOnboarding} style={{ fontSize: "11px", background: "#00ffcc", color: "#000" }}>
-                  [ INITIATE CONSOLE ]
-                </button>
-              )}
+                <Link href="/survival-kit" onClick={handleCloseOnboarding} className="btn btn-outline" style={{ fontSize: "11px", color: "#00ffcc", borderColor: "rgba(0,255,204,0.3)" }}>
+                  [ READ SURVIVAL KIT ]
+                </Link>
+              </div>
+              <div style={{ display: "flex", gap: "10px" }}>
+                {onboardingStep > 1 && (
+                  <button className="btn btn-ghost" onClick={() => setOnboardingStep(onboardingStep - 1)} style={{ fontSize: "11px" }}>
+                    [ PREVIOUS ]
+                  </button>
+                )}
+                {onboardingStep < 5 ? (
+                  <button className="btn btn-primary" onClick={() => setOnboardingStep(onboardingStep + 1)} style={{ fontSize: "11px" }}>
+                    [ NEXT ]
+                  </button>
+                ) : (
+                  <button className="btn btn-primary" onClick={handleCloseOnboarding} style={{ fontSize: "11px", background: "#00ffcc", color: "#000" }}>
+                    [ INITIATE CONSOLE ]
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

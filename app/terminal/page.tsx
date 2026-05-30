@@ -106,7 +106,7 @@ export default function TerminalPage() {
   const [currentScore, setCurrentScore] = useState<string | null>(null);
   const [profileStats, setProfileStats] = useState<any>(null);
   const [apocalypticName, setApocalypticName] = useState<string>("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [limitBlocked, setLimitBlocked] = useState(false);
   const [shareModalData, setShareModalData] = useState<{ content: string; bioScore?: string } | null>(null);
@@ -229,7 +229,9 @@ export default function TerminalPage() {
   }, [shareModalData, apocalypticName, currentScore]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -516,7 +518,7 @@ To decrypt or scan target files:
         {/* Left Side: Chat Panel */}
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
           {/* Messages */}
-          <div style={{
+          <div ref={chatContainerRef} style={{
             flex: 1,
             overflowY: "auto",
             padding: "24px",
@@ -580,7 +582,7 @@ To decrypt or scan target files:
                 </div>
               </div>
             )}
-            <div ref={messagesEndRef} />
+
           </div>
 
           {/* Input */}
@@ -699,10 +701,6 @@ To decrypt or scan target files:
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>UPLINK TIER:</span>
                 <span style={{ color: "var(--accent)" }}>{connected ? "LEVEL 5 (DIRECTOR)" : "LEVEL 1 (PUBLIC)"}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>METERED RATE:</span>
-                <span style={{ color: "#00ffcc" }}>0.05 USDC / SCAN</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>STATUS:</span>

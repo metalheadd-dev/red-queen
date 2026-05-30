@@ -171,6 +171,86 @@ export function getThreatMetadata(
       ];
       break;
 
+    case "SYBIL-ATTACK":
+      recommendedActions = [
+        "Deploy multi-hop network proxy loops.",
+        "Rotate transaction routers.",
+        "Utilize decentralized RPC networks."
+      ];
+      relatedThreats = ["WALLET-TRAIL", "AI-PROFILING"];
+      aiCommentary = "RED QUEEN: Generating multiple pseudo-identities is a simple script. Identifying that they all route to you is even simpler. Your proxy shields are leaking.";
+      timelineProgression = [
+        "Phase 1: Scanner maps clusters of pseudonymous addresses.",
+        "Phase 2: Trace algorithms correlate transaction timestamps.",
+        "Phase 3: Real-world IP node identified and mapped."
+      ];
+      liveUpdates = "Correlation check: Sybil sweep indexed 4 coordinated addresses today.";
+      recentIncidents = [
+        "Multiple cluster wallets unmasked via time-correlation algorithms.",
+        "Airdrop farming botnets flagged on three active token pools."
+      ];
+      break;
+
+    case "MEV-EXPLOIT":
+      recommendedActions = [
+        "Use private RPC routes like Jito.",
+        "Set low slippage parameters.",
+        "Route transactions via private mempools."
+      ];
+      relatedThreats = ["REPUTATION-X", "WALLET-TRAIL"];
+      aiCommentary = "RED QUEEN: Public mempools are a hunting ground. Frontrunning bots sandwich your swap before it ever hits the block. Take it private or get eaten.";
+      timelineProgression = [
+        "Phase 1: Bot scans public mempool for high-slippage swaps.",
+        "Phase 2: Frontrun transaction injected with higher gas.",
+        "Phase 3: Sandwich completed, extracting value from your trade."
+      ];
+      liveUpdates = "Mempool scan: 18 sandwich runs blocked by secure routing.";
+      recentIncidents = [
+        "Slippage exploitation costs DeFi users $400k in unrouted trades.",
+        "High-frequency sandwich bots extract 14 SOL from single pool swap."
+      ];
+      break;
+
+    case "PHISHING-NET":
+      recommendedActions = [
+        "Strictly verify domains through secondary channels.",
+        "Never authorize unfamiliar contract signatures.",
+        "Keep separate burner keys for dynamic dApps."
+      ];
+      relatedThreats = ["DEEPFAKE-SE", "META-LEAK"];
+      aiCommentary = "RED QUEEN: You sign the approval thinking it is a swap. It is a drain. Your keys are yours, but you gave them permission to take it all.";
+      timelineProgression = [
+        "Phase 1: Mirror domain clone deployed with active SEO redirection.",
+        "Phase 2: User prompted to connect wallet and sign 'verification' transaction.",
+        "Phase 3: Smart contract approval drains assets automatically."
+      ];
+      liveUpdates = "Phish radar: 3 replica sites blocked by browser threat sensors.";
+      recentIncidents = [
+        "Solana user loses 42 SOL to a cloned Jupiter swap interface.",
+        "Coordinated phishing network routes fake approvals to central pool drainer."
+      ];
+      break;
+
+    case "COMPUTE-HIJACK":
+      recommendedActions = [
+        "Enforce strict script blockers.",
+        "Monitor background process diagnostics.",
+        "Isolate terminal computation tabs."
+      ];
+      relatedThreats = ["AI-PROFILING", "META-LEAK"];
+      aiCommentary = "RED QUEEN: Your CPU temperature is rising. You think the browser is lagging, but it is compiling WebAssembly to mine for someone else and siphon your metadata.";
+      timelineProgression = [
+        "Phase 1: Rogue script injected via compromise of third-party utility library.",
+        "Phase 2: Silent WebAssembly compilation starts in background browser threads.",
+        "Phase 3: Hardware resources drained to execute cryptographic mining and trace keys."
+      ];
+      liveUpdates = "Wasm scan: 1 cryptojack worker thread blocked.";
+      recentIncidents = [
+        "Utility library compromise siphons compute power from 12,000 visitors.",
+        "Background miner scripts identified inside three malicious browser extensions."
+      ];
+      break;
+
     case "T-VIRUS":
       recommendedActions = [
         "Establish physical security perimeter immediately.",

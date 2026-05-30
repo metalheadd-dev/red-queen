@@ -3,6 +3,27 @@ import { SOUL_PROMPT } from "@/lib/soul";
 import { supabase } from "@/lib/supabase";
 import { getHashedWallet } from "@/lib/crypto";
 import { getStatsFromScenarios, updateStatsInScenarios, getCleanScenarios, parseStatsFromAI, applyStatGains, calculateBioScore } from "@/lib/progression";
+import { Connection, PublicKey } from "@solana/web3.js";
+
+const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
+
+async function getThreatBalance(walletAddress: string): Promise<number> {
+  try {
+    const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+    const pubkey = new PublicKey(walletAddress);
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(pubkey, {
+      mint: THREAT_MINT,
+    });
+    if (tokenAccounts.value.length === 0) {
+      return 0;
+    }
+    const balanceInfo = tokenAccounts.value[0].account.data.parsed.info.tokenAmount;
+    return balanceInfo.uiAmount || 0;
+  } catch (err) {
+    console.error("Failed to query $THREAT balance in API:", err);
+    return 0;
+  }
+}
 
 export const maxDuration = 30;
 
@@ -142,18 +163,33 @@ RE-ACTIVATION RULES & PARANOIA:
           { role: "assistant", content: outputText, wallet_address: hashedWallet || null },
         ]);
 
-        if (walletAddress) {
+         if (walletAddress) {
           const parsed = parseStatsFromAI(outputText);
           const currentStats = getStatsFromScenarios(userProfile?.chosen_scenarios);
           let updatedStats = currentStats;
 
+          // Compute multipliers
+          let tokenMultiplier = 1.0;
+          const balance = await getThreatBalance(walletAddress);
+          if (balance > 0) {
+            tokenMultiplier = 2.0;
+          }
+          const level = currentStats.level || 1;
+          const clearanceMultiplier = level >= 5 ? 2.0 : 
+                                      level >= 4 ? 1.75 : 
+                                      level >= 3 ? 1.5 : 
+                                      level >= 2 ? 1.25 : 1.0;
+          const totalMultiplier = tokenMultiplier * clearanceMultiplier;
+
           if (parsed) {
-            updatedStats = applyStatGains(currentStats, parsed.xpGain, parsed.gains, userProfile?.last_interaction);
+            const boostedXp = Math.round(parsed.xpGain * totalMultiplier);
+            updatedStats = applyStatGains(currentStats, boostedXp, parsed.gains, userProfile?.last_interaction);
           } else {
             const scoreMatch = outputText.match(/\[BIO-SCORE:\s*(\d+)%?\]/i);
             const fallbackScore = scoreMatch ? parseInt(scoreMatch[1]) : null;
             if (fallbackScore !== null) {
-              updatedStats = applyStatGains(currentStats, 5, { threat_awareness: 1 }, userProfile?.last_interaction);
+              const boostedXp = Math.round(5 * totalMultiplier);
+              updatedStats = applyStatGains(currentStats, boostedXp, { threat_awareness: 1 }, userProfile?.last_interaction);
             }
           }
 

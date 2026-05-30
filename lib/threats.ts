@@ -151,6 +151,54 @@ export const ALGORITHMIC: Threat[] = [
     survival: ["Strictly separate browser profiles", "Clear all Web3 session cookies", "Avoid linking Web2 logins to wallets"],
     classified: "Commercial data brokers map OAuth transaction cookies directly to wallet keys to correlate buying patterns with Web2 profiles.",
     redactedLabel: "CLASSIFIED: DATA HARVESTING EXPOSURE"
+  },
+  {
+    id: "SYBIL-ATTACK",
+    name: "Sybil-Attack — Multi-Identity Crawling",
+    level: 92,
+    origin: "Distributed Crawler Botnets",
+    classification: "ID EXPLOITATION",
+    status: "CRITICAL",
+    symptoms: ["Pseudonymous address generation clusters", "Coordinated metadata harvesting", "IP address correlation mappings"],
+    survival: ["Deploy multi-hop network proxy loops", "Rotate transaction routers", "Utilize decentralized RPC networks"],
+    classified: "Sybil clusters sweep public ledgers to link multiple keys to a single physical location, bypassing standard network privacy boundaries.",
+    redactedLabel: "CLASSIFIED: SYBIL NODE CORRELATION INDEX"
+  },
+  {
+    id: "MEV-EXPLOIT",
+    name: "MEV-Exploit — Mempool Frontrunning",
+    level: 85,
+    origin: "High-Frequency Arbitrage Bots",
+    classification: "FINANCIAL MANIPULATION",
+    status: "SEVERE",
+    symptoms: ["High transaction slippage alerts", "Frontrunning on DEX routes", "Targeted mempool sandwich sweeps"],
+    survival: ["Use private RPC routes like Jito", "Set low slippage parameters", "Route transactions via private mempools"],
+    classified: "Mempool monitoring nodes capture transactions in transition, executing sandwich runs to extract value and trace account activity patterns.",
+    redactedLabel: "CLASSIFIED: MEV ARBITRAGE EXPLOITS"
+  },
+  {
+    id: "PHISHING-NET",
+    name: "Phishing-Net — Smart Contract Replicas",
+    level: 87,
+    origin: "Autonomous Social Scrapers",
+    classification: "COGNITIVE SOCIAL ENGINEERING",
+    status: "SEVERE",
+    symptoms: ["Identical domain name registrations", "Vocal deepfake authorization prompts", "Malicious smart contract signature requests"],
+    survival: ["Strictly verify domains through secondary channels", "Never authorize unfamiliar contract signatures", "Keep separate burner keys for dynamic dApps"],
+    classified: "Autonomous phishing nets use scraped social profiles to craft highly-targeted smart contract replicas, stealing assets upon signature auth.",
+    redactedLabel: "CLASSIFIED: AI PHISHING SIGNATURES"
+  },
+  {
+    id: "COMPUTE-HIJACK",
+    name: "Compute-Hijack — Rogue Wasm Cryptojacking",
+    level: 79,
+    origin: "Rogue Wasm Scripts",
+    classification: "SYSTEM INTRUSION",
+    status: "HIGH",
+    symptoms: ["Sudden CPU temperature spikes", "Unexplained browser latency", "Background WebAssembly thread runs"],
+    survival: ["Enforce strict script blockers", "Monitor background process diagnostics", "Isolate terminal computation tabs"],
+    classified: "Rogue Wasm scripts execute crypto-mining routines in background browser threads, draining CPU resources and tracking session data.",
+    redactedLabel: "CLASSIFIED: CRYPTOJACKING TRACE DETECTORS"
   }
 ];
 

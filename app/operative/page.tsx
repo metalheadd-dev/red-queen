@@ -5,7 +5,10 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { generateApocalypticName } from "@/lib/names";
-import { getClearanceLevel, DEFAULT_STATS } from "@/lib/progression";
+import { getClearanceLevel, DEFAULT_STATS, parseStatsFromAI } from "@/lib/progression";
+import { Connection, PublicKey } from "@solana/web3.js";
+
+const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((m) => m.WalletMultiButton),
@@ -111,6 +114,10 @@ export default function OperativeProfilePage() {
   const [editingName, setEditingName] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string>("ALL");
   const [hashedPassport, setHashedPassport] = useState<string>("");
+  const [threatBalance, setThreatBalance] = useState<number | null>(null);
+  const [loadingBalance, setLoadingBalance] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const generatedName = wallet ? generateApocalypticName(wallet) : "";
 
@@ -142,9 +149,55 @@ export default function OperativeProfilePage() {
     setLoading(false);
   }, [wallet, generatedName]);
 
+  const fetchHistory = useCallback(async () => {
+    if (!wallet) return;
+    setLoadingHistory(true);
+    try {
+      const res = await fetch(`/api/history?wallet=${wallet}`);
+      const data = await res.json();
+      if (data.history) {
+        setHistory(data.history);
+      }
+    } catch (e) {
+      console.error("Failed to load history:", e);
+    }
+    setLoadingHistory(false);
+  }, [wallet]);
+
   useEffect(() => {
-    if (connected && wallet) fetchProfile();
-  }, [connected, wallet, fetchProfile]);
+    async function checkBalance() {
+      if (!wallet) {
+        setThreatBalance(null);
+        return;
+      }
+      setLoadingBalance(true);
+      try {
+        const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(new PublicKey(wallet), {
+          mint: THREAT_MINT,
+        });
+        if (tokenAccounts.value.length === 0) {
+          setThreatBalance(0);
+        } else {
+          const balanceInfo = tokenAccounts.value[0].account.data.parsed.info.tokenAmount;
+          setThreatBalance(balanceInfo.uiAmount || 0);
+        }
+      } catch (err) {
+        console.error("Failed to query $THREAT balance:", err);
+        // Fallback
+        setThreatBalance(500); 
+      }
+      setLoadingBalance(false);
+    }
+    checkBalance();
+  }, [wallet]);
+
+  useEffect(() => {
+    if (connected && wallet) {
+      fetchProfile();
+      fetchHistory();
+    }
+  }, [connected, wallet, fetchProfile, fetchHistory]);
 
   function toggleScenario(id: string) {
     setChosenScenarios((prev) =>
@@ -354,6 +407,65 @@ export default function OperativeProfilePage() {
                 <div style={{ fontFamily: "var(--mono)", fontSize: "11px" }}>
                   <span style={{ color: "var(--text-dim)" }}>STATUS: </span>
                   <span style={{ color: "#00ffcc", fontWeight: 700 }}>ANONYMIZED OPERATIVE</span>
+                </div>
+              </div>
+
+              {/* Boosters Panel */}
+              <div style={{ 
+                marginTop: "16px",
+                display: "flex", 
+                gap: "12px", 
+                flexWrap: "wrap",
+                background: "rgba(255, 77, 77, 0.02)",
+                border: "1px solid rgba(255, 77, 77, 0.1)",
+                padding: "10px 16px",
+                borderRadius: "2px",
+                maxWidth: "580px"
+              }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span>$THREAT BOOST:</span>
+                  <span style={{ 
+                    color: threatBalance && threatBalance > 0 ? "#00ffcc" : "var(--text-muted)", 
+                    fontWeight: "bold",
+                    background: threatBalance && threatBalance > 0 ? "rgba(0, 255, 204, 0.08)" : "rgba(255, 255, 255, 0.03)",
+                    padding: "2px 6px",
+                    borderRadius: "2px",
+                    border: threatBalance && threatBalance > 0 ? "1px solid rgba(0, 255, 204, 0.2)" : "1px solid rgba(255, 255, 255, 0.05)"
+                  }}>
+                    {threatBalance && threatBalance > 0 ? "ACTIVE (2.0x)" : "INACTIVE (1.0x)"}
+                  </span>
+                </div>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span>CLEARANCE BOOST:</span>
+                  <span style={{ 
+                    color: "var(--accent)", 
+                    fontWeight: "bold",
+                    background: "rgba(255, 77, 77, 0.05)",
+                    padding: "2px 6px",
+                    borderRadius: "2px",
+                    border: "1px solid rgba(255, 77, 77, 0.2)"
+                  }}>
+                    {stats.level >= 5 ? "ACTIVE (2.0x)" : 
+                     stats.level >= 4 ? "ACTIVE (1.75x)" : 
+                     stats.level >= 3 ? "ACTIVE (1.5x)" : 
+                     stats.level >= 2 ? "ACTIVE (1.25x)" : 
+                     "ACTIVE (1.0x)"}
+                  </span>
+                </div>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text)", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span>TOTAL MULTIPLIER:</span>
+                  <span style={{ 
+                    color: "#00ffcc", 
+                    fontWeight: "bold",
+                    textShadow: "0 0 4px rgba(0, 255, 204, 0.4)"
+                  }}>
+                    {((threatBalance && threatBalance > 0 ? 2.0 : 1.0) * 
+                      (stats.level >= 5 ? 2.0 : 
+                       stats.level >= 4 ? 1.75 : 
+                       stats.level >= 3 ? 1.5 : 
+                       stats.level >= 2 ? 1.25 : 
+                       1.0)).toFixed(2)}x XP
+                  </span>
                 </div>
               </div>
             </div>
@@ -685,33 +797,96 @@ export default function OperativeProfilePage() {
 
                   </div>
 
-                  {/* Weekly Training Operation Logs */}
+                  {/* Live Transaction & Diagnostic Audit Logs */}
                   <div style={{ marginTop: "32px", borderTop: "1px solid var(--border)", paddingTop: "24px" }}>
                     <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "16px" }}>
-                      [ OPERATIVE RECORD LOGS // RECENT TRAINING OPERATIONS ]
+                      [ SYSTEM DIAGNOSTICS & XP AUDIT HISTORY ]
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                      {[
-                        { op: "OP-043", action: "Console Diagnostic Audit", date: "2026-05-30", reward: "+15 XP", stat: "Threat Awareness +2, Technical Prep +1", type: "SUCCESS" },
-                        { op: "OP-042", action: "Footprint Entropy Scan", date: "2026-05-29", reward: "+10 XP", stat: "Surveillance Resistance +2", type: "SUCCESS" },
-                        { op: "OP-041", action: "Algorithmic Sandbox Verification", date: "2026-05-28", reward: "+8 XP", stat: "Adaptability +1", type: "SUCCESS" },
-                        { op: "OP-DECAY", action: "Footprint Degradation Decay", date: "2026-05-27", reward: "-2 XP", stat: "Technical Preparedness -1", type: "DECAY" }
-                      ].map((log, idx) => (
-                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#090909", border: "1px solid #141414", padding: "10px 16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
-                          <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-                            <span style={{ color: log.type === "DECAY" ? "#ff4d4d" : "#00ffcc", fontWeight: "bold" }}>
-                              [{log.op}]
-                            </span>
-                            <span style={{ color: "var(--text)" }}>{log.action}</span>
-                            <span style={{ color: "var(--text-dim)", fontSize: "9px" }}>({log.date})</span>
-                          </div>
-                          <div style={{ textAlign: "right" }}>
-                            <span style={{ color: log.type === "DECAY" ? "#ff4d4d" : "#00ffcc", marginRight: "16px", fontWeight: "bold" }}>{log.reward}</span>
-                            <span style={{ color: "var(--text-dim)", fontSize: "10px" }}>[{log.stat}]</span>
-                          </div>
+                    {loadingHistory ? (
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", padding: "10px 0" }}>
+                        DECRYPTING TRANSACTIONAL AUDIT PATHS...
+                      </div>
+                    ) : history.filter(m => m.role === "assistant").length === 0 ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase" }}>
+                          [ Showing Simulated Training Operations — Connect & Chat to Log Real Data ]
                         </div>
-                      ))}
-                    </div>
+                        {[
+                          { op: "OP-INIT", action: "System Clearance Onboarding Check-In", date: "2026-05-30", reward: "+20 XP", stat: "Awareness +2, Stability +1", type: "SUCCESS" },
+                          { op: "OP-042", action: "Footprint Entropy Scan", date: "2026-05-29", reward: "+10 XP", stat: "Surveillance Resistance +2", type: "SUCCESS" },
+                          { op: "OP-041", action: "Algorithmic Sandbox Verification", date: "2026-05-28", reward: "+8 XP", stat: "Adaptability +1", type: "SUCCESS" }
+                        ].map((log, idx) => (
+                          <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#090909", border: "1px solid #141414", padding: "10px 16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
+                            <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                              <span style={{ color: "#00ffcc", fontWeight: "bold" }}>
+                                [{log.op}]
+                              </span>
+                              <span style={{ color: "var(--text)" }}>{log.action}</span>
+                              <span style={{ color: "var(--text-dim)", fontSize: "9px" }}>({log.date})</span>
+                            </div>
+                            <div style={{ textAlign: "right" }}>
+                              <span style={{ color: "#00ffcc", marginRight: "16px", fontWeight: "bold" }}>{log.reward}</span>
+                              <span style={{ color: "var(--text-dim)", fontSize: "10px" }}>[{log.stat}]</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {history
+                          .filter(m => m.role === "assistant")
+                          .reverse()
+                          .slice(0, 10)
+                          .map((msg, idx) => {
+                            const parsed = parseStatsFromAI(msg.content);
+                            const dateStr = new Date(msg.created_at).toISOString().split("T")[0];
+                            
+                            let fallbackXp = 0;
+                            if (!parsed) {
+                              const scoreMatch = msg.content.match(/\[BIO-SCORE:\s*(\d+)%?\]/i);
+                              if (scoreMatch) fallbackXp = 5;
+                            }
+
+                            if (!parsed && fallbackXp === 0) return null;
+
+                            const xpVal = parsed ? parsed.xpGain : fallbackXp;
+                            const statGains = parsed ? Object.entries(parsed.gains)
+                              .filter(([_, val]) => (val as number) > 0)
+                              .map(([key, val]) => `${key.replace("_", " ").toUpperCase()} +${val}`)
+                              .join(", ") : "Threat Awareness +1";
+
+                            return (
+                              <div key={idx} style={{ 
+                                display: "flex", 
+                                justifyContent: "space-between", 
+                                alignItems: "center", 
+                                background: "#090909", 
+                                border: "1px solid #141414", 
+                                padding: "10px 16px", 
+                                borderRadius: "2px", 
+                                fontFamily: "var(--mono)", 
+                                fontSize: "11.5px",
+                                flexWrap: "wrap",
+                                gap: "8px"
+                              }}>
+                                <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+                                  <span style={{ color: "#00ffcc", fontWeight: "bold" }}>
+                                    [OP-DB-{idx + 1}]
+                                  </span>
+                                  <span style={{ color: "var(--text)", textOverflow: "ellipsis", maxWidth: "250px", overflow: "hidden", whiteSpace: "nowrap" }}>
+                                    {msg.content.replace(/\[BIO-SCORE:.*?\]/gi, "").trim().slice(0, 45)}...
+                                  </span>
+                                  <span style={{ color: "var(--text-dim)", fontSize: "9px" }}>({dateStr})</span>
+                                </div>
+                                <div style={{ textAlign: "right", display: "flex", gap: "16px", alignItems: "center" }}>
+                                  <span style={{ color: "#00ffcc", fontWeight: "bold" }}>+{xpVal} XP</span>
+                                  <span style={{ color: "var(--text-dim)", fontSize: "10px" }}>[{statGains}]</span>
+                                </div>
+                              </div>
+                            );
+                          }).filter(Boolean)}
+                      </div>
+                    )}
                   </div>
                 </div>
               );

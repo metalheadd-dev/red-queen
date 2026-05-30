@@ -226,6 +226,10 @@ export default function ThreatVectorPage() {
                         {threat.id === "DEEPFAKE-SE" && "Runs a secure mock-interaction check to assess your vulnerability against autonomous phishing agents."}
                         {threat.id === "REPUTATION-X" && "Sweeps multi-chain telemetry grids to evaluate if your wallet address has been flagged by algorithmic blacklists."}
                         {threat.id === "META-LEAK" && "Detects leaking configuration parameters bridging your cryptographic keys to public databases."}
+                        {threat.id === "SYBIL-ATTACK" && "Detects botnet crawler networks mapping clusters of pseudonymous addresses back to a single network router profile."}
+                        {threat.id === "MEV-EXPLOIT" && "Monitors public transaction mempools for frontrunning sandwich sweeps and arbitrage exfiltration routes."}
+                        {threat.id === "PHISHING-NET" && "Scours decentralized domains for smart contract clones designed to trick users into signing exfiltration approvals."}
+                        {threat.id === "COMPUTE-HIJACK" && "Scans background browser threads for rogue WebAssembly compilation scripts draining hardware performance."}
                       </p>
                     )}
 
