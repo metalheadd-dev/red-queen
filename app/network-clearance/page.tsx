@@ -22,7 +22,7 @@ const RANKS = [
   {
     level: 3,
     name: "OPERATIVE",
-    requirement: "500+ $THREAT tokens",
+    requirement: "100K+ $THREAT tokens",
     access: "Partial classified intel",
     attitude: "Respectful — tactical",
     color: "#f0c929",
@@ -31,7 +31,7 @@ const RANKS = [
   {
     level: 4,
     name: "OVERSEER",
-    requirement: "5,000+ $THREAT tokens",
+    requirement: "500K+ $THREAT tokens",
     access: "Most classified files",
     attitude: "Cooperative — professional",
     color: "#ff884d",
@@ -40,7 +40,7 @@ const RANKS = [
   {
     level: 5,
     name: "DIRECTOR",
-    requirement: "50,000+ $THREAT tokens",
+    requirement: "1M+ $THREAT tokens",
     access: "Full unrestricted access",
     attitude: "Warm — tactical ally",
     color: "#ff4d4d",
