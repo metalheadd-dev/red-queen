@@ -78,96 +78,88 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
     const map = mapRef.current;
     if (!map || !mapReady || !Array.isArray(nodes)) return;
 
-    try {
-      // Clean up old markers
+    // Clean up old markers
       Object.values(markersRef.current).forEach(marker => marker.remove());
       markersRef.current = {};
 
       nodes.forEach(node => {
-        // Create a custom element for the marker to animate and style
-        const el = document.createElement("div");
-        el.className = "tactical-marker";
-        
-        const typeColor = 
-          node.category === "fictional" ? "#a855f7" : 
-          node.category === "satirical" ? "#f0c929" : 
-          node.category === "algorithmic" ? "#00ffcc" :
-          node.category === "realistic" ? "#ff4d4d" :
-          node.type === "ANOMALY" ? "#a855f7" : 
-          node.type === "DEGENERACY" ? "#f0c929" : 
-          node.type === "ALGORITHMIC" ? "#00ffcc" :
-          "#ff4d4d";
+        // Per-marker try-catch so one bad coordinate doesn't kill the rest
+        try {
+          if (typeof node.lat !== "number" || typeof node.lng !== "number" ||
+              isNaN(node.lat) || isNaN(node.lng)) return;
 
-        el.innerHTML = `
-          <div class="pulse-ring" style="border-color: ${typeColor}; box-shadow: 0 0 10px ${typeColor}80"></div>
-          <div class="marker-core" style="background: ${typeColor}"></div>
-        `;
+          const el = document.createElement("div");
+          el.className = "tactical-marker";
 
-        // Set styles on the element
-        el.style.width = "20px";
-        el.style.height = "20px";
-        el.style.position = "relative";
-        el.style.cursor = "pointer";
+          const typeColor =
+            node.category === "fictional" ? "#a855f7" :
+            node.category === "satirical" ? "#f0c929" :
+            node.category === "algorithmic" ? "#00ffcc" :
+            node.category === "realistic" ? "#ff4d4d" :
+            node.type === "ANOMALY" ? "#a855f7" :
+            node.type === "DEGENERACY" ? "#f0c929" :
+            node.type === "ALGORITHMIC" ? "#00ffcc" :
+            "#ff4d4d";
 
-        // Popup content on hover
-        let sectorLabel = node.type;
-        if (node.category === "realistic") {
-          sectorLabel = `SECTOR ALPHA // ${node.type}`;
-        } else if (node.category === "fictional") {
-          sectorLabel = "SECTOR BETA // ANOMALY";
-        } else if (node.category === "satirical") {
-          sectorLabel = "SECTOR GAMMA // DEGENERACY";
-        } else if (node.category === "algorithmic") {
-          sectorLabel = "SECTOR DELTA // ALGORITHMIC";
+          el.innerHTML = `
+            <div class="pulse-ring" style="border-color: ${typeColor}; box-shadow: 0 0 10px ${typeColor}80"></div>
+            <div class="marker-core" style="background: ${typeColor}"></div>
+          `;
+          el.style.width = "20px";
+          el.style.height = "20px";
+          el.style.position = "relative";
+          el.style.cursor = "pointer";
+
+          let sectorLabel = node.type;
+          if (node.category === "realistic") sectorLabel = `SECTOR ALPHA // ${node.type}`;
+          else if (node.category === "fictional") sectorLabel = "SECTOR BETA // ANOMALY";
+          else if (node.category === "satirical") sectorLabel = "SECTOR GAMMA // DEGENERACY";
+          else if (node.category === "algorithmic") sectorLabel = "SECTOR DELTA // ALGORITHMIC";
+
+          const popupHtml = `
+            <div style="font-family: var(--mono); font-size: 10px; color: ${typeColor}; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 4px; text-transform: uppercase;">
+              [${sectorLabel} // ${node.region}]
+            </div>
+            <div style="font-family: var(--sans); font-size: 12px; font-weight: bold; color: #fff;">${node.name}</div>
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 4px;">
+              Severity: <span style="color: ${typeColor}; font-weight: bold;">${node.severity}%</span>
+            </div>
+          `;
+
+          const popup = new mapboxgl.Popup({
+            offset: 15,
+            closeButton: false,
+            className: "tactical-popup tactical-popup-" + (node.category || "realistic")
+          }).setHTML(popupHtml);
+
+          const marker = new mapboxgl.Marker({ element: el })
+            .setLngLat([node.lng, node.lat])
+            .setPopup(popup)
+            .addTo(map);
+
+          el.addEventListener("mouseenter", () => popup.addTo(map));
+          el.addEventListener("mouseleave", () => popup.remove());
+          el.addEventListener("click", () => {
+            onSelectNode(node);
+            try {
+              map.flyTo({ center: [node.lng, node.lat], zoom: 4, speed: 1.2, curve: 1.4, essential: true });
+            } catch (err) {
+              console.warn("Failed to fly to node:", err);
+            }
+          });
+
+          markersRef.current[node.id] = marker;
+        } catch (err) {
+          console.warn("Skipped bad marker node:", node?.id, err);
         }
-
-        const popupHtml = `
-          <div style="font-family: var(--mono); font-size: 10px; color: ${typeColor}; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 4px; text-transform: uppercase;">
-            [${sectorLabel} // ${node.region}]
-          </div>
-          <div style="font-family: var(--sans); font-size: 12px; font-weight: bold; color: #fff;">${node.name}</div>
-          <div style="font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 4px;">
-            Severity: <span style="color: var(--accent); font-weight: bold;">${node.severity}%</span>
-          </div>
-        `;
-
-        const popup = new mapboxgl.Popup({
-          offset: 15,
-          closeButton: false,
-          className: "tactical-popup tactical-popup-" + (node.category || "realistic")
-        }).setHTML(popupHtml);
-
-        // Add marker to map
-        const marker = new mapboxgl.Marker({ element: el })
-          .setLngLat([node.lng, node.lat])
-          .setPopup(popup)
-          .addTo(map);
-
-        // Handle hover events
-        el.addEventListener("mouseenter", () => popup.addTo(map));
-        el.addEventListener("mouseleave", () => popup.remove());
-
-        // Click to select node
-        el.addEventListener("click", () => {
-          onSelectNode(node);
-          try {
-            map.flyTo({
-              center: [node.lng, node.lat],
-              zoom: 4,
-              speed: 1.2,
-              curve: 1.4,
-              essential: true
-            });
-          } catch (err) {
-            console.warn("Failed to fly to coordinate node:", err);
-          }
-        });
-
-        markersRef.current[node.id] = marker;
       });
-    } catch (err) {
-      console.error("Failed to update tactical map markers:", err);
-    }
+
+      // If showing many nodes (all sectors), zoom out to global view so all colors are visible
+      if (nodes.length > 25) {
+        try {
+          map.flyTo({ center: [15, 20], zoom: 1.4, speed: 1.2, essential: true });
+        } catch (err) {}
+      }
   }, [nodes, onSelectNode, mapReady]);
 
   // Handle selectedNode flyTo updates from outside click (e.g. list click)

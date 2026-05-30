@@ -612,7 +612,7 @@ export default function HomePage() {
             ].map((f) => (
               <button
                 key={f.key}
-                onClick={() => setMapFilter(f.key)}
+                onClick={() => { setMapFilter(f.key); setSelectedNode(null); }}
                 style={{
                   fontFamily: "var(--mono)",
                   fontSize: "10.5px",
