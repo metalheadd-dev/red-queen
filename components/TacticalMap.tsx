@@ -4,9 +4,8 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 // Access token fallback
-const TOKEN_PART_1 = "pk.eyJ1IjoibWV0YWxoZWFkZCIsImEiOiJjbDJ5MW94ZnIwMW52M2NwNDNidnpqODQzIn0.";
-const TOKEN_PART_2 = "o4aA83YlG86uC0L4f2yG2A";
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || (TOKEN_PART_1 + TOKEN_PART_2);
+const DEFAULT_USER_TOKEN = "pk.eyJ1IjoicG9seWh1bnQyMyIsImEiOiJjbXBzbjh1bjkwZWZjMnFzZTNraDN6dzU2In0.AaOHetOyEbtDlQnlR4qz3Q";
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || DEFAULT_USER_TOKEN;
 
 interface MapNode {
   id: string;
