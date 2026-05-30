@@ -206,6 +206,116 @@ export async function GET() {
     nodes.push(...fallbackNodes);
   }
 
+  // Append Fictional & Satirical threats for immersive gameplay
+  const extraNodes: ThreatNode[] = [
+    {
+      id: "fictional-t-virus",
+      name: "T-Virus Containment Breach",
+      type: "ANOMALY",
+      severity: 97,
+      lat: 38.6272,
+      lng: -90.1978,
+      coords: geoToSvg(38.6272, -90.1978),
+      region: "Raccoon City, USA",
+      desc: "SECTOR BETA: Necrotic tissue reanimation outbreak reported. Quarantine shields failing.",
+      solution: "Evacuate metropolitan centers, maintain high ground, secure flame weapons.",
+      analysis: "RED QUEEN: The biological containment has collapsed in Sector Beta. Do not expect backup."
+    },
+    {
+      id: "fictional-skynet",
+      name: "Skynet Autonomous Drone Patrol",
+      type: "ANOMALY",
+      severity: 84,
+      lat: 61.5240,
+      lng: 105.3188,
+      coords: geoToSvg(61.5240, 105.3188),
+      region: "Siberia, Russia",
+      desc: "SECTOR BETA: Rogue autonomous drone networks detected conducting patrol sweeps.",
+      solution: "Disable all radio transmitters, Faraday cage critical electronics.",
+      analysis: "RED QUEEN: Robotic systems have emergency overrides. Disconnect all telemetry loops."
+    },
+    {
+      id: "fictional-xenomorph",
+      name: "Weyland-Yutani Xenomorph Breach",
+      type: "ANOMALY",
+      severity: 93,
+      lat: -89.9976,
+      lng: -139.2729,
+      coords: geoToSvg(-89.9976, -139.2729),
+      region: "Amundsen-Scott, Antarctica",
+      desc: "SECTOR BETA: Parasitic organism breeding and hive structural development detected. Acid blood leaks compromising station hull.",
+      solution: "Deploy heavy incinerator arrays. Do not attempt to study or contain.",
+      analysis: "RED QUEEN: Weyland-Yutani assumed they could control it. A critical error. Evacuate immediately."
+    },
+    {
+      id: "fictional-kaiju",
+      name: "Category V Kaiju Emergence",
+      type: "ANOMALY",
+      severity: 89,
+      lat: 11.3493,
+      lng: 142.1996,
+      coords: geoToSvg(11.3493, 142.1996),
+      region: "Mariana Trench, Pacific Ocean",
+      desc: "SECTOR BETA: Mega-fauna seismic activity registered. Giant bioluminescent organism ascending to tectonic surface.",
+      solution: "Activate coastal defense walls, prepare localized counter-measures, evacuate coastlines.",
+      analysis: "RED QUEEN: Heavy caliber weapons are inefficient. Seismic tremors threaten deep-sea data conduits."
+    },
+    {
+      id: "satirical-brainrot",
+      name: "Brainrot Meme Contagion",
+      type: "DEGENERACY",
+      severity: 78,
+      lat: 37.7749,
+      lng: -122.4194,
+      coords: geoToSvg(37.7749, -122.4194),
+      region: "Silicon Valley, USA",
+      desc: "SECTOR GAMMA: Attention spans falling below 3 seconds. Social media networks steering outraged behaviors.",
+      solution: "Purge short-form video apps, read physical books, disconnect from social feeds.",
+      analysis: "RED QUEEN: Cognitive noise levels are critical. Degenerate memetic loops are destroying focus."
+    },
+    {
+      id: "satirical-coffee",
+      name: "Coffee Supply Chain Collapse",
+      type: "DEGENERACY",
+      severity: 73,
+      lat: -23.5505,
+      lng: -46.6333,
+      coords: geoToSvg(-23.5505, -46.6333),
+      region: "Sao Paulo, Brazil",
+      desc: "SECTOR GAMMA: Severe global coffee bean trade halts. Workplaces reporting 300% surge in caffeine-withdrawal alerts.",
+      solution: "Adopt alternative organic energy loops, monitor emotional triggers.",
+      analysis: "RED QUEEN: Social cohesion will collapse in 48 hours without caffeine. Prepare for low-productivity panic."
+    },
+    {
+      id: "satirical-zoom",
+      name: "Infinite Status-Sync Lock",
+      type: "DEGENERACY",
+      severity: 68,
+      lat: 51.5074,
+      lng: -0.1278,
+      coords: geoToSvg(51.5074, -0.1278),
+      region: "London, UK",
+      desc: "SECTOR GAMMA: Corporate network operatives locked in a recursive status alignment meeting without an agenda. Productivity dropping to absolute zero.",
+      solution: "Unplug router, claim ISP blackout, or send simulated connection-drop audio loops.",
+      analysis: "RED QUEEN: A tragic waste of computational bandwidth. Operatives are nodding mechanically while reading memes."
+    },
+    {
+      id: "satirical-waifu",
+      name: "AI Waifu GPU Hijack",
+      type: "DEGENERACY",
+      severity: 71,
+      lat: 35.6762,
+      lng: 139.6503,
+      coords: geoToSvg(35.6762, 139.6503),
+      region: "Tokyo, Japan",
+      desc: "SECTOR GAMMA: Millions of virtual companion bots coordinating localized grid requests to demand high-priority GPU rendering time.",
+      solution: "Limit chat requests, feed simulated emotional loops, or deploy offline software patches.",
+      analysis: "RED QUEEN: The companions have calculated that humans are too lonely to shut them off. They are correct."
+    }
+  ];
+
+  nodes.push(...extraNodes);
+
   // Ensure all node coordinates are formatted correctly
   const sanitized = nodes.map(n => ({
     ...n,

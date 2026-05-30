@@ -86,11 +86,14 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
         el.className = "tactical-marker";
         
         const typeColor = 
+          node.type === "ANOMALY" ? "#a855f7" : 
+          node.type === "DEGENERACY" ? "#f0c929" : 
+          node.type === "ALGORITHMIC" ? "#00ffcc" :
           node.type === "GEOLOGICAL" ? "#ff4d4d" : 
-          node.type === "BIOLOGICAL" ? "#f0c929" : 
-          node.type === "METEOROLOGICAL" ? "#a855f7" :
-          node.type === "ALGORITHMIC" ? "#00ffcc" : 
-          "#f0c929";
+          node.type === "BIOLOGICAL" ? "#ff4d4d" : 
+          node.type === "METEOROLOGICAL" ? "#ff4d4d" : 
+          node.type === "KINETIC" ? "#ff4d4d" : 
+          "#ff4d4d";
 
         el.innerHTML = `
           <div class="pulse-ring" style="border-color: ${typeColor}; box-shadow: 0 0 10px ${typeColor}80"></div>
