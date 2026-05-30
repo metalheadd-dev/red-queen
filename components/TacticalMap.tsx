@@ -32,6 +32,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<{ [key: string]: mapboxgl.Marker }>({});
   const [mapError, setMapError] = useState<string | null>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -55,11 +56,12 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
       // Add atmosphere/fog effect for cinematic look
       map.on("style.load", () => {
         map.setFog({
-          color: "rgb(15, 10, 10)", // Reddish ambient fog matching RED QUEEN theme
+          color: "rgb(15, 10, 10)",
           "high-color": "rgb(36, 10, 10)",
           "space-color": "rgb(0, 0, 0)",
           "horizon-blend": 0.02
         });
+        setMapReady(true);
       });
 
       return () => {
@@ -71,10 +73,10 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
     }
   }, []);
 
-  // Update markers when nodes change
+  // Update markers when nodes or map readiness changes
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !Array.isArray(nodes)) return;
+    if (!map || !mapReady || !Array.isArray(nodes)) return;
 
     try {
       // Clean up old markers
@@ -166,7 +168,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
     } catch (err) {
       console.error("Failed to update tactical map markers:", err);
     }
-  }, [nodes, onSelectNode]);
+  }, [nodes, onSelectNode, mapReady]);
 
   // Handle selectedNode flyTo updates from outside click (e.g. list click)
   useEffect(() => {

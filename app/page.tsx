@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import SolvivalIcon from "@/components/SolvivalIcon";
@@ -65,12 +65,14 @@ const FEED_TEMPLATES = [
 
 export default function HomePage() {
   // Boot sequence should only run once per browser session (not on every navigation)
-  const [booted, setBooted] = useState(() => {
-    if (typeof window !== "undefined") {
-      return sessionStorage.getItem("rq-booted") === "1";
+  const [booted, setBooted] = useState(false);
+
+  // Synchronously check sessionStorage before first paint to avoid boot flash
+  useLayoutEffect(() => {
+    if (sessionStorage.getItem("rq-booted") === "1") {
+      setBooted(true);
     }
-    return false;
-  });
+  }, []);
 
   const handleBooted = () => {
     sessionStorage.setItem("rq-booted", "1");
