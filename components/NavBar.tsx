@@ -83,10 +83,10 @@ export default function NavBar() {
             )}
           </ul>
 
-          <div className="navbar-status desktop-only" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div className="navbar-status desktop-only" style={{ display: "flex", alignItems: "center", gap: "15px", flexShrink: 0, whiteSpace: "nowrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0, whiteSpace: "nowrap" }}>
               <span className="status-dot" />
-              RED QUEEN ONLINE
+              <span className="navbar-status-text">RED QUEEN ONLINE</span>
             </div>
             
             {!user && !connected ? (
@@ -103,7 +103,9 @@ export default function NavBar() {
                   fontWeight: "bold",
                   letterSpacing: "0.08em",
                   boxShadow: "0 0 10px rgba(255, 77, 77, 0.15)",
-                  transition: "all 0.2s"
+                  transition: "all 0.2s",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0
                 }}
               >
                 [ ACCESS PORTAL ]
@@ -111,8 +113,8 @@ export default function NavBar() {
             ) : (
               <>
                 {user && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)" }}>
-                    <span style={{ color: "var(--text-dim)" }}>[ {user.email} ]</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)", flexShrink: 0, whiteSpace: "nowrap" }}>
+                    <span style={{ color: "var(--text-dim)", whiteSpace: "nowrap", flexShrink: 0 }}>[ {user.email} ]</span>
                     <button
                       onClick={() => logout()}
                       style={{
@@ -123,7 +125,9 @@ export default function NavBar() {
                         fontSize: "9.5px",
                         padding: "3px 8px",
                         cursor: "pointer",
-                        borderRadius: "2px"
+                        borderRadius: "2px",
+                        whiteSpace: "nowrap",
+                        flexShrink: 0
                       }}
                     >
                       LOGOUT
@@ -131,7 +135,7 @@ export default function NavBar() {
                   </div>
                 )}
 
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0, whiteSpace: "nowrap" }}>
                   <WalletMultiButton style={{
                     background: "transparent",
                     border: connected ? "1px solid var(--accent)" : "1px dashed rgba(255,255,255,0.2)",
@@ -141,6 +145,8 @@ export default function NavBar() {
                     padding: "5px 15px",
                     height: "auto",
                     lineHeight: "1.5",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0
                   }} />
                   {wallet && !connected && (
                     <button
@@ -154,6 +160,8 @@ export default function NavBar() {
                         cursor: "pointer",
                         fontFamily: "var(--mono)",
                         padding: 0,
+                        whiteSpace: "nowrap",
+                        flexShrink: 0
                       }}
                     >
                       [CHANGE]

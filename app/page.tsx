@@ -84,7 +84,7 @@ export default function HomePage() {
   // Interactive state
   const [selectedHotspot, setSelectedHotspot] = useState(MAP_HOTSPOTS[0]);
   const [mapNodes, setMapNodes] = useState<any[]>([]);
-  const [mapFilter, setMapFilter] = useState<string>("all");
+  const [mapFilter, setMapFilter] = useState<string>("realistic");
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [loadingMap, setLoadingMap] = useState(false);
   const [hoveredNode, setHoveredNode] = useState<any>(null);
@@ -604,7 +604,6 @@ export default function HomePage() {
           {/* Map Category Filter Toggles */}
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", marginTop: "24px" }}>
             {[
-              { key: "all", label: "[ ALL SECTORS ]", color: "#ffffff" },
               { key: "realistic", label: "[ SECTOR ALPHA (KINETIC) ]", color: "#ff4d4d" },
               { key: "fictional", label: "[ SECTOR BETA (ANOMALIES) ]", color: "#a855f7" },
               { key: "satirical", label: "[ SECTOR GAMMA (DEGENERACY) ]", color: "#f0c929" },
