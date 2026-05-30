@@ -1,13 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import SolvivalIcon from "@/components/SolvivalIcon";
 import BootSequence from "@/components/BootSequence";
 import { THREAT_OF_THE_DAY } from "@/lib/threatOfTheDay";
 
+const TacticalMap = dynamic(() => import("@/components/TacticalMap"), {
+  ssr: false,
+  loading: () => (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", justifyContent: "center", height: "420px", fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "12px" }}>
+      <span className="loading-dots">INITIALIZING TACTICAL MAP SENSORS<span>.</span><span>.</span><span>.</span></span>
+    </div>
+  )
+});
+
 const TICKER_ITEMS = [
   "CRITICAL COMPUTE ALERT: ADVERSARIAL LLM NETWORKS CROSS-REFERENCING WALLET METADATA WITH WEB2 SOCIAL GRAPHS",
-  "EXPERIMENTAL LOG: X402 PROTOCOL INFRASTRUCTURE CURRENTLY UNDER INTERNAL INTEGRATION",
+  "SYSTEM CORRELATION UPDATE: COMPUTE OPTIMIZATION MATRIX LOADED",
   "ENCRYPT YOUR TRANSMISSION // DECRYPTION SCRIPT RUNNING IN SECTOR 4",
   "SYBIL ATTACK VECTOR DETECTED: 104,281 PSEUDO-IDENTITIES HARVESTING ENCRYPTED WALLET HEURISTICS",
   "AI PERSONA HARVESTING MATRICES SCANNING SOCIAL HANDLES IN SECTOR 9",
@@ -310,8 +320,8 @@ export default function HomePage() {
                 <div style={{ display: "flex", gap: "12px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.03)", padding: "12px 16px", borderRadius: "2px" }}>
                   <span style={{ fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold", color: "var(--accent)", width: "24px", height: "24px", display: "flex", alignItems: "center", border: "1px solid var(--accent)", borderRadius: "50%", justifyContent: "center", flexShrink: 0 }}>3</span>
                   <div>
-                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "12.5px", color: "var(--text)", margin: "0 0 2px 0" }}>BUILD YOUR BIO-SCORE</h4>
-                    <p style={{ fontSize: "12px", color: "var(--text-dim)", margin: 0 }}>Accumulate XP to climb clearance levels from Civilian to Director.</p>
+                    <h4 style={{ fontFamily: "var(--title-font)", fontSize: "12.5px", color: "var(--text)", margin: "0 0 2px 0" }}>BUILD YOUR BIO-SCORE & XP</h4>
+                    <p style={{ fontSize: "12px", color: "var(--text-dim)", margin: 0 }}>Earn permanent XP to unlock levels, and chat with RED QUEEN to raise your readiness BIO-SCORE.</p>
                   </div>
                 </div>
 
@@ -520,115 +530,22 @@ export default function HomePage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "32px", marginTop: "32px" }} className="responsive-grid-2-large">
-            {/* SVG Network Map */}
-            <div className="panel" style={{ background: "#020202", borderColor: "rgba(255,0,51,0.15)", position: "relative", minHeight: "420px", padding: "16px", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: "16px", left: "16px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", zIndex: 10 }}>
+            {/* Mapbox Network Map */}
+            <div className="panel" style={{ background: "#020202", borderColor: "rgba(255,0,51,0.15)", position: "relative", minHeight: "420px", padding: "0", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "16px", left: "16px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", zIndex: 10, background: "rgba(0,0,0,0.6)", padding: "4px 8px", borderRadius: "2px" }}>
                 [ SYSTEM RADAR MONITORING NETWORK // LIVE GEOGRAPHY ]
               </div>
 
-              {loadingMap || mapNodes.length === 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", justifyContent: "center", height: "360px", fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "12px" }}>
+              {loadingMap || !Array.isArray(mapNodes) || mapNodes.length === 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", justifyContent: "center", height: "420px", fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "12px" }}>
                   <span className="loading-dots">SYNCHRONIZING TACTICAL RADAR NODES<span>.</span><span>.</span><span>.</span></span>
                 </div>
               ) : (
-                <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                  <svg viewBox="0 0 800 400" style={{ width: "100%", height: "auto", opacity: 0.95 }}>
-                    {/* Tactical grid background lines */}
-                    <defs>
-                      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 0, 51, 0.04)" strokeWidth="1" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#grid)" />
-
-                    {/* Holographic Radar Concentric Circles */}
-                    <circle cx="400" cy="200" r="80" fill="none" stroke="rgba(255, 77, 77, 0.06)" strokeWidth="1" strokeDasharray="3 3" />
-                    <circle cx="400" cy="200" r="160" fill="none" stroke="rgba(255, 77, 77, 0.06)" strokeWidth="1" strokeDasharray="3 3" />
-                    <circle cx="400" cy="200" r="240" fill="none" stroke="rgba(255, 77, 77, 0.06)" strokeWidth="1" strokeDasharray="3 3" />
-
-                    {/* Longitude and Latitude grid lines */}
-                    <line x1="50" y1="200" x2="750" y2="200" stroke="rgba(255, 77, 77, 0.1)" strokeWidth="1" strokeDasharray="5 5" />
-                    <line x1="400" y1="30" x2="400" y2="370" stroke="rgba(255, 77, 77, 0.1)" strokeWidth="1" strokeDasharray="5 5" />
-
-                    {/* Degree labels */}
-                    <text x="410" y="45" fill="rgba(255,77,77,0.3)" fontSize="8.5" fontFamily="var(--mono)">80°N</text>
-                    <text x="410" y="365" fill="rgba(255,77,77,0.3)" fontSize="8.5" fontFamily="var(--mono)">80°S</text>
-                    <text x="55" y="195" fill="rgba(255,77,77,0.3)" fontSize="8.5" fontFamily="var(--mono)">160°W</text>
-                    <text x="705" y="195" fill="rgba(255,77,77,0.3)" fontSize="8.5" fontFamily="var(--mono)">160°E</text>
-
-                    {/* Detailed Continent Outlines (Tactical Wireframe Geography) */}
-                    {/* North America */}
-                    <path d="M 120 70 L 140 60 L 175 55 L 220 50 L 235 60 L 220 80 L 260 85 L 270 100 L 250 110 L 220 115 L 180 120 L 185 140 L 175 160 L 190 190 L 195 210 L 185 210 L 170 180 L 160 145 L 145 130 L 130 135 L 110 120 L 105 90 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
-                    
-                    {/* South America */}
-                    <path d="M 195 215 L 210 220 L 235 230 L 230 270 L 205 320 L 190 350 L 185 365 L 180 350 L 175 300 L 170 260 L 180 230 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
-                    
-                    {/* Greenland */}
-                    <path d="M 280 40 L 310 35 L 305 65 L 285 60 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
-                    
-                    {/* Africa */}
-                    <path d="M 370 180 L 415 175 L 450 185 L 470 205 L 485 220 L 470 260 L 455 295 L 430 325 L 420 340 L 415 320 L 400 280 L 375 250 L 360 215 L 355 190 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
-                    
-                    {/* Eurasia */}
-                    <path d="M 360 110 L 380 90 L 410 75 L 440 60 L 490 55 L 560 50 L 620 55 L 670 65 L 720 80 L 740 100 L 710 125 L 720 155 L 685 185 L 660 170 L 640 185 L 595 190 L 570 210 L 550 190 L 525 200 L 485 170 L 460 175 L 420 160 L 400 165 L 385 150 L 380 130 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
-                    
-                    {/* Australia */}
-                    <path d="M 640 270 L 680 275 L 690 310 L 670 330 L 645 320 L 630 290 Z" fill="rgba(255,255,255,0.01)" stroke="rgba(255, 77, 77, 0.18)" strokeWidth="1.5" strokeLinejoin="round" />
-
-                    {/* Sonar Radar Sweep */}
-                    <line x1="400" y1="200" x2="800" y2="200" stroke="rgba(255, 77, 77, 0.2)" strokeWidth="2" style={{ filter: "drop-shadow(0 0 3px rgba(255,77,77,0.4))" }}>
-                      <animateTransform attributeName="transform" type="rotate" from="0 400 200" to="360 400 200" dur="12s" repeatCount="indefinite"/>
-                    </line>
-
-                    {/* Threat Nodes */}
-                    {mapNodes.map((node) => {
-                      const isSelected = selectedNode?.id === node.id;
-                      const color = node.type === "GEOLOGICAL" ? "#ff4d4d" : node.type === "ALGORITHMIC" ? "#00ffcc" : "#f0c929";
-                      return (
-                        <g key={node.id} 
-                           onClick={() => setSelectedNode(node)} 
-                           onMouseEnter={() => setHoveredNode(node)}
-                           onMouseLeave={() => setHoveredNode(null)}
-                           style={{ cursor: "pointer" }}>
-                          {/* Pulsing ring */}
-                          <circle cx={node.coords.x} cy={node.coords.y} r={isSelected ? 16 : 8} fill="none" stroke={color} strokeWidth="1.5" opacity={isSelected ? 0.9 : 0.5}>
-                            <animate attributeName="r" values="5;22;5" dur="3s" repeatCount="indefinite" />
-                          </circle>
-                          {/* Inner core */}
-                          <circle cx={node.coords.x} cy={node.coords.y} r="5" fill={color} />
-                        </g>
-                      );
-                    })}
-                  </svg>
-
-                  {/* Compact Hover Card */}
-                  {hoveredNode && (
-                    <div style={{
-                      position: "absolute",
-                      left: `${(hoveredNode.coords.x / 800) * 100}%`,
-                      top: `${(hoveredNode.coords.y / 400) * 100}%`,
-                      transform: "translate(-50%, -115%)",
-                      background: "rgba(5, 5, 5, 0.95)",
-                      border: "1px solid var(--accent)",
-                      padding: "10px 14px",
-                      borderRadius: "2px",
-                      pointerEvents: "none",
-                      zIndex: 100,
-                      minWidth: "180px",
-                      boxShadow: "0 4px 20px rgba(0,0,0,0.8)"
-                    }}>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>
-                        [{hoveredNode.type} // {hoveredNode.region}]
-                      </div>
-                      <div style={{ fontSize: "12px", fontWeight: "bold", color: "#fff", marginBottom: "2px" }}>
-                        {hoveredNode.name}
-                      </div>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>
-                        Severity: <span style={{ color: "var(--accent)" }}>{hoveredNode.severity}%</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <TacticalMap
+                  nodes={mapNodes}
+                  onSelectNode={setSelectedNode}
+                  selectedNode={selectedNode}
+                />
               )}
             </div>
 
@@ -708,23 +625,19 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* x402 FUTURE INFRASTRUCTURE */}
-            <div className="bento-card" style={{ borderColor: "var(--accent)", background: "rgba(255, 0, 51, 0.02)", padding: "32px", cursor: "default", position: "relative" }}>
-              {/* Development status badge */}
-              <div style={{ position: "absolute", top: "12px", right: "12px", fontSize: "8.5px", fontFamily: "var(--mono)", color: "var(--accent)", border: "1px solid var(--border-red)", padding: "3px 8px", background: "rgba(255,0,51,0.06)", borderRadius: "2px" }}>
-                EXPERIMENTAL // IN DEVELOPMENT
-              </div>
-              <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "16px", fontFamily: "var(--mono)", fontWeight: "bold", paddingRight: "160px" }}>
-                [ x402 PROTOCOL INTEGRATION ]
+            {/* SURVEILLANCE & REPUTATION DEFENSE */}
+            <div className="bento-card" style={{ borderColor: "var(--border)", background: "rgba(10,10,10,0.5)", padding: "32px", cursor: "default" }}>
+              <h3 style={{ fontSize: "16px", color: "var(--text-dim)", marginBottom: "16px", fontFamily: "var(--mono)", fontWeight: "bold" }}>
+                [ SURVEILLANCE & REPUTATION DEFENSE ]
               </h3>
               <p style={{ color: "var(--text-dim)", fontSize: "13px", lineHeight: "1.7", marginBottom: "20px" }}>
-                Experimental integration of machine-to-machine validation layer. Designed to automate autonomous trust protocols natively on Solana.
+                The RED QUEEN actively sweeps network registry databases to protect your signature profile against adversarial scraping loops.
               </p>
-              <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)" }}>
-                <li>✔ Machine-to-Machine Autonomous Handshakes — *In Testing*</li>
-                <li>✔ Frictionless Cryptographic Session Isolation — *Prototype*</li>
-                <li>✔ Under-Development API Protection Routing Layers — *Active Development*</li>
-                <li>✔ Zero Static Storage Credential Verification — *Internal Sandbox*</li>
+              <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>
+                <li>✔ Direct wallet telemetry tracking analysis</li>
+                <li>✔ Verification checks on multi-chain compliance lists</li>
+                <li>✔ Counter-measure recommendations updated weekly</li>
+                <li>✔ Persistent security footprint logging and decay</li>
               </ul>
             </div>
           </div>
@@ -816,10 +729,10 @@ export default function HomePage() {
                 solution: "Scans public handle records to map timeline injection vulnerabilities."
               },
               {
-                title: "x402 Protocol Layer",
-                problem: "Traditional system handshakes expose structural identity metadata.",
-                risk: "Vulnerabilities can be exploited by scanning agents tracking network loops.",
-                solution: "Under-development machine-to-machine validation layers to encrypt operations."
+                title: "Algorithmic Privacy Shielding",
+                problem: "Adversarial crawlers map user profile linkages across public networks.",
+                risk: "Cross-graph tracking exposes your physical IP and wallet identity.",
+                solution: "Run telemetry sweeps on node logs to isolate leakage points."
               },
               {
                 title: "Privacy Diagnostics",
@@ -862,22 +775,13 @@ export default function HomePage() {
       </section>
 
       {/* x402 Experimental Infrastructure Section */}
-      <section className="page-section" style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 0" }}>
-        <div className="container" style={{ maxWidth: "800px", textAlign: "center" }}>
-          <div className="tag tag-red" style={{ marginBottom: "20px" }}>EXPERIMENTAL MODULE // PROTOTYPE CLASS</div>
-          <h2 style={{ fontSize: "28px", fontFamily: "var(--title-font)", color: "var(--text)", marginBottom: "16px", letterSpacing: "0.05em" }}>
-            EXPERIMENTAL <span style={{ color: "var(--accent)" }}>x402 Systems</span> CURRENTLY UNDER INTEGRATION
-          </h2>
-          <p style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.8", margin: "0 auto", maxWidth: "640px" }}>
-            The RED QUEEN is integrating experimental x402 protocol layers internally to automate autonomous machine-to-machine trust handshakes. This is a future system architecture, under active development and testing. Access channels will remain closed until security validation loops complete.
-          </p>
-          <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginTop: "32px" }}>
-            <div style={{ background: "#0c0c0c", border: "1px dashed var(--border-red)", padding: "16px 24px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>
-              STATUS: <span style={{ color: "var(--accent)" }}>INTEGRATION IN PROGRESS</span>
-            </div>
-            <div style={{ background: "#0c0c0c", border: "1px dashed #00ffcc20", padding: "16px 24px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>
-              INFRASTRUCTURE: <span style={{ color: "#00ffcc" }}>SOLANA V2 SHIELD</span>
-            </div>
+      <section className="page-section" style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "48px 0", background: "rgba(255, 0, 51, 0.01)" }}>
+        <div className="container" style={{ maxWidth: "680px", textAlign: "center" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "8px 16px", background: "rgba(255, 77, 77, 0.05)", border: "1px solid rgba(255, 77, 77, 0.25)", borderRadius: "2px" }}>
+            <span style={{ width: "6px", height: "6px", background: "var(--accent)", borderRadius: "50%", animation: "pulse 2s infinite" }} />
+            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+              x402 Infrastructure — Internal Integration In Progress
+            </span>
           </div>
         </div>
       </section>

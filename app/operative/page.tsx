@@ -362,7 +362,7 @@ export default function OperativeProfilePage() {
             {scoreNum !== null && (
               <div style={{ textAlign: "right", marginLeft: "auto", minWidth: "160px" }}>
                 <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "4px" }}>
-                  DIAGNOSTIC HEALTH
+                  SURVIVAL READINESS (BIO-SCORE)
                 </div>
                 <div style={{ fontFamily: "var(--mono)", fontSize: "56px", fontWeight: 900, color: scoreColor, lineHeight: 1, textShadow: `0 0 6px ${scoreColor}80` }}>
                   {scoreNum}%
@@ -418,6 +418,21 @@ export default function OperativeProfilePage() {
                 <div className="threat-bar-wrap" style={{ marginTop: "8px", width: "150px", height: "6px", background: "#111" }}>
                   <div className="threat-bar-fill" style={{ width: `${stats.xp % 100}%`, background: "var(--accent)" }} />
                 </div>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "24px", padding: "16px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.03)", borderRadius: "2px" }} className="responsive-grid-2">
+              <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6" }}>
+                <strong style={{ color: "#ffffff", fontFamily: "var(--mono)", fontSize: "11px", display: "block", marginBottom: "4px" }}>
+                  [ XP & LEVEL // LONG-TERM PROGRESSION ]
+                </strong>
+                XP is earned permanently through terminal diagnostics and crisis chats. It never decreases and acts as your permanent operational record, driving your Clearance Level milestones.
+              </div>
+              <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6" }}>
+                <strong style={{ color: "var(--accent)", fontFamily: "var(--mono)", fontSize: "11px", display: "block", marginBottom: "4px" }}>
+                  [ BIO-SCORE // CURRENT SURVIVAL READINESS ]
+                </strong>
+                BIO-SCORE is a dynamic, volatile index calculated as the average of your 7 sub-stats. It increases with terminal check-ins but degrades (decays) daily during periods of inactivity.
               </div>
             </div>
 

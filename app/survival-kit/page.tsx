@@ -4,513 +4,421 @@ import SolvivalIcon from "@/components/SolvivalIcon";
 
 export default function SurvivalKitPage() {
   const [activeTab, setActiveTab] = useState("what-is-red-queen");
-  const [highlightedCode, setHighlightedCode] = useState<string | null>(null);
 
   const tabs = [
-    { id: "what-is-red-queen", label: "01. SYSTEM PURPOSE", title: "WHAT IS RED QUEEN?" },
-    { id: "bio-score", label: "02. BIO-SCORE MECHANICS", title: "HOW BIO-SCORE WORKS" },
-    { id: "threat-categories", label: "03. THREAT VECTORS", title: "THREAT CATEGORIES EXPLAINED" },
-    { id: "terminal-guide", label: "04. CLI OPERATIONS", title: "AI TERMINAL GUIDE" },
-    { id: "wallet-privacy", label: "05. OPSEC STANDARD", title: "WALLET PRIVACY & SOVEREIGNTY" },
-    { id: "solana-infra", label: "06. BLOCKCHAIN LEDGER", title: "SOLANA INFRASTRUCTURE" },
-    { id: "faq", label: "07. INTELLIGENCE FAQ", title: "COMMON INQUIRIES" },
-    { id: "roadmap", label: "08. HORIZON HORIZON", title: "FUTURE SYSTEMS ROADMAP" }
+    { id: "what-is-red-queen", label: "01. OVERVIEW", title: "WHAT IS RED QUEEN?" },
+    { id: "bio-score", label: "02. BIO-SCORE", title: "BIO-SCORE MECHANICS" },
+    { id: "xp-vs-bio-score", label: "03. XP VS BIO-SCORE", title: "XP VS BIO-SCORE COMPARISON" },
+    { id: "terminal-guide", label: "04. CLI MANUAL", title: "HOW THE TERMINAL WORKS" },
+    { id: "threat-categories", label: "05. HAZARD SECTORS", title: "THREAT CATEGORIES" },
+    { id: "wallet-connection", label: "06. IDENTITY", title: "WALLET & IDENTITY SECURITY" },
+    { id: "clearance-levels", label: "07. TIERS", title: "SYSTEM CLEARANCE LEVELS" },
+    { id: "faq", label: "08. INQUIRIES", title: "FREQUENTLY ASKED QUESTIONS" }
   ];
-
-  const getCodeExplainer = () => {
-    switch (highlightedCode) {
-      case "status":
-        return "HTTP 402 specifies that access to the requested resource requires payment. It serves as a decentralized firewall gate, blocking scrapers and crawlers.";
-      case "challenge":
-        return "The payment challenge parameters are returned as a Base64-encoded JSON object, specifying the exact USDC amount (0.05), target token mint, and destination network.";
-      case "signature":
-        return "The client signs a transaction settling the challenge fee on the Solana ledger, then retries the request providing the verified transaction signature in the custom X-PAYMENT-SIGNATURE header.";
-      default:
-        return "Click on any line in the protocol header code block to inspect the parameters and understand how the client and server exchange tokens.";
-    }
-  };
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", paddingTop: "60px", background: "#050505" }}>
-      {/* Header */}
+      {/* Header Banner */}
       <div style={{ borderBottom: "1px solid var(--border)", padding: "48px 24px", background: "var(--surface)" }}>
         <div className="container">
-          <div className="tag tag-red" style={{ marginBottom: "16px" }}>OPERATIONAL INTELLIGENCE WIKI // SEC: ALPHA</div>
-          <h1 className="glow-text" style={{ fontSize: "clamp(28px, 5vw, 48px)", marginBottom: "8px", letterSpacing: "0.05em" }}>
+          <div className="tag tag-red" style={{ marginBottom: "16px" }}>OPERATIVE MANUAL // SYSTEM DOCUMENTATION</div>
+          <h1 style={{ fontSize: "clamp(28px, 5vw, 44px)", marginBottom: "12px", letterSpacing: "0.05em", color: "#ffffff" }}>
             SURVIVAL <span style={{ color: "var(--accent)" }}>KIT</span>
           </h1>
-          <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            RED QUEEN Operative Manual, Cryptographic Security Protocols, and System Wiki
+          <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.6", maxWidth: "700px" }}>
+            The official user guide, technical documentation, and tactical FAQ for navigating the RED QUEEN AI intelligence platform.
           </p>
         </div>
       </div>
 
-      {/* Docs Layout */}
-      <div style={{ display: "flex", flex: 1, position: "relative" }} className="responsive-grid-2-large">
+      {/* Main Grid Layout */}
+      <div className="container" style={{ display: "flex", flex: 1, padding: "40px 24px", gap: "40px" }}>
         
-        {/* Sidebar */}
+        {/* Navigation Sidebar */}
         <aside style={{
-          width: "320px",
-          borderRight: "1px solid var(--border)",
-          background: "var(--surface)",
-          padding: "32px 24px",
-          position: "sticky",
-          top: "60px",
-          height: "calc(100vh - 60px)",
-          overflowY: "auto",
+          width: "280px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
           flexShrink: 0
-        }}>
-          <div style={{ marginBottom: "32px", display: "flex", alignItems: "center", gap: "12px" }}>
-            <SolvivalIcon size={32} />
-            <span className="glow-text" style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold", color: "var(--accent)", letterSpacing: "0.1em" }}>
-              CLASSIFIED WIKI
+        }} className="desktop-only">
+          <div style={{ marginBottom: "20px", display: "flex", alignItems: "center", gap: "12px" }}>
+            <SolvivalIcon size={28} />
+            <span style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold", color: "var(--accent)", letterSpacing: "0.15em" }}>
+              DOCUMENTATION
             </span>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {tabs.map((t) => {
-              const isActive = activeTab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  className={`doc-nav-btn ${isActive ? "active" : ""}`}
-                  onClick={() => setActiveTab(t.id)}
-                  style={{
-                    textAlign: "left",
-                    padding: "12px 16px",
-                    paddingLeft: isActive ? "24px" : "16px",
-                    fontSize: "11px",
-                    fontFamily: "var(--mono)",
-                    border: "1px solid",
-                    borderColor: isActive ? "var(--accent)" : "var(--border)",
-                    background: isActive ? "rgba(255, 77, 77, 0.08)" : "transparent",
-                    color: isActive ? "var(--text)" : "var(--text-dim)",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    borderLeftWidth: isActive ? "4px" : "1px",
-                    borderRadius: "2px"
-                  }}
-                >
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
+          {tabs.map((t) => {
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                style={{
+                  textAlign: "left",
+                  padding: "14px 18px",
+                  fontSize: "12px",
+                  fontFamily: "var(--mono)",
+                  fontWeight: "bold",
+                  border: "1px solid",
+                  borderColor: isActive ? "var(--accent)" : "rgba(255, 255, 255, 0.05)",
+                  background: isActive ? "rgba(255, 77, 77, 0.06)" : "#0b0b0b",
+                  color: isActive ? "#ffffff" : "var(--text-dim)",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  borderRadius: "2px",
+                  boxShadow: isActive ? "0 0 10px rgba(255, 0, 51, 0.1)" : "none"
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
         </aside>
 
-        {/* Content */}
-        <main style={{ flex: 1, padding: "48px 60px", maxWidth: "950px" }}>
+        {/* Mobile Navigation Selector */}
+        <div style={{ display: "none", width: "100%", marginBottom: "20px" }} className="mobile-menu-toggle">
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              background: "#0b0b0b",
+              border: "1px solid var(--border-red)",
+              color: "#ffffff",
+              fontFamily: "var(--mono)",
+              fontSize: "13px",
+              borderRadius: "2px",
+              outline: "none"
+            }}
+          >
+            {tabs.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Documentation Content Area */}
+        <main style={{ flex: 1, minWidth: 0, paddingBottom: "60px" }}>
           
-          {/* 1. What is RED QUEEN? */}
+          {/* Chapter Title */}
+          {tabs.map((t) => {
+            if (t.id !== activeTab) return null;
+            return (
+              <div key={t.id} style={{ borderBottom: "1px solid var(--border)", paddingBottom: "20px", marginBottom: "32px" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.2em", display: "block", marginBottom: "6px" }}>
+                  CHAPTER {tabs.indexOf(t) + 1} // OPERATIONAL BRIEFING
+                </span>
+                <h2 style={{ fontSize: "28px", color: "#ffffff", margin: 0, letterSpacing: "0.03em" }}>
+                  {t.title}
+                </h2>
+              </div>
+            );
+          })}
+
+          {/* 1. What is RED QUEEN */}
           {activeTab === "what-is-red-queen" && (
-            <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 01 / CODENAME: SYSTEM PURPOSE ]
-              </h1>
-              
-              <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>
-                RED QUEEN is a localized, decentralized threat intelligence network developed by Solvival Corp. Built to scan, catalog, and evaluate systemic risks facing civilian and operative clusters, RED QUEEN operates under the assumption of continuous infrastructure degradation.
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                RED QUEEN is an immersive AI survival intelligence platform and operational network. Built to monitor, catalog, and evaluate systemic threat vectors facing digital and physical infrastructures, the platform serves as a critical simulation layer for digital autonomy.
               </p>
 
-              <div style={{ display: "grid", gap: "20px", marginBottom: "32px" }}>
-                <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>👁️ REAL-TIME TELEMETRY TRACKING</h3>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    The network aggregates environmental anomalies, biological containment breaches, severe weather disasters, and seismic shifts directly from open surveillance APIs, serving a synthesized threat map to let operatives monitor physical safety vectors.
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2">
+                <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "28px" }}>
+                  <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "12px" }}>LIVE THREAT RADAR</h3>
+                  <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                    Aggregates real-world anomalies, biological contamination spikes, and geological disasters from live telemetry databases, plotting them onto a tactical world map.
                   </p>
                 </div>
 
-                <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>📊 BIO-SCORE ASSESSMENTS</h3>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    Operatives are subjected to high-stress, real-time diagnostic scenarios mediated by the RED QUEEN artificial intelligence engine. Based on logical response evaluation, the system issues a dynamic suitability score representing physical, cybernetic, and mental preparedness.
-                  </p>
-                </div>
-
-                <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", marginBottom: "8px" }}>🛡️ ADVERSARIAL ANONYMITY DESIGN</h3>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    By leveraging Solana cryptographic handshakes, RED QUEEN separates physical identity profiles from intelligence archives. Access token settlement happens natively without traditional databases, preventing centralized correlation arrays from building tracking data.
+                <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "28px" }}>
+                  <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "12px" }}>COGNITIVE DIAGNOSTICS</h3>
+                  <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                    Subjects users to high-stress crisis scenarios within the terminal console, grading replies dynamically to calculate survival readiness and OPSEC indices.
                   </p>
                 </div>
               </div>
 
-              <div style={{ background: "rgba(255, 0, 51, 0.02)", borderLeft: "4px solid var(--accent)", padding: "20px", borderRadius: "0 2px 2px 0" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "8px" }}>
-                  [ RED QUEEN SYSTEM DIRECTIVE // LORE RECON ]
-                </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "13px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.7" }}>
-                  "The kinetic collapse of physical supply chains is preceded by the degradation of logical consensus. To survive the network state reboot, secure your terminal parameters, build your BIO-SCORE clearance, and lock your transaction metadata."
-                </div>
+              <div className="alert alert-red" style={{ background: "rgba(255, 77, 77, 0.03)", borderLeft: "4px solid var(--accent)", padding: "24px" }}>
+                <strong style={{ fontFamily: "var(--mono)", fontSize: "11px", display: "block", color: "var(--accent)", marginBottom: "8px", letterSpacing: "0.1em" }}>
+                  [ PRINCIPLE DIRECTIVE ]
+                </strong>
+                <span style={{ fontSize: "14px", color: "var(--text)", lineHeight: "1.7", display: "block" }}>
+                  "Sovereignty begins with information. By understanding active threat matrices and maintaining rigorous digital discipline, operatives safeguard their digital footprints prior to network anomalies."
+                </span>
               </div>
             </div>
           )}
 
-          {/* 2. How BIO SCORE Works */}
+          {/* 2. How BIO SCORE works */}
           {activeTab === "bio-score" && (
-            <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 02 / CODENAME: BIO-SCORE MECHANICS ]
-              </h1>
-              
-              <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>
-                The **BIO-SCORE** represents an operative's survival fitness index. Computed dynamically by the RED QUEEN AI based on chat dialogue and choice outcomes, the score scales from 0 to 100% and is supported by 7 key sub-stats.
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                The <strong>BIO-SCORE</strong> represents your current, real-time survival readiness rating, calculated from 0% to 100%. It is computed dynamically as the mathematical average of 7 core preparedness sub-stats:
               </p>
 
-              <h3 style={{ color: "var(--text)", fontSize: "14px", marginBottom: "16px", fontFamily: "var(--mono)" }}>
-                The 7 Core Preparedness Sub-Stats:
-              </h3>
-
-              <div style={{ display: "grid", gap: "12px", marginBottom: "24px" }}>
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "12px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>01. AWARENESS</span>
-                  <div style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>Threat Awareness:</strong> Measures how effectively you identify and assess systemic, radiological, kinetic, or cybernetic risks.
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {[
+                  { name: "AWARENESS", desc: "Your capacity to identify, catalog, and evaluate active physical and digital risk sectors." },
+                  { name: "DISCIPLINE", desc: "Consistency in maintaining secure routines, hardware checklists, and protocol alignment." },
+                  { name: "STABILITY", desc: "Psychological resilience and ability to provide clear, logical responses during simulated stress conditions." },
+                  { name: "TECHNICAL PREPARATION", desc: "Understanding of isolated compute setups, cold storage devices, and offline data backups." },
+                  { name: "ADAPTABILITY", desc: "Your agility in adjusting strategy to fit mutating biological threats or shifting economic rules." },
+                  { name: "RESOURCEFULNESS", desc: "Skill in designing local loop solutions for clean water, off-grid energy, and peer communication." },
+                  { name: "SURVEILLANCE RESISTANCE", desc: "OPSEC proficiency, trace decoupling, address rotation, and privacy firewall configuration." }
+                ].map((stat, idx) => (
+                  <div key={idx} style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.03)", padding: "16px 20px", borderRadius: "2px", display: "flex", gap: "16px" }} className="responsive-grid-2">
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", width: "180px", flexShrink: 0 }}>
+                      0{idx + 1}. {stat.name}
+                    </span>
+                    <span style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.6" }}>
+                      {stat.desc}
+                    </span>
                   </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "12px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>02. DISCIPLINE</span>
-                  <div style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>Operational Discipline:</strong> Evaluates your alignment with critical safety protocols, equipment checklists, and physical security procedures.
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "12px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>03. STABILITY</span>
-                  <div style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>Psychological Stability:</strong> Rates your capacity for cold, logical output under panic conditions or sensory overload events.
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "12px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>04. PREPAREDNESS</span>
-                  <div style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>Technical Preparedness:</strong> Measures understanding of solar grids, mesh nets, local database storage, and cryptographic shielding systems.
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "12px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>05. ADAPTABILITY</span>
-                  <div style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>Adaptability:</strong> Tracks how fast you adjust to shifting parameters, mutated biological vectors, or currency system resets.
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "12px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>06. RESOURCEFUL</span>
-                  <div style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>Resourcefulness:</strong> Gauges water sanitization tactics, food loop preservation, tool fabrication, and micro-commodity trade skills.
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "12px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>07. RESISTANCE</span>
-                  <div style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>Surveillance Resistance:</strong> Assesses active measures to strip device telemetry, cycle keypairs, and block ledger tracking correlation tools.
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <div style={{ border: "1px dashed var(--accent)", padding: "20px", marginBottom: "24px" }}>
-                <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "8px" }}>⚡ XP-BASED SYSTEM LEVEL & CLEARANCE CLASSIFICATION</h3>
-                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.8", margin: "0 0 16px 0" }}>
-                  Every dialogue session ends with RED QUEEN analyzing your decisions, awarding XP and stat points. System Level is computed directly from XP: <strong>Level = floor(XP / 100) + 1</strong>. Your Clearance Tier changes based on this level:
-                </p>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "12px", display: "grid", gap: "8px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #222", paddingBottom: "4px" }}>
-                    <span>Level 1 (0+ XP):</span> <span style={{ color: "#777" }}>CIVILIAN</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #222", paddingBottom: "4px" }}>
-                    <span>Level 2 (100+ XP):</span> <span style={{ color: "var(--text)" }}>OBSERVER</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #222", paddingBottom: "4px" }}>
-                    <span>Level 3 (200+ XP):</span> <span style={{ color: "#00ffcc" }}>OPERATIVE (Decrypt Archives)</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #222", paddingBottom: "4px" }}>
-                    <span>Level 4 (350+ XP):</span> <span style={{ color: "#ffb333" }}>ANALYST</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #222", paddingBottom: "4px" }}>
-                    <span>Level 5 (500+ XP):</span> <span style={{ color: "var(--accent)" }}>DIRECTOR (Full System Access)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="alert alert-red" style={{ background: "rgba(255, 0, 51, 0.04)", borderLeft: "4px solid var(--accent)", padding: "16px" }}>
-                <strong style={{ fontFamily: "var(--mono)" }}>⚠️ DECAY WARNING:</strong> To represent tracking correlation drifts and operational degradation, profiles experience **stat decay** if they do not interact with the system for more than 24 hours. The system applies small, gradual reductions to sub-stats and XP until stabilized by a new terminal diagnostic check-in.
+              <div className="alert alert-red" style={{ background: "rgba(255, 77, 77, 0.03)", borderLeft: "4px solid var(--accent)", padding: "20px" }}>
+                <strong style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", display: "block", marginBottom: "4px" }}>
+                  ⚠️ TELEMETRY INACTIVITY DECAY
+                </strong>
+                <span style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7" }}>
+                  Operational readiness degrades when not actively maintained. If 24 hours pass without checking in at the terminal console, the system applies a gradual decay to your sub-stats, reducing your BIO-SCORE. Performing terminal diagnostics halts decay and rebuilds your readiness rating.
+                </span>
               </div>
             </div>
           )}
 
-          {/* 3. Threat Categories Explained */}
-          {activeTab === "threat-categories" && (
-            <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 03 / CODENAME: THREAT SECTOR ARCHIVES ]
-              </h1>
-              
-              <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>
-                The RED QUEEN database organizes all recorded existential vulnerabilities into three distinct security sectors. Correct classification helps prioritize defensive focus.
+          {/* 3. XP vs BIO SCORE */}
+          {activeTab === "xp-vs-bio-score" && (
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                To ensure a balanced progression, the platform maintains a strict architectural separation between permanent experience metrics and dynamic preparedness values:
               </p>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                <div style={{ border: "1px solid var(--accent-dim)", padding: "20px", background: "rgba(255,77,77,0.03)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                    <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", margin: 0 }}>• SECTOR ALPHA (KINETIC / REALISTIC THREATS)</h3>
-                    <span className="tag tag-red" style={{ fontSize: "9px" }}>PRIMARY FOCUS</span>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2">
+                
+                {/* XP Panel */}
+                <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "28px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <h3 style={{ fontSize: "16px", color: "#ffffff", margin: 0 }}>EXPERIENCE POINTS (XP)</h3>
+                    <span className="tag tag-green" style={{ fontSize: "10px" }}>PERMANENT</span>
                   </div>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: "0 0 8px 0" }}>
-                    These dossiers catalog actual physical hazards tracked by real-world telemetry arrays (USGS earthquake sensors, NASA wildfire telemetry, disease contagion indices). These threats represent actionable survival concerns such as: viral outbreaks, blackout grids, severe seismic anomalies, and critical hyperinflation.
-                  </p>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)" }}>STATUS: ACTIVE LIVE TELEMETRY STREAMING</span>
+                  <ul style={{ paddingLeft: "18px", color: "var(--text-dim)", fontSize: "14px", display: "flex", flexDirection: "column", gap: "10px", lineHeight: "1.6" }}>
+                    <li>Accumulates continuously through diagnostic queries and terminal interactions.</li>
+                    <li><strong>Never decreases</strong> under any circumstances.</li>
+                    <li>Calculates your permanent System Level: <code>Level = floor(XP / 100) + 1</code>.</li>
+                    <li>Used directly to unlock permanent Clearance Levels and archive decrypt codes.</li>
+                  </ul>
                 </div>
 
-                <div style={{ border: "1px solid var(--border)", padding: "20px", background: "rgba(255,255,255,0.01)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                    <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text)", margin: 0 }}>• SECTOR BETA (SIMULATIONS / FICTIONAL THREATS)</h3>
-                    <span className="tag" style={{ fontSize: "9px", background: "#333", color: "#aaa" }}>TRAINING DOSSIER</span>
+                {/* Bio Score Panel */}
+                <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "28px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <h3 style={{ fontSize: "16px", color: "var(--accent)", margin: 0 }}>BIO-SCORE</h3>
+                    <span className="tag tag-red" style={{ fontSize: "10px" }}>DYNAMIC</span>
                   </div>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: "0 0 8px 0" }}>
-                    This archive contains training simulations—such as zombie mutations, orbital debris impacts, or rogue robot rebellions. These files are utilized to build cognitive resilience and teach system mechanics without imminent real-world risk.
-                  </p>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>STATUS: SIMULATED ENVIRONMENT DATASETS ONLY</span>
+                  <ul style={{ paddingLeft: "18px", color: "var(--text-dim)", fontSize: "14px", display: "flex", flexDirection: "column", gap: "10px", lineHeight: "1.6" }}>
+                    <li>Calculated as the active average of your 7 individual sub-stats.</li>
+                    <li><strong>Fluctuates dynamically</strong> based on terminal checks and crisis logs.</li>
+                    <li>Decreases over time due to **Inactivity Decay** if you go offline.</li>
+                    <li>Reflects your immediate survival readiness, OPSEC trace safety, and operational posture.</li>
+                  </ul>
                 </div>
 
-                <div style={{ border: "1px solid var(--border)", padding: "20px", background: "rgba(255,255,255,0.01)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                    <h3 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text)", margin: 0 }}>• SECTOR GAMMA (ENTERTAINMENT ARCHIVES / SATIRICAL THREATS)</h3>
-                    <span className="tag" style={{ fontSize: "9px", background: "#333", color: "#aaa" }}>COGNITIVE STRAIN TEST</span>
-                  </div>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: "0 0 8px 0" }}>
-                    Fictional satire models, including TikTok brainrot epidemics, streamer-governed autocracies, or total coffee-extinction events. Used by RED QUEEN to evaluate logical focus during periods of media noise saturation.
-                  </p>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>STATUS: SATIRICAL SIMULATION AND STRESS ASSISTANCE</span>
-                </div>
               </div>
             </div>
           )}
 
-          {/* 4. AI Terminal Guide */}
+          {/* 4. How the terminal works */}
           {activeTab === "terminal-guide" && (
-            <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 04 / CODENAME: CLI OPERATIONS ]
-              </h1>
-              
-              <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>
-                The command line terminal (`/terminal`) is the main port of contact between you and RED QUEEN. Operatives can run system commands directly inside the prompt console.
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                The command line interface is your gateway to communication with the RED QUEEN. Operatives can transmit specific commands to query databases, calculate stats, or decode logs:
               </p>
 
-              <h3 style={{ color: "var(--text)", fontSize: "14px", marginBottom: "12px", fontFamily: "var(--mono)" }}>
-                Operative Console Commands:
-              </h3>
-
-              <div style={{ display: "grid", gap: "12px", marginBottom: "32px", fontFamily: "var(--mono)", fontSize: "12.5px" }}>
-                <div style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: "12px", display: "flex", gap: "12px" }}>
-                  <span style={{ color: "var(--accent)", width: "120px", flexShrink: 0 }}>help</span>
-                  <span style={{ color: "var(--text-dim)" }}>- Displays list of system directives and command syntax parameters.</span>
-                </div>
-                <div style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: "12px", display: "flex", gap: "12px" }}>
-                  <span style={{ color: "var(--accent)", width: "120px", flexShrink: 0 }}>diagnose</span>
-                  <span style={{ color: "var(--text-dim)" }}>- Queries local browser cache memory to sync state parameters.</span>
-                </div>
-                <div style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: "12px", display: "flex", gap: "12px" }}>
-                  <span style={{ color: "var(--accent)", width: "120px", flexShrink: 0 }}>status</span>
-                  <span style={{ color: "var(--text-dim)" }}>- Prints active BIO-SCORE level, XP thresholds, sub-stats, and decay warnings.</span>
-                </div>
-                <div style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: "12px", display: "flex", gap: "12px" }}>
-                  <span style={{ color: "var(--accent)", width: "120px", flexShrink: 0 }}>scan</span>
-                  <span style={{ color: "var(--text-dim)" }}>- Checks Solana ledger configuration state parameters for connected wallets.</span>
-                </div>
-                <div style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: "12px", display: "flex", gap: "12px" }}>
-                  <span style={{ color: "var(--accent)", width: "120px", flexShrink: 0 }}>decrypt [id]</span>
-                  <span style={{ color: "var(--text-dim)" }}>- Requests Level-3 clearance decryption on a specific secure sector dossier.</span>
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "13px" }}>
+                {[
+                  { cmd: "/help", desc: "Display all available system commands, syntax guides, and clearance requirements." },
+                  { cmd: "/bio", desc: "Query your current active BIO-SCORE, sub-stats ratings, and security evaluation status." },
+                  { cmd: "/scan", desc: "Triggers deep metadata checks verifying your signature profiles on ledger tracking networks (requires connected wallet)." },
+                  { cmd: "/decrypt [ID]", desc: "Requests cryptographic decryption of specific secure threat vector dossiers in the archives (requires Level-3 clearance)." }
+                ].map((item, idx) => (
+                  <div key={idx} style={{ background: "#0b0b0b", border: "1px solid rgba(255,255,255,0.03)", padding: "14px 20px", display: "flex", gap: "12px", borderRadius: "2px" }} className="responsive-grid-2">
+                    <span style={{ color: "var(--accent)", fontWeight: "bold", width: "120px", flexShrink: 0 }}>{item.cmd}</span>
+                    <span style={{ color: "var(--text-dim)" }}>- {item.desc}</span>
+                  </div>
+                ))}
               </div>
 
-              <div style={{ border: "1px dashed var(--border)", padding: "20px", background: "#080808" }}>
-                <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text)", marginBottom: "8px" }}>🛡️ ANONYMOUS SESSIONS & THREAT SCAN LIMITS</h3>
+              <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255, 77, 77, 0.15)", padding: "24px" }}>
+                <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px", fontFamily: "var(--mono)" }}>🔒 ANONYMOUS SESSION BLOCKOUT</h3>
                 <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                  To maintain digital OPSEC, RED QUEEN allows temporary, anonymous diagnostic sessions. During an anonymous connection, the AI calculates a <strong>Potential BIO-SCORE</strong>. After **2 messages**, a warning block is displayed, prompting the user to connect a wallet. After **4 messages**, the console lock kicks in, blocking further queries until a cryptographic signature is provided to preserve the profile.
+                  To maintain rigorous digital OPSEC, RED QUEEN restricts anonymous profiles to prevent crawler engines from scraping session keys. Unsigned visitors can transmit up to <strong>2 queries</strong> before a wallet prompt appears, and the terminal will <strong>completely lock after 4 queries</strong>. Connecting a Solana wallet verifies your operative signature, saves your progress, and unlocks unlimited diagnostic queries.
                 </p>
               </div>
             </div>
           )}
 
-          {/* 5. Wallet Privacy */}
-          {activeTab === "wallet-privacy" && (
-            <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 05 / CODENAME: OPSEC STANDARD ]
-              </h1>
-              
-              <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>
-                Public ledger tracking models allow state surveillance structures to map physical survival clusters to cryptographic keys. Operatives must follow strict wallet privacy practices to maintain sovereignty.
+          {/* 5. Threat categories */}
+          {activeTab === "threat-categories" && (
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                To prioritize security responses, RED QUEEN catalogs systemic vulnerabilities across three distinct sectors:
               </p>
 
-              <div style={{ display: "grid", gap: "20px" }}>
-                <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "8px" }}>1. SECURE WEB3 SESSION RESETS</h3>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    State scrapers continuously monitor browser localStorage. Always clear connection cache files and revoke dApp signature privileges directly after performing swaps or decrypting files.
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {[
+                  {
+                    sector: "SECTOR ALPHA (KINETIC / REALISTIC)",
+                    type: "LIVE DATA",
+                    color: "var(--accent)",
+                    desc: "Dossiers charting real-world environmental hazards. These threats are fed directly from global telemetry arrays: USGS earthquake sensors, NASA EONET thermal sensors, and disease.sh infection databases. Focuses on viral outbreaks, extreme weather vectors, seismic shifts, and energy grids."
+                  },
+                  {
+                    sector: "SECTOR BETA (SIMULATED / FICTIONAL)",
+                    type: "TRAINING ONLY",
+                    color: "#f0c929",
+                    desc: "Fictional training scenarios designed to test cognitive responses under severe grid collapse parameters (e.g. robotic sweeps, automated drone rogue outbreaks, localized containment breaches). Builds mental agility without actual danger."
+                  },
+                  {
+                    sector: "SECTOR GAMMA (SATIRICAL / COGNITIVE STRAIN)",
+                    type: "NOISE TEST",
+                    color: "#a855f7",
+                    desc: "Satirical, media-focused threats designed to evaluate an operative's capability to separate critical information from background noise (e.g., social feed timeline steering, brainrot spikes, global coffee trade splits)."
+                  }
+                ].map((sec, idx) => (
+                  <div key={idx} style={{ background: "#0c0c0c", border: `1px solid rgba(255,255,255,0.03)`, borderLeft: `4px solid ${sec.color}`, padding: "20px 24px", borderRadius: "2px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
+                      <h4 style={{ fontSize: "14px", color: "#ffffff", margin: 0 }}>{sec.sector}</h4>
+                      <span className="tag" style={{ background: "rgba(255,255,255,0.04)", color: sec.color, borderColor: "rgba(255,255,255,0.06)", fontSize: "9px" }}>{sec.type}</span>
+                    </div>
+                    <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                      {sec.desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 6. Wallet connection */}
+          {activeTab === "wallet-connection" && (
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                Connecting your Solana wallet establishes your cryptographic operative passport. RED QUEEN implements decentralized privacy controls to safeguard your session data:
+              </p>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2">
+                <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "24px" }}>
+                  <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px" }}>SALTED SHA-256 HASHING</h3>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                    We do not store public wallet addresses in plain text. Your wallet's public key is combined with a secure server-side salt and hashed via SHA-256 before database index lookup, keeping your ledger profile completely anonymous.
                   </p>
                 </div>
 
-                <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "8px" }}>2. ISOLATED BROWSER ROUTING</h3>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    Never use the same browser profiles for personal credentials (email, social accounts) and operational wallets. Run your ledger operations inside dedicated sandboxes (Tor, Brave Shields) to hide device telemetry footprints.
-                  </p>
-                </div>
-
-                <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "8px" }}>3. NO OAUTH CORRELATION</h3>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    Do not link centralized accounts (Discord, Google, Apple ID) to wallets storing survival credentials. RED QUEEN does not support Web2 login proxies because they are vulnerable to centralized tracking requests.
-                  </p>
-                </div>
-
-                <div className="panel" style={{ borderColor: "rgba(255, 77, 77, 0.15)", background: "rgba(10,10,10,0.4)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "8px" }}>4. PRIVATE RPC NODES</h3>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    Public RPC endpoints route, log, and categorize client IP addresses. Route your wallet data packets through private virtual loops or use custom, decentralized validation RPC hooks.
+                <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "24px" }}>
+                  <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px" }}>ZERO PERSONAL DATA</h3>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                    No emails, IP addresses, cookies, or location telemetry are logged. If you disconnect your wallet, your session terminates immediately and your frontend state trace is completely purged from memory.
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* 6. Solana Infrastructure */}
-          {activeTab === "solana-infra" && (
-            <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 06 / CODENAME: BLOCKCHAIN LEDGER ]
-              </h1>
-              
-              <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>
-                RED QUEEN deploys its state evaluation logic on the Solana blockchain network. This infrastructure choice was driven by operational safety parameters:
+          {/* 7. Clearance levels */}
+          {activeTab === "clearance-levels" && (
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                Unlocking permanent clearance levels grants access to advanced briefings, dossier decryption routines, and strategic AI terminal models:
               </p>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "24px" }} className="responsive-grid-2-large">
-                <div className="panel">
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "12px" }}>⚡ SPEED & THROUGHPUT</h3>
-                  <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    400ms block speeds ensure that critical danger warnings and operative credential handshakes are parsed immediately during network congestion events.
-                  </p>
-                </div>
-
-                <div className="panel">
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "12px" }}>🪙 TRANSACT ECONOMIC TARIFFS</h3>
-                  <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    Sub-cent validator processing fees allow operatives to perform micro-decryptions and ledger updates without exhausting operational resource reserves.
-                  </p>
-                </div>
-
-                <div className="panel">
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "12px" }}>🔒 TOKEN-2022 STANDARDS</h3>
-                  <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    Configured with cryptographic state transfers, allowing encrypted balances and confidential transactions, ensuring that wallet reserves remain safe from correlation bots.
-                  </p>
-                </div>
-
-                <div className="panel">
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", marginBottom: "12px" }}>🌐 LEDGER DISSOCIATION</h3>
-                  <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    Decentralized node arrays ensure access to RED QUEEN's ledger records even during localized submarine telecom cable failures or regional network splits.
-                  </p>
-                </div>
+              <div className="panel" style={{ padding: "0", background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", overflow: "hidden" }}>
+                <table className="clearance-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "rgba(255,255,255,0.01)" }}>
+                      <th style={{ padding: "16px 20px" }}>CLEARANCE LEVEL</th>
+                      <th style={{ padding: "16px 20px" }}>REQUIRED XP</th>
+                      <th style={{ padding: "16px 20px" }}>UNLOCKED FUNCTIONALITY</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { tier: "LEVEL 1: CIVILIAN", xp: "0+ XP", desc: "Access to general system dashboard, public incident tickers, and Sector Alpha outlines." },
+                      { tier: "LEVEL 2: OBSERVER", xp: "100+ XP", desc: "Live physical maps, active telemetry sensors, and automated incident feeds enabled." },
+                      { tier: "LEVEL 3: OPERATIVE", xp: "200+ XP", desc: "Decryption of Sector Alpha and Beta dossier database files authorized." },
+                      { tier: "LEVEL 4: ANALYST", xp: "350+ XP", desc: "Access to advanced strategic briefings and cognitive diagnostic modeling." },
+                      { tier: "LEVEL 5: DIRECTOR", xp: "500+ XP", desc: "Full gateway clearances, raw database logs decryption, and cooperative features." }
+                    ].map((row, idx) => (
+                      <tr key={idx} style={{ borderTop: "1px solid rgba(255,255,255,0.03)" }}>
+                        <td style={{ padding: "16px 20px", fontWeight: "bold", color: "var(--accent)", fontFamily: "var(--mono)" }}>{row.tier}</td>
+                        <td style={{ padding: "16px 20px", fontFamily: "var(--mono)" }}>{row.xp}</td>
+                        <td style={{ padding: "16px 20px", color: "var(--text-dim)", fontSize: "13.5px" }}>{row.desc}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
 
-          {/* 7. FAQ */}
+          {/* 8. FAQ */}
           {activeTab === "faq" && (
-            <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 07 / CODENAME: INTELLIGENCE FAQ ]
-              </h1>
-              
-              <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>
-                Common operational questions regarding system usage, ledger mechanics, and survival diagnostics.
-              </p>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                <div className="panel" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--accent)", marginBottom: "8px" }}>Q: Why does the terminal lock after 4 messages?</h3>
-                  <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    A: Every request processed anonymously can be analyzed and linked to specific hardware configurations or browser sessions. To prevent tracking leaks, RED QUEEN forces a wallet handshake to store stats, verifying that you represent a valid cryptographic operative profile before proceeding.
-                  </p>
-                </div>
-
-                <div className="panel" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--accent)", marginBottom: "8px" }}>Q: How is my BIO-SCORE progress saved?</h3>
-                  <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    A: Stats blocks are serialized as structured JSON strings and safely written to your wallet's database entry. The data is parsed dynamically, ensuring that your profile remains persistent and mobile-accessible across connected sessions.
-                  </p>
-                </div>
-
-                <div className="panel" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--accent)", marginBottom: "8px" }}>Q: Why did my technical prepared status drop?</h3>
-                  <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    A: Over time, tracking algorithms drift and human muscle memory degrades. If 24 hours pass without checking the console, the RED QUEEN applies a stat decay. Run a terminal diagnostic audit (`diagnose` or a chat message) to lock your stats and stop decay.
-                  </p>
-                </div>
-
-                <div className="panel" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-                  <h3 style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--accent)", marginBottom: "8px" }}>Q: Can I access the system on mobile?</h3>
-                  <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                    A: Yes. RED QUEEN is configured with responsive viewport styling. You can connect through mobile wallet browsers, though keep in mind that CLI input commands can require careful typing.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 8. Future Roadmap */}
-          {activeTab === "roadmap" && (
-            <div className="doc-section animation-fade-in">
-              <h1 className="glow-text" style={{ fontSize: "22px", marginBottom: "24px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                [ 08 / CODENAME: SYSTEM HORIZON ]
-              </h1>
-              
-              <p style={{ color: "var(--text-dim)", fontSize: "14.5px", lineHeight: "1.9", marginBottom: "24px" }}>
-                RED QUEEN's development plan covers the creation of localized hardware nodes, physical caches, and automated digital defense shields.
-              </p>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "16px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>PHASE 3</span>
-                  <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>P2P MESH COMMUNICATIONS:</strong> Development of peer-to-peer radio mesh network adapters to sync threat vectors and offline database parameters without active cellular connections.
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {[
+                  {
+                    q: "Why does the terminal lock after 4 messages?",
+                    a: "Unsigned anonymous sessions expose browser footprints to scraping bots. To maintain OPSEC and secure your progression, RED QUEEN requires a cryptographic wallet signature after 4 messages to calculate a secure profile hash."
+                  },
+                  {
+                    q: "How are my levels and sub-stats saved?",
+                    a: "They are serialized as a secure payload and written directly to your profile database record. Only your salted public key hash is stored, ensuring absolute privacy."
+                  },
+                  {
+                    q: "Does my XP decay if I go offline?",
+                    a: "No. Experience Points (XP) represent permanent system training and cumulative progress. They never decrease. Only your BIO-SCORE sub-stats are subject to inactivity decay if you do not check in for 24 hours."
+                  },
+                  {
+                    q: "Can I access the RED QUEEN platform on my mobile device?",
+                    a: "Yes. The platform is responsive and fully optimized. You can interact with the terminal and check stats using mobile dApp browsers like Phantom or Solflare."
+                  },
+                  {
+                    q: "How can I restore decayed sub-stats?",
+                    a: "Simply connect your wallet, enter the terminal, and initiate a diagnostic check-in by chatting with the RED QUEEN AI. This updates your interaction logs and restores active scores."
+                  }
+                ].map((faq, idx) => (
+                  <div key={idx} style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.03)", padding: "20px 24px", borderRadius: "2px" }}>
+                    <h3 style={{ fontSize: "15px", color: "var(--accent)", marginBottom: "8px", fontFamily: "var(--mono)" }}>
+                      Q: {faq.q}
+                    </h3>
+                    <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                      A: {faq.a}
+                    </p>
                   </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "16px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>PHASE 4</span>
-                  <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>TOKEN-GATED PHYSICAL CACHES:</strong> Deployment of physical survival caches containing power banks, emergency water filters, and key backup cards, unlockable on-site via cryptographic proof signature verification.
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "16px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>PHASE 5</span>
-                  <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>AUTOMATED PORTFOLIO SHIELDS:</strong> Integration of AI defense agents that continuously scan financial networks, automatically swapping risk assets to stable storage during detected global cyberwarfare warning signs.
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "16px", border: "1px solid var(--border)", padding: "16px", background: "var(--surface)" }}>
-                  <span style={{ fontFamily: "var(--mono)", color: "var(--accent)", fontSize: "12px", fontWeight: "bold" }}>PHASE 6</span>
-                  <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                    <strong>MULTI-CHAIN IDENTITY PROTOCOL:</strong> Bridging operative BIO-SCORE profiles and levels to alternative sovereign ledgers to prevent data loss in the event of single chain finality failures.
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           )}
 
         </main>
       </div>
+
+      {/* Styled JSX for fade animation */}
+      <style jsx>{`
+        .animation-fade-in {
+          animation: page-fade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes page-fade {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }

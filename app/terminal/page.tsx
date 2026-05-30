@@ -461,7 +461,7 @@ To decrypt or scan target files:
         {connected ? (
           <div style={{ marginLeft: "auto", textAlign: "right" }}>
             <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.2em", marginBottom: "4px" }}>
-              YOUR BIO-SCORE
+              ACTIVE BIO-SCORE (READINESS)
             </div>
             <div style={{
               fontFamily: "var(--mono)",
@@ -473,7 +473,7 @@ To decrypt or scan target files:
               {scoreNum}%
             </div>
             <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: scoreColor, letterSpacing: "0.1em", marginTop: "4px" }}>
-              LEVEL {stats?.level || 1} // {clearance.label}
+              LEVEL {stats?.level || 1} ({stats?.xp || 0} XP) // {clearance.label}
             </div>
           </div>
         ) : (
@@ -487,7 +487,7 @@ To decrypt or scan target files:
             animation: "pulse-border 2s infinite ease-in-out"
           }}>
             <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px", fontWeight: "bold" }}>
-              POTENTIAL BIO-SCORE
+              POTENTIAL BIO-SCORE (SIMULATED READINESS)
             </div>
             <div style={{
               fontFamily: "var(--mono)",
@@ -499,7 +499,7 @@ To decrypt or scan target files:
               {scoreNum}%
             </div>
             <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", letterSpacing: "0.05em", marginTop: "4px" }}>
-              [SIMULATED TELEMETRY]
+              LEVEL {stats?.level || 1} ({stats?.xp || 0} XP) // [SIMULATED]
             </div>
           </div>
         )}

@@ -161,10 +161,40 @@ export async function GET() {
       })
       .catch(() => []);
 
-    const [usgsNodes, nasaNodes] = await Promise.all([usgsPromise, nasaPromise]);
+    // 3. Fetch disease.sh (biological contagion events)
+    const diseasePromise = fetch("https://disease.sh/v3/covid-19/countries?sort=todayCases")
+      .then(res => res.json())
+      .then(data => {
+        const countries = Array.isArray(data) ? data.slice(0, 2) : [];
+        return countries.map((c: any, index: number) => {
+          const lat = c.countryInfo?.lat || 0;
+          const lng = c.countryInfo?.long || 0;
+          const todayCases = c.todayCases || 0;
+          const active = c.active || 0;
+          const severity = Math.min(95, Math.max(60, Math.round((todayCases / Math.max(1, c.population)) * 100000) + 70));
+          
+          return {
+            id: `disease-${index}-${c.countryInfo?.iso2 || c.country}`,
+            name: `${c.country} Pathogen Spike`,
+            type: "BIOLOGICAL" as const,
+            severity,
+            lat,
+            lng,
+            coords: geoToSvg(lat, lng),
+            region: c.country,
+            desc: `disease.sh: Pathogen transmission load elevated. Today cases: ${todayCases.toLocaleString()}, active caseload: ${active.toLocaleString()}.`,
+            solution: "Enforce strict respirator discipline, isolate from high-density transit nodes.",
+            analysis: `RED QUEEN: Biological vector registered in ${c.country}. Ensure HEPA filtration is active in local shelter modules.`
+          };
+        });
+      })
+      .catch(() => []);
+
+    const [usgsNodes, nasaNodes, diseaseNodes] = await Promise.all([usgsPromise, nasaPromise, diseasePromise]);
 
     nodes.push(...usgsNodes);
     nodes.push(...nasaNodes);
+    nodes.push(...diseaseNodes);
 
     // Merge fallback data if API yields too few nodes
     if (nodes.length < 4) {
