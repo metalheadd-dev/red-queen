@@ -18,6 +18,7 @@ export default function NavBar() {
   const { connected, wallet, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const { user, logout } = useAuth();
 
   const handleChangeWallet = async () => {
@@ -113,25 +114,108 @@ export default function NavBar() {
             ) : (
               <>
                 {user && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)", flexShrink: 0, whiteSpace: "nowrap" }}>
-                    <span style={{ color: "var(--text-dim)", whiteSpace: "nowrap", flexShrink: 0 }}>[ {user.email} ]</span>
+                  <div style={{ position: "relative" }}>
                     <button
-                      onClick={() => logout()}
+                      onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                      onBlur={() => setTimeout(() => setProfileDropdownOpen(false), 200)}
                       style={{
-                        background: "transparent",
-                        border: "1px solid rgba(255, 77, 77, 0.4)",
-                        color: "var(--text-dim)",
+                        background: "rgba(255, 77, 77, 0.05)",
+                        border: "1px solid rgba(255, 77, 77, 0.35)",
+                        color: "var(--accent)",
                         fontFamily: "var(--mono)",
-                        fontSize: "9.5px",
-                        padding: "3px 8px",
+                        fontSize: "11px",
+                        padding: "6px 14px",
                         cursor: "pointer",
                         borderRadius: "2px",
-                        whiteSpace: "nowrap",
-                        flexShrink: 0
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        fontWeight: "bold",
+                        letterSpacing: "0.05em",
+                        boxShadow: profileDropdownOpen ? "0 0 12px rgba(255, 77, 77, 0.25)" : "none",
+                        transition: "all 0.2s"
                       }}
                     >
-                      LOGOUT
+                      <span style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: "var(--accent)",
+                        boxShadow: "0 0 6px var(--accent)",
+                        display: "inline-block"
+                      }} />
+                      [ OPERATIVE ]
+                      <span style={{ fontSize: "9px", transition: "transform 0.2s", transform: profileDropdownOpen ? "rotate(180deg)" : "none" }}>▼</span>
                     </button>
+
+                    {profileDropdownOpen && (
+                      <div style={{
+                        position: "absolute",
+                        top: "calc(100% + 8px)",
+                        right: 0,
+                        width: "260px",
+                        background: "rgba(10, 10, 10, 0.98)",
+                        border: "1px solid var(--border-red)",
+                        borderRadius: "2px",
+                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 0, 51, 0.15)",
+                        padding: "16px",
+                        zIndex: 1000,
+                        backdropFilter: "blur(20px)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "12px",
+                        textAlign: "left"
+                      }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.15em" }}>OPERATIVE UPLINK</span>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text)", wordBreak: "break-all" }}>{user.email}</span>
+                        </div>
+                        
+                        <div style={{ height: "1px", background: "var(--border)" }} />
+
+                        <Link
+                          href="/operative"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          style={{
+                            fontFamily: "var(--mono)",
+                            fontSize: "11px",
+                            color: "var(--text)",
+                            textDecoration: "none",
+                            padding: "8px 12px",
+                            border: "1px solid var(--border)",
+                            borderRadius: "2px",
+                            textAlign: "center",
+                            background: "rgba(255, 255, 255, 0.02)",
+                            transition: "all 0.2s"
+                          }}
+                        >
+                          OPEN PROFILE
+                        </Link>
+
+                        <button
+                          onClick={() => {
+                            logout();
+                            setProfileDropdownOpen(false);
+                          }}
+                          style={{
+                            fontFamily: "var(--mono)",
+                            fontSize: "11px",
+                            color: "#fff",
+                            background: "var(--accent)",
+                            border: "none",
+                            borderRadius: "2px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            fontWeight: "bold",
+                            letterSpacing: "0.05em",
+                            boxShadow: "0 0 10px rgba(255, 77, 77, 0.2)",
+                            transition: "all 0.2s"
+                          }}
+                        >
+                          TERMINATE SESSION
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
