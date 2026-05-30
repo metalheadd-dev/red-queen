@@ -64,7 +64,18 @@ const FEED_TEMPLATES = [
 ];
 
 export default function HomePage() {
-  const [booted, setBooted] = useState(false);
+  // Boot sequence should only run once per browser session (not on every navigation)
+  const [booted, setBooted] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("rq-booted") === "1";
+    }
+    return false;
+  });
+
+  const handleBooted = () => {
+    sessionStorage.setItem("rq-booted", "1");
+    setBooted(true);
+  };
   const [threatData, setThreatData] = useState<{ scenario: string; transmission: string } | null>(null);
   const [loadingThreat, setLoadingThreat] = useState(false);
   
@@ -154,7 +165,7 @@ export default function HomePage() {
   };
 
   if (!booted) {
-    return <BootSequence onComplete={() => setBooted(true)} />;
+    return <BootSequence onComplete={handleBooted} />;
   }
 
   return (
