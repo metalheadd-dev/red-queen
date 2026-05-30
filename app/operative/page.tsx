@@ -97,7 +97,7 @@ async function generateHashedPassport(pubkey: string): Promise<string> {
 export default function OperativeProfilePage() {
   const { publicKey, connected, wallet: walletObj, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
-  const { user, authIdentifier } = useAuth();
+  const { user, authIdentifier, logout } = useAuth();
 
   const solanaWalletAddress = publicKey?.toString() ?? null;
   const wallet = authIdentifier || solanaWalletAddress;
@@ -390,154 +390,194 @@ export default function OperativeProfilePage() {
             Your AI-generated survival identity
           </p>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "32px", flexWrap: "wrap" }}>
-            {/* Logo initials avatar */}
+            {/* High-tech vector SVGs radar scanline avatar */}
             <div style={{
               width: "96px", height: "96px", borderRadius: "2px",
-              border: "2px solid var(--accent)", background: "rgba(255,77,77,0.08)",
+              border: "1px solid var(--accent)", background: "rgba(255, 77, 77, 0.03)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0, position: "relative", overflow: "hidden"
+              flexShrink: 0, position: "relative", overflow: "hidden",
+              boxShadow: "0 0 15px rgba(255, 77, 77, 0.1)"
             }}>
+              <svg width="60" height="60" viewBox="0 0 100 100" style={{ filter: "drop-shadow(0 0 3px rgba(255, 0, 51, 0.5))" }}>
+                <circle cx="50" cy="50" r="40" stroke="var(--accent)" strokeWidth="1.5" fill="none" strokeDasharray="6, 6" />
+                <circle cx="50" cy="50" r="25" stroke="var(--accent)" strokeWidth="1" fill="none" opacity="0.6" />
+                <path d="M 50 5 L 50 20 M 50 80 L 50 95 M 5 50 L 20 50 M 80 50 L 95 50" stroke="var(--accent)" strokeWidth="2" />
+                <circle cx="50" cy="50" r="4" fill="var(--accent)" />
+              </svg>
               <div style={{
-                fontFamily: "var(--mono)", fontSize: "32px", fontWeight: 900,
-                color: "var(--accent)", lineHeight: 1,
+                position: "absolute", bottom: "4px", left: 0, right: 0,
+                textAlign: "center", fontFamily: "var(--mono)", fontSize: "8px", color: "var(--accent)", letterSpacing: "0.1em"
               }}>
-                {displayName.charAt(0)}
+                SEC-ID
               </div>
-              <div style={{
-                position: "absolute", bottom: 0, left: 0, right: 0,
-                height: "2px", background: "var(--accent)", opacity: 0.4
-              }} />
             </div>
 
             {/* Hashed details */}
-            <div style={{ flex: 1, minWidth: "240px" }}>
+            <div style={{ flex: 1, minWidth: "280px" }}>
               {editingName ? (
-                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "8px", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px", flexWrap: "wrap" }}>
                   <input
                     value={customName}
                     onChange={(e) => { setCustomName(e.target.value.toUpperCase()); setSaved(false); }}
                     onKeyDown={(e) => { if (e.key === "Enter") confirmName(customName); }}
                     style={{
-                      fontFamily: "var(--mono)", fontSize: "22px", fontWeight: 700,
-                      background: "rgba(255,77,77,0.05)", border: "1px solid var(--accent)",
-                      color: "var(--text)", padding: "6px 12px", outline: "none", borderRadius: "2px",
-                      maxWidth: "360px", width: "100%"
+                      fontFamily: "var(--mono)", fontSize: "20px", fontWeight: 700,
+                      background: "rgba(255, 77, 77, 0.05)", border: "1px solid var(--accent)",
+                      color: "var(--text)", padding: "4px 10px", outline: "none", borderRadius: "2px",
+                      maxWidth: "280px", width: "100%"
                     }}
                     maxLength={36}
                     autoFocus
                   />
-                  <button className="btn btn-primary" style={{ fontSize: "11px", padding: "6px 14px" }}
+                  <button className="btn btn-primary" style={{ fontSize: "10px", padding: "4px 10px" }}
                     onClick={() => confirmName(customName)}>CONFIRM</button>
                 </div>
               ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px", flexWrap: "wrap" }}>
-                  <h1 className="glow-text" style={{ fontSize: "clamp(20px, 3vw, 30px)", margin: 0, color: "var(--accent)", letterSpacing: "0.05em" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px", flexWrap: "wrap" }}>
+                  <h2 className="glow-text" style={{ fontSize: "clamp(20px, 3vw, 26px)", margin: 0, color: "var(--text)", letterSpacing: "0.05em", fontFamily: "var(--title-font)" }}>
                     {displayName}
-                  </h1>
+                  </h2>
                   <button
                     onClick={() => setEditingName(true)}
-                    style={{ background: "none", border: "1px solid var(--border)", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "14px", padding: "4px 12px", cursor: "pointer", borderRadius: "2px", letterSpacing: "0.1em" }}
-                  >✎ RENAME</button>
+                    style={{
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text-dim)",
+                      fontFamily: "var(--mono)",
+                      fontSize: "11px",
+                      padding: "3px 10px",
+                      cursor: "pointer",
+                      borderRadius: "2px",
+                      letterSpacing: "0.05em",
+                      transition: "all 0.2s"
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--accent)"}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border)"}
+                  >
+                    ✎ RENAME
+                  </button>
                 </div>
               )}
 
               {/* Hashed Passport display */}
-              <div style={{ background: "#0c0c0c", border: "1px solid #151515", padding: "12px 16px", borderRadius: "2px", marginBottom: "16px", maxWidth: "580px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "4px" }}>
-                  HASHED PASSPORT (SALTED SHA-256)
+              <div style={{
+                background: "rgba(10, 10, 10, 0.6)",
+                border: "1px solid var(--border)",
+                borderLeft: "2px solid var(--accent)",
+                padding: "12px 16px",
+                borderRadius: "2px",
+                marginBottom: "16px",
+                maxWidth: "600px",
+                boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)"
+              }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "6px", display: "flex", justifyContent: "space-between" }}>
+                  <span>CRYPTOGRAPHIC PASSPORT SIGNATURE</span>
+                  <span style={{ color: "rgba(255,77,77,0.4)" }}>[ SALTED SHA-256 ]</span>
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "15.5px", color: "var(--accent)", wordBreak: "break-all", textShadow: "0 0 2px rgba(255, 0, 51, 0.4)" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", wordBreak: "break-all", lineHeight: "1.4", opacity: 0.9 }}>
                   {hashedPassport || "COMPUTING ANONYMOUS PASSPORT..."}
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "15.5px" }}>
-                  <span style={{ color: "var(--text-dim)" }}>BIO-SCORE: </span>
-                  <span style={{ color: scoreColor, fontWeight: 700 }}>
-                    {scoreNum !== null ? `${scoreNum}%` : "PENDING"}
-                  </span>
+              {/* Tactical Stats Grid */}
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                gap: "12px",
+                maxWidth: "600px",
+                marginBottom: "16px"
+              }}>
+                <div style={{ background: "rgba(255, 255, 255, 0.01)", border: "1px solid var(--border)", padding: "10px 14px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>MONITORED VECTORS</div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "var(--text)", fontWeight: "bold", marginTop: "4px" }}>
+                    <span style={{ color: "var(--accent)" }}>{chosenScenarios.length}</span> <span style={{ fontSize: "11px", color: "var(--text-dim)" }}>ACTIVE</span>
+                  </div>
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "15.5px" }}>
-                  <span style={{ color: "var(--text-dim)" }}>MONITORED VECTORS: </span>
-                  <span style={{ color: "var(--accent)", fontWeight: 700 }}>{chosenScenarios.length}</span>
+
+                <div style={{ background: "rgba(255, 255, 255, 0.01)", border: "1px solid var(--border)", padding: "10px 14px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>CLEARANCE LEVEL</div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "var(--text)", fontWeight: "bold", marginTop: "4px" }}>
+                    LEVEL <span style={{ color: "var(--accent)" }}>{stats.level}</span>
+                  </div>
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "15.5px" }}>
-                  <span style={{ color: "var(--text-dim)" }}>STATUS: </span>
-                  <span style={{ color: "#00ffcc", fontWeight: 700 }}>ANONYMIZED OPERATIVE</span>
+
+                <div style={{ background: "rgba(255, 255, 255, 0.01)", border: "1px solid var(--border)", padding: "10px 14px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>UPLINK STATUS</div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#00ffcc", fontWeight: "bold", marginTop: "6px", letterSpacing: "0.05em" }}>
+                    ANONYMIZED
+                  </div>
                 </div>
               </div>
 
               {/* Boosters Panel */}
               <div style={{ 
-                marginTop: "16px",
-                display: "flex", 
-                gap: "12px", 
-                flexWrap: "wrap",
-                background: "rgba(255, 77, 77, 0.02)",
-                border: "1px solid rgba(255, 77, 77, 0.1)",
-                padding: "10px 16px",
+                background: "rgba(255, 0, 51, 0.02)",
+                border: "1px solid rgba(255, 0, 51, 0.15)",
+                padding: "12px 16px",
                 borderRadius: "2px",
-                maxWidth: "580px"
+                maxWidth: "600px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px"
               }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span>$THREAT BOOST:</span>
-                  <span style={{ 
-                    color: threatBalance && threatBalance > 0 ? "#00ffcc" : "var(--text-muted)", 
-                    fontWeight: "bold",
-                    background: threatBalance && threatBalance > 0 ? "rgba(0, 255, 204, 0.08)" : "rgba(255, 255, 255, 0.03)",
-                    padding: "2px 6px",
-                    borderRadius: "2px",
-                    border: threatBalance && threatBalance > 0 ? "1px solid rgba(0, 255, 204, 0.2)" : "1px solid rgba(255, 255, 255, 0.05)"
-                  }}>
-                    {threatBalance && threatBalance > 0 ? "ACTIVE (2.0x)" : "INACTIVE (1.0x)"}
-                  </span>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                  ACTIVE SYSTEM BOOSTERS
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span>CLEARANCE BOOST:</span>
-                  <span style={{ 
-                    color: "var(--accent)", 
-                    fontWeight: "bold",
-                    background: "rgba(255, 77, 77, 0.05)",
-                    padding: "2px 6px",
-                    borderRadius: "2px",
-                    border: "1px solid rgba(255, 77, 77, 0.2)"
-                  }}>
-                    {stats.level >= 5 ? "ACTIVE (2.0x)" : 
-                     stats.level >= 4 ? "ACTIVE (1.75x)" : 
-                     stats.level >= 3 ? "ACTIVE (1.5x)" : 
-                     stats.level >= 2 ? "ACTIVE (1.25x)" : 
-                     "ACTIVE (1.0x)"}
-                  </span>
-                </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text)", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span>TOTAL MULTIPLIER:</span>
-                  <span style={{ 
-                    color: "#00ffcc", 
-                    fontWeight: "bold",
-                    textShadow: "0 0 4px rgba(0, 255, 204, 0.4)"
-                  }}>
-                    {((threatBalance && threatBalance > 0 ? 2.0 : 1.0) * 
-                      (stats.level >= 5 ? 2.0 : 
-                       stats.level >= 4 ? 1.75 : 
-                       stats.level >= 3 ? 1.5 : 
-                       stats.level >= 2 ? 1.25 : 
-                       1.0)).toFixed(2)}x XP
-                  </span>
+                <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>
+                    $THREAT HODL: <span style={{ color: threatBalance && threatBalance > 0 ? "#00ffcc" : "var(--text-muted)" }}>{threatBalance && threatBalance > 0 ? "2.0x BOOST" : "INACTIVE"}</span>
+                  </div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>
+                    CLEARANCE: <span style={{ color: "var(--accent)" }}>
+                      {stats.level >= 5 ? "2.0x BOOST" : 
+                       stats.level >= 4 ? "1.75x BOOST" : 
+                       stats.level >= 3 ? "1.5x BOOST" : 
+                       stats.level >= 2 ? "1.25x BOOST" : 
+                       "1.0x BASE"}
+                    </span>
+                  </div>
+                  <div style={{ height: "14px", width: "1px", background: "rgba(255,255,255,0.1)" }} />
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text)", fontWeight: "bold" }}>
+                    XP MULTIPLIER: <span style={{ color: "#00ffcc", textShadow: "0 0 4px rgba(0, 255, 204, 0.4)" }}>
+                      {((threatBalance && threatBalance > 0 ? 2.0 : 1.0) * 
+                        (stats.level >= 5 ? 2.0 : 
+                         stats.level >= 4 ? 1.75 : 
+                         stats.level >= 3 ? 1.5 : 
+                         stats.level >= 2 ? 1.25 : 
+                         1.0)).toFixed(2)}x
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Score display with live glowing bar */}
             {scoreNum !== null && (
-              <div style={{ textAlign: "right", marginLeft: "auto", minWidth: "160px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "4px" }}>
+              <div style={{
+                textAlign: "left",
+                marginLeft: "auto",
+                minWidth: "240px",
+                background: "rgba(10, 10, 10, 0.4)",
+                border: "1px solid var(--border)",
+                padding: "20px",
+                borderRadius: "2px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center"
+              }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "8px", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "6px" }}>
                   SURVIVAL READINESS (BIO-SCORE)
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "56px", fontWeight: 900, color: scoreColor, lineHeight: 1, textShadow: `0 0 6px ${scoreColor}80` }}>
-                  {scoreNum}%
+                <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "56px", fontWeight: 900, color: scoreColor, lineHeight: 1, textShadow: `0 0 8px ${scoreColor}50` }}>
+                    {scoreNum}%
+                  </span>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: scoreColor, letterSpacing: "0.05em", fontWeight: "bold" }}>
+                    {scoreNum >= 80 ? "EXCELLENT" : scoreNum >= 50 ? "NOMINAL" : "CRITICAL"}
+                  </span>
                 </div>
-                <div className="threat-bar-wrap" style={{ marginTop: "12px", width: "140px", marginLeft: "auto", height: "8px", border: "1px solid rgba(255,255,255,0.08)", background: "#111" }}>
+                <div className="threat-bar-wrap" style={{ marginTop: "16px", width: "100%", height: "6px", border: "1px solid rgba(255,255,255,0.05)", background: "#111" }}>
                   <div className="threat-bar-fill" style={{ width: `${scoreNum}%`, background: scoreColor, boxShadow: `0 0 10px ${scoreColor}` }} />
                 </div>
               </div>
@@ -560,6 +600,32 @@ export default function OperativeProfilePage() {
             <Link href="/threat-vector" className="btn btn-ghost" style={{ fontSize: "15px" }}>
               BROWSE SECTOR MATRIX
             </Link>
+            
+            {user && (
+              <button
+                className="btn btn-ghost"
+                onClick={() => logout()}
+                style={{
+                  fontSize: "15px",
+                  borderColor: "rgba(255, 77, 77, 0.4)",
+                  color: "var(--accent)",
+                  background: "rgba(255, 77, 77, 0.02)",
+                  marginLeft: "auto"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "var(--accent)";
+                  e.currentTarget.style.background = "rgba(255, 77, 77, 0.08)";
+                  e.currentTarget.style.boxShadow = "0 0 15px rgba(255, 77, 77, 0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255, 77, 77, 0.4)";
+                  e.currentTarget.style.background = "rgba(255, 77, 77, 0.02)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                ⎋ LOGOUT SESSION
+              </button>
+            )}
           </div>
 
           {/* Solana Wallet Linkage Panel for Email Users */}
