@@ -185,7 +185,7 @@ export default function OperativeProfilePage() {
       } catch (err) {
         console.error("Failed to query $THREAT balance:", err);
         // Fallback
-        setThreatBalance(500); 
+        setThreatBalance(0); 
       }
       setLoadingBalance(false);
     }
