@@ -179,20 +179,20 @@ export default function TerminalPage() {
 
     // Header Text
     ctx.fillStyle = "#ff0033";
-    ctx.font = "bold 12px monospace";
+    ctx.font = "bold 13px monospace";
     ctx.textBaseline = "middle";
     ctx.fillText("◉ RED QUEEN CYBERNETIC PROTOCOL NODE 7.4.1", 24, 32);
 
     // Clearance Label in Header Right
     ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.font = "bold 10px monospace";
+    ctx.font = "bold 11px monospace";
     ctx.textAlign = "right";
     ctx.fillText(`CLEARANCE: ${clearanceInfo.label.toUpperCase()}`, w - 24, 32);
     ctx.textAlign = "left"; // reset alignment
 
     // 5. Operative Info Panel
     const opPanelY = 64;
-    const opPanelH = 60;
+    const opPanelH = 72;
     ctx.fillStyle = "rgba(255, 0, 51, 0.03)";
     ctx.fillRect(16, opPanelY, w - 32, opPanelH);
     ctx.strokeStyle = "rgba(255, 0, 51, 0.15)";
@@ -201,36 +201,36 @@ export default function TerminalPage() {
     // Operative Info Text inside panel
     ctx.textBaseline = "top";
     ctx.fillStyle = "#ff4d4d";
-    ctx.font = "bold 9px monospace";
-    ctx.fillText("OPERATIVE IDENTIFICATION", 28, opPanelY + 10);
+    ctx.font = "bold 10px monospace";
+    ctx.fillText("OPERATIVE IDENTIFICATION", 28, opPanelY + 14);
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 14px monospace";
-    ctx.fillText(apocalypticName || "SUBJECT", 28, opPanelY + 24);
+    ctx.font = "bold 15px monospace";
+    ctx.fillText(apocalypticName || "SUBJECT", 28, opPanelY + 32);
 
     ctx.fillStyle = "#ff4d4d";
-    ctx.font = "bold 9px monospace";
-    ctx.fillText("BIO-SCORE", 260, opPanelY + 10);
+    ctx.font = "bold 10px monospace";
+    ctx.fillText("BIO-SCORE", 260, opPanelY + 14);
     const scoreColorHex = scoreVal === 0 ? "#888888" : scoreVal < 20 ? "#ff4d4d" : scoreVal < 60 ? "#f0c929" : "#2ecc40";
     ctx.fillStyle = scoreColorHex;
-    ctx.font = "bold 16px monospace";
-    ctx.fillText(`${scoreVal}%`, 260, opPanelY + 24);
+    ctx.font = "bold 18px monospace";
+    ctx.fillText(`${scoreVal}%`, 260, opPanelY + 32);
 
     ctx.fillStyle = "#ff4d4d";
-    ctx.font = "bold 9px monospace";
-    ctx.fillText("EXPERIENCE / RANK", 380, opPanelY + 10);
+    ctx.font = "bold 10px monospace";
+    ctx.fillText("EXPERIENCE / RANK", 380, opPanelY + 14);
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 13px monospace";
-    ctx.fillText(`LEVEL ${stats?.level || 1} (${stats?.xp || 0} XP)`, 380, opPanelY + 24);
+    ctx.font = "bold 14px monospace";
+    ctx.fillText(`LEVEL ${stats?.level || 1} (${stats?.xp || 0} XP)`, 380, opPanelY + 32);
 
     ctx.fillStyle = "#ff4d4d";
-    ctx.font = "bold 9px monospace";
-    ctx.fillText("UPLINK STATUS", 580, opPanelY + 10);
+    ctx.font = "bold 10px monospace";
+    ctx.fillText("UPLINK STATUS", 580, opPanelY + 14);
     ctx.fillStyle = connected ? "#2ecc40" : "#f0c929";
-    ctx.font = "bold 12px monospace";
-    ctx.fillText(connected ? "DIRECTOR clearance" : "UNVERIFIED PUBLIC", 580, opPanelY + 24);
+    ctx.font = "bold 13px monospace";
+    ctx.fillText(connected ? "DIRECTOR clearance" : "UNVERIFIED PUBLIC", 580, opPanelY + 32);
 
     // 6. Question Section (if exists)
-    let textStartY = 145;
+    let textStartY = 155;
     if (shareModalData.question) {
       // Draw background panel for question
       const qText = shareModalData.question;
@@ -238,22 +238,22 @@ export default function TerminalPage() {
       ctx.strokeStyle = "rgba(0, 229, 255, 0.1)";
       
       // Calculate lines to find dynamic height
-      ctx.font = "12px monospace";
+      ctx.font = "bold 15px monospace";
       const maxWidth = w - 64;
       const qLines = getWrappedLines(qText, maxWidth);
-      const qHeight = qLines.length * 20 + 36;
+      const qHeight = qLines.length * 24 + 40;
       
       ctx.fillRect(16, textStartY, w - 32, qHeight);
       ctx.strokeRect(16, textStartY, w - 32, qHeight);
       
       ctx.fillStyle = "#00e5ff";
-      ctx.font = "bold 10px monospace";
+      ctx.font = "bold 12px monospace";
       ctx.fillText("▼ INCOMING SUBJECT INQUIRY", 28, textStartY + 8);
       
       ctx.fillStyle = "#e0f7fa";
-      ctx.font = "12px monospace";
+      ctx.font = "bold 15px monospace";
       qLines.forEach((line, index) => {
-        ctx.fillText(line, 28, textStartY + 24 + index * 20);
+        ctx.fillText(line, 28, textStartY + 28 + index * 24);
       });
       
       textStartY += qHeight + 15;
@@ -264,7 +264,7 @@ export default function TerminalPage() {
     ctx.fillStyle = "rgba(255, 0, 51, 0.015)";
     ctx.strokeStyle = "rgba(255, 0, 51, 0.15)";
     
-    ctx.font = "13px monospace";
+    ctx.font = "bold 16px monospace";
     const maxWidth = w - 64;
     const rLines = getWrappedLines(rText.replace(/\[BIO-SCORE:\s*\d+%?\]/i, "").replace(/\[SYSTEM NOTICE:.*?\]/g, "").trim(), maxWidth);
     
@@ -274,16 +274,16 @@ export default function TerminalPage() {
     ctx.strokeRect(16, textStartY, w - 32, rHeight);
     
     ctx.fillStyle = "#ff3366";
-    ctx.font = "bold 10px monospace";
+    ctx.font = "bold 12px monospace";
     ctx.fillText("▲ DETECTED CENTRAL RESPONSE", 28, textStartY + 10);
     
     ctx.fillStyle = "#ffffff";
-    ctx.font = "13px monospace";
+    ctx.font = "bold 16px monospace";
     
     // Fit lines to the remaining box space
-    const maxAvailableLines = Math.floor((rHeight - 35) / 22);
+    const maxAvailableLines = Math.floor((rHeight - 45) / 26);
     for (let i = 0; i < Math.min(rLines.length, maxAvailableLines); i++) {
-      ctx.fillText(rLines[i], 28, textStartY + 28 + i * 22);
+      ctx.fillText(rLines[i], 28, textStartY + 32 + i * 26);
     }
 
     // 8. Footer
