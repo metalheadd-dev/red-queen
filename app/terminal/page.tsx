@@ -113,10 +113,18 @@ export default function TerminalPage() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [limitBlocked, setLimitBlocked] = useState(false);
-  const [shareModalData, setShareModalData] = useState<{ content: string; bioScore?: string } | null>(null);
+  const [shareModalData, setShareModalData] = useState<{ content: string; bioScore?: string; question?: string } | null>(null);
   const [shareImageSrc, setShareImageSrc] = useState<string>("");
   const [copySuccess, setCopySuccess] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const localProgression = getLocalStatsAndScore(messages);
+  const scoreNum = connected ? (currentScore ? parseInt(currentScore) : localProgression.score) : localProgression.score;
+  const stats = connected ? (profileStats || localProgression.stats) : localProgression.stats;
+  const clearance = getClearanceLevel(scoreNum);
+  const scoreColor = scoreNum === 0 ? "var(--text-dim)" : clearance.color;
+
+  const userMessageCount = messages.filter((m) => m.role === "user").length;
+  const isLocked = !connected && (userMessageCount >= 4 || limitBlocked);
 
   useEffect(() => {
     if (connected || user) {
@@ -131,8 +139,8 @@ export default function TerminalPage() {
     if (!ctx) return;
 
     // Draw parameters
-    const w = 600;
-    const h = 400;
+    const w = 800;
+    const h = 650;
     canvas.width = w;
     canvas.height = h;
 
@@ -146,12 +154,12 @@ export default function TerminalPage() {
     ctx.strokeRect(4, 4, w - 8, h - 8);
 
     // Sub-border
-    ctx.strokeStyle = "rgba(255, 0, 51, 0.2)";
+    ctx.strokeStyle = "rgba(255, 0, 51, 0.15)";
     ctx.lineWidth = 1;
     ctx.strokeRect(10, 10, w - 20, h - 20);
 
     // 3. Scanline grid background
-    ctx.fillStyle = "rgba(255, 0, 51, 0.02)";
+    ctx.fillStyle = "rgba(255, 0, 51, 0.015)";
     for (let y = 12; y < h - 12; y += 4) {
       ctx.fillRect(12, y, w - 24, 2);
     }
@@ -165,60 +173,117 @@ export default function TerminalPage() {
     ctx.lineTo(w - 12, 52);
     ctx.stroke();
 
+    // Derived clearance level
+    const scoreVal = scoreNum || 0;
+    const clearanceInfo = getClearanceLevel(scoreVal);
+
     // Header Text
     ctx.fillStyle = "#ff0033";
-    ctx.font = "bold 11px monospace";
+    ctx.font = "bold 12px monospace";
     ctx.textBaseline = "middle";
     ctx.fillText("◉ RED QUEEN CYBERNETIC PROTOCOL NODE 7.4.1", 24, 32);
 
-    // 5. Bio-score panel in top right
-    const score = shareModalData.bioScore || currentScore || "PENDING";
-    ctx.fillStyle = score === "PENDING" ? "#f0c929" : parseInt(score) < 20 ? "#ff4d4d" : parseInt(score) < 60 ? "#f0c929" : "#2ecc40";
+    // Clearance Label in Header Right
+    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.font = "bold 10px monospace";
+    ctx.textAlign = "right";
+    ctx.fillText(`CLEARANCE: ${clearanceInfo.label.toUpperCase()}`, w - 24, 32);
+    ctx.textAlign = "left"; // reset alignment
+
+    // 5. Operative Info Panel
+    const opPanelY = 64;
+    const opPanelH = 60;
+    ctx.fillStyle = "rgba(255, 0, 51, 0.03)";
+    ctx.fillRect(16, opPanelY, w - 32, opPanelH);
+    ctx.strokeStyle = "rgba(255, 0, 51, 0.15)";
+    ctx.strokeRect(16, opPanelY, w - 32, opPanelH);
+
+    // Operative Info Text inside panel
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "#ff4d4d";
+    ctx.font = "bold 9px monospace";
+    ctx.fillText("OPERATIVE IDENTIFICATION", 28, opPanelY + 10);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 14px monospace";
+    ctx.fillText(apocalypticName || "SUBJECT", 28, opPanelY + 24);
+
+    ctx.fillStyle = "#ff4d4d";
+    ctx.font = "bold 9px monospace";
+    ctx.fillText("BIO-SCORE", 260, opPanelY + 10);
+    const scoreColorHex = scoreVal === 0 ? "#888888" : scoreVal < 20 ? "#ff4d4d" : scoreVal < 60 ? "#f0c929" : "#2ecc40";
+    ctx.fillStyle = scoreColorHex;
+    ctx.font = "bold 16px monospace";
+    ctx.fillText(`${scoreVal}%`, 260, opPanelY + 24);
+
+    ctx.fillStyle = "#ff4d4d";
+    ctx.font = "bold 9px monospace";
+    ctx.fillText("EXPERIENCE / RANK", 380, opPanelY + 10);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 13px monospace";
+    ctx.fillText(`LEVEL ${stats?.level || 1} (${stats?.xp || 0} XP)`, 380, opPanelY + 24);
+
+    ctx.fillStyle = "#ff4d4d";
+    ctx.font = "bold 9px monospace";
+    ctx.fillText("UPLINK STATUS", 580, opPanelY + 10);
+    ctx.fillStyle = connected ? "#2ecc40" : "#f0c929";
     ctx.font = "bold 12px monospace";
-    ctx.fillText(`BIO-SCORE: ${score}%`, w - 170, 32);
+    ctx.fillText(connected ? "DIRECTOR clearance" : "UNVERIFIED PUBLIC", 580, opPanelY + 24);
 
-    // 6. Apocalyptic Name
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.font = "12px monospace";
-    ctx.fillText(`OPERATIVE: ${apocalypticName || "SUBJECT"}`, 24, 80);
+    // 6. Question Section (if exists)
+    let textStartY = 145;
+    if (shareModalData.question) {
+      // Draw background panel for question
+      const qText = shareModalData.question;
+      ctx.fillStyle = "rgba(0, 229, 255, 0.02)";
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.1)";
+      
+      // Calculate lines to find dynamic height
+      ctx.font = "12px monospace";
+      const maxWidth = w - 64;
+      const qLines = getWrappedLines(qText, maxWidth);
+      const qHeight = qLines.length * 20 + 36;
+      
+      ctx.fillRect(16, textStartY, w - 32, qHeight);
+      ctx.strokeRect(16, textStartY, w - 32, qHeight);
+      
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 10px monospace";
+      ctx.fillText("▼ INCOMING SUBJECT INQUIRY", 28, textStartY + 8);
+      
+      ctx.fillStyle = "#e0f7fa";
+      ctx.font = "12px monospace";
+      qLines.forEach((line, index) => {
+        ctx.fillText(line, 28, textStartY + 24 + index * 20);
+      });
+      
+      textStartY += qHeight + 15;
+    }
 
-    // 7. Message Body Text
-    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.font = "11px monospace";
+    // 7. Response Section
+    const rText = shareModalData.content;
+    ctx.fillStyle = "rgba(255, 0, 51, 0.015)";
+    ctx.strokeStyle = "rgba(255, 0, 51, 0.15)";
     
-    // Wrap text function
-    const text = shareModalData.content;
-    const cleanText = text.replace(/\[BIO-SCORE:\s*\d+%?\]/i, "").replace(/\[SYSTEM NOTICE:.*?\]/g, "").trim();
+    ctx.font = "13px monospace";
+    const maxWidth = w - 64;
+    const rLines = getWrappedLines(rText.replace(/\[BIO-SCORE:\s*\d+%?\]/i, "").replace(/\[SYSTEM NOTICE:.*?\]/g, "").trim(), maxWidth);
     
-    const paragraphs = cleanText.split("\n");
-    const lines: string[] = [];
-    const maxWidth = w - 48;
-    const lineHeight = 18;
-
-    paragraphs.forEach((para) => {
-      if (!para.trim()) {
-        lines.push("");
-        return;
-      }
-      const words = para.split(" ");
-      let line = "";
-      for (let n = 0; n < words.length; n++) {
-        let testLine = line + words[n] + " ";
-        let metrics = ctx.measureText(testLine);
-        if (metrics.width > maxWidth && n > 0) {
-          lines.push(line.trim());
-          line = words[n] + " ";
-        } else {
-          line = testLine;
-        }
-      }
-      lines.push(line.trim());
-    });
-
-    // Render up to 13 lines of text
-    const startY = 110;
-    for (let i = 0; i < Math.min(lines.length, 13); i++) {
-      ctx.fillText(lines[i], 24, startY + i * lineHeight);
+    // Calculate remaining height to draw the response box
+    const rHeight = h - 35 - 30 - textStartY;
+    ctx.fillRect(16, textStartY, w - 32, rHeight);
+    ctx.strokeRect(16, textStartY, w - 32, rHeight);
+    
+    ctx.fillStyle = "#ff3366";
+    ctx.font = "bold 10px monospace";
+    ctx.fillText("▲ DETECTED CENTRAL RESPONSE", 28, textStartY + 10);
+    
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "13px monospace";
+    
+    // Fit lines to the remaining box space
+    const maxAvailableLines = Math.floor((rHeight - 35) / 22);
+    for (let i = 0; i < Math.min(rLines.length, maxAvailableLines); i++) {
+      ctx.fillText(rLines[i], 28, textStartY + 28 + i * 22);
     }
 
     // 8. Footer
@@ -226,11 +291,40 @@ export default function TerminalPage() {
     ctx.font = "9px monospace";
     ctx.fillText("RETRANSMISSION SECURITY PROTOCOL ACTIVATED // UPLINK SECURED", 24, h - 30);
     ctx.fillStyle = "#ff0033";
-    ctx.fillText("@redqueen_agent", w - 120, h - 30);
+    ctx.textAlign = "right";
+    ctx.fillText("@redqueen_agent // redqueen.space", w - 24, h - 30);
+    ctx.textAlign = "left"; // reset alignment
 
     // Save as image URL
     setShareImageSrc(canvas.toDataURL("image/png"));
-  }, [shareModalData, apocalypticName, currentScore]);
+
+    // Helper inside the effect
+    function getWrappedLines(textString: string, maxW: number): string[] {
+      if (!ctx) return [];
+      const paragraphs = textString.split("\n");
+      const lines: string[] = [];
+      paragraphs.forEach((para) => {
+        if (!para.trim()) {
+          lines.push("");
+          return;
+        }
+        const words = para.split(" ");
+        let line = "";
+        for (let n = 0; n < words.length; n++) {
+          let testLine = line + words[n] + " ";
+          let metrics = ctx.measureText(testLine);
+          if (metrics.width > maxW && n > 0) {
+            lines.push(line.trim());
+            line = words[n] + " ";
+          } else {
+            line = testLine;
+          }
+        }
+        lines.push(line.trim());
+      });
+      return lines;
+    }
+  }, [shareModalData, apocalypticName, currentScore, connected, stats, scoreNum]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -436,14 +530,6 @@ To decrypt or scan target files:
     }
   }
 
-  const localProgression = getLocalStatsAndScore(messages);
-  const scoreNum = connected ? (currentScore ? parseInt(currentScore) : localProgression.score) : localProgression.score;
-  const stats = connected ? (profileStats || localProgression.stats) : localProgression.stats;
-  const clearance = getClearanceLevel(scoreNum);
-  const scoreColor = scoreNum === 0 ? "var(--text-dim)" : clearance.color;
-
-  const userMessageCount = messages.filter((m) => m.role === "user").length;
-  const isLocked = !connected && (userMessageCount >= 4 || limitBlocked);
 
   return (
     <div style={{ padding: "60px 0 0", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -556,7 +642,15 @@ To decrypt or scan target files:
                         </div>
                       )}
                       <button
-                        onClick={() => setShareModalData({ content: msg.content, bioScore: msg.bioScore })}
+                        onClick={() => {
+                          const prevMsg = i > 0 ? messages[i - 1] : null;
+                          const questionVal = prevMsg && prevMsg.role === "user" ? prevMsg.content : undefined;
+                          setShareModalData({
+                            content: msg.content,
+                            bioScore: msg.bioScore,
+                            question: questionVal
+                          });
+                        }}
                         style={{
                           background: "none",
                           border: "none",
