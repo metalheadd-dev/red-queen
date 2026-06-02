@@ -431,6 +431,82 @@ export default function HomePage() {
           boxShadow: "0 2px 10px rgba(255, 0, 51, 0.5)"
         }} />
 
+        {/* Zombie Silhouettes — shown only for DEAD-WALK */}
+        {THREAT_OF_THE_DAY.codename === "DEAD-WALK" && (
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "90px", overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
+            {/* Ground fog line */}
+            <div style={{
+              position: "absolute", bottom: 0, left: 0, right: 0, height: "32px",
+              background: "linear-gradient(to top, rgba(20,0,0,0.7) 0%, transparent 100%)"
+            }} />
+            {/* Zombie 1 — walks right-to-left */}
+            <div style={{ position: "absolute", bottom: "8px", right: "-60px", animation: "zombie-walk 18s linear 0s infinite" }}>
+              <div style={{ animation: "zombie-lurch 0.9s ease-in-out infinite, zombie-glow-pulse 2s ease-in-out infinite" }}>
+                <svg width="38" height="72" viewBox="0 0 38 72" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.85">
+                  <ellipse cx="19" cy="7" rx="6" ry="7" fill="#ff0033"/>
+                  <rect x="13" y="14" width="12" height="22" rx="2" fill="#cc0022"/>
+                  <rect x="5" y="16" width="7" height="16" rx="2" fill="#cc0022" transform="rotate(-15 5 16)"/>
+                  <rect x="26" y="14" width="7" height="20" rx="2" fill="#cc0022" transform="rotate(20 26 14)"/>
+                  <rect x="14" y="36" width="5" height="22" rx="2" fill="#aa0011"/>
+                  <rect x="19" y="36" width="5" height="22" rx="2" fill="#aa0011" transform="rotate(-8 19 36)"/>
+                </svg>
+              </div>
+            </div>
+            {/* Zombie 2 — slower, slightly different position */}
+            <div style={{ position: "absolute", bottom: "6px", right: "-60px", animation: "zombie-walk 26s linear 4s infinite" }}>
+              <div style={{ animation: "zombie-lurch 1.2s ease-in-out 0.3s infinite, zombie-glow-pulse 3s ease-in-out 1s infinite" }}>
+                <svg width="32" height="62" viewBox="0 0 38 72" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.65">
+                  <ellipse cx="19" cy="7" rx="6" ry="7" fill="#ff0033"/>
+                  <rect x="13" y="14" width="12" height="22" rx="2" fill="#cc0022"/>
+                  <rect x="3" y="18" width="7" height="14" rx="2" fill="#cc0022" transform="rotate(-25 3 18)"/>
+                  <rect x="27" y="15" width="7" height="18" rx="2" fill="#cc0022" transform="rotate(10 27 15)"/>
+                  <rect x="14" y="36" width="5" height="22" rx="2" fill="#aa0011" transform="rotate(5 14 36)"/>
+                  <rect x="19" y="36" width="5" height="22" rx="2" fill="#aa0011"/>
+                </svg>
+              </div>
+            </div>
+            {/* Zombie 3 — small/far away */}
+            <div style={{ position: "absolute", bottom: "4px", right: "-60px", animation: "zombie-walk 34s linear 9s infinite" }}>
+              <div style={{ animation: "zombie-lurch 0.7s ease-in-out 0.6s infinite, zombie-glow-pulse 2.5s ease-in-out 0.5s infinite" }}>
+                <svg width="24" height="50" viewBox="0 0 38 72" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.45">
+                  <ellipse cx="19" cy="7" rx="6" ry="7" fill="#ff0033"/>
+                  <rect x="13" y="14" width="12" height="22" rx="2" fill="#cc0022"/>
+                  <rect x="6" y="17" width="7" height="15" rx="2" fill="#cc0022" transform="rotate(-10 6 17)"/>
+                  <rect x="25" y="16" width="7" height="17" rx="2" fill="#cc0022" transform="rotate(15 25 16)"/>
+                  <rect x="14" y="36" width="5" height="22" rx="2" fill="#aa0011"/>
+                  <rect x="19" y="36" width="5" height="22" rx="2" fill="#aa0011" transform="rotate(-5 19 36)"/>
+                </svg>
+              </div>
+            </div>
+            {/* Zombie 4 — walks left-to-right (mirror) */}
+            <div style={{ position: "absolute", bottom: "10px", left: "-60px", animation: "zombie-walk-reverse 22s linear 2s infinite" }}>
+              <div style={{ animation: "zombie-lurch 1.1s ease-in-out 0.9s infinite, zombie-glow-pulse 2.8s ease-in-out 0.2s infinite" }}>
+                <svg width="34" height="66" viewBox="0 0 38 72" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.75">
+                  <ellipse cx="19" cy="7" rx="6" ry="7" fill="#ff0033"/>
+                  <rect x="13" y="14" width="12" height="22" rx="2" fill="#cc0022"/>
+                  <rect x="5" y="16" width="7" height="16" rx="2" fill="#cc0022" transform="rotate(-20 5 16)"/>
+                  <rect x="26" y="14" width="7" height="20" rx="2" fill="#cc0022" transform="rotate(12 26 14)"/>
+                  <rect x="14" y="36" width="5" height="22" rx="2" fill="#aa0011" transform="rotate(6 14 36)"/>
+                  <rect x="19" y="36" width="5" height="22" rx="2" fill="#aa0011"/>
+                </svg>
+              </div>
+            </div>
+            {/* Zombie 5 — tiny/very faint, background depth */}
+            <div style={{ position: "absolute", bottom: "2px", right: "-60px", animation: "zombie-walk 42s linear 15s infinite" }}>
+              <div style={{ animation: "zombie-bob 1.4s ease-in-out infinite, zombie-glow-pulse 4s ease-in-out 2s infinite" }}>
+                <svg width="18" height="40" viewBox="0 0 38 72" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.3">
+                  <ellipse cx="19" cy="7" rx="6" ry="7" fill="#ff0033"/>
+                  <rect x="13" y="14" width="12" height="22" rx="2" fill="#cc0022"/>
+                  <rect x="5" y="16" width="7" height="16" rx="2" fill="#cc0022"/>
+                  <rect x="26" y="14" width="7" height="20" rx="2" fill="#cc0022"/>
+                  <rect x="14" y="36" width="5" height="22" rx="2" fill="#aa0011"/>
+                  <rect x="19" y="36" width="5" height="22" rx="2" fill="#aa0011"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="container">
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: "40px" }}>
