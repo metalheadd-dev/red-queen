@@ -2,7 +2,6 @@ import { Connection, PublicKey } from "@solana/web3.js";
 
 // Harmonized list of public mainnet RPC nodes for resiliency and bypass of rate-limits
 export const MAINNET_RPC_URLS = [
-  "https://solana-mainnet.rpc.extrnode.com",
   "https://rpc.ankr.com/solana",
   "https://mainnet.ankr.com/solana",
   "https://api.mainnet-beta.solana.com",
@@ -38,9 +37,10 @@ export async function getWorkingConnection(isDevnet = false): Promise<Connection
       console.log(`[SOLANA RPC] Testing connectivity for: ${url}`);
       const connection = new Connection(url, "confirmed");
       
-      // Perform a lightweight getLatestBlockhash test with 2500ms timeout
+      // Perform a lightweight getBalance test on a system address to ensure account queries are active and authorized
+      const systemKey = new PublicKey("11111111111111111111111111111111");
       await Promise.race([
-        connection.getLatestBlockhash("confirmed"),
+        connection.getBalance(systemKey),
         new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
       ]);
       

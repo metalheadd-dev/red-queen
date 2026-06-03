@@ -13,7 +13,7 @@ import "@solana/wallet-adapter-react-ui/styles.css";
 
 export default function SolanaProvider({ children }: { children: React.ReactNode }) {
   // You can also provide a custom RPC endpoint
-  const endpoint = useMemo(() => "https://solana-mainnet.rpc.extrnode.com", []);
+  const endpoint = useMemo(() => "https://rpc.ankr.com/solana", []);
 
   const wallets = useMemo(
     () => [
