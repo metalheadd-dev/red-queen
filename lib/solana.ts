@@ -1,10 +1,11 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 
-// Clean list of free public mainnet nodes
+// Free public mainnet RPC pool — ordered by reliability with no-key-required endpoints first
 export const MAINNET_RPC_URLS = [
-  "https://api.mainnet-beta.solana.com",
-  "https://api.mainnet.solana.com",
-  "https://solana.public-rpc.com"
+  "https://solana-rpc.publicnode.com",    // PublicNode — free, no key, no rate block
+  "https://api.mainnet-beta.solana.com", // Official Solana Labs
+  "https://api.mainnet.solana.com",       // Official Solana Labs mirror
+  "https://solana.public-rpc.com"         // Additional fallback
 ];
 
 export const DEVNET_RPC_URLS = [
@@ -46,11 +47,12 @@ export async function getWorkingConnection(isDevnet = false): Promise<Connection
       console.log(`[SOLANA RPC] Testing connectivity for: ${url}`);
       const connection = new Connection(url, "confirmed");
       
-      // Perform a lightweight getBalance test on a system address to ensure basic RPC methods are authorized
-      const systemKey = new PublicKey("11111111111111111111111111111111");
+      // Test with a real account balance query — the treasury address — to confirm
+      // the endpoint allows user-account lookups (some nodes block these with 403)
+      const testKey = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg");
       await Promise.race([
-        connection.getBalance(systemKey),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
+        connection.getBalance(testKey),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000))
       ]);
       
       console.log(`[SOLANA RPC] Connection established successfully with: ${url}`);
