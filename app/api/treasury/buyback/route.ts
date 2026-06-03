@@ -238,7 +238,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         success: true,
         solBalance: balances.solBalance,
-        usdcBalance: balances.usdcBalance
+        usdcBalance: balances.usdcBalance,
+        debugEnv: {
+          hasPrivateKey: !!process.env.TREASURY_PRIVATE_KEY,
+          privateKeyLength: process.env.TREASURY_PRIVATE_KEY?.length || 0,
+          hasCronSecret: !!process.env.CRON_SECRET,
+          cronSecretValue: process.env.CRON_SECRET || "none"
+        }
       });
     } catch (err: any) {
       console.error("GET balances handler failed:", err);
