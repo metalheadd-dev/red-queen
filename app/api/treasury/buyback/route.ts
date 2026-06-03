@@ -58,7 +58,7 @@ async function executeBuyback(req: NextRequest) {
   try {
     const privateKeyStr = process.env.TREASURY_PRIVATE_KEY;
     if (!privateKeyStr) {
-      return NextResponse.json({ success: false, error: "System Error: TREASURY_PRIVATE_KEY is not configured in environment variables" });
+      return NextResponse.json({ success: false, error: "System Error: TREASURY_PRIVATE_KEY is not configured in environment variables" }, { status: 500 });
     }
 
     let keypair: Keypair;
@@ -72,7 +72,7 @@ async function executeBuyback(req: NextRequest) {
         keypair = Keypair.fromSecretKey(bs58.decode(trimmedKeyStr));
       }
     } catch (err: any) {
-      return NextResponse.json({ success: false, error: `System Error: Failed to load Keypair: ${err.message || err}` });
+      return NextResponse.json({ success: false, error: `System Error: Failed to load Keypair: ${err.message || err}` }, { status: 500 });
     }
 
     const connection = process.env.SOLANA_RPC_URL
@@ -130,11 +130,11 @@ async function executeBuyback(req: NextRequest) {
     const quoteRes = await fetch(quoteUrl);
     if (!quoteRes.ok) {
       const errText = await quoteRes.text();
-      return NextResponse.json({ success: false, error: `Failed to fetch quote from Jupiter API: ${errText}` });
+      return NextResponse.json({ success: false, error: `Failed to fetch quote from Jupiter API: ${errText}` }, { status: 502 });
     }
     const quoteData = await quoteRes.json();
 
-     // 5. Construct Jupiter Swap Transaction with Dynamic Compute & Auto Priority Fees
+    // 5. Construct Jupiter Swap Transaction with Dynamic Compute & Auto Priority Fees
     const swapRes = await fetch("https://api.jup.ag/swap/v1/swap", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -149,7 +149,7 @@ async function executeBuyback(req: NextRequest) {
 
     if (!swapRes.ok) {
       const errText = await swapRes.text();
-      return NextResponse.json({ success: false, error: `Failed to construct swap transaction: ${errText}` });
+      return NextResponse.json({ success: false, error: `Failed to construct swap transaction: ${errText}` }, { status: 502 });
     }
 
     const { swapTransaction } = await swapRes.json();
@@ -209,7 +209,7 @@ async function executeBuyback(req: NextRequest) {
 
   } catch (err: any) {
     console.error("Automated buyback execution failed:", err);
-    return NextResponse.json({ success: false, error: `Execution Failure: ${err.message || err}` });
+    return NextResponse.json({ success: false, error: `Execution Failure: ${err.message || err}` }, { status: 500 });
   }
 }
 
@@ -261,13 +261,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         success: true,
         solBalance: balances.solBalance,
-        usdcBalance: balances.usdcBalance,
-        debugEnv: {
-          hasPrivateKey: !!process.env.TREASURY_PRIVATE_KEY,
-          privateKeyLength: process.env.TREASURY_PRIVATE_KEY?.length || 0,
-          hasCronSecret: !!process.env.CRON_SECRET,
-          cronSecretValue: process.env.CRON_SECRET || "none"
-        }
+        usdcBalance: balances.usdcBalance
       });
     } catch (err: any) {
       console.error("GET balances handler failed:", err);
