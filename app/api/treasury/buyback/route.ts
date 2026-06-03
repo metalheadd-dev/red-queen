@@ -30,10 +30,13 @@ export async function POST(req: NextRequest) {
 
   let keypair: Keypair;
   try {
-    if (privateKeyStr.startsWith("[")) {
-      keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(privateKeyStr)));
+    const trimmedKeyStr = privateKeyStr.trim();
+    if (trimmedKeyStr.startsWith("[")) {
+      keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(trimmedKeyStr)));
+    } else if (/^[0-9a-fA-F]{128}$/.test(trimmedKeyStr)) {
+      keypair = Keypair.fromSecretKey(Buffer.from(trimmedKeyStr, "hex"));
     } else {
-      keypair = Keypair.fromSecretKey(bs58.decode(privateKeyStr.trim()));
+      keypair = Keypair.fromSecretKey(bs58.decode(trimmedKeyStr));
     }
   } catch (err: any) {
     return NextResponse.json({ error: `System Error: Failed to load Keypair: ${err.message || err}` }, { status: 500 });
