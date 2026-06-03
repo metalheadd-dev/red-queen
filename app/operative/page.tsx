@@ -96,7 +96,7 @@ async function generateHashedPassport(pubkey: string): Promise<string> {
 }
 
 export default function OperativeProfilePage() {
-  const { publicKey, connected, wallet: walletObj, disconnect, sendTransaction } = useWallet();
+  const { publicKey, connected, wallet: walletObj, disconnect, sendTransaction, signTransaction } = useWallet();
   const { setVisible } = useWalletModal();
   const { user, authIdentifier, logout, session } = useAuth();
 
@@ -190,7 +190,7 @@ export default function OperativeProfilePage() {
         const transaction = new Transaction();
 
         // Fetch fresh blockhash and explicitly set fee payer (vital for wallet adapter execution)
-        const { blockhash } = await connection.getLatestBlockhash("confirmed");
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = publicKey;
 
@@ -232,19 +232,62 @@ export default function OperativeProfilePage() {
           })
         );
 
-        setLoading("Awaiting wallet signature authorization...");
-        const signature = await sendTransaction(transaction, connection);
-
-        setLoading("Confirming transaction on-chain (Solana Mainnet)...");
-        const latestBlockHash = await connection.getLatestBlockhash("confirmed");
-        await connection.confirmTransaction(
-          {
-            blockhash: latestBlockHash.blockhash,
-            lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
-            signature: signature
-          },
-          "confirmed"
-        );
+        let signature = "";
+        
+        if (signTransaction) {
+          setLoading("Awaiting wallet signature authorization...");
+          const signedTx = await signTransaction(transaction);
+          const rawTx = signedTx.serialize();
+          
+          setLoading("Broadcasting transaction to Solana network...");
+          signature = await connection.sendRawTransaction(rawTx, {
+            skipPreflight: true,
+            preflightCommitment: "confirmed"
+          });
+          
+          setLoading("Confirming transaction on-chain (Solana Mainnet)...");
+          const confirmPromise = connection.confirmTransaction(
+            {
+              blockhash: blockhash,
+              lastValidBlockHeight: lastValidBlockHeight,
+              signature: signature
+            },
+            "confirmed"
+          );
+          
+          // Re-broadcast raw transaction every 2 seconds in the background to bypass packet drops
+          const intervalId = setInterval(async () => {
+            try {
+              await connection.sendRawTransaction(rawTx, { skipPreflight: true });
+            } catch (err) {
+              console.warn("Rebroadcast retry failed:", err);
+            }
+          }, 2000);
+          
+          try {
+            await confirmPromise;
+          } finally {
+            clearInterval(intervalId);
+          }
+        } else {
+          // Fallback if signTransaction is not available
+          setLoading("Awaiting wallet signature authorization...");
+          signature = await sendTransaction(transaction, connection, {
+            skipPreflight: false,
+            preflightCommitment: "confirmed",
+            maxRetries: 5
+          });
+          
+          setLoading("Confirming transaction on-chain (Solana Mainnet)...");
+          await connection.confirmTransaction(
+            {
+              blockhash: blockhash,
+              lastValidBlockHeight: lastValidBlockHeight,
+              signature: signature
+            },
+            "confirmed"
+          );
+        }
 
         setLoading("Verifying decryption authorization...");
         let success = false;
