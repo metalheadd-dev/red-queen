@@ -254,7 +254,7 @@ export default function OperativeProfilePage() {
 
         // Add ComputeBudget instructions
         instructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 20000 }));
-        instructions.push(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1000000 }));
+        instructions.push(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 5 }));
 
         // Add SPL Token TransferChecked instruction
         instructions.push(
