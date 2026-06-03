@@ -3,6 +3,14 @@ import { HTTPFacilitatorClient, x402ResourceServer } from "@x402/core/server";
 import { registerExactSvmScheme } from "@x402/svm/exact/server";
 import { NextRequest, NextResponse } from "next/server";
 import { withX402 } from "@x402/next";
+import { supabase } from "./supabase";
+import { getHashedWallet } from "./crypto";
+import { getStatsFromScenarios, applyStatGains, calculateBioScore, updateStatsInScenarios } from "./progression";
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
+import { getWorkingConnection } from "./solana";
+
+const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
 
 // Fallback to PayAI's default facilitator endpoint if not configured
 const facilitatorUrl = process.env.PAYAI_FACILITATOR_URL || "https://facilitator.payai.network";
@@ -314,4 +322,94 @@ export function withFriendlyX402(
 
     return res;
   };
+}
+
+/**
+ * Awards XP and stats to the user when they successfully unlock an x402 paywall.
+ * Prevents duplicates by adding the paywallId to their scenarios log.
+ */
+export async function awardXpForPaywall(
+  token: string,
+  paywallId: string,
+  xpAmount = 50
+): Promise<{ success: boolean; xpGained: number } | null> {
+  if (!supabase || !token) return null;
+
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) return null;
+
+    let authWallet = "";
+    if (user.email) {
+      authWallet = `email-auth:${user.id}`;
+    } else {
+      const web3Identity = user.identities?.find((id: any) => id.provider === "web3" || id.provider === "solana");
+      authWallet = web3Identity?.identity_data?.sub || user.user_metadata?.wallet_address || "";
+    }
+    if (!authWallet) return null;
+
+    const hashedWallet = getHashedWallet(authWallet);
+
+    const { data: profile, error: dbError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("wallet_address", hashedWallet)
+      .single();
+
+    if (dbError || !profile) return null;
+
+    const scenarios: string[] = profile.chosen_scenarios || [];
+    if (scenarios.includes(paywallId)) {
+      return { success: false, xpGained: 0 }; // Already unlocked/awarded
+    }
+
+    const currentStats = getStatsFromScenarios(scenarios);
+    
+    // Apply multipliers (Threat Token Hold = 2x, Clearance Tier = 1.0x to 2.0x)
+    let tokenMultiplier = 1.0;
+    const rawWallet = authWallet.startsWith("email-auth:") ? profile.linked_wallet_address : authWallet;
+    if (rawWallet) {
+      try {
+        const connection = await getWorkingConnection(false);
+        const pubkey = new PublicKey(rawWallet);
+        const threatATA = await getAssociatedTokenAddress(THREAT_MINT, pubkey);
+        const tokenBalance = await connection.getTokenAccountBalance(threatATA);
+        if ((tokenBalance.value.uiAmount || 0) > 0) {
+          tokenMultiplier = 2.0;
+        }
+      } catch (e) {
+        console.warn("x402 XP: Could not verify token balance:", e);
+      }
+    }
+    const level = currentStats.level || 1;
+    const clearanceMultiplier = level >= 5 ? 2.0 : 
+                                level >= 4 ? 1.75 : 
+                                level >= 3 ? 1.5 : 
+                                level >= 2 ? 1.25 : 1.0;
+    const totalMultiplier = tokenMultiplier * clearanceMultiplier;
+    
+    const boostedXp = Math.round(xpAmount * totalMultiplier);
+    
+    // Unlocking premium Intel awards 5 points to Technical Preparedness and Surveillance Resistance
+    const updatedStats = applyStatGains(currentStats, boostedXp, {
+      technical_preparedness: 5,
+      surveillance_resistance: 5
+    }, profile.last_interaction);
+
+    const newBioScore = calculateBioScore(updatedStats);
+    const updatedScenarios = updateStatsInScenarios([...scenarios, paywallId], updatedStats);
+
+    await supabase.from("users").upsert({
+      wallet_address: hashedWallet,
+      last_bio_score: newBioScore,
+      chosen_scenarios: updatedScenarios,
+      last_interaction: new Date().toISOString()
+    }, { onConflict: "wallet_address" });
+
+    console.log(`[x402 XP] Awarded ${boostedXp} XP to ${hashedWallet} for paywall ${paywallId}`);
+    return { success: true, xpGained: boostedXp };
+  } catch (err) {
+    console.error("[x402 XP] Failed to award XP for paywall:", err);
+    return null;
+  }
 }

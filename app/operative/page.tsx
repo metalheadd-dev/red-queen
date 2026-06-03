@@ -174,6 +174,8 @@ export default function OperativeProfilePage() {
             console.error("Failed to parse payment-response header:", e);
           }
         }
+        // Reload profile to refresh XP and sub-stats
+        fetchProfile();
         return;
       }
 
@@ -406,6 +408,8 @@ export default function OperativeProfilePage() {
         if (!success) {
           throw new Error(`x402 payment facilitation failed after 8 attempts. Last error: ${retryError}`);
         }
+        // Reload profile to refresh XP and sub-stats
+        fetchProfile();
 
 
       } else {

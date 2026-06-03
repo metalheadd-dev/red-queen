@@ -1,11 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withFriendlyX402 } from "@/lib/x402";
+import { withFriendlyX402, awardXpForPaywall } from "@/lib/x402";
 import { Connection } from "@solana/web3.js";
 
 const svmAddress = process.env.SVM_ADDRESS || "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg";
 const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
 
 const handler = async (req: NextRequest) => {
+  let xpAwarded: any = undefined;
+  
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    const hasPaymentSig = req.headers.get("PAYMENT-SIGNATURE") || req.headers.get("payment-signature");
+    if (hasPaymentSig) {
+      try {
+        const xpRes = await awardXpForPaywall(token, "DEPIN-INTEL", 50);
+        if (xpRes && xpRes.success) {
+          xpAwarded = xpRes;
+        }
+      } catch (err) {
+        console.error("Failed to award XP during DePIN unlock:", err);
+      }
+    }
+  }
+
   try {
     // Connect to Solana Mainnet Beta
     const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
@@ -90,6 +108,7 @@ const handler = async (req: NextRequest) => {
       success: true,
       timestamp: new Date().toISOString(),
       clearance: "LEVEL 5 DIRECTOR (USDC-PAID)",
+      xpAwarded,
       depin: {
         scannerName: "Solana Mainnet DePIN Infrastructure Engine",
         onlineNodes: totalNodes,
@@ -118,6 +137,7 @@ const handler = async (req: NextRequest) => {
       success: true,
       timestamp: new Date().toISOString(),
       clearance: "LEVEL 5 DIRECTOR (USDC-PAID)",
+      xpAwarded,
       depin: {
         scannerName: "Sector 7 DePIN Mesh Scanner (Mainnet Fallback)",
         onlineNodes: 1420,

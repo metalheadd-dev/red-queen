@@ -155,7 +155,6 @@ export default function TerminalPage() {
         setLoading(null);
         fetchVaultBalances();
 
-        // Extract payment response header if present
         const responseHeader = res.headers.get("payment-response") || res.headers.get("PAYMENT-RESPONSE");
         if (responseHeader) {
           try {
@@ -169,6 +168,20 @@ export default function TerminalPage() {
             }
           } catch (e) {
             console.error("Failed to parse payment-response header:", e);
+          }
+        }
+        // Reload profile to update XP in UI
+        if (walletAddress) {
+          try {
+            const token = session?.access_token;
+            const h: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+            const profileRes = await fetch(`/api/profile?wallet=${walletAddress}`, { headers: h }).then((r) => r.json()).catch(() => ({}));
+            if (profileRes && profileRes.profile) {
+              if (profileRes.profile.stats) setProfileStats(profileRes.profile.stats);
+              if (profileRes.profile.last_bio_score !== null) setCurrentScore(profileRes.profile.last_bio_score.toString());
+            }
+          } catch (e) {
+            console.error("Failed to reload profile:", e);
           }
         }
         return;
@@ -386,6 +399,20 @@ export default function TerminalPage() {
 
         if (!success) {
           throw new Error(`x402 payment facilitation failed after 8 attempts. Last error: ${retryError}`);
+        }
+        // Reload profile to update XP in UI
+        if (walletAddress) {
+          try {
+            const token = session?.access_token;
+            const h: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+            const profileRes = await fetch(`/api/profile?wallet=${walletAddress}`, { headers: h }).then((r) => r.json()).catch(() => ({}));
+            if (profileRes && profileRes.profile) {
+              if (profileRes.profile.stats) setProfileStats(profileRes.profile.stats);
+              if (profileRes.profile.last_bio_score !== null) setCurrentScore(profileRes.profile.last_bio_score.toString());
+            }
+          } catch (e) {
+            console.error("Failed to reload profile:", e);
+          }
         }
       } else {
         throw new Error(`Decryption portal returned status: HTTP ${res.status}`);

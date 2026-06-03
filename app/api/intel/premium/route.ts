@@ -1,10 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withFriendlyX402 } from "@/lib/x402";
+import { withFriendlyX402, awardXpForPaywall } from "@/lib/x402";
 
 const svmAddress = process.env.SVM_ADDRESS || "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg";
 const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
 
 const handler = async (req: NextRequest) => {
+  let xpAwarded: any = undefined;
+  
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    const hasPaymentSig = req.headers.get("PAYMENT-SIGNATURE") || req.headers.get("payment-signature");
+    if (hasPaymentSig) {
+      try {
+        const xpRes = await awardXpForPaywall(token, "PREMIUM-INTEL", 50);
+        if (xpRes && xpRes.success) {
+          xpAwarded = xpRes;
+        }
+      } catch (err) {
+        console.error("Failed to award XP during premium unlock:", err);
+      }
+    }
+  }
+
   try {
     // Fetch real-time physical seismic anomalies, NASA natural disaster events, and Disease.sh global pathogen stats concurrently
     const [usgsRes, nasaRes, diseaseRes] = await Promise.all([
@@ -117,6 +135,7 @@ const handler = async (req: NextRequest) => {
       success: true,
       timestamp: new Date().toISOString(),
       clearance: "LEVEL 5 DIRECTOR (USDC-PAID)",
+      xpAwarded,
       intel: {
         headline: "CRITICAL EARTH CONTAINMENT & BIOLOGICAL DECAY BRIEFING",
         summary: `The global seismic monitoring matrix detected ${anomalyCount} tectonic disruptions in the last hour. Concurrently, NASA natural trackers report ${totalNasa} open environmental hazards, and active pathogens count is ${biologicalContainment.activePathogens.toLocaleString()}. Risk tier calibrated to t54 protocols.`,
@@ -149,6 +168,7 @@ const handler = async (req: NextRequest) => {
       success: true,
       timestamp: new Date().toISOString(),
       clearance: "LEVEL 5 DIRECTOR (USDC-PAID)",
+      xpAwarded,
       intel: {
         headline: "CRITICAL VECTOR ESCALATION BRIEFING: GLOBAL DECAY MULTIPLIERS (Fallback)",
         summary: "Synthetic AI containment fields in Sector Delta are experiencing 14% higher adversarial pressure. Web2 metadata mapping shows active compliance tags being cross-referenced with on-chain wallet signatures. Prepare contingency airgaps.",
