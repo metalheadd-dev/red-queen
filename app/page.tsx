@@ -264,56 +264,160 @@ export default function HomePage() {
       <section style={{ 
         borderTop: "1px solid var(--border)", 
         borderBottom: "1px solid var(--border)", 
-        padding: "48px 0", 
-        background: "rgba(255, 77, 77, 0.03)",
+        padding: "60px 0", 
+        background: "linear-gradient(180deg, rgba(255, 77, 77, 0.01) 0%, rgba(255, 77, 77, 0.04) 50%, rgba(255, 77, 77, 0.01) 100%)",
         position: "relative",
         overflow: "hidden"
       }}>
-        <div className="container" style={{ textAlign: "center" }}>
+        {/* Decorative Grid Lines / Scanline background */}
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "linear-gradient(rgba(18, 18, 18, 0.8), rgba(18, 18, 18, 0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 77, 77, 0.02) 2px, rgba(255, 77, 77, 0.02) 4px)",
+          pointerEvents: "none"
+        }} />
+
+        <div className="container" style={{ position: "relative", zIndex: 2 }}>
           <div style={{ 
-            display: "inline-flex", 
-            flexDirection: "column",
-            alignItems: "center", 
-            gap: "16px", 
-            padding: "36px 60px", 
-            background: "rgba(10, 10, 10, 0.9)", 
-            border: "2px solid rgba(255, 77, 77, 0.4)", 
-            borderRadius: "4px",
-            boxShadow: "0 0 35px rgba(255, 77, 77, 0.12)",
-            width: "100%",
-            maxWidth: "920px",
-            boxSizing: "border-box"
+            textAlign: "center",
+            marginBottom: "32px"
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{ 
+              display: "inline-flex",
+              alignItems: "center", 
+              gap: "8px", 
+              background: "rgba(0, 255, 204, 0.06)",
+              border: "1px solid rgba(0, 255, 204, 0.3)",
+              padding: "6px 14px",
+              borderRadius: "40px",
+              marginBottom: "16px"
+            }}>
               <span style={{ 
-                width: "12px", 
-                height: "12px", 
-                background: "var(--accent)", 
+                width: "8px", 
+                height: "8px", 
+                background: "#00ffcc", 
                 borderRadius: "50%", 
-                boxShadow: "0 0 12px var(--accent)",
+                boxShadow: "0 0 8px #00ffcc",
                 animation: "pulse-dot 1.5s infinite" 
               }} />
               <span style={{ 
                 fontFamily: "var(--mono)", 
-                fontSize: "16px", 
-                color: "var(--accent)", 
-                letterSpacing: "0.25em", 
-                fontWeight: "bold",
-                textTransform: "uppercase"
+                fontSize: "11px", 
+                color: "#00ffcc", 
+                letterSpacing: "0.15em", 
+                fontWeight: "bold"
               }}>
-                x402 INFRASTRUCTURE BROADCAST
+                UPGRADE STATUS: ITERATION 1 ACTIVE
               </span>
             </div>
-            <div style={{ 
-              fontFamily: "var(--mono)", 
-              fontSize: "13px", 
-              color: "var(--text)", 
-              letterSpacing: "0.1em",
-              lineHeight: "1.7",
-              maxWidth: "800px"
+            
+            <h2 className="glitch glow-text" style={{ 
+              fontFamily: "var(--mono)",
+              fontSize: "clamp(24px, 4vw, 42px)", 
+              color: "#ffffff", 
+              fontWeight: 900,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              margin: "0 0 12px 0"
             }}>
-              STATUS: INTERNAL INTEGRATION IN PROGRESS // CORE RE-ENGINEERING SUB-PROTOCOL ACTIVE. ALL WALLET CONNECTIONS REMAIN SECURED UNDER SALTED SHA-256 PARITY.
+              Red Queen Powered by <span style={{ color: "var(--accent)" }}>x402 Payments</span>
+            </h2>
+            <p style={{
+              fontFamily: "var(--mono)",
+              fontSize: "13px",
+              color: "var(--text-dim)",
+              maxWidth: "800px",
+              margin: "0 auto",
+              lineHeight: "1.6",
+              letterSpacing: "0.05em"
+            }}>
+              Monetizing autonomous intelligence. The Red Queen now leverages Solana-speed USDC micro-payments to fund her data pipelines and drive native token economics.
+            </p>
+          </div>
+
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "1fr 1fr 1fr", 
+            gap: "24px", 
+            maxWidth: "1120px", 
+            margin: "0 auto 32px" 
+          }} className="responsive-grid-3">
+            
+            {/* Iteration 1 Block */}
+            <div className="panel" style={{ 
+              background: "rgba(10, 10, 10, 0.9)", 
+              border: "1px solid rgba(255, 77, 77, 0.25)", 
+              padding: "24px",
+              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              borderRadius: "4px"
+            }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em" }}>
+                [ 01 // PAY-PER-INTEL ]
+              </div>
+              <h3 style={{ fontSize: "16px", color: "#ffffff", margin: 0, fontFamily: "var(--title-font)" }}>
+                USDC Micro-Payments
+              </h3>
+              <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                No monthly subscription models. Detailed dossiers and raw telemetry channels are unlocked on-demand via Solana USDC payments using the HTTP 402 protocol standard. Verification finalizes in under 400ms.
+              </p>
             </div>
+
+            {/* Token Buybacks Block */}
+            <div className="panel" style={{ 
+              background: "rgba(10, 10, 10, 0.9)", 
+              border: "1px solid rgba(255, 77, 77, 0.25)", 
+              padding: "24px",
+              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              borderRadius: "4px"
+            }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em" }}>
+                [ 02 // AGENT UTILITY ]
+              </div>
+              <h3 style={{ fontSize: "16px", color: "#ffffff", margin: 0, fontFamily: "var(--title-font)" }}>
+                Automated Buybacks
+              </h3>
+              <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                Every single USDC micro-payment generated by Red Queen’s premium dossiers is autonomously accumulated. Once the balance hits 10 USDC, she autonomously routes a swap via Jupiter to buy back `$THREAT` tokens.
+              </p>
+            </div>
+
+            {/* Next Stage Block */}
+            <div className="panel" style={{ 
+              background: "rgba(10, 10, 10, 0.9)", 
+              border: "1px solid rgba(255, 77, 77, 0.25)", 
+              padding: "24px",
+              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              borderRadius: "4px"
+            }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", letterSpacing: "0.15em" }}>
+                [ 03 // COGNITIVE EVOLUTION ]
+              </div>
+              <h3 style={{ fontSize: "16px", color: "#ffffff", margin: 0, fontFamily: "var(--title-font)" }}>
+                Stage 2 Data Ingestion
+              </h3>
+              <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                The next stage leverages accrued x402 revenue to feed higher-volume telemetry databases directly into her model. By ingest-training on larger datasets, the Red Queen will write cleaner analyses and improve her survival intelligence.
+              </p>
+            </div>
+
+          </div>
+
+          <div style={{ textAlign: "center" }}>
+            <Link href="/survival-kit" className="btn btn-outline" style={{ fontSize: "11px", color: "#00ffcc", borderColor: "rgba(0,255,204,0.3)" }}>
+              [ VIEW TECHNICAL INTELLIGENCE SPECS ]
+            </Link>
           </div>
         </div>
       </section>

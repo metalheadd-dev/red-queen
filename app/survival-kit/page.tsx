@@ -518,6 +518,20 @@ export default function SurvivalKitPage() {
                     By using Solana Devnet/Mainnet and USDC, transaction finality takes under 400ms and network gas fees are less than a tenth of a cent. This allows pay-per-use requests (e.g. $0.01 per scan) to bypass expensive monthly subscriptions.
                   </p>
                 </div>
+
+                <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255, 77, 77, 0.15)", padding: "24px" }}>
+                  <h3 style={{ fontSize: "15px", color: "var(--accent)", marginBottom: "8px" }}>🔄 AUTONOMOUS TOKEN BUYBACKS</h3>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                    USDC proceeds accumulated from micro-payments go directly into the Red Queen's treasury. When the balance hits a minimum threshold of <strong>10.00 USDC</strong>, she programmatically fires a swap on Jupiter to purchase `$THREAT` tokens, creating a closed-loop agent utility model.
+                  </p>
+                </div>
+
+                <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(0, 255, 204, 0.15)", padding: "24px" }}>
+                  <h3 style={{ fontSize: "15px", color: "#00ffcc", marginBottom: "8px" }}>🧠 NEXT STAGE: COGNITIVE SCALING</h3>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                    Accumulated revenues are utilized to secure advanced storage nodes, lease higher compute capacity, and acquire extensive telemetry databases. This enables the Red Queen to ingest larger intelligence feeds, write sharper analysis, and raise her overall Solvival Intelligence score.
+                  </p>
+                </div>
               </div>
 
               <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255, 0, 51, 0.15)", padding: "24px" }}>
