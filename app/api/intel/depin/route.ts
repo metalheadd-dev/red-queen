@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withX402 } from "@x402/next";
 import { x402Server } from "@/lib/x402";
 
-const svmAddress = process.env.SVM_ADDRESS || "3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump";
+const svmAddress = process.env.SVM_ADDRESS || "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg";
 const network = (process.env.SVM_NETWORK || "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1") as any;
 
 const handler = async (req: NextRequest) => {
