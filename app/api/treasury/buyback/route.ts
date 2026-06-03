@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import bs58 from "bs58";
 import { getWorkingConnection } from "@/lib/solana";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
 
 export const dynamic = "force-dynamic";
 
@@ -48,22 +49,42 @@ export async function POST(req: NextRequest) {
     : await getWorkingConnection(false);
 
   try {
-    // 3. Fetch Treasury USDC balance
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(keypair.publicKey, {
-      mint: USDC_MINT,
-    });
+    // 3. Fetch Treasury USDC balance securely using ATA address
+    const vaultAta = await getAssociatedTokenAddress(USDC_MINT, keypair.publicKey);
+    
+    let usdcBalanceUi = 0;
+    let usdcAmountRaw = "0";
+    
+    try {
+      const bal = await connection.getTokenAccountBalance(vaultAta);
+      usdcBalanceUi = bal.value.uiAmount || 0;
+      usdcAmountRaw = bal.value.amount;
+    } catch (e: any) {
+      if (e.message.includes("could not find account") || e.message.includes("Invalid param") || e.message.includes("does not exist")) {
+        return NextResponse.json({
+          success: false,
+          message: "No USDC account found. Treasury balance is 0 USDC.",
+          balance: 0
+        });
+      } else {
+        // Fallback to getParsedTokenAccountsByOwner if public RPC fails
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(keypair.publicKey, {
+          mint: USDC_MINT,
+        });
 
-    if (tokenAccounts.value.length === 0) {
-      return NextResponse.json({
-        success: false,
-        message: "No USDC account found. Treasury balance is 0 USDC.",
-        balance: 0
-      });
+        if (tokenAccounts.value.length === 0) {
+          return NextResponse.json({
+            success: false,
+            message: "No USDC account found. Treasury balance is 0 USDC.",
+            balance: 0
+          });
+        }
+
+        const tokenAccountInfo = tokenAccounts.value[0].account.data.parsed.info;
+        usdcBalanceUi = tokenAccountInfo.tokenAmount.uiAmount || 0;
+        usdcAmountRaw = tokenAccountInfo.tokenAmount.amount;
+      }
     }
-
-    const tokenAccountInfo = tokenAccounts.value[0].account.data.parsed.info;
-    const usdcBalanceUi = tokenAccountInfo.tokenAmount.uiAmount || 0;
-    const usdcAmountRaw = tokenAccountInfo.tokenAmount.amount; // String integer representation (6 decimals)
 
     // Parse minimum USDC for buyback (defaulting to 0.10 USDC)
     const minUsdcStr = searchParams.get("minUsdc") || "0.10";

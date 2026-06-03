@@ -113,19 +113,31 @@ export default function TerminalPage() {
 
   const fetchVaultBalances = async () => {
     try {
-      const connection = new Connection("https://solana-rpc.publicnode.com", "confirmed");
+      const connection = await getWorkingConnection(false);
       const vaultOwner = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg");
       const usdcMint = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
       const solBal = await connection.getBalance(vaultOwner);
       setVaultSolBalance(solBal / 1e9);
 
-      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(vaultOwner, { mint: usdcMint });
-      if (tokenAccounts.value.length > 0) {
-        const info = tokenAccounts.value[0].account.data.parsed.info;
-        setVaultUsdcBalance(info.tokenAmount.uiAmount || 0);
-      } else {
-        setVaultUsdcBalance(0);
+      const vaultAta = await getAssociatedTokenAddress(usdcMint, vaultOwner);
+      try {
+        const bal = await connection.getTokenAccountBalance(vaultAta);
+        setVaultUsdcBalance(bal.value.uiAmount || 0);
+      } catch (err: any) {
+        if (err.message.includes("could not find account") || err.message.includes("Invalid param") || err.message.includes("does not exist")) {
+          setVaultUsdcBalance(0);
+        } else {
+          console.error("Failed to fetch vault USDC balance via ATA lookup, falling back to parsed lookup:", err);
+          // Fallback just in case
+          const tokenAccounts = await connection.getParsedTokenAccountsByOwner(vaultOwner, { mint: usdcMint });
+          if (tokenAccounts.value.length > 0) {
+            const info = tokenAccounts.value[0].account.data.parsed.info;
+            setVaultUsdcBalance(info.tokenAmount.uiAmount || 0);
+          } else {
+            setVaultUsdcBalance(0);
+          }
+        }
       }
     } catch (e) {
       console.error("Failed to fetch vault balances:", e);
