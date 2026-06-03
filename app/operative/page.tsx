@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { generateApocalypticName } from "@/lib/names";
 import { getClearanceLevel, DEFAULT_STATS, parseStatsFromAI } from "@/lib/progression";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
 
@@ -95,7 +95,7 @@ async function generateHashedPassport(pubkey: string): Promise<string> {
 }
 
 export default function OperativeProfilePage() {
-  const { publicKey, connected, wallet: walletObj, disconnect } = useWallet();
+  const { publicKey, connected, wallet: walletObj, disconnect, sendTransaction } = useWallet();
   const { setVisible } = useWalletModal();
   const { user, authIdentifier, logout, session } = useAuth();
 
@@ -124,6 +124,157 @@ export default function OperativeProfilePage() {
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const [premiumIntel, setPremiumIntel] = useState<any | null>(null);
+  const [depinIntel, setDepinIntel] = useState<any | null>(null);
+  const [loadingPremium, setLoadingPremium] = useState<string | null>(null);
+  const [loadingDepin, setLoadingDepin] = useState<string | null>(null);
+  const [premiumError, setPremiumError] = useState<string | null>(null);
+  const [depinError, setDepinError] = useState<string | null>(null);
+
+  const decryptIntel = async (endpoint: "/api/intel/premium" | "/api/intel/depin", type: "premium" | "depin") => {
+    const setLoading = type === "premium" ? setLoadingPremium : setLoadingDepin;
+    const setIntel = type === "premium" ? setPremiumIntel : setDepinIntel;
+    const setError = type === "premium" ? setPremiumError : setDepinError;
+
+    setLoading("Initiating request...");
+    setError(null);
+    setIntel(null);
+
+    try {
+      const token = session?.access_token;
+      let headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      let res = await fetch(endpoint, { headers });
+
+      if (res.status === 200) {
+        const data = await res.json();
+        setIntel(data);
+        setLoading(null);
+        return;
+      }
+
+      if (res.status === 402) {
+        const paymentRequiredHeader = res.headers.get("payment-required") || res.headers.get("x-payment-required");
+        if (!paymentRequiredHeader) {
+          throw new Error("Payment required, but no payment instructions were found in response headers.");
+        }
+
+        setLoading("Decoding payment instructions...");
+        const paymentInfo = JSON.parse(atob(paymentRequiredHeader));
+        const accept = paymentInfo.accepts?.[0];
+        if (!accept) {
+          throw new Error("No SVM exact payment accept method found in x402 details.");
+        }
+
+        const { amount, asset, payTo, network } = accept;
+        if (!publicKey) {
+          throw new Error("Wallet not connected. Connect your wallet in the Access Portal.");
+        }
+
+        setLoading("Verifying Solana RPC context...");
+        const isDevnet = network.includes("EtWTRABZaYq6iMfeYKouRu166VU2xqa1") || network.includes("devnet");
+        const rpcUrl = isDevnet ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
+        const connection = new Connection(rpcUrl, "confirmed");
+
+        const mintPubkey = new PublicKey(asset);
+        const recipientPubkey = new PublicKey(payTo);
+
+        const sourceATA = PublicKey.findProgramAddressSync(
+          [publicKey.toBuffer(), new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").toBuffer(), mintPubkey.toBuffer()],
+          new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
+        )[0];
+
+        const destinationATA = PublicKey.findProgramAddressSync(
+          [recipientPubkey.toBuffer(), new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").toBuffer(), mintPubkey.toBuffer()],
+          new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
+        )[0];
+
+        setLoading("Constructing secure USDC transaction...");
+        const transaction = new Transaction();
+
+        const recipientAtaInfo = await connection.getAccountInfo(destinationATA);
+        if (!recipientAtaInfo) {
+          setLoading("Preparing destination token account...");
+          transaction.add(
+            new TransactionInstruction({
+              keys: [
+                { pubkey: publicKey, isSigner: true, isWritable: true },
+                { pubkey: destinationATA, isSigner: false, isWritable: true },
+                { pubkey: recipientPubkey, isSigner: false, isWritable: false },
+                { pubkey: mintPubkey, isSigner: false, isWritable: false },
+                { pubkey: new PublicKey("11111111111111111111111111111111"), isSigner: false, isWritable: false },
+                { pubkey: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"), isSigner: false, isWritable: false }
+              ],
+              programId: new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
+              data: Buffer.from([])
+            })
+          );
+        }
+
+        const transferData = new Uint8Array(9);
+        transferData[0] = 3; // Transfer
+        let tempAmount = BigInt(amount);
+        for (let i = 1; i <= 8; i++) {
+          transferData[i] = Number(tempAmount & BigInt(0xFF));
+          tempAmount >>= BigInt(8);
+        }
+
+        transaction.add(
+          new TransactionInstruction({
+            keys: [
+              { pubkey: sourceATA, isSigner: false, isWritable: true },
+              { pubkey: destinationATA, isSigner: false, isWritable: true },
+              { pubkey: publicKey, isSigner: true, isWritable: false }
+            ],
+            programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            data: Buffer.from(transferData)
+          })
+        );
+
+        const nonceStr = paymentInfo.resource?.url ? paymentInfo.resource.url + "_" + amount : "x402_nonce";
+        transaction.add(
+          new TransactionInstruction({
+            keys: [],
+            programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
+            data: Buffer.from(new TextEncoder().encode(nonceStr))
+          })
+        );
+
+        setLoading("Awaiting wallet signature authorization...");
+        const signature = await sendTransaction(transaction, connection);
+
+        setLoading("Awaiting blockchain confirmation (~400ms)...");
+        const latestBlockhash = await connection.getLatestBlockhash();
+        await connection.confirmTransaction({
+          signature,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+        }, "confirmed");
+
+        setLoading("Transmitting decryption proof to RED QUEEN...");
+        headers["payment-signature"] = signature;
+        const retryRes = await fetch(endpoint, { headers });
+
+        if (retryRes.status === 200) {
+          const data = await retryRes.json();
+          setIntel(data);
+          setLoading(null);
+        } else {
+          const errorText = await retryRes.text();
+          throw new Error(`Decryption failed after settlement: ${errorText}`);
+        }
+      } else {
+        throw new Error(`Decryption portal returned status: HTTP ${res.status}`);
+      }
+    } catch (err: any) {
+      console.error("Decryption failed:", err);
+      setError(err?.message || "Secure connection decryption failure.");
+      setLoading(null);
+    }
+  };
 
   const generatedName = wallet ? generateApocalypticName(wallet) : "";
 
@@ -1244,6 +1395,120 @@ export default function OperativeProfilePage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* x402 Micropayment Decryption Gated Archives Block */}
+          <div className="panel" style={{
+            background: "rgba(5, 5, 5, 0.4)",
+            borderColor: "rgba(255, 77, 77, 0.15)",
+            padding: "32px",
+            boxShadow: "0 0 20px rgba(255, 0, 51, 0.02)"
+          }}>
+            <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "16px", marginBottom: "24px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--accent)", letterSpacing: "0.2em", marginBottom: "4px" }}>
+                [ SECURE MICROPAYMENT PROTOCOL (X402) ]
+              </div>
+              <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase" }}>
+                💳 ACCESS RESTRICTED APOCALYPSE DOSSIERS
+              </h3>
+            </div>
+
+            <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
+              <strong>What is this?</strong> RED QUEEN gates premium intelligence briefings behind micro-payments ($0.01 and $0.02 USDC) to cover compute overhead and prevent scraping. Use your connected Solana wallet to settle the payment on-chain. Decryption completes in 400ms, streaming live containment metrics directly to this operative console.
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2">
+              {/* Premium Briefing Panel */}
+              <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "#ffffff" }}>
+                    DOSSIER A: GLOBAL CONTAINMENT
+                  </span>
+                  <span className="tag" style={{ color: "var(--accent)", borderColor: "rgba(255,77,77,0.3)" }}>
+                    $0.01 USDC
+                  </span>
+                </div>
+
+                {premiumIntel ? (
+                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "13px" }}>
+                    <div style={{ color: "#00ffcc", fontWeight: "bold", marginBottom: "8px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
+                    <div style={{ color: "#ffffff", fontWeight: "bold", marginBottom: "4px" }}>{premiumIntel.intel?.headline}</div>
+                    <div style={{ color: "var(--text-dim)", marginBottom: "8px" }}>{premiumIntel.intel?.summary}</div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                      <strong>Directive:</strong> {premiumIntel.intel?.directive}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div style={{ fontSize: "13.5px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0c0303", padding: "12px", border: "1px solid #230808", borderRadius: "2px" }}>
+                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : "[ LOCKED // PAYMENT REQUIRED ]"}
+                    </div>
+                    {premiumError && (
+                      <div style={{ fontSize: "13px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                        ⚠️ ERROR: {premiumError}
+                      </div>
+                    )}
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => decryptIntel("/api/intel/premium", "premium")}
+                      disabled={!!loadingPremium || !connected}
+                      style={{ padding: "12px", fontSize: "13.5px" }}
+                    >
+                      {loadingPremium ? "PROCESS PAYWALL..." : connected ? "DECRYPT DOSSIER" : "CONNECT WALLET TO PAY"}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* DePIN Sensor Panel */}
+              <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "#ffffff" }}>
+                    DOSSIER B: DePIN MESH SENSORS
+                  </span>
+                  <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.3)" }}>
+                    $0.02 USDC
+                  </span>
+                </div>
+
+                {depinIntel ? (
+                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "13px" }}>
+                    <div style={{ color: "#00ffcc", fontWeight: "bold", marginBottom: "8px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
+                    <div style={{ color: "#ffffff", fontWeight: "bold", marginBottom: "4px" }}>{depinIntel.depin?.scannerName}</div>
+                    <div style={{ color: "var(--text-dim)", marginBottom: "8px" }}>
+                      Health: <span style={{ color: "#00ffcc" }}>{depinIntel.depin?.networkHealth}</span> | Online Nodes: {depinIntel.depin?.onlineNodes}
+                    </div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                      <strong>Active Alerts:</strong>
+                      <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
+                        {depinIntel.depin?.sensorAlerts?.map((alert: string, i: number) => (
+                          <li key={i}>{alert}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div style={{ fontSize: "13.5px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0a0802", padding: "12px", border: "1px solid #231d08", borderRadius: "2px" }}>
+                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : "[ LOCKED // PAYMENT REQUIRED ]"}
+                    </div>
+                    {depinError && (
+                      <div style={{ fontSize: "13px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                        ⚠️ ERROR: {depinError}
+                      </div>
+                    )}
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => decryptIntel("/api/intel/depin", "depin")}
+                      disabled={!!loadingDepin || !connected}
+                      style={{ padding: "12px", fontSize: "13.5px", borderColor: "rgba(240, 201, 41, 0.4)", color: "#ffffff" }}
+                    >
+                      {loadingDepin ? "PROCESS PAYWALL..." : connected ? "DECRYPT DOSSIER" : "CONNECT WALLET TO PAY"}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
