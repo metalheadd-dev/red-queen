@@ -219,9 +219,8 @@ export default function OperativeProfilePage() {
         setLoading("Constructing secure USDC transaction...");
         const transaction = new Transaction();
 
-        // Fetch fresh blockhash and explicitly set fee payer (vital for wallet adapter execution)
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
-        transaction.recentBlockhash = blockhash;
+        // Use a placeholder blockhash during construction — we will stamp a FRESH one
+        // immediately before signing so it never expires during the user confirmation dialog
         transaction.feePayer = publicKey;
 
         // Set high priority fees to ensure transaction is picked up during network congestion
@@ -265,6 +264,12 @@ export default function OperativeProfilePage() {
         let signature = "";
         
         if (signTransaction) {
+          // Fetch fresh blockhash RIGHT BEFORE presenting wallet dialog
+          // This minimises the window between blockhash issuance and broadcast
+          setLoading("Fetching fresh network blockhash...");
+          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+          transaction.recentBlockhash = blockhash;
+
           setLoading("Awaiting wallet signature authorization...");
           const signedTx = await signTransaction(transaction);
           const rawTx = signedTx.serialize();
@@ -275,6 +280,7 @@ export default function OperativeProfilePage() {
           console.log("x402: Source ATA:", sourceATA.toString());
           console.log("x402: Destination ATA:", destinationATA.toString());
           console.log("x402: Amount:", amount);
+          console.log("x402: Blockhash:", blockhash, "lastValidBlockHeight:", lastValidBlockHeight);
 
           setLoading("Broadcasting transaction to Solana network...");
           signature = await connection.sendRawTransaction(rawTx, {
@@ -307,7 +313,11 @@ export default function OperativeProfilePage() {
             clearInterval(intervalId);
           }
         } else {
-          // Fallback if signTransaction is not available
+          // Fallback if signTransaction is not available — also fetch blockhash late
+          setLoading("Fetching fresh network blockhash...");
+          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+          transaction.recentBlockhash = blockhash;
+
           setLoading("Awaiting wallet signature authorization...");
           signature = await sendTransaction(transaction, connection, {
             skipPreflight: false,
@@ -325,6 +335,7 @@ export default function OperativeProfilePage() {
             "confirmed"
           );
         }
+
 
         setLoading("Verifying decryption authorization...");
         let success = false;
