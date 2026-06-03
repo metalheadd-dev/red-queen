@@ -246,25 +246,39 @@ export default function OperativeProfilePage() {
         setLoading("Awaiting wallet signature authorization...");
         const signature = await sendTransaction(transaction, connection);
 
-        setLoading("Awaiting blockchain confirmation (~400ms)...");
-        const latestBlockhash = await connection.getLatestBlockhash();
-        await connection.confirmTransaction({
-          signature,
-          blockhash: latestBlockhash.blockhash,
-          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
-        }, "confirmed");
+        setLoading("Propagating transaction to Solana network...");
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        setLoading("Transmitting decryption proof to RED QUEEN...");
-        headers["payment-signature"] = signature;
-        const retryRes = await fetch(endpoint, { headers });
+        let success = false;
+        let retryError = "";
+        
+        for (let attempt = 1; attempt <= 4; attempt++) {
+          setLoading(`Verifying payment confirmation (Attempt ${attempt}/4)...`);
+          try {
+            headers["payment-signature"] = signature;
+            const retryRes = await fetch(endpoint, { headers });
 
-        if (retryRes.status === 200) {
-          const data = await retryRes.json();
-          setIntel(data);
-          setLoading(null);
-        } else {
-          const errorText = await retryRes.text();
-          throw new Error(`Decryption failed after settlement: ${errorText}`);
+            if (retryRes.status === 200) {
+              const data = await retryRes.json();
+              setIntel(data);
+              setLoading(null);
+              success = true;
+              break;
+            } else {
+              const errorText = await retryRes.text();
+              retryError = errorText || `HTTP ${retryRes.status}`;
+            }
+          } catch (e: any) {
+            retryError = e?.message || "Connection error during validation.";
+          }
+          
+          if (attempt < 4) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+          }
+        }
+
+        if (!success) {
+          throw new Error(`Decryption proof verification timed out: ${retryError}`);
         }
       } else {
         throw new Error(`Decryption portal returned status: HTTP ${res.status}`);
