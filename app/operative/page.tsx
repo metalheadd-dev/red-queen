@@ -179,12 +179,35 @@ export default function OperativeProfilePage() {
         const isDevnet = network.includes("EtWTRABZaYq6iMfeYKouRu166VU2xqa1") || network.includes("devnet");
         const rpcUrl = isDevnet ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
         const connection = new Connection(rpcUrl, "confirmed");
+
+        // Verify SOL balance (at least 0.0001 SOL for gas)
+        const solBalance = await connection.getBalance(publicKey);
+        if (solBalance < 100000) {
+          throw new Error("Insufficient SOL balance in connected wallet. Your wallet must hold some SOL to cover the network transaction fee.");
+        }
+
         const mintPubkey = new PublicKey(asset);
         const recipientPubkey = new PublicKey(payTo);
 
         // Derive Associated Token Accounts (ATA)
         const sourceATA = await getAssociatedTokenAddress(mintPubkey, publicKey);
         const destinationATA = await getAssociatedTokenAddress(mintPubkey, recipientPubkey);
+
+        // Verify USDC ATA exists and has enough balance
+        try {
+          const tokenBalance = await connection.getTokenAccountBalance(sourceATA);
+          const requiredAmount = Number(amount);
+          const currentBalance = Number(tokenBalance.value.amount);
+          
+          if (currentBalance < requiredAmount) {
+            throw new Error(`Insufficient USDC balance in connected wallet. Required: $${(requiredAmount / 1e6).toFixed(2)} USDC. Your balance: $${tokenBalance.value.uiAmount} USDC.`);
+          }
+        } catch (e: any) {
+          if (e.message.includes("could not find account") || e.message.includes("Invalid param") || e.message.includes("does not exist")) {
+            throw new Error("Your connected wallet does not have a USDC token account on Solana Mainnet, or its balance is 0. Please ensure you hold USDC before decrypting.");
+          }
+          throw e;
+        }
 
         setLoading("Constructing secure USDC transaction...");
         const transaction = new Transaction();
