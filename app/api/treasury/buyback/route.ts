@@ -65,8 +65,8 @@ export async function POST(req: NextRequest) {
     const usdcBalanceUi = tokenAccountInfo.tokenAmount.uiAmount || 0;
     const usdcAmountRaw = tokenAccountInfo.tokenAmount.amount; // String integer representation (6 decimals)
 
-    // Parse minimum USDC for buyback (defaulting to 0.50 USDC)
-    const minUsdcStr = searchParams.get("minUsdc") || "0.50";
+    // Parse minimum USDC for buyback (defaulting to 0.10 USDC)
+    const minUsdcStr = searchParams.get("minUsdc") || "0.10";
     const minUsdc = parseFloat(minUsdcStr);
 
     if (usdcBalanceUi < minUsdc) {
