@@ -9,6 +9,7 @@ import { generateApocalypticName } from "@/lib/names";
 import { getClearanceLevel, DEFAULT_STATS, parseStatsFromAI } from "@/lib/progression";
 import { Connection, PublicKey, Transaction, TransactionInstruction, ComputeBudgetProgram } from "@solana/web3.js";
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction } from "@solana/spl-token";
+import { isValidSolanaPublicKey, getWorkingConnection } from "@/lib/solana";
 
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
 
@@ -177,13 +178,13 @@ export default function OperativeProfilePage() {
 
         setLoading("Verifying Solana RPC context...");
         const isDevnet = network.includes("EtWTRABZaYq6iMfeYKouRu166VU2xqa1") || network.includes("devnet");
-        const rpcUrl = isDevnet ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
         
         console.log("x402: Target Network ID:", network);
-        console.log("x402: Target RPC URL:", rpcUrl);
         console.log("x402: Client Wallet:", publicKey.toString());
 
-        const connection = new Connection(rpcUrl, "confirmed");
+        const connection = await getWorkingConnection(isDevnet);
+        const rpcUrl = connection.rpcEndpoint;
+        console.log("x402: Active RPC Connection Established with:", rpcUrl);
 
         // Verify SOL balance (at least 0.0001 SOL for gas)
         const solBalance = await connection.getBalance(publicKey);
@@ -424,10 +425,12 @@ export default function OperativeProfilePage() {
   useEffect(() => {
     async function checkBalance() {
       let addressToCheck = "";
-      if (wallet && wallet.startsWith("email-auth:")) {
-        addressToCheck = profile?.linked_wallet_address || solanaWalletAddress || "";
-      } else {
-        addressToCheck = wallet || "";
+      if (solanaWalletAddress && isValidSolanaPublicKey(solanaWalletAddress)) {
+        addressToCheck = solanaWalletAddress;
+      } else if (profile?.linked_wallet_address && isValidSolanaPublicKey(profile.linked_wallet_address)) {
+        addressToCheck = profile.linked_wallet_address;
+      } else if (wallet && isValidSolanaPublicKey(wallet)) {
+        addressToCheck = wallet;
       }
 
       if (!addressToCheck) {
@@ -436,7 +439,7 @@ export default function OperativeProfilePage() {
       }
       setLoadingBalance(true);
       try {
-        const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+        const connection = await getWorkingConnection(false);
         const tokenAccounts = await connection.getParsedTokenAccountsByOwner(new PublicKey(addressToCheck), {
           mint: THREAT_MINT,
         });

@@ -5,6 +5,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { Connection, PublicKey } from "@solana/web3.js";
 import Link from "next/link";
 import { CATEGORIES, Threat } from "@/lib/threats";
+import { getWorkingConnection } from "@/lib/solana";
 
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
 
@@ -23,8 +24,7 @@ export default function ThreatVectorPage() {
       }
       setLoadingBalance(true);
       try {
-        // Use a fast public RPC endpoint to fetch balance
-        const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+        const connection = await getWorkingConnection(false);
         const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
           mint: THREAT_MINT,
         });

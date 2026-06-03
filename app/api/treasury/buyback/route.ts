@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import bs58 from "bs58";
+import { getWorkingConnection } from "@/lib/solana";
 
 export const dynamic = "force-dynamic";
 
@@ -42,10 +43,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `System Error: Failed to load Keypair: ${err.message || err}` }, { status: 500 });
   }
 
-  const connection = new Connection(
-    process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com",
-    "confirmed"
-  );
+  const connection = process.env.SOLANA_RPC_URL
+    ? new Connection(process.env.SOLANA_RPC_URL, "confirmed")
+    : await getWorkingConnection(false);
 
   try {
     // 3. Fetch Treasury USDC balance

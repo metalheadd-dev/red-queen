@@ -4,12 +4,16 @@ import { supabase } from "@/lib/supabase";
 import { getHashedWallet } from "@/lib/crypto";
 import { getStatsFromScenarios, updateStatsInScenarios, getCleanScenarios, parseStatsFromAI, applyStatGains, calculateBioScore } from "@/lib/progression";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { isValidSolanaPublicKey, getWorkingConnection } from "@/lib/solana";
 
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
 
 async function getThreatBalance(walletAddress: string): Promise<number> {
+  if (!walletAddress || !isValidSolanaPublicKey(walletAddress)) {
+    return 0;
+  }
   try {
-    const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+    const connection = await getWorkingConnection(false);
     const pubkey = new PublicKey(walletAddress);
     const tokenAccounts = await connection.getParsedTokenAccountsByOwner(pubkey, {
       mint: THREAT_MINT,
