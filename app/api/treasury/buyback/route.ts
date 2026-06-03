@@ -134,7 +134,7 @@ async function executeBuyback(req: NextRequest) {
     }
     const quoteData = await quoteRes.json();
 
-    // 5. Construct Jupiter Swap Transaction
+     // 5. Construct Jupiter Swap Transaction with Dynamic Compute & Auto Priority Fees
     const swapRes = await fetch("https://api.jup.ag/swap/v1/swap", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -142,6 +142,8 @@ async function executeBuyback(req: NextRequest) {
         quoteResponse: quoteData,
         userPublicKey: keypair.publicKey.toBase58(),
         wrapAndUnwrapSol: true,
+        dynamicComputeUnitLimit: true,
+        prioritizationFeeLamports: "auto"
       }),
     });
 
@@ -157,23 +159,44 @@ async function executeBuyback(req: NextRequest) {
     const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
     transaction.sign([keypair]);
 
-    // 7. Execute transaction on Mainnet
+    // 7. Execute transaction on Mainnet with active parallel rebroadcasting
     const rawTransaction = transaction.serialize();
     const txid = await connection.sendRawTransaction(rawTransaction, {
-      skipPreflight: true,
-      maxRetries: 2,
+      skipPreflight: false, // Verify validity via RPC simulation first
+      maxRetries: 0,
     });
 
-    // 8. Wait for Blockhash confirmation
-    const latestBlockHash = await connection.getLatestBlockhash();
-    await connection.confirmTransaction(
-      {
-        blockhash: latestBlockHash.blockhash,
-        lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
-        signature: txid,
-      },
-      "confirmed"
-    );
+    // Spawn manual rebroadcasting every 2 seconds in the background
+    const latestBlockHash = await connection.getLatestBlockhash("confirmed");
+    const abortController = new AbortController();
+    
+    const rebroadcastInterval = setInterval(async () => {
+      if (abortController.signal.aborted) return;
+      try {
+        console.log(`[CRON] Rebroadcasting buyback transaction: ${txid}`);
+        await connection.sendRawTransaction(rawTransaction, {
+          skipPreflight: true, // Skip simulation during retries for speed
+          maxRetries: 0
+        });
+      } catch (err) {
+        console.warn(`[CRON] Rebroadcast attempt warning:`, err);
+      }
+    }, 2000);
+
+    try {
+      // 8. Wait for Blockhash confirmation
+      await connection.confirmTransaction(
+        {
+          blockhash: latestBlockHash.blockhash,
+          lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+          signature: txid,
+        },
+        "confirmed"
+      );
+    } finally {
+      clearInterval(rebroadcastInterval);
+      abortController.abort();
+    }
 
     return NextResponse.json({
       success: true,
