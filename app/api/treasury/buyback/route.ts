@@ -55,30 +55,30 @@ async function fetchBalances(connection: Connection, vaultOwner: PublicKey) {
  * Handles the buyback process: Swaps USDC in the treasury vault to buy $THREAT tokens on Jupiter
  */
 async function executeBuyback(req: NextRequest) {
-  const privateKeyStr = process.env.TREASURY_PRIVATE_KEY;
-  if (!privateKeyStr) {
-    return NextResponse.json({ error: "System Error: TREASURY_PRIVATE_KEY is not configured in environment variables" }, { status: 500 });
-  }
-
-  let keypair: Keypair;
   try {
-    const trimmedKeyStr = privateKeyStr.trim();
-    if (trimmedKeyStr.startsWith("[")) {
-      keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(trimmedKeyStr)));
-    } else if (/^[0-9a-fA-F]{128}$/.test(trimmedKeyStr)) {
-      keypair = Keypair.fromSecretKey(Buffer.from(trimmedKeyStr, "hex"));
-    } else {
-      keypair = Keypair.fromSecretKey(bs58.decode(trimmedKeyStr));
+    const privateKeyStr = process.env.TREASURY_PRIVATE_KEY;
+    if (!privateKeyStr) {
+      return NextResponse.json({ success: false, error: "System Error: TREASURY_PRIVATE_KEY is not configured in environment variables" });
     }
-  } catch (err: any) {
-    return NextResponse.json({ error: `System Error: Failed to load Keypair: ${err.message || err}` }, { status: 500 });
-  }
 
-  const connection = process.env.SOLANA_RPC_URL
-    ? new Connection(process.env.SOLANA_RPC_URL, "confirmed")
-    : await getWorkingConnection(false);
+    let keypair: Keypair;
+    try {
+      const trimmedKeyStr = privateKeyStr.trim();
+      if (trimmedKeyStr.startsWith("[")) {
+        keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(trimmedKeyStr)));
+      } else if (/^[0-9a-fA-F]{128}$/.test(trimmedKeyStr)) {
+        keypair = Keypair.fromSecretKey(Buffer.from(trimmedKeyStr, "hex"));
+      } else {
+        keypair = Keypair.fromSecretKey(bs58.decode(trimmedKeyStr));
+      }
+    } catch (err: any) {
+      return NextResponse.json({ success: false, error: `System Error: Failed to load Keypair: ${err.message || err}` });
+    }
 
-  try {
+    const connection = process.env.SOLANA_RPC_URL
+      ? new Connection(process.env.SOLANA_RPC_URL, "confirmed")
+      : await getWorkingConnection(false);
+
     const vaultAta = await getAssociatedTokenAddress(USDC_MINT, keypair.publicKey);
     let usdcBalanceUi = 0;
     let usdcAmountRaw = "0";
@@ -130,7 +130,7 @@ async function executeBuyback(req: NextRequest) {
     const quoteRes = await fetch(quoteUrl);
     if (!quoteRes.ok) {
       const errText = await quoteRes.text();
-      return NextResponse.json({ error: `Failed to fetch quote from Jupiter API: ${errText}` }, { status: 502 });
+      return NextResponse.json({ success: false, error: `Failed to fetch quote from Jupiter API: ${errText}` });
     }
     const quoteData = await quoteRes.json();
 
@@ -147,7 +147,7 @@ async function executeBuyback(req: NextRequest) {
 
     if (!swapRes.ok) {
       const errText = await swapRes.text();
-      return NextResponse.json({ error: `Failed to construct swap transaction: ${errText}` }, { status: 502 });
+      return NextResponse.json({ success: false, error: `Failed to construct swap transaction: ${errText}` });
     }
 
     const { swapTransaction } = await swapRes.json();
