@@ -194,9 +194,9 @@ export default function OperativeProfilePage() {
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = publicKey;
 
-        // Set priority fees to ensure transaction doesn't get dropped during network congestion
+        // Set high priority fees to ensure transaction is picked up during network congestion
         transaction.add(
-          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 150000 }),
+          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1000000 }),
           ComputeBudgetProgram.setComputeUnitLimit({ units: 80000 })
         );
 
@@ -235,14 +235,22 @@ export default function OperativeProfilePage() {
         setLoading("Awaiting wallet signature authorization...");
         const signature = await sendTransaction(transaction, connection);
 
-        setLoading("Propagating transaction to Solana network...");
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        setLoading("Confirming transaction on-chain (Solana Mainnet)...");
+        const latestBlockHash = await connection.getLatestBlockhash("confirmed");
+        await connection.confirmTransaction(
+          {
+            blockhash: latestBlockHash.blockhash,
+            lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+            signature: signature
+          },
+          "confirmed"
+        );
 
+        setLoading("Verifying decryption authorization...");
         let success = false;
         let retryError = "";
         
         for (let attempt = 1; attempt <= 4; attempt++) {
-          setLoading(`Verifying payment confirmation (Attempt ${attempt}/4)...`);
           try {
             headers["payment-signature"] = signature;
             const retryRes = await fetch(endpoint, { headers });
@@ -267,7 +275,7 @@ export default function OperativeProfilePage() {
         }
 
         if (!success) {
-          throw new Error(`Decryption proof verification timed out: ${retryError}`);
+          throw new Error(`Decryption verification failed: ${retryError}`);
         }
       } else {
         throw new Error(`Decryption portal returned status: HTTP ${res.status}`);
