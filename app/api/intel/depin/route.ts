@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withX402 } from "@x402/next";
-import { x402Server } from "@/lib/x402";
+import { withFriendlyX402 } from "@/lib/x402";
 
 const svmAddress = process.env.SVM_ADDRESS || "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg";
 const network = (process.env.SVM_NETWORK || "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1") as any;
@@ -24,7 +23,7 @@ const handler = async (req: NextRequest) => {
   });
 };
 
-export const GET = withX402(
+export const GET = withFriendlyX402(
   handler,
   {
     accepts: {
@@ -34,6 +33,5 @@ export const GET = withX402(
       payTo: svmAddress,
     },
     description: "Real-time global DePIN mesh network sensor diagnostic telemetry.",
-  },
-  x402Server
+  }
 );
