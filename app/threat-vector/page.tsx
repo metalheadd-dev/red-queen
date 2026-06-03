@@ -6,6 +6,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import Link from "next/link";
 import { CATEGORIES, Threat } from "@/lib/threats";
 import { getWorkingConnection } from "@/lib/solana";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
 
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
 
@@ -25,14 +26,17 @@ export default function ThreatVectorPage() {
       setLoadingBalance(true);
       try {
         const connection = await getWorkingConnection(false);
-        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-          mint: THREAT_MINT,
-        });
-        if (tokenAccounts.value.length === 0) {
-          setThreatBalance(0);
-        } else {
-          const balanceInfo = tokenAccounts.value[0].account.data.parsed.info.tokenAmount;
-          setThreatBalance(balanceInfo.uiAmount || 0);
+        const threatATA = await getAssociatedTokenAddress(THREAT_MINT, publicKey);
+        
+        try {
+          const tokenBalance = await connection.getTokenAccountBalance(threatATA);
+          setThreatBalance(tokenBalance.value.uiAmount || 0);
+        } catch (e: any) {
+          if (e.message?.includes("could not find account") || e.message?.includes("does not exist") || e.message?.includes("Invalid param")) {
+            setThreatBalance(0);
+          } else {
+            throw e;
+          }
         }
       } catch (err) {
         console.error("Failed to query $THREAT balance:", err);

@@ -5,6 +5,7 @@ import { getHashedWallet } from "@/lib/crypto";
 import { getStatsFromScenarios, updateStatsInScenarios, getCleanScenarios, parseStatsFromAI, applyStatGains, calculateBioScore } from "@/lib/progression";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { isValidSolanaPublicKey, getWorkingConnection } from "@/lib/solana";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
 
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
 
@@ -15,14 +16,17 @@ async function getThreatBalance(walletAddress: string): Promise<number> {
   try {
     const connection = await getWorkingConnection(false);
     const pubkey = new PublicKey(walletAddress);
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(pubkey, {
-      mint: THREAT_MINT,
-    });
-    if (tokenAccounts.value.length === 0) {
-      return 0;
+    const threatATA = await getAssociatedTokenAddress(THREAT_MINT, pubkey);
+    
+    try {
+      const tokenBalance = await connection.getTokenAccountBalance(threatATA);
+      return tokenBalance.value.uiAmount || 0;
+    } catch (e: any) {
+      if (e.message?.includes("could not find account") || e.message?.includes("does not exist") || e.message?.includes("Invalid param")) {
+        return 0;
+      }
+      throw e;
     }
-    const balanceInfo = tokenAccounts.value[0].account.data.parsed.info.tokenAmount;
-    return balanceInfo.uiAmount || 0;
   } catch (err) {
     console.error("Failed to query $THREAT balance in API:", err);
     return 0;

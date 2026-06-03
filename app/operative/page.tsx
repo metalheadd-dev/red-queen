@@ -440,14 +440,18 @@ export default function OperativeProfilePage() {
       setLoadingBalance(true);
       try {
         const connection = await getWorkingConnection(false);
-        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(new PublicKey(addressToCheck), {
-          mint: THREAT_MINT,
-        });
-        if (tokenAccounts.value.length === 0) {
-          setThreatBalance(0);
-        } else {
-          const balanceInfo = tokenAccounts.value[0].account.data.parsed.info.tokenAmount;
-          setThreatBalance(balanceInfo.uiAmount || 0);
+        const threatATA = await getAssociatedTokenAddress(THREAT_MINT, new PublicKey(addressToCheck));
+        
+        try {
+          const tokenBalance = await connection.getTokenAccountBalance(threatATA);
+          setThreatBalance(tokenBalance.value.uiAmount || 0);
+        } catch (e: any) {
+          // If the associated token account doesn't exist, they hold 0 $THREAT
+          if (e.message?.includes("could not find account") || e.message?.includes("does not exist") || e.message?.includes("Invalid param")) {
+            setThreatBalance(0);
+          } else {
+            throw e;
+          }
         }
       } catch (err) {
         console.error("Failed to query $THREAT balance:", err);
