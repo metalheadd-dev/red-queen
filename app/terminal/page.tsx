@@ -1041,17 +1041,40 @@ To decrypt or scan target files:
                 {premiumIntel ? (
                   <div style={{ background: "rgba(255, 0, 51, 0.02)", border: "1px solid rgba(255, 0, 51, 0.25)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "12px", display: "flex", flexDirection: "column", gap: "12px" }}>
                     <div style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
-                    <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "13.5px" }}>{premiumIntel.intel?.headline}</div>
-                    <div style={{ color: "rgba(255, 255, 255, 0.95)", fontSize: "12px", lineHeight: "1.4" }}>{premiumIntel.intel?.summary}</div>
                     
-                    {premiumIntel.intel?.maxEvent && (
-                      <div style={{ background: "rgba(255,77,77,0.04)", border: "1px solid rgba(255,77,77,0.15)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "11px" }}>
-                        <div style={{ color: "var(--accent)", fontWeight: "bold", borderBottom: "1px dashed rgba(255,77,77,0.15)", paddingBottom: "4px", marginBottom: "4px" }}>💥 STRONGEST TECTONIC RUPTURE DETECTED</div>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>LOCATION:</span><span style={{ color: "#ffffff", fontWeight: "bold" }}>{premiumIntel.intel.maxEvent.location}</span></div>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>MAGNITUDE:</span><span style={{ color: "var(--accent)", fontWeight: "bold" }}>M {premiumIntel.intel.maxEvent.magnitude}</span></div>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>DEPTH / COORDINATES:</span><span style={{ color: "#ffffff" }}>{premiumIntel.intel.maxEvent.depthKm} km | Lat {premiumIntel.intel.maxEvent.latitude}, Lng {premiumIntel.intel.maxEvent.longitude}</span></div>
-                      </div>
-                    )}
+                    <div style={{ display: "flex", justifyContent: "space-between", background: "rgba(255,77,77,0.06)", border: "1px solid rgba(255,77,77,0.2)", padding: "10px", borderRadius: "2px", fontSize: "11.5px", alignItems: "center" }}>
+                      <span style={{ color: "#ffffff", fontWeight: "bold" }}>☣️ GLOBAL THREAT ENTROPY INDEX:</span>
+                      <span style={{ color: "var(--accent)", fontWeight: "bold", fontSize: "13.5px", textShadow: "0 0 8px rgba(255,77,77,0.4)" }}>{premiumIntel.intel?.combinedEntropyIndex}</span>
+                    </div>
+
+                    <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "13px" }}>{premiumIntel.intel?.headline}</div>
+                    <div style={{ color: "rgba(255, 255, 255, 0.95)", fontSize: "11.5px", lineHeight: "1.4" }}>{premiumIntel.intel?.summary}</div>
+                    
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }} className="responsive-grid-2">
+                      {/* Biological pathogen block */}
+                      {premiumIntel.intel?.biologicalContainment && (
+                        <div style={{ background: "rgba(0,255,204,0.02)", border: "1px solid rgba(0,255,204,0.15)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "5px", fontSize: "11px" }}>
+                          <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0,255,204,0.15)", paddingBottom: "4px", marginBottom: "4px" }}>🧬 BIOLOGY CONTAINMENT</div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>ACTIVE PATHOGENS:</span><span style={{ color: "#ffffff", fontWeight: "bold" }}>{premiumIntel.intel.biologicalContainment.activePathogens?.toLocaleString()}</span></div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>DAILY ESCALATIONS:</span><span style={{ color: "var(--accent)", fontWeight: "bold" }}>+{premiumIntel.intel.biologicalContainment.dailyEscalations?.toLocaleString()}</span></div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>CRITICAL PATHS:</span><span style={{ color: "var(--yellow)", fontWeight: "bold" }}>{premiumIntel.intel.biologicalContainment.criticalInfections?.toLocaleString()}</span></div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>FATAL TERMINATIONS:</span><span style={{ color: "rgba(255,255,255,0.8)" }}>{premiumIntel.intel.biologicalContainment.totalFatalities?.toLocaleString()}</span></div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>RECOVERY RATE:</span><span style={{ color: "#2ecc40", fontWeight: "bold" }}>{premiumIntel.intel.biologicalContainment.recoveryRate}</span></div>
+                        </div>
+                      )}
+                      
+                      {/* USGS seismic block */}
+                      {premiumIntel.intel?.maxEvent && (
+                        <div style={{ background: "rgba(255,77,77,0.04)", border: "1px solid rgba(255,77,77,0.15)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "5px", fontSize: "11px" }}>
+                          <div style={{ color: "var(--accent)", fontWeight: "bold", borderBottom: "1px dashed rgba(255,77,77,0.15)", paddingBottom: "4px", marginBottom: "4px" }}>💥 SEISMIC EVENT MATRIX</div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>LOCATION:</span><span style={{ color: "#ffffff", fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "90px" }} title={premiumIntel.intel.maxEvent.location}>{premiumIntel.intel.maxEvent.location}</span></div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>MAGNITUDE:</span><span style={{ color: "var(--accent)", fontWeight: "bold" }}>M {premiumIntel.intel.maxEvent.magnitude}</span></div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>ANOMALY DEPTH:</span><span style={{ color: "#ffffff" }}>{premiumIntel.intel.maxEvent.depthKm} km</span></div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>LATITUDE:</span><span style={{ color: "#ffffff" }}>{premiumIntel.intel.maxEvent.latitude}</span></div>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>LONGITUDE:</span><span style={{ color: "#ffffff" }}>{premiumIntel.intel.maxEvent.longitude}</span></div>
+                        </div>
+                      )}
+                    </div>
 
                     {premiumIntel.intel?.t54Telemetry && (
                       <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "11px" }}>
@@ -1063,10 +1086,30 @@ To decrypt or scan target files:
                       </div>
                     )}
 
+                    {premiumIntel.intel?.nasaEvents && premiumIntel.intel.nasaEvents.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
+                        <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "11.5px" }}>🌍 ACTIVE NASA ENVIRONMENTAL HAZARDS (EONET):</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "140px", overflowY: "auto", paddingRight: "4px" }}>
+                          {premiumIntel.intel.nasaEvents.map((e: any, idx: number) => (
+                            <div key={idx} style={{ background: "rgba(0, 229, 255, 0.02)", border: "1px solid rgba(0, 229, 255, 0.06)", padding: "8px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "2px", fontSize: "11px" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", color: "#ffffff" }}>
+                                <span style={{ fontWeight: "bold" }}>{e.title}</span>
+                                <span style={{ color: "#00e5ff", fontWeight: "bold" }}>{e.category}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", color: "rgba(255,255,255,0.5)", fontSize: "10px" }}>
+                                <span>Source: {e.source} | Lat: {e.latitude.toFixed(2)}, Lng: {e.longitude.toFixed(2)}</span>
+                                <span>Date: {new Date(e.date).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {premiumIntel.intel?.threatVectors && (
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
                         <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "11.5px" }}>🚨 DETECTED TECTONIC DECAY MULTIPLIERS (USGS):</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "150px", overflowY: "auto", paddingRight: "4px" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "140px", overflowY: "auto", paddingRight: "4px" }}>
                           {premiumIntel.intel.threatVectors.map((v: any, idx: number) => (
                             <div key={idx} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "8px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "2px", fontSize: "11px" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", color: "#ffffff" }}>
@@ -1167,10 +1210,14 @@ To decrypt or scan target files:
                     </div>
 
                     <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "11px" }}>
-                      <div style={{ color: "#ffffff", fontWeight: "bold", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "4px", marginBottom: "4px" }}>📈 FAREMETER GAS & L1 TELEMETRY</div>
+                      <div style={{ color: "#ffffff", fontWeight: "bold", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "4px", marginBottom: "4px" }}>📈 SOLANA L1 & FAREMETER TELEMETRY</div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>LIVE PERFORMANCE TPS:</span><span style={{ color: "#00ffcc", fontWeight: "bold" }}>{depinIntel.depin?.liveTps} TPS</span></div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>AVG PRIORITY FEE:</span><span style={{ color: "#f0c929", fontWeight: "bold" }}>{depinIntel.depin?.avgPriorityFee}</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>SOLANA SLOT:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.slot}</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>CIRCULATING / TOTAL SOL:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.circulatingSol?.toLocaleString()} / {depinIntel.depin?.totalSol?.toLocaleString()} SOL</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>NETWORK LOCKUP RATIO:</span><span style={{ color: "#00ffcc", fontWeight: "bold" }}>{depinIntel.depin?.collateralRatio}</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>STAKING INFLATION RATE:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.inflationPercentage}</span></div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>EPOCH PROGRESS:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.epochProgress} (Epoch {depinIntel.depin?.epoch})</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>SOLANA SLOT:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.slot}</span></div>
                     </div>
 
                     {depinIntel.depin?.topActiveNodes && (
