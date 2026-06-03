@@ -7,8 +7,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { generateApocalypticName } from "@/lib/names";
 import { getClearanceLevel, DEFAULT_STATS, parseStatsFromAI } from "@/lib/progression";
-import { Connection, PublicKey, Transaction, TransactionInstruction, ComputeBudgetProgram } from "@solana/web3.js";
-import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction } from "@solana/spl-token";
+import { Connection, PublicKey, TransactionMessage, VersionedTransaction, ComputeBudgetProgram, TransactionInstruction } from "@solana/web3.js";
+import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferCheckedInstruction } from "@solana/spl-token";
 import { isValidSolanaPublicKey, getWorkingConnection } from "@/lib/solana";
 
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
@@ -216,23 +216,51 @@ export default function OperativeProfilePage() {
           throw e;
         }
 
-        setLoading("Constructing secure USDC transaction...");
-        const transaction = new Transaction();
+        setLoading("Constructing x402 payment payload...");
 
-        // Use a placeholder blockhash during construction — we will stamp a FRESH one
-        // immediately before signing so it never expires during the user confirmation dialog
-        transaction.feePayer = publicKey;
+        // ── x402 SVM Exact Scheme: correct payload construction ─────────────
+        // The x402 protocol is NOT a send-then-verify flow.
+        // The client PARTIALLY SIGNS the transaction. The facilitator (payai.network)
+        // receives the partial tx via PAYMENT-SIGNATURE header, co-signs it as fee payer,
+        // simulates it, and submits it. We never broadcast ourselves.
+        //
+        // Required payload structure for PAYMENT-SIGNATURE header:
+        //   base64( JSON.stringify({ x402Version: 2, payload: { transaction: "<base64-wire-tx>" } }) )
+        //
+        // The base64 wire transaction must be built with @solana/kit (not @solana/web3.js)
+        // and must contain:
+        //   1. ComputeBudget SetComputeUnitLimit
+        //   2. ComputeBudget SetComputeUnitPrice
+        //   3. SPL Token TransferChecked (NOT Transfer)
+        //   4. Memo instruction (random nonce)
 
-        // Set high priority fees to ensure transaction is picked up during network congestion
-        transaction.add(
-          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1000000 }),
-          ComputeBudgetProgram.setComputeUnitLimit({ units: 80000 })
-        );
+        const feePayer = paymentInfo.accepts?.[0]?.extra?.feePayer;
+        if (!feePayer) {
+          throw new Error("x402: No feePayer found in payment requirements. The facilitator did not provide a co-signer address.");
+        }
 
+        setLoading("Fetching token mint info...");
+        let decimals = 6;
+        try {
+          const mintInfo = await connection.getParsedAccountInfo(mintPubkey);
+          if (mintInfo.value && typeof mintInfo.value.data === 'object' && 'parsed' in mintInfo.value.data) {
+            decimals = mintInfo.value.data.parsed.info.decimals;
+          }
+        } catch (e) {
+          console.warn("x402: Could not fetch mint info parsed, defaulting to 6 decimals", e);
+        }
+
+        const instructions: TransactionInstruction[] = [];
+
+        // Add ComputeBudget instructions
+        instructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 20000 }));
+        instructions.push(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1 }));
+
+        // Check if destination ATA exists, if not, create it
         const recipientAtaInfo = await connection.getAccountInfo(destinationATA);
         if (!recipientAtaInfo) {
           setLoading("Preparing destination token account...");
-          transaction.add(
+          instructions.push(
             createAssociatedTokenAccountInstruction(
               publicKey,
               destinationATA,
@@ -242,118 +270,110 @@ export default function OperativeProfilePage() {
           );
         }
 
-        // Add SPL Token Transfer instruction
-        transaction.add(
-          createTransferInstruction(
+        // Add SPL Token TransferChecked instruction
+        instructions.push(
+          createTransferCheckedInstruction(
             sourceATA,
+            mintPubkey,
             destinationATA,
             publicKey,
-            BigInt(amount)
+            BigInt(amount),
+            decimals
           )
         );
 
-        const nonceStr = paymentInfo.resource?.url ? paymentInfo.resource.url + "_" + amount : "x402_nonce";
-        transaction.add(
+        // Random nonce memo (as x402 ExactSvmClient does)
+        const nonce = crypto.getRandomValues(new Uint8Array(16));
+        const nonceHex = Array.from(nonce).map((b) => b.toString(16).padStart(2, "0")).join("");
+        instructions.push(
           new TransactionInstruction({
             keys: [],
             programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
-            data: Buffer.from(new TextEncoder().encode(nonceStr))
+            data: Buffer.from(nonceHex, "utf-8"),
           })
         );
 
-        let signature = "";
-        let rawTx: Uint8Array | null = null;
-        
-        if (signTransaction) {
-          // Fetch fresh blockhash RIGHT BEFORE presenting wallet dialog
-          setLoading("Fetching fresh network blockhash...");
-          const { blockhash } = await connection.getLatestBlockhash("finalized");
-          transaction.recentBlockhash = blockhash;
+        setLoading("Fetching fresh network blockhash...");
+        const { blockhash } = await connection.getLatestBlockhash("confirmed");
 
-          setLoading("Awaiting wallet signature authorization...");
-          const signedTx = await signTransaction(transaction);
-          rawTx = signedTx.serialize();
-          
-          console.log("x402: Blockhash stamped:", blockhash);
-          console.log("x402: Signed raw tx length:", rawTx.length);
-          console.log("x402: Amount:", amount, "| PayTo:", recipientPubkey.toString());
+        // Build transaction message using TransactionMessage and compileToV0Message
+        const messageV0 = new TransactionMessage({
+          payerKey: new PublicKey(feePayer),
+          recentBlockhash: blockhash,
+          instructions,
+        }).compileToV0Message();
 
-          setLoading("Broadcasting transaction to Solana Mainnet...");
-          signature = await connection.sendRawTransaction(rawTx, {
-            skipPreflight: true,
-            maxRetries: 5,
-          });
-          console.log("x402: Broadcast accepted. Signature:", signature);
+        const transaction = new VersionedTransaction(messageV0);
 
-        } else {
-          // Fallback: sendTransaction handles signing + broadcasting internally
-          setLoading("Fetching fresh network blockhash...");
-          const { blockhash } = await connection.getLatestBlockhash("finalized");
-          transaction.recentBlockhash = blockhash;
-
-          setLoading("Awaiting wallet signature authorization...");
-          signature = await sendTransaction(transaction, connection, {
-            skipPreflight: true,
-            maxRetries: 5,
-          });
-          console.log("x402: sendTransaction signature:", signature);
+        if (!signTransaction) {
+          throw new Error("Your wallet does not support signing transactions or is not fully initialized. Please try again or use a different wallet.");
         }
+        setLoading("Awaiting wallet signature authorization...");
+        const signedTx = await signTransaction(transaction);
 
-        // ── Rebroadcast + Backend Polling Loop ──────────────────────────────
-        // We do NOT call connection.confirmTransaction() — its internal WebSocket
-        // subscriptions are blocked by rate-limited RPCs and time-out with
-        // "block height exceeded". Instead: rebroadcast every 3s while polling
-        // the x402 backend. The facilitator verifies the tx on-chain itself.
-        setLoading("Processing payment on-chain — please wait...");
+        // Now serialize the signed transaction into wire format bytes
+        const wireBytes = signedTx.serialize();
 
-        let rebroadcastId: ReturnType<typeof setInterval> | null = null;
-        if (rawTx) {
-          rebroadcastId = setInterval(async () => {
-            try {
-              await connection.sendRawTransaction(rawTx, { skipPreflight: true });
-            } catch (e) {
-              // silent — tx may already be confirmed
-            }
-          }, 3000);
-        }
+        // Base64 encode the wire bytes as the x402 payload transaction field
+        const base64WireTx = Buffer.from(wireBytes).toString("base64");
+
+        console.log("x402: Partial tx base64 length:", base64WireTx.length);
+        console.log("x402: feePayer from requirements:", feePayer);
+        console.log("x402: amount:", amount, "asset:", asset, "payTo:", payTo);
+
+        // Build the x402 payment payload exactly as ExactSvmScheme.createPaymentPayload does:
+        // { x402Version: 2, payload: { transaction: "<base64-wire-tx>" } }
+        const x402PaymentPayload = {
+          x402Version: 2,
+          payload: { transaction: base64WireTx },
+        };
+
+        // Encode as base64(JSON.stringify(payload)) for the PAYMENT-SIGNATURE header
+        const paymentSignatureHeader = btoa(JSON.stringify(x402PaymentPayload));
+
+        setLoading("Submitting payment to x402 facilitator...");
 
         let success = false;
         let retryError = "";
 
-        try {
-          // Poll backend up to 12 times × 4s = 48 seconds total
-          for (let attempt = 1; attempt <= 12; attempt++) {
-            try {
-              headers["payment-signature"] = signature;
-              const retryRes = await fetch(endpoint, { headers });
+        // Poll backend — the facilitator will co-sign, simulate, and submit the tx
+        // Backend returns 200 once facilitated tx is confirmed
+        for (let attempt = 1; attempt <= 8; attempt++) {
+          try {
+            const retryHeaders = {
+              ...headers,
+              "PAYMENT-SIGNATURE": paymentSignatureHeader,
+            };
+            const retryRes = await fetch(endpoint, { headers: retryHeaders });
 
-              if (retryRes.status === 200) {
-                const data = await retryRes.json();
-                setIntel(data);
-                setLoading(null);
-                success = true;
-                break;
-              } else if (retryRes.status === 402) {
-                // Still not confirmed on-chain yet — keep waiting
-                console.log(`x402: Attempt ${attempt}/12 — awaiting on-chain confirmation...`);
-              } else {
-                const errorText = await retryRes.text();
-                retryError = errorText || `HTTP ${retryRes.status}`;
-              }
-            } catch (e: any) {
-              retryError = e?.message || "Network error during verification.";
+            if (retryRes.status === 200) {
+              const data = await retryRes.json();
+              setIntel(data);
+              setLoading(null);
+              success = true;
+              break;
+            } else if (retryRes.status === 402) {
+              const errorBody = await retryRes.text().catch(() => "");
+              console.log(`x402: Attempt ${attempt}/8 — 402 response:`, errorBody.slice(0, 200));
+            } else {
+              const errorText = await retryRes.text();
+              retryError = errorText || `HTTP ${retryRes.status}`;
+              console.error("x402: Unexpected status:", retryRes.status, retryError.slice(0, 200));
             }
-
-            setLoading(`Processing payment on-chain — attempt ${attempt}/12...`);
-            await new Promise((resolve) => setTimeout(resolve, 4000));
+          } catch (e: any) {
+            retryError = e?.message || "Network error during verification.";
           }
-        } finally {
-          if (rebroadcastId) clearInterval(rebroadcastId);
+
+          if (attempt < 8) {
+            setLoading(`x402: Facilitator processing — attempt ${attempt}/8...`);
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+          }
         }
 
         if (!success) {
-          throw new Error(`Decryption verification failed after 12 attempts. Last error: ${retryError}. Your transaction signature: ${signature}`);
+          throw new Error(`x402 payment facilitation failed after 8 attempts. Last error: ${retryError}`);
         }
+
 
       } else {
         throw new Error(`Decryption portal returned status: HTTP ${res.status}`);
