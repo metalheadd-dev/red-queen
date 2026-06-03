@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { generateApocalypticName } from "@/lib/names";
 import { getClearanceLevel, DEFAULT_STATS, parseStatsFromAI } from "@/lib/progression";
-import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction, TransactionInstruction, ComputeBudgetProgram } from "@solana/web3.js";
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction } from "@solana/spl-token";
 
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
@@ -188,6 +188,17 @@ export default function OperativeProfilePage() {
 
         setLoading("Constructing secure USDC transaction...");
         const transaction = new Transaction();
+
+        // Fetch fresh blockhash and explicitly set fee payer (vital for wallet adapter execution)
+        const { blockhash } = await connection.getLatestBlockhash("confirmed");
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = publicKey;
+
+        // Set priority fees to ensure transaction doesn't get dropped during network congestion
+        transaction.add(
+          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 150000 }),
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 80000 })
+        );
 
         const recipientAtaInfo = await connection.getAccountInfo(destinationATA);
         if (!recipientAtaInfo) {
