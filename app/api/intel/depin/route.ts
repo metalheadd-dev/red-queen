@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withFriendlyX402 } from "@/lib/x402";
 
 const svmAddress = process.env.SVM_ADDRESS || "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg";
-const network = (process.env.SVM_NETWORK || "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1") as any;
+const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
 
 const handler = async (req: NextRequest) => {
   return NextResponse.json({
