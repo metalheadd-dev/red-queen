@@ -354,6 +354,7 @@ export default function OperativeProfilePage() {
               break;
             } else if (retryRes.status === 402) {
               const errorBody = await retryRes.text().catch(() => "");
+              retryError = errorBody || "HTTP 402 Payment Required";
               console.log(`x402: Attempt ${attempt}/8 — 402 response:`, errorBody.slice(0, 200));
             } else {
               const errorText = await retryRes.text();
