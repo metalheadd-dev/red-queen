@@ -254,21 +254,7 @@ export default function OperativeProfilePage() {
 
         // Add ComputeBudget instructions
         instructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 20000 }));
-        instructions.push(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1 }));
-
-        // Check if destination ATA exists, if not, create it
-        const recipientAtaInfo = await connection.getAccountInfo(destinationATA);
-        if (!recipientAtaInfo) {
-          setLoading("Preparing destination token account...");
-          instructions.push(
-            createAssociatedTokenAccountInstruction(
-              publicKey,
-              destinationATA,
-              recipientPubkey,
-              mintPubkey
-            )
-          );
-        }
+        instructions.push(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1000000 }));
 
         // Add SPL Token TransferChecked instruction
         instructions.push(
@@ -280,17 +266,6 @@ export default function OperativeProfilePage() {
             BigInt(amount),
             decimals
           )
-        );
-
-        // Random nonce memo (as x402 ExactSvmClient does)
-        const nonce = crypto.getRandomValues(new Uint8Array(16));
-        const nonceHex = Array.from(nonce).map((b) => b.toString(16).padStart(2, "0")).join("");
-        instructions.push(
-          new TransactionInstruction({
-            keys: [],
-            programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
-            data: Buffer.from(nonceHex, "utf-8"),
-          })
         );
 
         setLoading("Fetching fresh network blockhash...");
