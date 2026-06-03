@@ -7,6 +7,9 @@ import SolvivalIcon from "@/components/SolvivalIcon";
 import dynamic from "next/dynamic";
 import { generateApocalypticName } from "@/lib/names";
 import { DEFAULT_STATS, calculateBioScore, parseStatsFromAI, applyStatGains, getClearanceLevel } from "@/lib/progression";
+import { Connection, PublicKey, TransactionMessage, VersionedTransaction, ComputeBudgetProgram, TransactionInstruction } from "@solana/web3.js";
+import { getAssociatedTokenAddress, createTransferCheckedInstruction } from "@solana/spl-token";
+import { getWorkingConnection } from "@/lib/solana";
 
 
 const WalletMultiButton = dynamic(
@@ -86,12 +89,247 @@ function getLocalStatsAndScore(messages: Message[]) {
 }
 
 export default function TerminalPage() {
-  const { publicKey, connected, wallet, disconnect } = useWallet();
+  const { publicKey, connected, wallet, disconnect, signTransaction } = useWallet();
   const { setVisible } = useWalletModal();
   const { user, authIdentifier, session } = useAuth();
   
   const solanaWalletAddress = publicKey ? publicKey.toString() : null;
   const walletAddress = authIdentifier || solanaWalletAddress;
+
+  const [premiumIntel, setPremiumIntel] = useState<any | null>(null);
+  const [depinIntel, setDepinIntel] = useState<any | null>(null);
+  const [loadingPremium, setLoadingPremium] = useState<string | null>(null);
+  const [loadingDepin, setLoadingDepin] = useState<string | null>(null);
+  const [premiumError, setPremiumError] = useState<string | null>(null);
+  const [depinError, setDepinError] = useState<string | null>(null);
+
+  const decryptIntel = async (endpoint: "/api/intel/premium" | "/api/intel/depin", type: "premium" | "depin") => {
+    const setLoading = type === "premium" ? setLoadingPremium : setLoadingDepin;
+    const setIntel = type === "premium" ? setPremiumIntel : setDepinIntel;
+    const setError = type === "premium" ? setPremiumError : setDepinError;
+
+    setLoading("Initiating request...");
+    setError(null);
+    setIntel(null);
+
+    try {
+      const token = session?.access_token;
+      let headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      let res = await fetch(endpoint, { headers });
+
+      if (res.status === 200) {
+        const data = await res.json();
+        setIntel(data);
+        setLoading(null);
+        return;
+      }
+
+      if (res.status === 402) {
+        const paymentRequiredHeader = res.headers.get("payment-required") || res.headers.get("x-payment-required");
+        if (!paymentRequiredHeader) {
+          throw new Error("Payment required, but no payment instructions were found in response headers.");
+        }
+
+        setLoading("Decoding payment instructions...");
+        const paymentInfo = JSON.parse(atob(paymentRequiredHeader));
+        const accept = paymentInfo.accepts?.[0];
+        if (!accept) {
+          throw new Error("No SVM exact payment accept method found in x402 details.");
+        }
+
+        const { amount, asset, payTo, network } = accept;
+        if (!publicKey) {
+          throw new Error("Wallet not connected. Connect your wallet in the Access Portal.");
+        }
+
+        setLoading("Verifying Solana RPC context...");
+        const isDevnet = network.includes("EtWTRABZaYq6iMfeYKouRu166VU2xqa1") || network.includes("devnet");
+        
+        console.log("x402: Target Network ID:", network);
+        console.log("x402: Client Wallet:", publicKey.toString());
+
+        const connection = await getWorkingConnection(isDevnet);
+        const rpcUrl = connection.rpcEndpoint;
+        console.log("x402: Active RPC Connection Established with:", rpcUrl);
+
+        // Verify SOL balance (at least 0.0001 SOL for gas)
+        const solBalance = await connection.getBalance(publicKey);
+        console.log("x402: Checked SOL Balance (in lamports):", solBalance);
+        if (solBalance < 100000) {
+          throw new Error(`Insufficient SOL balance in connected wallet. Your wallet must hold some SOL to cover the network transaction fee. RPC checked: ${rpcUrl}. Balance: ${solBalance / 1e9} SOL.`);
+        }
+
+        const mintPubkey = new PublicKey(asset);
+        const recipientPubkey = new PublicKey(payTo);
+
+        // Derive Associated Token Accounts (ATA)
+        const sourceATA = await getAssociatedTokenAddress(mintPubkey, publicKey);
+        const destinationATA = await getAssociatedTokenAddress(mintPubkey, recipientPubkey);
+
+        // Verify USDC ATA exists and has enough balance
+        try {
+          const tokenBalance = await connection.getTokenAccountBalance(sourceATA);
+          const requiredAmount = Number(amount);
+          const currentBalance = Number(tokenBalance.value.amount);
+          
+          if (currentBalance < requiredAmount) {
+            throw new Error(`Insufficient USDC balance in connected wallet. Required: $${(requiredAmount / 1e6).toFixed(2)} USDC. Your balance: $${tokenBalance.value.uiAmount} USDC.`);
+          }
+        } catch (e: any) {
+          if (e.message.includes("could not find account") || e.message.includes("Invalid param") || e.message.includes("does not exist")) {
+            throw new Error("Your connected wallet does not have a USDC token account on Solana Mainnet, or its balance is 0. Please ensure you hold USDC before decrypting.");
+          }
+          throw e;
+        }
+
+        setLoading("Constructing x402 payment payload...");
+        const feePayer = paymentInfo.accepts?.[0]?.extra?.feePayer;
+        if (!feePayer) {
+          throw new Error("x402: No feePayer found in payment requirements. The facilitator did not provide a co-signer address.");
+        }
+
+        setLoading("Fetching token mint info...");
+        let decimals = 6;
+        try {
+          const mintInfo = await connection.getParsedAccountInfo(mintPubkey);
+          if (mintInfo.value && typeof mintInfo.value.data === 'object' && 'parsed' in mintInfo.value.data) {
+            decimals = mintInfo.value.data.parsed.info.decimals;
+          }
+        } catch (e) {
+          console.warn("x402: Could not fetch mint info parsed, defaulting to 6 decimals", e);
+        }
+
+        const instructions: TransactionInstruction[] = [];
+
+        // Add ComputeBudget instructions
+        instructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 20000 }));
+        instructions.push(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 5 }));
+
+        // Add SPL Token TransferChecked instruction
+        instructions.push(
+          createTransferCheckedInstruction(
+            sourceATA,
+            mintPubkey,
+            destinationATA,
+            publicKey,
+            BigInt(amount),
+            decimals
+          )
+        );
+
+        setLoading("Fetching fresh network blockhash...");
+        const { blockhash } = await connection.getLatestBlockhash("confirmed");
+
+        // Build transaction message using TransactionMessage and compileToV0Message
+        const messageV0 = new TransactionMessage({
+          payerKey: new PublicKey(feePayer),
+          recentBlockhash: blockhash,
+          instructions,
+        }).compileToV0Message();
+
+        const transaction = new VersionedTransaction(messageV0);
+
+        if (!signTransaction) {
+          throw new Error("Your wallet does not support signing transactions or is not fully initialized. Please try again or use a different wallet.");
+        }
+        setLoading("Awaiting wallet signature authorization...");
+        const signedTx = await signTransaction(transaction);
+
+        // Now serialize the signed transaction into wire format bytes
+        const wireBytes = signedTx.serialize();
+
+        // Base64 encode the wire bytes as the x402 payload transaction field
+        const base64WireTx = Buffer.from(wireBytes).toString("base64");
+
+        console.log("x402: Partial tx base64 length:", base64WireTx.length);
+        console.log("x402: feePayer from requirements:", feePayer);
+        console.log("x402: amount:", amount, "asset:", asset, "payTo:", payTo);
+
+        // Build the x402 payment payload exactly as ExactSvmScheme.createPaymentPayload does:
+        // { x402Version: 2, accepted: accept, payload: { transaction: "<base64-wire-tx>" } }
+        const x402PaymentPayload = {
+          x402Version: 2,
+          accepted: accept,
+          payload: { transaction: base64WireTx },
+        };
+
+        // Encode as base64(JSON.stringify(payload)) for the PAYMENT-SIGNATURE header
+        const paymentSignatureHeader = btoa(JSON.stringify(x402PaymentPayload));
+
+        setLoading("Submitting payment to x402 facilitator...");
+
+        let success = false;
+        let retryError = "";
+
+        // Poll backend — the facilitator will co-sign, simulate, and submit the tx
+        // Backend returns 200 once facilitated tx is confirmed
+        for (let attempt = 1; attempt <= 8; attempt++) {
+          try {
+            const retryHeaders = {
+              ...headers,
+              "PAYMENT-SIGNATURE": paymentSignatureHeader,
+            };
+            const retryRes = await fetch(endpoint, { headers: retryHeaders });
+
+            if (retryRes.status === 200) {
+              const data = await retryRes.json();
+              setIntel(data);
+              setLoading(null);
+              success = true;
+              break;
+            } else if (retryRes.status === 402) {
+              const paymentRequiredHeader = retryRes.headers.get("payment-required") || retryRes.headers.get("x-payment-required");
+              const paymentResponseHeader = retryRes.headers.get("payment-response") || retryRes.headers.get("PAYMENT-RESPONSE");
+              
+              let headerError = "";
+              if (paymentRequiredHeader) {
+                try {
+                  const info = JSON.parse(atob(paymentRequiredHeader));
+                  if (info.error) headerError = info.error;
+                } catch {}
+              }
+              if (!headerError && paymentResponseHeader) {
+                try {
+                  const info = JSON.parse(atob(paymentResponseHeader));
+                  if (info.errorMessage || info.errorReason) {
+                    headerError = info.errorMessage || info.errorReason;
+                  }
+                } catch {}
+              }
+
+              const errorBody = await retryRes.text().catch(() => "");
+              retryError = headerError || errorBody || "HTTP 402 Payment Required";
+              console.log(`x402: Attempt ${attempt}/8 — 402 response:`, errorBody.slice(0, 200), "Header error:", headerError);
+            } else {
+              const errorText = await retryRes.text();
+              retryError = errorText || `HTTP ${retryRes.status}`;
+              console.error("x402: Unexpected status:", retryRes.status, retryError.slice(0, 200));
+            }
+          } catch (e: any) {
+            retryError = e?.message || "Network error during verification.";
+          }
+
+          if (attempt < 8) {
+            setLoading(`x402: Facilitator processing — attempt ${attempt}/8...`);
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+          }
+        }
+
+        if (!success) {
+          throw new Error(`x402 payment facilitation failed after 8 attempts. Last error: ${retryError}`);
+        }
+      } else {
+        throw new Error(`Decryption portal returned status: HTTP ${res.status}`);
+      }
+    } catch (err: any) {
+      console.error("Decryption failed:", err);
+      setError(err?.message || "Secure connection decryption failure.");
+      setLoading(null);
+    }
+  };
 
   const handleChangeWallet = async () => {
     try {
@@ -773,6 +1011,125 @@ To decrypt or scan target files:
                 ↗ {hint}
               </button>
             ))}
+          </div>
+
+          {/* ACCESS RESTRICTED APOCALYPSE DOSSIERS */}
+          <div style={{
+            padding: "20px 24px 24px",
+            borderTop: "1px solid var(--border)",
+            background: "rgba(255, 77, 77, 0.01)"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
+                [ SECURE MICROPAYMENT PROTOCOL (X402) ]
+              </div>
+              <div style={{ flex: 1, height: "1px", background: "rgba(255, 77, 77, 0.15)" }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              {/* Premium Briefing Panel */}
+              <div style={{ background: "#080808", border: "1px solid #141414", padding: "16px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold", color: "#ffffff" }}>
+                    DOSSIER A: GLOBAL CONTAINMENT
+                  </span>
+                  <span className="tag" style={{ color: "var(--accent)", borderColor: "rgba(255,77,77,0.3)", padding: "2px 6px", fontSize: "9px" }}>
+                    $0.01 USDC
+                  </span>
+                </div>
+
+                {premiumIntel ? (
+                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "12px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
+                    <div style={{ color: "#00ffcc", fontWeight: "bold", marginBottom: "6px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
+                    <div style={{ color: "#ffffff", fontWeight: "bold", marginBottom: "4px" }}>{premiumIntel.intel?.headline}</div>
+                    <div style={{ color: "var(--text-dim)", marginBottom: "6px", fontSize: "11px", lineHeight: "1.4" }}>{premiumIntel.intel?.summary}</div>
+                    
+                    {premiumIntel.intel?.threatVectors && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px", borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "6px" }}>
+                        {premiumIntel.intel.threatVectors.map((v: any, idx: number) => (
+                          <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "10.5px" }}>
+                            <span style={{ color: "var(--text)" }}>• {v.description || v.id}</span>
+                            <span style={{ color: v.status === "RED" ? "var(--accent)" : "var(--yellow)" }}>{v.rating}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div style={{ fontSize: "10.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "6px" }}>
+                      <strong>Directive:</strong> {premiumIntel.intel?.directive}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0c0303", padding: "8px", border: "1px solid #230808", borderRadius: "2px" }}>
+                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : "[ LOCKED // PAYMENT REQUIRED ]"}
+                    </div>
+                    {premiumError && (
+                      <div style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                        ⚠️ ERROR: {premiumError}
+                      </div>
+                    )}
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => decryptIntel("/api/intel/premium", "premium")}
+                      disabled={!!loadingPremium || !connected}
+                      style={{ padding: "8px", fontSize: "11px" }}
+                    >
+                      {loadingPremium ? "PROCESS PAYWALL..." : connected ? "DECRYPT DOSSIER" : "CONNECT WALLET TO PAY"}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* DePIN Sensor Panel */}
+              <div style={{ background: "#080808", border: "1px solid #141414", padding: "16px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold", color: "#ffffff" }}>
+                    DOSSIER B: DePIN MESH SENSORS
+                  </span>
+                  <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.3)", padding: "2px 6px", fontSize: "9px" }}>
+                    $0.02 USDC
+                  </span>
+                </div>
+
+                {depinIntel ? (
+                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "12px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
+                    <div style={{ color: "#00ffcc", fontWeight: "bold", marginBottom: "6px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
+                    <div style={{ color: "#ffffff", fontWeight: "bold", marginBottom: "4px" }}>{depinIntel.depin?.scannerName}</div>
+                    <div style={{ color: "var(--text-dim)", marginBottom: "6px", fontSize: "11px" }}>
+                      Health: <span style={{ color: "#00ffcc" }}>{depinIntel.depin?.networkHealth}</span> | Online Nodes: {depinIntel.depin?.onlineNodes}
+                    </div>
+                    <div style={{ fontSize: "10.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "6px" }}>
+                      <strong>Active Alerts:</strong>
+                      <ul style={{ margin: "4px 0 0 12px", padding: 0 }}>
+                        {depinIntel.depin?.sensorAlerts?.map((alert: string, i: number) => (
+                          <li key={i} style={{ marginBottom: "2px" }}>{alert}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0a0802", padding: "8px", border: "1px solid #231d08", borderRadius: "2px" }}>
+                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : "[ LOCKED // PAYMENT REQUIRED ]"}
+                    </div>
+                    {depinError && (
+                      <div style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                        ⚠️ ERROR: {depinError}
+                      </div>
+                    )}
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => decryptIntel("/api/intel/depin", "depin")}
+                      disabled={!!loadingDepin || !connected}
+                      style={{ padding: "8px", fontSize: "11px", borderColor: "rgba(240, 201, 41, 0.4)", color: "#ffffff" }}
+                    >
+                      {loadingDepin ? "PROCESS PAYWALL..." : connected ? "DECRYPT DOSSIER" : "CONNECT WALLET TO PAY"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
