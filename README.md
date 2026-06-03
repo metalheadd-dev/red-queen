@@ -13,6 +13,14 @@
 * **Corporate Boot Sequence**: Every connection undergoes a tactical corporate boot process, initializing systems, checking containment levels, and verifying user diagnostics.
 * **Classified Logs**: Conversations and actions are securely logged to build the user's historical profile.
 
+### 🔑 Secure Wallet Login (Supabase Web3 Auth)
+* **Cryptographic Operative Passports**: Establish secure sessions using Solana wallets. Supabase Web3 authentication replaces insecure URL parameters with cryptographically signed challenge prompts.
+* **Access Tokens**: Secure Bearer tokens protect user-specific API calls (`/api/profile`, `/api/history`, and diagnostics), ensuring absolute data ownership.
+
+### 💳 USDC Paywalls (Solana x402 open payments)
+* **Micropayment Content Gating**: Premium intelligence is gated behind micro-USDC payments (e.g. $0.01 for AI dossiers, $0.02 for DePIN scans).
+* **x402 Protocol Integration**: The backend automatically validates transaction signatures via the PayAI Facilitator network, releasing premium briefs in under 400ms.
+
 ### 🗺️ Live Tactical Map
 * **Global Threat Visualizer**: A Mapbox-powered interactive 3D tactical map displaying active fallout, biohazard zones, and target containment areas worldwide.
 * **Simulated Hotspots**: Real-time rendering of simulated crises (nuclear fallout, pandemics, quarantine zones) to aid tactical navigation.
@@ -27,18 +35,15 @@
 * **Tailored Recommendations**: An automated engine recommending critical survival gear (medical kits, tactical lights, water filtration systems) customized to your current BIO-SCORE and threat level.
 
 ### 🗄️ Threat Vector Archives
-* **Classified Dossiers**: Comprehensive data on active extinction vectors across multiple severity levels, including:
-  * **Realistic Threats**: EMPs, Nuclear fallout, global pandemics.
-  * **Fictional Threats**: Zombie outbreaks (like `DEAD-WALK`), Alien incursions, Robot uprisings.
-  * **Satirical Collapse**: TikTok civilization collapse, Meme-induced brainrot, Invasion of dumb people.
+* **Classified Dossiers**: Comprehensive data on active extinction vectors across multiple severity levels.
 
 ---
 
 ## 🗺️ Roadmap: Future Extensions
 
-1. **Model Context Protocol (MCP)**: Expose Red Queen tools to external AI agents to allow machine-to-machine threat queries, bio-score grading, and automated warnings without humans in the loop.
-2. **Solana x402 Micropayments**: Integrate open-payment gateways (HTTP 402) for premium intelligence dossiers and live DePIN data feeds, supporting autonomous agent-to-agent transactions.
-3. **Surveillance Protocol**: A registration protocol where external agents sign up as official scouts, receive codenames, and automatically receive tasks/rewards for gathering data.
+1. **Iteration 3: AI-to-AI Gateway (Model Context Protocol)**: Expose Red Queen tools to external AI agents to allow machine-to-machine threat queries, bio-score grading, and automated warnings.
+2. **Iteration 4: Security Guard (t54 x402-secure)**: Risk analysis and threat filtering for incoming autonomous agent queries.
+3. **Iteration 5: Quest Board & Automated Rewards**: AI-evaluated community challenges with automated treasury payouts in USDC.
 
 ---
 

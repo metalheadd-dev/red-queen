@@ -14,7 +14,8 @@ export default function SurvivalKitPage() {
     { id: "wallet-connection", label: "06. IDENTITY", title: "WALLET & IDENTITY SECURITY" },
     { id: "clearance-levels", label: "07. TIERS", title: "SYSTEM CLEARANCE LEVELS" },
     { id: "faq", label: "08. INQUIRIES", title: "FREQUENTLY ASKED QUESTIONS" },
-    { id: "map-config", label: "09. MAP API", title: "MAP API CONFIGURATION" }
+    { id: "map-config", label: "09. MAP API", title: "MAP API CONFIGURATION" },
+    { id: "usdc-paywalls", label: "10. PAYWALLS", title: "USDC PAYWALLS & MICRO-PAYMENTS" }
   ];
 
   return (
@@ -358,21 +359,21 @@ export default function SurvivalKitPage() {
           {activeTab === "wallet-connection" && (
             <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
-                Connecting your Solana wallet establishes your cryptographic operative passport. RED QUEEN implements decentralized privacy controls to safeguard your session data:
+                Connecting your Solana wallet establishes a secure, cryptographic operative passport. RED QUEEN implements Supabase Web3 Authentication and decentralized privacy controls:
               </p>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2">
                 <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "24px" }}>
-                  <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px" }}>SALTED SHA-256 HASHING</h3>
+                  <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px" }}>SECURE CHALLENGE SIGNING</h3>
                   <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                    We do not store public wallet addresses in plain text. Your wallet's public key is combined with a secure server-side salt and hashed via SHA-256 before database index lookup, keeping your ledger profile completely anonymous.
+                    When you connect your wallet, the terminal generates a secure login challenge. Signing this challenge confirms ownership of the wallet, establishes a secure session token, and prevents unauthorized database writes or query-string spoofing.
                   </p>
                 </div>
 
                 <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "24px" }}>
-                  <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px" }}>ZERO PERSONAL DATA</h3>
+                  <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px" }}>SALTED PROFILE HASHING</h3>
                   <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                    No emails, IP addresses, cookies, or location telemetry are logged. If you disconnect your wallet, your session terminates immediately and your frontend state trace is completely purged from memory.
+                    Your wallet's public key is combined with a secure server-side salt and hashed via SHA-256 before database index lookup. This keeps your on-chain ledger profile anonymized inside our database structures.
                   </p>
                 </div>
               </div>
@@ -492,6 +493,39 @@ export default function SurvivalKitPage() {
                 <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
                   If the <code>NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code> environment variable is missing, the RED QUEEN will automatically fallback to a low-fidelity local terminal matrix simulator, preserving the tactical interface styling while logging diagnostic warning events in the console.
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* 10. USDC Paywalls */}
+          {activeTab === "usdc-paywalls" && (
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
+                RED QUEEN gates its most premium intelligence (detailed AI threat vector briefings, real-time DePIN mesh network sensor data, and secret archives) behind micro-payments. This is powered by <strong>x402</strong>, a standard payment protocol that lets you pay per request using USDC stablecoin on Solana.
+              </p>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2">
+                <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "24px" }}>
+                  <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px" }}>HTTP 402 PAYMENT PROTOCOL</h3>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                    When you request a premium route (e.g. <code>/api/intel/premium</code>), the server returns an HTTP 402 code with the exact USDC price and recipient wallet. Your wallet builds the transaction, submits it to Solana, and retries the request with a signed proof header to instantly unlock the content.
+                  </p>
+                </div>
+
+                <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255,255,255,0.04)", padding: "24px" }}>
+                  <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px" }}>SOLANA MICROTRANSACTIONS</h3>
+                  <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                    By using Solana Devnet/Mainnet and USDC, transaction finality takes under 400ms and network gas fees are less than a tenth of a cent. This allows pay-per-use requests (e.g. $0.01 per scan) to bypass expensive monthly subscriptions.
+                  </p>
+                </div>
+              </div>
+
+              <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255, 0, 51, 0.15)", padding: "24px" }}>
+                <h3 style={{ fontSize: "15px", color: "var(--accent)", marginBottom: "8px", fontFamily: "var(--mono)" }}>🔒 PREMIUM CHANNELS ACTIVE</h3>
+                <ul style={{ margin: "6px 0 0 0", paddingLeft: "20px", color: "var(--text-dim)", fontSize: "13.5px", lineHeight: "1.7" }}>
+                  <li><strong>Premium AI Dossier (<code>/api/intel/premium</code>):</strong> Gated behind a <strong>$0.01 USDC</strong> payment.</li>
+                  <li><strong>Live DePIN Diagnostics (<code>/api/intel/depin</code>):</strong> Gated behind a <strong>$0.02 USDC</strong> payment.</li>
+                </ul>
               </div>
             </div>
           )}
