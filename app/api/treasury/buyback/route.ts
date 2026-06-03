@@ -186,7 +186,7 @@ async function executeBuyback(req: NextRequest) {
 
   } catch (err: any) {
     console.error("Automated buyback execution failed:", err);
-    return NextResponse.json({ error: `Execution Failure: ${err.message || err}` }, { status: 500 });
+    return NextResponse.json({ success: false, error: `Execution Failure: ${err.message || err}` });
   }
 }
 
