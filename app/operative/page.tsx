@@ -133,6 +133,8 @@ export default function OperativeProfilePage() {
   const [loadingDepin, setLoadingDepin] = useState<string | null>(null);
   const [premiumError, setPremiumError] = useState<string | null>(null);
   const [depinError, setDepinError] = useState<string | null>(null);
+  const [premiumTxid, setPremiumTxid] = useState<string | null>(null);
+  const [depinTxid, setDepinTxid] = useState<string | null>(null);
 
   const decryptIntel = async (endpoint: "/api/intel/premium" | "/api/intel/depin", type: "premium" | "depin") => {
     const setLoading = type === "premium" ? setLoadingPremium : setLoadingDepin;
@@ -155,6 +157,23 @@ export default function OperativeProfilePage() {
         const data = await res.json();
         setIntel(data);
         setLoading(null);
+
+        // Extract payment response header if present
+        const responseHeader = res.headers.get("payment-response") || res.headers.get("PAYMENT-RESPONSE");
+        if (responseHeader) {
+          try {
+            const decoded = JSON.parse(atob(responseHeader));
+            if (decoded.transaction) {
+              if (type === "premium") {
+                setPremiumTxid(decoded.transaction);
+              } else {
+                setDepinTxid(decoded.transaction);
+              }
+            }
+          } catch (e) {
+            console.error("Failed to parse payment-response header:", e);
+          }
+        }
         return;
       }
 
@@ -326,6 +345,24 @@ export default function OperativeProfilePage() {
               const data = await retryRes.json();
               setIntel(data);
               setLoading(null);
+
+              // Extract payment response header if present
+              const responseHeader = retryRes.headers.get("payment-response") || retryRes.headers.get("PAYMENT-RESPONSE");
+              if (responseHeader) {
+                try {
+                  const decoded = JSON.parse(atob(responseHeader));
+                  if (decoded.transaction) {
+                    if (type === "premium") {
+                      setPremiumTxid(decoded.transaction);
+                    } else {
+                      setDepinTxid(decoded.transaction);
+                    }
+                  }
+                } catch (e) {
+                  console.error("Failed to parse payment-response header:", e);
+                }
+              }
+
               success = true;
               break;
             } else if (retryRes.status === 402) {
@@ -1542,13 +1579,28 @@ export default function OperativeProfilePage() {
                 </div>
 
                 {premiumIntel ? (
-                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "13px" }}>
-                    <div style={{ color: "#00ffcc", fontWeight: "bold", marginBottom: "8px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
-                    <div style={{ color: "#ffffff", fontWeight: "bold", marginBottom: "4px" }}>{premiumIntel.intel?.headline}</div>
-                    <div style={{ color: "var(--text-dim)", marginBottom: "8px" }}>{premiumIntel.intel?.summary}</div>
+                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "13px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "6px" }}>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</span>
+                      <span style={{ color: "#2ecc40", fontSize: "10px", fontWeight: "bold", background: "rgba(46, 204, 64, 0.1)", padding: "2px 6px", borderRadius: "2px" }}>✓ LIVE DATA: USGS & NASA & DISEASE.SH</span>
+                    </div>
+                    <div style={{ color: "#ffffff", fontWeight: "bold" }}>{premiumIntel.intel?.headline}</div>
+                    <div style={{ color: "var(--text-dim)" }}>{premiumIntel.intel?.summary}</div>
                     <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                       <strong>Directive:</strong> {premiumIntel.intel?.directive}
                     </div>
+                    {premiumTxid && (
+                      <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "8px", marginTop: "4px" }}>
+                        <a
+                          href={`https://solscan.io/tx/${premiumTxid}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "#00ffcc", textDecoration: "underline", fontSize: "11px", fontWeight: "bold" }}
+                        >
+                          [ 🔗 VERIFIED ON-CHAIN PROOF (SOLSCAN) ]
+                        </a>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -1576,7 +1628,7 @@ export default function OperativeProfilePage() {
               <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "#ffffff" }}>
-                    Solana Solvival Status DOSSIER B: DePIN MESH SENSORS
+                    Solana Solvival status
                   </span>
                   <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.3)" }}>
                     $0.02 USDC
@@ -1584,10 +1636,13 @@ export default function OperativeProfilePage() {
                 </div>
 
                 {depinIntel ? (
-                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "13px" }}>
-                    <div style={{ color: "#00ffcc", fontWeight: "bold", marginBottom: "8px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
-                    <div style={{ color: "#ffffff", fontWeight: "bold", marginBottom: "4px" }}>{depinIntel.depin?.scannerName}</div>
-                    <div style={{ color: "var(--text-dim)", marginBottom: "8px" }}>
+                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "13px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "6px" }}>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</span>
+                      <span style={{ color: "#2ecc40", fontSize: "10px", fontWeight: "bold", background: "rgba(46, 204, 64, 0.1)", padding: "2px 6px", borderRadius: "2px" }}>✓ LIVE DATA: SOLANA MAINNET RPC</span>
+                    </div>
+                    <div style={{ color: "#ffffff", fontWeight: "bold" }}>{depinIntel.depin?.scannerName}</div>
+                    <div style={{ color: "var(--text-dim)" }}>
                       Health: <span style={{ color: "#00ffcc" }}>{depinIntel.depin?.networkHealth}</span> | Online Nodes: {depinIntel.depin?.onlineNodes}
                     </div>
                     <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
@@ -1598,6 +1653,18 @@ export default function OperativeProfilePage() {
                         ))}
                       </ul>
                     </div>
+                    {depinTxid && (
+                      <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "8px", marginTop: "4px" }}>
+                        <a
+                          href={`https://solscan.io/tx/${depinTxid}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "#00ffcc", textDecoration: "underline", fontSize: "11px", fontWeight: "bold" }}
+                        >
+                          [ 🔗 VERIFIED ON-CHAIN PROOF (SOLSCAN) ]
+                        </a>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -1615,7 +1682,7 @@ export default function OperativeProfilePage() {
                       disabled={!!loadingDepin || !connected}
                       style={{ padding: "12px", fontSize: "13.5px", borderColor: "rgba(240, 201, 41, 0.4)", color: "#ffffff" }}
                     >
-                      {loadingDepin ? "PROCESS PAYWALL..." : connected ? "DECRYPT DOSSIER" : "CONNECT WALLET TO PAY"}
+                      {loadingDepin ? "PROCESS PAYWALL..." : connected ? "DECRYPT SOLIVAL STATUS" : "CONNECT WALLET TO PAY"}
                     </button>
                   </div>
                 )}

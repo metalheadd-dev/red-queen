@@ -102,6 +102,8 @@ export default function TerminalPage() {
   const [loadingDepin, setLoadingDepin] = useState<string | null>(null);
   const [premiumError, setPremiumError] = useState<string | null>(null);
   const [depinError, setDepinError] = useState<string | null>(null);
+  const [premiumTxid, setPremiumTxid] = useState<string | null>(null);
+  const [depinTxid, setDepinTxid] = useState<string | null>(null);
 
   const [vaultSolBalance, setVaultSolBalance] = useState<number | null>(null);
   const [vaultUsdcBalance, setVaultUsdcBalance] = useState<number | null>(null);
@@ -183,6 +185,23 @@ export default function TerminalPage() {
         setIntel(data);
         setLoading(null);
         fetchVaultBalances();
+
+        // Extract payment response header if present
+        const responseHeader = res.headers.get("payment-response") || res.headers.get("PAYMENT-RESPONSE");
+        if (responseHeader) {
+          try {
+            const decoded = JSON.parse(atob(responseHeader));
+            if (decoded.transaction) {
+              if (type === "premium") {
+                setPremiumTxid(decoded.transaction);
+              } else {
+                setDepinTxid(decoded.transaction);
+              }
+            }
+          } catch (e) {
+            console.error("Failed to parse payment-response header:", e);
+          }
+        }
         return;
       }
 
@@ -338,6 +357,24 @@ export default function TerminalPage() {
               setIntel(data);
               setLoading(null);
               fetchVaultBalances();
+
+              // Extract payment response header if present
+              const responseHeader = retryRes.headers.get("payment-response") || retryRes.headers.get("PAYMENT-RESPONSE");
+              if (responseHeader) {
+                try {
+                  const decoded = JSON.parse(atob(responseHeader));
+                  if (decoded.transaction) {
+                    if (type === "premium") {
+                      setPremiumTxid(decoded.transaction);
+                    } else {
+                      setDepinTxid(decoded.transaction);
+                    }
+                  }
+                } catch (e) {
+                  console.error("Failed to parse payment-response header:", e);
+                }
+              }
+
               success = true;
               break;
             } else if (retryRes.status === 402) {
@@ -1100,7 +1137,10 @@ To decrypt or scan target files:
 
                 {premiumIntel ? (
                   <div style={{ background: "rgba(255, 0, 51, 0.02)", border: "1px solid rgba(255, 0, 51, 0.25)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "12px", display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <div style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(255, 77, 77, 0.15)", paddingBottom: "6px" }}>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</span>
+                      <span style={{ color: "#2ecc40", fontSize: "10px", fontWeight: "bold", background: "rgba(46, 204, 64, 0.1)", padding: "2px 6px", borderRadius: "2px" }}>✓ LIVE DATA: USGS & NASA & DISEASE.SH</span>
+                    </div>
                     
                     <div style={{ display: "flex", justifyContent: "space-between", background: "rgba(255,77,77,0.06)", border: "1px solid rgba(255,77,77,0.2)", padding: "10px", borderRadius: "2px", fontSize: "11.5px", alignItems: "center" }}>
                       <span style={{ color: "#ffffff", fontWeight: "bold" }}>☣️ GLOBAL THREAT ENTROPY INDEX:</span>
@@ -1191,11 +1231,12 @@ To decrypt or scan target files:
                     </div>
 
                     {/* Actions Row */}
-                    <div style={{ display: "flex", gap: "12px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", marginTop: "4px", alignItems: "center" }}>
+                    <div style={{ display: "flex", gap: "12px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", marginTop: "4px", alignItems: "center", flexWrap: "wrap" }}>
                       <button
                         onClick={() => {
+                          const proofText = premiumTxid ? `\nProof: https://solscan.io/tx/${premiumTxid}` : "";
                           setShareModalData({
-                            content: `◉ DECRYPTED DOSSIER A: GLOBAL CONTAINMENT\n\nHeadline: ${premiumIntel.intel?.headline}\nSummary: ${premiumIntel.intel?.summary}\nUSGS Alerts: ${premiumIntel.intel?.threatVectors?.map((v: any) => v.description).join(" // ")}\nt54 Index: ${premiumIntel.intel?.t54Telemetry?.complianceScore}`
+                            content: `◉ DECRYPTED DOSSIER A: GLOBAL CONTAINMENT\n\nHeadline: ${premiumIntel.intel?.headline}\nSummary: ${premiumIntel.intel?.summary}\nUSGS Alerts: ${premiumIntel.intel?.threatVectors?.map((v: any) => v.description).join(" // ")}\nt54 Index: ${premiumIntel.intel?.t54Telemetry?.complianceScore}${proofText}`
                           });
                         }}
                         style={{ background: "none", border: "none", color: "var(--accent)", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: "bold" }}
@@ -1203,6 +1244,17 @@ To decrypt or scan target files:
                         [ 📤 SHARE DOSSIER ]
                       </button>
                       
+                      {premiumTxid && (
+                        <a
+                          href={`https://solscan.io/tx/${premiumTxid}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "#2ecc40", fontFamily: "var(--mono)", fontSize: "11px", textDecoration: "underline", fontWeight: "bold" }}
+                        >
+                          [ 🔗 SOLSCAN PROOF ]
+                        </a>
+                      )}
+
                       {premiumIntel.intel?.explorerUrl && (
                         <a
                           href={premiumIntel.intel.explorerUrl}
@@ -1254,7 +1306,7 @@ To decrypt or scan target files:
               <div style={{ background: "#080808", border: "1px solid #201b10", padding: "20px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.05em" }}>
-                    Solana Solvival Status DOSSIER B: DePIN MESH SENSORS
+                    Solana Solvival status
                   </span>
                   <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.4)", padding: "3px 8px", fontSize: "10px" }}>
                     $0.02 USDC
@@ -1263,7 +1315,10 @@ To decrypt or scan target files:
 
                 {depinIntel ? (
                   <div style={{ background: "rgba(240, 201, 41, 0.02)", border: "1px solid rgba(240, 201, 41, 0.25)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "12px", display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <div style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(240, 201, 41, 0.15)", paddingBottom: "6px" }}>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</span>
+                      <span style={{ color: "#2ecc40", fontSize: "10px", fontWeight: "bold", background: "rgba(46, 204, 64, 0.1)", padding: "2px 6px", borderRadius: "2px" }}>✓ LIVE DATA: SOLANA MAINNET RPC</span>
+                    </div>
                     <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "13.5px" }}>{depinIntel.depin?.scannerName}</div>
                     <div style={{ color: "rgba(255, 255, 255, 0.95)", fontSize: "12px" }}>
                       Health Status: <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{depinIntel.depin?.networkHealth}</span> | Monitored DePIN Nodes: <span style={{ color: "#ffffff", fontWeight: "bold" }}>{depinIntel.depin?.onlineNodes}</span>
@@ -1324,11 +1379,12 @@ To decrypt or scan target files:
                     </div>
 
                     {/* Actions Row */}
-                    <div style={{ display: "flex", gap: "12px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", marginTop: "4px", alignItems: "center" }}>
+                    <div style={{ display: "flex", gap: "12px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", marginTop: "4px", alignItems: "center", flexWrap: "wrap" }}>
                       <button
                         onClick={() => {
+                          const proofText = depinTxid ? `\nProof: https://solscan.io/tx/${depinTxid}` : "";
                           setShareModalData({
-                            content: `◉ DECRYPTED Solana Solvival Status DOSSIER B: DePIN MESH SENSORS\n\nScanner: ${depinIntel.depin?.scannerName}\nHealth: ${depinIntel.depin?.networkHealth}\nOnline Nodes: ${depinIntel.depin?.onlineNodes}\nSolana Gas (Faremeter): ${depinIntel.depin?.avgPriorityFee}\nEpoch: ${depinIntel.depin?.epoch}`
+                            content: `◉ DECRYPTED Solana Solvival status\n\nScanner: ${depinIntel.depin?.scannerName}\nHealth: ${depinIntel.depin?.networkHealth}\nOnline Nodes: ${depinIntel.depin?.onlineNodes}\nSolana Gas (Faremeter): ${depinIntel.depin?.avgPriorityFee}\nEpoch: ${depinIntel.depin?.epoch}${proofText}`
                           });
                         }}
                         style={{ background: "none", border: "none", color: "#f0c929", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: "bold" }}
@@ -1336,6 +1392,17 @@ To decrypt or scan target files:
                         [ 📤 SHARE DOSSIER ]
                       </button>
                       
+                      {depinTxid && (
+                        <a
+                          href={`https://solscan.io/tx/${depinTxid}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "#2ecc40", fontFamily: "var(--mono)", fontSize: "11px", textDecoration: "underline", fontWeight: "bold" }}
+                        >
+                          [ 🔗 SOLSCAN PROOF ]
+                        </a>
+                      )}
+
                       {depinIntel.depin?.explorerUrl && (
                         <a
                           href={depinIntel.depin.explorerUrl}
@@ -1377,7 +1444,7 @@ To decrypt or scan target files:
                       disabled={!!loadingDepin}
                       style={{ padding: "10px", fontSize: "11.5px", fontWeight: "bold", background: "#f0c929", color: "#000", border: "none" }}
                     >
-                      {loadingDepin ? "PROCESSING PAYWALL..." : connected ? "DECRYPT DOSSIER B" : "CONNECT WALLET & DECRYPT"}
+                      {loadingDepin ? "PROCESSING PAYWALL..." : connected ? "DECRYPT SOLIVAL STATUS" : "CONNECT WALLET & DECRYPT"}
                     </button>
                   </div>
                 )}
