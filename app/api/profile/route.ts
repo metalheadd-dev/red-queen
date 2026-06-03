@@ -10,6 +10,25 @@ export async function GET(req: Request) {
   if (!wallet) return Response.json({ error: "wallet required" }, { status: 400 });
   if (!supabase) return Response.json({ error: "DB not configured" }, { status: 500 });
 
+  // Security Check: Verify user owns the requested wallet profile if token is provided
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (!authError && user) {
+      let authWallet = "";
+      if (user.email) {
+        authWallet = `email-auth:${user.id}`;
+      } else {
+        const web3Identity = user.identities?.find((id: any) => id.provider === "web3" || id.provider === "solana");
+        authWallet = web3Identity?.identity_data?.sub || user.user_metadata?.wallet_address || "";
+      }
+      if (authWallet && authWallet !== wallet) {
+        return Response.json({ error: "Access Denied: Wallet ownership mismatch" }, { status: 403 });
+      }
+    }
+  }
+
   const hashedWallet = getHashedWallet(wallet);
 
   const { data, error } = await supabase
@@ -43,6 +62,25 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { wallet_address, apocalyptic_name, chosen_scenarios, email, linked_wallet_address } = body;
   if (!wallet_address) return Response.json({ error: "wallet_address required" }, { status: 400 });
+
+  // Security Check: Verify user owns the requested wallet profile
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (!authError && user) {
+      let authWallet = "";
+      if (user.email) {
+        authWallet = `email-auth:${user.id}`;
+      } else {
+        const web3Identity = user.identities?.find((id: any) => id.provider === "web3" || id.provider === "solana");
+        authWallet = web3Identity?.identity_data?.sub || user.user_metadata?.wallet_address || "";
+      }
+      if (authWallet && authWallet !== wallet_address) {
+        return Response.json({ error: "Access Denied: Wallet ownership mismatch" }, { status: 403 });
+      }
+    }
+  }
 
   const hashedWallet = getHashedWallet(wallet_address);
 

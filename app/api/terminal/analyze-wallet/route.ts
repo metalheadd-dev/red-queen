@@ -1,3 +1,5 @@
+import { supabase } from "@/lib/supabase";
+
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
@@ -7,6 +9,25 @@ export async function POST(req: Request) {
   
   if (!vector) {
     return Response.json({ error: "vector ID required" }, { status: 400 });
+  }
+
+  // Security Check: Verify user owns the requested wallet profile if token is provided
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ") && supabase && wallet) {
+    const token = authHeader.split(" ")[1];
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (!authError && user) {
+      let authWallet = "";
+      if (user.email) {
+        authWallet = `email-auth:${user.id}`;
+      } else {
+        const web3Identity = user.identities?.find((id: any) => id.provider === "web3" || id.provider === "solana");
+        authWallet = web3Identity?.identity_data?.sub || user.user_metadata?.wallet_address || "";
+      }
+      if (authWallet && authWallet !== wallet) {
+        return Response.json({ error: "Access Denied: Wallet ownership mismatch" }, { status: 403 });
+      }
+    }
   }
 
   // Generate the report directly since the client verifies clearance level.

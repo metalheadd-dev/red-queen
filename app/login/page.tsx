@@ -13,7 +13,7 @@ const WalletMultiButton = dynamic(
 );
 
 export default function LoginPage() {
-  const { user, loginWithEmail, signUpWithEmail } = useAuth();
+  const { user, loginWithEmail, signUpWithEmail, loginWithWallet } = useAuth();
   const { connected } = useWallet();
   const router = useRouter();
 
@@ -24,12 +24,25 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
 
-  // Redirect if already logged in or wallet is connected
+  // Authenticate wallet or redirect if user exists
   useEffect(() => {
-    if (user || connected) {
+    if (connected && !user && loginWithWallet) {
+      setStatusMsg("SIGNING SECURE CHALLENGE WITH WALLET...");
+      loginWithWallet().then(({ error }) => {
+        if (error) {
+          setErrorMsg(`Wallet Authentication Failed: ${error.message || error}`);
+          setStatusMsg("");
+        } else {
+          setStatusMsg("ACCESS GRANTED. REDIRECTING...");
+          setTimeout(() => {
+            router.push("/operative");
+          }, 1000);
+        }
+      });
+    } else if (user) {
       router.push("/operative");
     }
-  }, [user, connected, router]);
+  }, [connected, user, router, loginWithWallet]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

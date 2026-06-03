@@ -12,7 +12,7 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
   const id = resolvedParams.id;
   const { publicKey, connected } = useWallet();
   const { setVisible } = useWalletModal();
-  const { user, authIdentifier } = useAuth();
+  const { user, authIdentifier, session } = useAuth();
 
   const solanaWalletAddress = publicKey ? publicKey.toString() : null;
   const activeIdentity = authIdentifier || solanaWalletAddress;
@@ -57,7 +57,10 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
       }
       setLoadingStats(true);
       try {
-        const res = await fetch(`/api/profile?wallet=${activeIdentity}`);
+        const token = session?.access_token;
+        const res = await fetch(`/api/profile?wallet=${activeIdentity}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
         const data = await res.json();
         if (data.profile && data.profile.stats) {
           setUserStats(data.profile.stats);
@@ -106,8 +109,10 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
     setLoading(true);
     if (isSectorDelta) {
       try {
+        const token = session?.access_token;
         const res = await fetch(`/api/terminal/analyze-wallet?vector=${threat!.id}&wallet=${activeIdentity}`, {
-          method: "POST"
+          method: "POST",
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
 
         if (res.ok) {

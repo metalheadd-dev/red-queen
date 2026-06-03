@@ -88,7 +88,7 @@ function getLocalStatsAndScore(messages: Message[]) {
 export default function TerminalPage() {
   const { publicKey, connected, wallet, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
-  const { user, authIdentifier } = useAuth();
+  const { user, authIdentifier, session } = useAuth();
   
   const solanaWalletAddress = publicKey ? publicKey.toString() : null;
   const walletAddress = authIdentifier || solanaWalletAddress;
@@ -344,9 +344,11 @@ export default function TerminalPage() {
       setApocalypticName(generated);
 
       try {
+        const token = session?.access_token;
+        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
         const [profileRes, historyRes] = await Promise.all([
-          fetch(`/api/profile?wallet=${walletAddress}`).then((r) => r.json()).catch(() => ({})),
-          fetch(`/api/history?wallet=${walletAddress}`).then((r) => r.json()).catch(() => ({}))
+          fetch(`/api/profile?wallet=${walletAddress}`, { headers }).then((r) => r.json()).catch(() => ({})),
+          fetch(`/api/history?wallet=${walletAddress}`, { headers }).then((r) => r.json()).catch(() => ({}))
         ]);
 
         if (profileRes && profileRes.profile) {

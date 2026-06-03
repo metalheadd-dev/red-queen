@@ -97,7 +97,7 @@ async function generateHashedPassport(pubkey: string): Promise<string> {
 export default function OperativeProfilePage() {
   const { publicKey, connected, wallet: walletObj, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
-  const { user, authIdentifier, logout } = useAuth();
+  const { user, authIdentifier, logout, session } = useAuth();
 
   const solanaWalletAddress = publicKey?.toString() ?? null;
   const wallet = authIdentifier || solanaWalletAddress;
@@ -140,7 +140,12 @@ export default function OperativeProfilePage() {
     if (!wallet) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/profile?wallet=${wallet}`);
+      const token = session?.access_token;
+      const res = await fetch(`/api/profile?wallet=${wallet}`, {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
       const data = await res.json();
       if (data.profile) {
         setProfile(data.profile);
@@ -153,13 +158,18 @@ export default function OperativeProfilePage() {
       setCustomName(generatedName);
     }
     setLoading(false);
-  }, [wallet, generatedName]);
+  }, [wallet, generatedName, session]);
 
   const fetchHistory = useCallback(async () => {
     if (!wallet) return;
     setLoadingHistory(true);
     try {
-      const res = await fetch(`/api/history?wallet=${wallet}`);
+      const token = session?.access_token;
+      const res = await fetch(`/api/history?wallet=${wallet}`, {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
       const data = await res.json();
       if (data.history) {
         setHistory(data.history);
@@ -168,7 +178,7 @@ export default function OperativeProfilePage() {
       console.error("Failed to load history:", e);
     }
     setLoadingHistory(false);
-  }, [wallet]);
+  }, [wallet, session]);
 
   useEffect(() => {
     async function checkBalance() {
@@ -208,9 +218,13 @@ export default function OperativeProfilePage() {
     if (!authIdentifier || !solanaWalletAddress) return;
     setSaving(true);
     try {
+      const token = session?.access_token;
       const res = await fetch("/api/profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
         body: JSON.stringify({
           wallet_address: authIdentifier,
           linked_wallet_address: solanaWalletAddress,
@@ -248,9 +262,13 @@ export default function OperativeProfilePage() {
     if (!wallet) return;
     setSaving(true);
     try {
+      const token = session?.access_token;
       const res = await fetch("/api/profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
         body: JSON.stringify({
           wallet_address: wallet,
           apocalyptic_name: customName || generatedName,
@@ -277,9 +295,13 @@ export default function OperativeProfilePage() {
     if (!wallet) return;
     setSaving(true);
     try {
+      const token = session?.access_token;
       const res = await fetch("/api/profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
         body: JSON.stringify({
           wallet_address: wallet,
           apocalyptic_name: nameToSave || generatedName,

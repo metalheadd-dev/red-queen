@@ -37,3 +37,7 @@ yarn-error.log*
 .gradle/
 build/
 local.properties
+
+# typescript build info
+*.tsbuildinfo
+

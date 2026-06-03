@@ -10,6 +10,7 @@ interface AuthContextType {
   authIdentifier: string;
   loginWithEmail: (email: string, password: string) => Promise<{ error: any }>;
   signUpWithEmail: (email: string, password: string) => Promise<{ user: User | null; error: any }>;
+  loginWithWallet: () => Promise<{ error: any }>;
   logout: () => Promise<{ error: any }>;
 }
 
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType>({
   authIdentifier: "",
   loginWithEmail: async () => ({ error: "Auth client not initialized" }),
   signUpWithEmail: async () => ({ user: null, error: "Auth client not initialized" }),
+  loginWithWallet: async () => ({ error: "Auth client not initialized" }),
   logout: async () => ({ error: "Auth client not initialized" }),
 });
 
@@ -31,7 +33,14 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const [loading, setLoading] = useState(true);
 
   // Computed virtual address identifier used to query databases
-  const authIdentifier = user ? `email-auth:${user.id}` : "";
+  const authIdentifier = user
+    ? (user.email
+        ? `email-auth:${user.id}`
+        : (user.user_metadata?.wallet_address ||
+           user.identities?.find((id) => id.provider === "web3" || id.provider === "solana")?.identity_data?.sub ||
+           user.identities?.[0]?.identity_data?.sub ||
+           user.id))
+    : "";
 
   useEffect(() => {
     if (!supabaseClient) {
@@ -89,6 +98,20 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
   };
 
+  const loginWithWallet = async () => {
+    if (!supabaseClient) return { error: new Error("Supabase client is not configured. Add NEXT_PUBLIC_SUPABASE_ANON_KEY.") };
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithWeb3({
+        chain: 'solana',
+        statement: 'Sign in to Red Queen Node 7.4.1',
+      });
+      if (error) return { error };
+      return { error: null };
+    } catch (err: any) {
+      return { error: err };
+    }
+  };
+
   const logout = async () => {
     if (!supabaseClient) return { error: new Error("Supabase client is not configured.") };
     try {
@@ -110,6 +133,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         authIdentifier,
         loginWithEmail,
         signUpWithEmail,
+        loginWithWallet,
         logout,
       }}
     >
