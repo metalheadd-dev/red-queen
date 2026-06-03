@@ -262,112 +262,99 @@ export default function OperativeProfilePage() {
         );
 
         let signature = "";
+        let rawTx: Uint8Array | null = null;
         
         if (signTransaction) {
           // Fetch fresh blockhash RIGHT BEFORE presenting wallet dialog
-          // This minimises the window between blockhash issuance and broadcast
           setLoading("Fetching fresh network blockhash...");
-          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+          const { blockhash } = await connection.getLatestBlockhash("finalized");
           transaction.recentBlockhash = blockhash;
 
           setLoading("Awaiting wallet signature authorization...");
           const signedTx = await signTransaction(transaction);
-          const rawTx = signedTx.serialize();
+          rawTx = signedTx.serialize();
           
-          console.log("x402: Signed raw transaction payload length:", rawTx.length);
-          console.log("x402: Mint (Asset):", mintPubkey.toString());
-          console.log("x402: Recipient (PayTo):", recipientPubkey.toString());
-          console.log("x402: Source ATA:", sourceATA.toString());
-          console.log("x402: Destination ATA:", destinationATA.toString());
-          console.log("x402: Amount:", amount);
-          console.log("x402: Blockhash:", blockhash, "lastValidBlockHeight:", lastValidBlockHeight);
+          console.log("x402: Blockhash stamped:", blockhash);
+          console.log("x402: Signed raw tx length:", rawTx.length);
+          console.log("x402: Amount:", amount, "| PayTo:", recipientPubkey.toString());
 
-          setLoading("Broadcasting transaction to Solana network...");
+          setLoading("Broadcasting transaction to Solana Mainnet...");
           signature = await connection.sendRawTransaction(rawTx, {
-            skipPreflight: false,
-            preflightCommitment: "confirmed"
+            skipPreflight: true,
+            maxRetries: 5,
           });
-          
-          setLoading("Confirming transaction on-chain (Solana Mainnet)...");
-          const confirmPromise = connection.confirmTransaction(
-            {
-              blockhash: blockhash,
-              lastValidBlockHeight: lastValidBlockHeight,
-              signature: signature
-            },
-            "confirmed"
-          );
-          
-          // Re-broadcast raw transaction every 2 seconds in the background to bypass packet drops
-          const intervalId = setInterval(async () => {
-            try {
-              await connection.sendRawTransaction(rawTx, { skipPreflight: true });
-            } catch (err) {
-              console.warn("Rebroadcast retry failed:", err);
-            }
-          }, 2000);
-          
-          try {
-            await confirmPromise;
-          } finally {
-            clearInterval(intervalId);
-          }
+          console.log("x402: Broadcast accepted. Signature:", signature);
+
         } else {
-          // Fallback if signTransaction is not available — also fetch blockhash late
+          // Fallback: sendTransaction handles signing + broadcasting internally
           setLoading("Fetching fresh network blockhash...");
-          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+          const { blockhash } = await connection.getLatestBlockhash("finalized");
           transaction.recentBlockhash = blockhash;
 
           setLoading("Awaiting wallet signature authorization...");
           signature = await sendTransaction(transaction, connection, {
-            skipPreflight: false,
-            preflightCommitment: "confirmed",
-            maxRetries: 5
+            skipPreflight: true,
+            maxRetries: 5,
           });
-          
-          setLoading("Confirming transaction on-chain (Solana Mainnet)...");
-          await connection.confirmTransaction(
-            {
-              blockhash: blockhash,
-              lastValidBlockHeight: lastValidBlockHeight,
-              signature: signature
-            },
-            "confirmed"
-          );
+          console.log("x402: sendTransaction signature:", signature);
         }
 
+        // ── Rebroadcast + Backend Polling Loop ──────────────────────────────
+        // We do NOT call connection.confirmTransaction() — its internal WebSocket
+        // subscriptions are blocked by rate-limited RPCs and time-out with
+        // "block height exceeded". Instead: rebroadcast every 3s while polling
+        // the x402 backend. The facilitator verifies the tx on-chain itself.
+        setLoading("Processing payment on-chain — please wait...");
 
-        setLoading("Verifying decryption authorization...");
+        let rebroadcastId: ReturnType<typeof setInterval> | null = null;
+        if (rawTx) {
+          rebroadcastId = setInterval(async () => {
+            try {
+              await connection.sendRawTransaction(rawTx, { skipPreflight: true });
+            } catch (e) {
+              // silent — tx may already be confirmed
+            }
+          }, 3000);
+        }
+
         let success = false;
         let retryError = "";
-        
-        for (let attempt = 1; attempt <= 4; attempt++) {
-          try {
-            headers["payment-signature"] = signature;
-            const retryRes = await fetch(endpoint, { headers });
 
-            if (retryRes.status === 200) {
-              const data = await retryRes.json();
-              setIntel(data);
-              setLoading(null);
-              success = true;
-              break;
-            } else {
-              const errorText = await retryRes.text();
-              retryError = errorText || `HTTP ${retryRes.status}`;
+        try {
+          // Poll backend up to 12 times × 4s = 48 seconds total
+          for (let attempt = 1; attempt <= 12; attempt++) {
+            try {
+              headers["payment-signature"] = signature;
+              const retryRes = await fetch(endpoint, { headers });
+
+              if (retryRes.status === 200) {
+                const data = await retryRes.json();
+                setIntel(data);
+                setLoading(null);
+                success = true;
+                break;
+              } else if (retryRes.status === 402) {
+                // Still not confirmed on-chain yet — keep waiting
+                console.log(`x402: Attempt ${attempt}/12 — awaiting on-chain confirmation...`);
+              } else {
+                const errorText = await retryRes.text();
+                retryError = errorText || `HTTP ${retryRes.status}`;
+              }
+            } catch (e: any) {
+              retryError = e?.message || "Network error during verification.";
             }
-          } catch (e: any) {
-            retryError = e?.message || "Connection error during validation.";
+
+            setLoading(`Processing payment on-chain — attempt ${attempt}/12...`);
+            await new Promise((resolve) => setTimeout(resolve, 4000));
           }
-          
-          if (attempt < 4) {
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-          }
+        } finally {
+          if (rebroadcastId) clearInterval(rebroadcastId);
         }
 
         if (!success) {
-          throw new Error(`Decryption verification failed: ${retryError}`);
+          throw new Error(`Decryption verification failed after 12 attempts. Last error: ${retryError}. Your transaction signature: ${signature}`);
         }
+
       } else {
         throw new Error(`Decryption portal returned status: HTTP ${res.status}`);
       }
