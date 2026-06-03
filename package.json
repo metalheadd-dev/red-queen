@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "postinstall": "node scripts/patch-x402.js"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.65",
