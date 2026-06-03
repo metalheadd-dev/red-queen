@@ -8,6 +8,7 @@ import Link from "next/link";
 import { generateApocalypticName } from "@/lib/names";
 import { getClearanceLevel, DEFAULT_STATS, parseStatsFromAI } from "@/lib/progression";
 import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction } from "@solana/spl-token";
 
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
 
@@ -178,19 +179,12 @@ export default function OperativeProfilePage() {
         const isDevnet = network.includes("EtWTRABZaYq6iMfeYKouRu166VU2xqa1") || network.includes("devnet");
         const rpcUrl = isDevnet ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
         const connection = new Connection(rpcUrl, "confirmed");
-
         const mintPubkey = new PublicKey(asset);
         const recipientPubkey = new PublicKey(payTo);
 
-        const sourceATA = PublicKey.findProgramAddressSync(
-          [publicKey.toBuffer(), new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").toBuffer(), mintPubkey.toBuffer()],
-          new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
-        )[0];
-
-        const destinationATA = PublicKey.findProgramAddressSync(
-          [recipientPubkey.toBuffer(), new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").toBuffer(), mintPubkey.toBuffer()],
-          new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
-        )[0];
+        // Derive Associated Token Accounts (ATA)
+        const sourceATA = await getAssociatedTokenAddress(mintPubkey, publicKey);
+        const destinationATA = await getAssociatedTokenAddress(mintPubkey, recipientPubkey);
 
         setLoading("Constructing secure USDC transaction...");
         const transaction = new Transaction();
@@ -199,39 +193,23 @@ export default function OperativeProfilePage() {
         if (!recipientAtaInfo) {
           setLoading("Preparing destination token account...");
           transaction.add(
-            new TransactionInstruction({
-              keys: [
-                { pubkey: publicKey, isSigner: true, isWritable: true },
-                { pubkey: destinationATA, isSigner: false, isWritable: true },
-                { pubkey: recipientPubkey, isSigner: false, isWritable: false },
-                { pubkey: mintPubkey, isSigner: false, isWritable: false },
-                { pubkey: new PublicKey("11111111111111111111111111111111"), isSigner: false, isWritable: false },
-                { pubkey: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"), isSigner: false, isWritable: false }
-              ],
-              programId: new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
-              data: Buffer.from([])
-            })
+            createAssociatedTokenAccountInstruction(
+              publicKey,
+              destinationATA,
+              recipientPubkey,
+              mintPubkey
+            )
           );
         }
 
-        const transferData = new Uint8Array(9);
-        transferData[0] = 3; // Transfer
-        let tempAmount = BigInt(amount);
-        for (let i = 1; i <= 8; i++) {
-          transferData[i] = Number(tempAmount & BigInt(0xFF));
-          tempAmount >>= BigInt(8);
-        }
-
+        // Add SPL Token Transfer instruction
         transaction.add(
-          new TransactionInstruction({
-            keys: [
-              { pubkey: sourceATA, isSigner: false, isWritable: true },
-              { pubkey: destinationATA, isSigner: false, isWritable: true },
-              { pubkey: publicKey, isSigner: true, isWritable: false }
-            ],
-            programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-            data: Buffer.from(transferData)
-          })
+          createTransferInstruction(
+            sourceATA,
+            destinationATA,
+            publicKey,
+            BigInt(amount)
+          )
         );
 
         const nonceStr = paymentInfo.resource?.url ? paymentInfo.resource.url + "_" + amount : "x402_nonce";
