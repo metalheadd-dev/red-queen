@@ -239,9 +239,16 @@ export default function OperativeProfilePage() {
           const signedTx = await signTransaction(transaction);
           const rawTx = signedTx.serialize();
           
+          console.log("x402: Signed raw transaction payload length:", rawTx.length);
+          console.log("x402: Mint (Asset):", mintPubkey.toString());
+          console.log("x402: Recipient (PayTo):", recipientPubkey.toString());
+          console.log("x402: Source ATA:", sourceATA.toString());
+          console.log("x402: Destination ATA:", destinationATA.toString());
+          console.log("x402: Amount:", amount);
+
           setLoading("Broadcasting transaction to Solana network...");
           signature = await connection.sendRawTransaction(rawTx, {
-            skipPreflight: true,
+            skipPreflight: false,
             preflightCommitment: "confirmed"
           });
           
