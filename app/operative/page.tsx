@@ -178,12 +178,18 @@ export default function OperativeProfilePage() {
         setLoading("Verifying Solana RPC context...");
         const isDevnet = network.includes("EtWTRABZaYq6iMfeYKouRu166VU2xqa1") || network.includes("devnet");
         const rpcUrl = isDevnet ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
+        
+        console.log("x402: Target Network ID:", network);
+        console.log("x402: Target RPC URL:", rpcUrl);
+        console.log("x402: Client Wallet:", publicKey.toString());
+
         const connection = new Connection(rpcUrl, "confirmed");
 
         // Verify SOL balance (at least 0.0001 SOL for gas)
         const solBalance = await connection.getBalance(publicKey);
+        console.log("x402: Checked SOL Balance (in lamports):", solBalance);
         if (solBalance < 100000) {
-          throw new Error("Insufficient SOL balance in connected wallet. Your wallet must hold some SOL to cover the network transaction fee.");
+          throw new Error(`Insufficient SOL balance in connected wallet. Your wallet must hold some SOL to cover the network transaction fee. RPC checked: ${rpcUrl}. Balance: ${solBalance / 1e9} SOL.`);
         }
 
         const mintPubkey = new PublicKey(asset);
