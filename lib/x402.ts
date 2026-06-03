@@ -266,18 +266,22 @@ export function withFriendlyX402(
       </svg>
     </div>
 
-    <div class="tag">RESTRICTED APOCALYPSE BRIEFING</div>
+    <div class="tag">RESTRICTED APOCALYPSE BRIEFING // x402</div>
 
     <h1>Dossier Decryption Locked</h1>
 
     <p>
-      The Red Queen mainframe has gated this strategic briefing behind an on-chain micropayment to prevent crawler saturation. To decrypt this file, please access the platform through the Operative Profile console.
+      The Red Queen mainframe has gated this strategic briefing behind an on-chain **x402 micropayment** to prevent crawler saturation. To decrypt this file, please access the platform through the Operative Profile console.
     </p>
 
     <div class="meta-box">
       <div class="meta-row">
         <span class="meta-label">GATEWAY METRIC:</span>
         <span class="meta-val">HTTP 402 PAYMENT REQUIRED</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">PROTOCOL STANDARD:</span>
+        <span class="meta-val">x402 SVM EXACT SCHEME</span>
       </div>
       <div class="meta-row">
         <span class="meta-label">FEE TO DECRYPT:</span>

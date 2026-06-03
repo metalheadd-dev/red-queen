@@ -1563,7 +1563,7 @@ export default function OperativeProfilePage() {
             </div>
 
             <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
-              <strong>What is this?</strong> RED QUEEN gates premium intelligence briefings behind micro-payments ($0.01 and $0.02 USDC) to cover compute overhead and prevent scraping. Use your connected Solana wallet to settle the payment on-chain. Decryption completes in 400ms, streaming live containment metrics directly to this operative console.
+              <strong>What is this?</strong> RED QUEEN gates premium intelligence briefings behind **x402 open-protocol micropayments** ($0.01 and $0.02 USDC) to cover compute overhead and prevent scraping. Settle the on-chain HTTP 402 payment challenge with your connected Solana wallet. Decryption completes in 400ms, streaming live containment metrics directly to this operative console.
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2">
@@ -1589,6 +1589,16 @@ export default function OperativeProfilePage() {
                     <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                       <strong>Directive:</strong> {premiumIntel.intel?.directive}
                     </div>
+
+                    <div style={{ background: "rgba(0, 255, 204, 0.01)", border: "1px solid rgba(0, 255, 204, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11px", display: "flex", flexDirection: "column", gap: "3px", marginTop: "4px" }}>
+                      <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "4px", marginBottom: "4px" }}>💳 x402 PROTOCOL PAYMENT RECEIPT</div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Standard Version:</span><span>x402 V2 (Exact SVM Scheme)</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Facilitator Gate:</span><span>https://facilitator.payai.network</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>USDC Mint Address:</span><span style={{ fontSize: "10px" }}>EPjFWdd...t1v (Solana Mainnet)</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Settlement Price:</span><span style={{ fontWeight: "bold", color: "#f0c929" }}>0.01 USDC</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Verification State:</span><span style={{ color: "#2ecc40", fontWeight: "bold" }}>✓ SETTLED // ON-CHAIN</span></div>
+                    </div>
+
                     {premiumTxid && (
                       <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "8px", marginTop: "4px" }}>
                         <a
@@ -1605,7 +1615,7 @@ export default function OperativeProfilePage() {
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                     <div style={{ fontSize: "13.5px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0c0303", padding: "12px", border: "1px solid #230808", borderRadius: "2px" }}>
-                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : "[ LOCKED // PAYMENT REQUIRED ]"}
+                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : "[ LOCKED // x402 PROTOCOL: 0.01 USDC REQUIRED ]"}
                     </div>
                     {premiumError && (
                       <div style={{ fontSize: "13px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
@@ -1653,6 +1663,16 @@ export default function OperativeProfilePage() {
                         ))}
                       </ul>
                     </div>
+
+                    <div style={{ background: "rgba(0, 255, 204, 0.01)", border: "1px solid rgba(0, 255, 204, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11px", display: "flex", flexDirection: "column", gap: "3px", marginTop: "4px" }}>
+                      <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "4px", marginBottom: "4px" }}>💳 x402 PROTOCOL PAYMENT RECEIPT</div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Standard Version:</span><span>x402 V2 (Exact SVM Scheme)</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Facilitator Gate:</span><span>https://facilitator.payai.network</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>USDC Mint Address:</span><span style={{ fontSize: "10px" }}>EPjFWdd...t1v (Solana Mainnet)</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Settlement Price:</span><span style={{ fontWeight: "bold", color: "#f0c929" }}>0.02 USDC</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Verification State:</span><span style={{ color: "#2ecc40", fontWeight: "bold" }}>✓ SETTLED // ON-CHAIN</span></div>
+                    </div>
+
                     {depinTxid && (
                       <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "8px", marginTop: "4px" }}>
                         <a
@@ -1669,7 +1689,7 @@ export default function OperativeProfilePage() {
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                     <div style={{ fontSize: "13.5px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0a0802", padding: "12px", border: "1px solid #231d08", borderRadius: "2px" }}>
-                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : "[ LOCKED // PAYMENT REQUIRED ]"}
+                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : "[ LOCKED // x402 PROTOCOL: 0.02 USDC REQUIRED ]"}
                     </div>
                     {depinError && (
                       <div style={{ fontSize: "13px", color: "var(--accent)", fontFamily: "var(--mono)" }}>

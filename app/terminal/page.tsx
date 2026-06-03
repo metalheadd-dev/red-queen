@@ -1230,6 +1230,15 @@ To decrypt or scan target files:
                       <strong>Directive:</strong> <span style={{ color: "rgba(255,255,255,0.9)" }}>{premiumIntel.intel?.directive}</span>
                     </div>
 
+                    <div style={{ background: "rgba(0, 255, 204, 0.01)", border: "1px solid rgba(0, 255, 204, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11px", display: "flex", flexDirection: "column", gap: "3px", marginTop: "4px" }}>
+                      <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "4px", marginBottom: "4px" }}>💳 x402 PROTOCOL PAYMENT RECEIPT</div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Standard Version:</span><span>x402 V2 (Exact SVM Scheme)</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Facilitator Gate:</span><span>https://facilitator.payai.network</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>USDC Mint Address:</span><span style={{ fontSize: "10px" }}>EPjFWdd...t1v (Solana Mainnet)</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Settlement Price:</span><span style={{ fontWeight: "bold", color: "#f0c929" }}>0.01 USDC</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Verification State:</span><span style={{ color: "#2ecc40", fontWeight: "bold" }}>✓ SETTLED // ON-CHAIN</span></div>
+                    </div>
+
                     {/* Actions Row */}
                     <div style={{ display: "flex", gap: "12px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", marginTop: "4px", alignItems: "center", flexWrap: "wrap" }}>
                       <button
@@ -1277,7 +1286,7 @@ To decrypt or scan target files:
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     <div style={{ fontSize: "11.5px", color: "var(--accent)", fontWeight: "bold", fontFamily: "var(--mono)", background: "rgba(255, 77, 77, 0.05)", padding: "10px", border: "1px solid rgba(255, 77, 77, 0.2)", borderRadius: "2px", textAlign: "center" }}>
-                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : "[ LOCKED // 0.01 USDC REQUIRED ]"}
+                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : "[ LOCKED // x402 PROTOCOL: 0.01 USDC REQUIRED ]"}
                     </div>
                     {premiumError && (
                       <div style={{ fontSize: "11px", color: "#ff8080", fontFamily: "var(--mono)" }}>
@@ -1378,6 +1387,15 @@ To decrypt or scan target files:
                       </ul>
                     </div>
 
+                    <div style={{ background: "rgba(0, 255, 204, 0.01)", border: "1px solid rgba(0, 255, 204, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11px", display: "flex", flexDirection: "column", gap: "3px", marginTop: "4px" }}>
+                      <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "4px", marginBottom: "4px" }}>💳 x402 PROTOCOL PAYMENT RECEIPT</div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Standard Version:</span><span>x402 V2 (Exact SVM Scheme)</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Facilitator Gate:</span><span>https://facilitator.payai.network</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>USDC Mint Address:</span><span style={{ fontSize: "10px" }}>EPjFWdd...t1v (Solana Mainnet)</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Settlement Price:</span><span style={{ fontWeight: "bold", color: "#f0c929" }}>0.02 USDC</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Verification State:</span><span style={{ color: "#2ecc40", fontWeight: "bold" }}>✓ SETTLED // ON-CHAIN</span></div>
+                    </div>
+
                     {/* Actions Row */}
                     <div style={{ display: "flex", gap: "12px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", marginTop: "4px", alignItems: "center", flexWrap: "wrap" }}>
                       <button
@@ -1425,7 +1443,7 @@ To decrypt or scan target files:
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     <div style={{ fontSize: "11.5px", color: "#f0c929", fontWeight: "bold", fontFamily: "var(--mono)", background: "rgba(240, 201, 41, 0.05)", padding: "10px", border: "1px solid rgba(240, 201, 41, 0.2)", borderRadius: "2px", textAlign: "center" }}>
-                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : "[ LOCKED // 0.02 USDC REQUIRED ]"}
+                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : "[ LOCKED // x402 PROTOCOL: 0.02 USDC REQUIRED ]"}
                     </div>
                     {depinError && (
                       <div style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
