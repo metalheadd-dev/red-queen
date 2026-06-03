@@ -1638,7 +1638,7 @@ export default function OperativeProfilePage() {
               <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "#ffffff" }}>
-                    Solana Solvival status
+                    DOSSIER B: SOLANA SOLVIVAL STATUS
                   </span>
                   <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.3)" }}>
                     $0.02 USDC
@@ -1702,7 +1702,7 @@ export default function OperativeProfilePage() {
                       disabled={!!loadingDepin || !connected}
                       style={{ padding: "12px", fontSize: "13.5px", borderColor: "rgba(240, 201, 41, 0.4)", color: "#ffffff" }}
                     >
-                      {loadingDepin ? "PROCESS PAYWALL..." : connected ? "DECRYPT SOLIVAL STATUS" : "CONNECT WALLET TO PAY"}
+                      {loadingDepin ? "PROCESS PAYWALL..." : connected ? "DECRYPT DOSSIER B" : "CONNECT WALLET TO PAY"}
                     </button>
                   </div>
                 )}

@@ -1327,7 +1327,7 @@ To decrypt or scan target files:
               <div style={{ background: "#080808", border: "1px solid #201b10", padding: "20px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.05em" }}>
-                    Solana Solvival status
+                    DOSSIER B: SOLANA SOLVIVAL STATUS
                   </span>
                   <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.4)", padding: "3px 8px", fontSize: "10px" }}>
                     $0.02 USDC
@@ -1414,7 +1414,7 @@ To decrypt or scan target files:
                         onClick={() => {
                           const proofText = depinTxid ? `\nProof: https://solscan.io/tx/${depinTxid}` : "";
                           setShareModalData({
-                            content: `◉ DECRYPTED Solana Solvival status\n\nScanner: ${depinIntel.depin?.scannerName}\nHealth: ${depinIntel.depin?.networkHealth}\nOnline Nodes: ${depinIntel.depin?.onlineNodes}\nSolana Gas (Faremeter): ${depinIntel.depin?.avgPriorityFee}\nEpoch: ${depinIntel.depin?.epoch}${proofText}`
+                            content: `◉ DECRYPTED DOSSIER B: SOLANA SOLVIVAL STATUS\n\nScanner: ${depinIntel.depin?.scannerName}\nHealth: ${depinIntel.depin?.networkHealth}\nOnline Nodes: ${depinIntel.depin?.onlineNodes}\nSolana Gas (Faremeter): ${depinIntel.depin?.avgPriorityFee}\nEpoch: ${depinIntel.depin?.epoch}${proofText}`
                           });
                         }}
                         style={{ background: "none", border: "none", color: "#f0c929", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: "bold" }}
@@ -1474,7 +1474,7 @@ To decrypt or scan target files:
                       disabled={!!loadingDepin}
                       style={{ padding: "10px", fontSize: "11.5px", fontWeight: "bold", background: "#f0c929", color: "#000", border: "none" }}
                     >
-                      {loadingDepin ? "PROCESSING PAYWALL..." : connected ? "DECRYPT SOLIVAL STATUS" : "CONNECT WALLET & DECRYPT"}
+                      {loadingDepin ? "PROCESSING PAYWALL..." : connected ? "DECRYPT DOSSIER B" : "CONNECT WALLET & DECRYPT"}
                     </button>
                   </div>
                 )}
