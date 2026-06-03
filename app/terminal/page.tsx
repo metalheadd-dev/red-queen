@@ -103,6 +103,64 @@ export default function TerminalPage() {
   const [premiumError, setPremiumError] = useState<string | null>(null);
   const [depinError, setDepinError] = useState<string | null>(null);
 
+  const [vaultSolBalance, setVaultSolBalance] = useState<number | null>(null);
+  const [vaultUsdcBalance, setVaultUsdcBalance] = useState<number | null>(null);
+  const [buybackPasscode, setBuybackPasscode] = useState("");
+  const [buybackLoading, setBuybackLoading] = useState(false);
+  const [buybackMessage, setBuybackMessage] = useState<string | null>(null);
+
+  const fetchVaultBalances = async () => {
+    try {
+      const connection = new Connection("https://solana-rpc.publicnode.com", "confirmed");
+      const vaultOwner = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg");
+      const usdcMint = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+
+      const solBal = await connection.getBalance(vaultOwner);
+      setVaultSolBalance(solBal / 1e9);
+
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(vaultOwner, { mint: usdcMint });
+      if (tokenAccounts.value.length > 0) {
+        const info = tokenAccounts.value[0].account.data.parsed.info;
+        setVaultUsdcBalance(info.tokenAmount.uiAmount || 0);
+      } else {
+        setVaultUsdcBalance(0);
+      }
+    } catch (e) {
+      console.error("Failed to fetch vault balances:", e);
+    }
+  };
+
+  const triggerManualBuyback = async () => {
+    if (!buybackPasscode) {
+      setBuybackMessage("⚠️ Enter CRON_SECRET passcode first.");
+      return;
+    }
+    setBuybackLoading(true);
+    setBuybackMessage(null);
+    try {
+      const res = await fetch(`/api/treasury/buyback?secret=${encodeURIComponent(buybackPasscode)}&minUsdc=0.01`, {
+        method: "POST"
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBuybackMessage(`✓ Success: Swapped $${data.swappedUsdc} USDC for $THREAT. Tx: ${data.txid.slice(0, 8)}...`);
+        fetchVaultBalances();
+      } else {
+        setBuybackMessage(`⚠️ Error: ${data.message || data.error || "Execution failed"}`);
+      }
+    } catch (err: any) {
+      setBuybackMessage(`⚠️ Error: ${err.message || err}`);
+    } finally {
+      setBuybackLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVaultBalances();
+    const interval = setInterval(fetchVaultBalances, 30000); // refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
+
   const decryptIntel = async (endpoint: "/api/intel/premium" | "/api/intel/depin", type: "premium" | "depin") => {
     const setLoading = type === "premium" ? setLoadingPremium : setLoadingDepin;
     const setIntel = type === "premium" ? setPremiumIntel : setDepinIntel;
@@ -124,6 +182,7 @@ export default function TerminalPage() {
         const data = await res.json();
         setIntel(data);
         setLoading(null);
+        fetchVaultBalances();
         return;
       }
 
@@ -278,6 +337,7 @@ export default function TerminalPage() {
               const data = await retryRes.json();
               setIntel(data);
               setLoading(null);
+              fetchVaultBalances();
               success = true;
               break;
             } else if (retryRes.status === 402) {
@@ -1359,6 +1419,91 @@ To decrypt or scan target files:
                 <span>STATUS:</span>
                 <span style={{ color: "#2ecc40" }}>ACTIVE CONNECT</span>
               </div>
+            </div>
+          </div>
+
+          {/* Treasury Buyback Module */}
+          <div>
+            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#f0c929", letterSpacing: "0.15em", marginBottom: "12px" }}>
+              [ TREASURY BUYBACK AUDIT ]
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", background: "#0c0a05", border: "1px solid rgba(240, 201, 41, 0.15)", padding: "12px", borderRadius: "2px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "9px" }}>VAULT ADDRESS:</span>
+                <a 
+                  href="https://solscan.io/account/AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: "#00e5ff", fontSize: "10px", textDecoration: "underline", wordBreak: "break-all" }}
+                >
+                  AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg
+                </a>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px dashed rgba(240, 201, 41, 0.1)", paddingTop: "8px" }}>
+                <span>VAULT SOL:</span>
+                <span style={{ color: "#ffffff", fontWeight: "bold" }}>
+                  {vaultSolBalance !== null ? `${vaultSolBalance.toFixed(4)} SOL` : "LOADING..."}
+                </span>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>VAULT USDC:</span>
+                <span style={{ color: "#f0c929", fontWeight: "bold" }}>
+                  {vaultUsdcBalance !== null ? `${vaultUsdcBalance.toFixed(2)} USDC` : "LOADING..."}
+                </span>
+              </div>
+
+              {/* Manual buyback section */}
+              <div style={{ borderTop: "1px dashed rgba(240, 201, 41, 0.1)", paddingTop: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                <input 
+                  type="password" 
+                  placeholder="Enter CRON_SECRET" 
+                  value={buybackPasscode}
+                  onChange={(e) => setBuybackPasscode(e.target.value)}
+                  style={{
+                    background: "#111",
+                    border: "1px solid rgba(240,201,41,0.2)",
+                    color: "#fff",
+                    padding: "6px 8px",
+                    fontSize: "10px",
+                    fontFamily: "var(--mono)",
+                    outline: "none",
+                    borderRadius: "2px"
+                  }}
+                />
+                
+                <button
+                  onClick={triggerManualBuyback}
+                  disabled={buybackLoading}
+                  style={{
+                    background: buybackLoading ? "#222" : "#f0c929",
+                    color: buybackLoading ? "#666" : "#000",
+                    border: "none",
+                    padding: "8px",
+                    fontSize: "10.5px",
+                    fontWeight: "bold",
+                    cursor: buybackLoading ? "not-allowed" : "pointer",
+                    borderRadius: "2px",
+                    textAlign: "center"
+                  }}
+                >
+                  {buybackLoading ? "EXECUTING BUYBACK..." : "⚡ TRIGGER MANUAL BUYBACK"}
+                </button>
+              </div>
+
+              {buybackMessage && (
+                <div style={{ 
+                  fontSize: "10px", 
+                  color: buybackMessage.includes("⚠️") ? "var(--accent)" : "#2ecc40", 
+                  marginTop: "4px",
+                  lineHeight: "1.3",
+                  wordBreak: "break-word"
+                }}>
+                  {buybackMessage}
+                </div>
+              )}
             </div>
           </div>
 
