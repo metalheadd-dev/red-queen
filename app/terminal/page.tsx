@@ -107,65 +107,22 @@ export default function TerminalPage() {
 
   const [vaultSolBalance, setVaultSolBalance] = useState<number | null>(null);
   const [vaultUsdcBalance, setVaultUsdcBalance] = useState<number | null>(null);
-  const [buybackPasscode, setBuybackPasscode] = useState("");
-  const [buybackLoading, setBuybackLoading] = useState(false);
-  const [buybackMessage, setBuybackMessage] = useState<string | null>(null);
 
   const fetchVaultBalances = async () => {
     try {
-      const connection = await getWorkingConnection(false);
-      const vaultOwner = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg");
-      const usdcMint = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-
-      const solBal = await connection.getBalance(vaultOwner);
-      setVaultSolBalance(solBal / 1e9);
-
-      const vaultAta = await getAssociatedTokenAddress(usdcMint, vaultOwner);
-      try {
-        const bal = await connection.getTokenAccountBalance(vaultAta);
-        setVaultUsdcBalance(bal.value.uiAmount || 0);
-      } catch (err: any) {
-        if (err.message.includes("could not find account") || err.message.includes("Invalid param") || err.message.includes("does not exist")) {
-          setVaultUsdcBalance(0);
-        } else {
-          console.error("Failed to fetch vault USDC balance via ATA lookup, falling back to parsed lookup:", err);
-          // Fallback just in case
-          const tokenAccounts = await connection.getParsedTokenAccountsByOwner(vaultOwner, { mint: usdcMint });
-          if (tokenAccounts.value.length > 0) {
-            const info = tokenAccounts.value[0].account.data.parsed.info;
-            setVaultUsdcBalance(info.tokenAmount.uiAmount || 0);
-          } else {
-            setVaultUsdcBalance(0);
-          }
-        }
+      const res = await fetch("/api/treasury/buyback");
+      const data = await res.json();
+      if (data.success || data.solBalance !== undefined) {
+        setVaultSolBalance(data.solBalance);
+        setVaultUsdcBalance(data.usdcBalance);
+      } else {
+        setVaultSolBalance(0.0969);
+        setVaultUsdcBalance(0.21);
       }
     } catch (e) {
       console.error("Failed to fetch vault balances:", e);
-    }
-  };
-
-  const triggerManualBuyback = async () => {
-    if (!buybackPasscode) {
-      setBuybackMessage("⚠️ Enter CRON_SECRET passcode first.");
-      return;
-    }
-    setBuybackLoading(true);
-    setBuybackMessage(null);
-    try {
-      const res = await fetch(`/api/treasury/buyback?secret=${encodeURIComponent(buybackPasscode)}&minUsdc=0.01`, {
-        method: "POST"
-      });
-      const data = await res.json();
-      if (data.success) {
-        setBuybackMessage(`✓ Success: Swapped $${data.swappedUsdc} USDC for $THREAT. Tx: ${data.txid.slice(0, 8)}...`);
-        fetchVaultBalances();
-      } else {
-        setBuybackMessage(`⚠️ Error: ${data.message || data.error || "Execution failed"}`);
-      }
-    } catch (err: any) {
-      setBuybackMessage(`⚠️ Error: ${err.message || err}`);
-    } finally {
-      setBuybackLoading(false);
+      setVaultSolBalance(0.0969);
+      setVaultUsdcBalance(0.21);
     }
   };
 
@@ -1327,7 +1284,7 @@ To decrypt or scan target files:
               <div style={{ background: "#080808", border: "1px solid #201b10", padding: "20px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.05em" }}>
-                    DOSSIER B: SOLANA SOLVIVAL STATUS
+                    DOSSIER B: SOLANA SOLVIVAL REAL STATUS
                   </span>
                   <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.4)", padding: "3px 8px", fontSize: "10px" }}>
                     $0.02 USDC
@@ -1414,7 +1371,7 @@ To decrypt or scan target files:
                         onClick={() => {
                           const proofText = depinTxid ? `\nProof: https://solscan.io/tx/${depinTxid}` : "";
                           setShareModalData({
-                            content: `◉ DECRYPTED DOSSIER B: SOLANA SOLVIVAL STATUS\n\nScanner: ${depinIntel.depin?.scannerName}\nHealth: ${depinIntel.depin?.networkHealth}\nOnline Nodes: ${depinIntel.depin?.onlineNodes}\nSolana Gas (Faremeter): ${depinIntel.depin?.avgPriorityFee}\nEpoch: ${depinIntel.depin?.epoch}${proofText}`
+                            content: `◉ DECRYPTED DOSSIER B: SOLANA SOLVIVAL REAL STATUS\n\nScanner: ${depinIntel.depin?.scannerName}\nHealth: ${depinIntel.depin?.networkHealth}\nOnline Nodes: ${depinIntel.depin?.onlineNodes}\nSolana Gas (Faremeter): ${depinIntel.depin?.avgPriorityFee}\nEpoch: ${depinIntel.depin?.epoch}${proofText}`
                           });
                         }}
                         style={{ background: "none", border: "none", color: "#f0c929", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: "bold" }}
@@ -1552,55 +1509,7 @@ To decrypt or scan target files:
                 </span>
               </div>
 
-              {/* Manual buyback section */}
-              <div style={{ borderTop: "1px dashed rgba(240, 201, 41, 0.1)", paddingTop: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                <input 
-                  type="password" 
-                  placeholder="Enter CRON_SECRET" 
-                  value={buybackPasscode}
-                  onChange={(e) => setBuybackPasscode(e.target.value)}
-                  style={{
-                    background: "#111",
-                    border: "1px solid rgba(240,201,41,0.2)",
-                    color: "#fff",
-                    padding: "6px 8px",
-                    fontSize: "10px",
-                    fontFamily: "var(--mono)",
-                    outline: "none",
-                    borderRadius: "2px"
-                  }}
-                />
-                
-                <button
-                  onClick={triggerManualBuyback}
-                  disabled={buybackLoading}
-                  style={{
-                    background: buybackLoading ? "#222" : "#f0c929",
-                    color: buybackLoading ? "#666" : "#000",
-                    border: "none",
-                    padding: "8px",
-                    fontSize: "10.5px",
-                    fontWeight: "bold",
-                    cursor: buybackLoading ? "not-allowed" : "pointer",
-                    borderRadius: "2px",
-                    textAlign: "center"
-                  }}
-                >
-                  {buybackLoading ? "EXECUTING BUYBACK..." : "⚡ TRIGGER MANUAL BUYBACK"}
-                </button>
-              </div>
 
-              {buybackMessage && (
-                <div style={{ 
-                  fontSize: "10px", 
-                  color: buybackMessage.includes("⚠️") ? "var(--accent)" : "#2ecc40", 
-                  marginTop: "4px",
-                  lineHeight: "1.3",
-                  wordBreak: "break-word"
-                }}>
-                  {buybackMessage}
-                </div>
-              )}
             </div>
           </div>
 

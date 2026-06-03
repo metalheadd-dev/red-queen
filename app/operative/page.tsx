@@ -1638,7 +1638,7 @@ export default function OperativeProfilePage() {
               <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "#ffffff" }}>
-                    DOSSIER B: SOLANA SOLVIVAL STATUS
+                    DOSSIER B: SOLANA SOLVIVAL REAL STATUS
                   </span>
                   <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.3)" }}>
                     $0.02 USDC
