@@ -354,9 +354,28 @@ export default function OperativeProfilePage() {
               success = true;
               break;
             } else if (retryRes.status === 402) {
+              const paymentRequiredHeader = retryRes.headers.get("payment-required") || retryRes.headers.get("x-payment-required");
+              const paymentResponseHeader = retryRes.headers.get("payment-response") || retryRes.headers.get("PAYMENT-RESPONSE");
+              
+              let headerError = "";
+              if (paymentRequiredHeader) {
+                try {
+                  const info = JSON.parse(atob(paymentRequiredHeader));
+                  if (info.error) headerError = info.error;
+                } catch {}
+              }
+              if (!headerError && paymentResponseHeader) {
+                try {
+                  const info = JSON.parse(atob(paymentResponseHeader));
+                  if (info.errorMessage || info.errorReason) {
+                    headerError = info.errorMessage || info.errorReason;
+                  }
+                } catch {}
+              }
+
               const errorBody = await retryRes.text().catch(() => "");
-              retryError = errorBody || "HTTP 402 Payment Required";
-              console.log(`x402: Attempt ${attempt}/8 — 402 response:`, errorBody.slice(0, 200));
+              retryError = headerError || errorBody || "HTTP 402 Payment Required";
+              console.log(`x402: Attempt ${attempt}/8 — 402 response:`, errorBody.slice(0, 200), "Header error:", headerError);
             } else {
               const errorText = await retryRes.text();
               retryError = errorText || `HTTP ${retryRes.status}`;
