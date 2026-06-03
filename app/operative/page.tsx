@@ -322,9 +322,10 @@ export default function OperativeProfilePage() {
         console.log("x402: amount:", amount, "asset:", asset, "payTo:", payTo);
 
         // Build the x402 payment payload exactly as ExactSvmScheme.createPaymentPayload does:
-        // { x402Version: 2, payload: { transaction: "<base64-wire-tx>" } }
+        // { x402Version: 2, accepted: accept, payload: { transaction: "<base64-wire-tx>" } }
         const x402PaymentPayload = {
           x402Version: 2,
+          accepted: accept,
           payload: { transaction: base64WireTx },
         };
 
