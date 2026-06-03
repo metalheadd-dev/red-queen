@@ -1015,103 +1015,243 @@ To decrypt or scan target files:
 
           {/* ACCESS RESTRICTED APOCALYPSE DOSSIERS */}
           <div style={{
-            padding: "20px 24px 24px",
+            padding: "24px",
             borderTop: "1px solid var(--border)",
-            background: "rgba(255, 77, 77, 0.01)"
+            background: "rgba(255, 77, 77, 0.02)"
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.25em", fontWeight: "bold" }}>
                 [ SECURE MICROPAYMENT PROTOCOL (X402) ]
               </div>
-              <div style={{ flex: 1, height: "1px", background: "rgba(255, 77, 77, 0.15)" }} />
+              <div style={{ flex: 1, height: "1px", background: "rgba(255, 77, 77, 0.2)" }} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2">
               {/* Premium Briefing Panel */}
-              <div style={{ background: "#080808", border: "1px solid #141414", padding: "16px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ background: "#080808", border: "1px solid #201010", padding: "20px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold", color: "#ffffff" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.05em" }}>
                     DOSSIER A: GLOBAL CONTAINMENT
                   </span>
-                  <span className="tag" style={{ color: "var(--accent)", borderColor: "rgba(255,77,77,0.3)", padding: "2px 6px", fontSize: "9px" }}>
+                  <span className="tag" style={{ color: "var(--accent)", borderColor: "rgba(255,77,77,0.4)", padding: "3px 8px", fontSize: "10px" }}>
                     $0.01 USDC
                   </span>
                 </div>
 
                 {premiumIntel ? (
-                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "12px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
-                    <div style={{ color: "#00ffcc", fontWeight: "bold", marginBottom: "6px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
-                    <div style={{ color: "#ffffff", fontWeight: "bold", marginBottom: "4px" }}>{premiumIntel.intel?.headline}</div>
-                    <div style={{ color: "var(--text-dim)", marginBottom: "6px", fontSize: "11px", lineHeight: "1.4" }}>{premiumIntel.intel?.summary}</div>
+                  <div style={{ background: "rgba(255, 0, 51, 0.02)", border: "1px solid rgba(255, 0, 51, 0.25)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "12px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
+                    <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "13.5px" }}>{premiumIntel.intel?.headline}</div>
+                    <div style={{ color: "rgba(255, 255, 255, 0.95)", fontSize: "12px", lineHeight: "1.4" }}>{premiumIntel.intel?.summary}</div>
                     
+                    {premiumIntel.intel?.maxEvent && (
+                      <div style={{ background: "rgba(255,77,77,0.04)", border: "1px solid rgba(255,77,77,0.15)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "11px" }}>
+                        <div style={{ color: "var(--accent)", fontWeight: "bold", borderBottom: "1px dashed rgba(255,77,77,0.15)", paddingBottom: "4px", marginBottom: "4px" }}>💥 STRONGEST TECTONIC RUPTURE DETECTED</div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>LOCATION:</span><span style={{ color: "#ffffff", fontWeight: "bold" }}>{premiumIntel.intel.maxEvent.location}</span></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>MAGNITUDE:</span><span style={{ color: "var(--accent)", fontWeight: "bold" }}>M {premiumIntel.intel.maxEvent.magnitude}</span></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>DEPTH / COORDINATES:</span><span style={{ color: "#ffffff" }}>{premiumIntel.intel.maxEvent.depthKm} km | Lat {premiumIntel.intel.maxEvent.latitude}, Lng {premiumIntel.intel.maxEvent.longitude}</span></div>
+                      </div>
+                    )}
+
+                    {premiumIntel.intel?.t54Telemetry && (
+                      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "11px" }}>
+                        <div style={{ color: "#ffffff", fontWeight: "bold", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "4px", marginBottom: "4px" }}>🛡️ t54 AGENT TRUST & AUDIT METRICS</div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>KYA IDENTITY STATUS:</span><span style={{ color: "#00ffcc", fontWeight: "bold" }}>{premiumIntel.intel.t54Telemetry.identityStatus}</span></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>RISK COMPLIANCE SCORE:</span><span style={{ color: "#00ffcc", fontWeight: "bold" }}>{premiumIntel.intel.t54Telemetry.complianceScore}</span></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>PROMPT MITIGATIONS:</span><span style={{ color: "var(--accent)", fontWeight: "bold" }}>{premiumIntel.intel.t54Telemetry.activePromptMitigations} SECURED</span></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>UNDERWRITING TIER:</span><span style={{ color: "#ffffff", fontWeight: "bold" }}>{premiumIntel.intel.t54Telemetry.underwritingTier}</span></div>
+                      </div>
+                    )}
+
                     {premiumIntel.intel?.threatVectors && (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px", borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "6px" }}>
-                        {premiumIntel.intel.threatVectors.map((v: any, idx: number) => (
-                          <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "10.5px" }}>
-                            <span style={{ color: "var(--text)" }}>• {v.description || v.id}</span>
-                            <span style={{ color: v.status === "RED" ? "var(--accent)" : "var(--yellow)" }}>{v.rating}</span>
-                          </div>
-                        ))}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
+                        <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "11.5px" }}>🚨 DETECTED TECTONIC DECAY MULTIPLIERS (USGS):</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "150px", overflowY: "auto", paddingRight: "4px" }}>
+                          {premiumIntel.intel.threatVectors.map((v: any, idx: number) => (
+                            <div key={idx} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "8px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "2px", fontSize: "11px" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", color: "#ffffff" }}>
+                                <span style={{ fontWeight: "bold" }}>{v.description}</span>
+                                <span style={{ color: v.status === "RED" ? "var(--accent)" : v.status === "YELLOW" ? "#f0c929" : "#2ecc40", fontWeight: "bold" }}>{v.rating}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", color: "rgba(255,255,255,0.5)", fontSize: "10px" }}>
+                                <span>Depth: {v.depthKm} km | Lat: {v.latitude}, Lng: {v.longitude}</span>
+                                <span>Trend: {v.trend}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                     
-                    <div style={{ fontSize: "10.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "6px" }}>
-                      <strong>Directive:</strong> {premiumIntel.intel?.directive}
+                    <div style={{ fontSize: "11.5px", color: "#ffffff", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", lineHeight: "1.4" }}>
+                      <strong>Directive:</strong> <span style={{ color: "rgba(255,255,255,0.9)" }}>{premiumIntel.intel?.directive}</span>
+                    </div>
+
+                    {/* Actions Row */}
+                    <div style={{ display: "flex", gap: "12px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", marginTop: "4px", alignItems: "center" }}>
+                      <button
+                        onClick={() => {
+                          setShareModalData({
+                            content: `◉ DECRYPTED DOSSIER A: GLOBAL CONTAINMENT\n\nHeadline: ${premiumIntel.intel?.headline}\nSummary: ${premiumIntel.intel?.summary}\nUSGS Alerts: ${premiumIntel.intel?.threatVectors?.map((v: any) => v.description).join(" // ")}\nt54 Index: ${premiumIntel.intel?.t54Telemetry?.complianceScore}`
+                          });
+                        }}
+                        style={{ background: "none", border: "none", color: "var(--accent)", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: "bold" }}
+                      >
+                        [ 📤 SHARE DOSSIER ]
+                      </button>
+                      
+                      {premiumIntel.intel?.explorerUrl && (
+                        <a
+                          href={premiumIntel.intel.explorerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "#00e5ff", fontFamily: "var(--mono)", fontSize: "11px", textDecoration: "underline", fontWeight: "bold" }}
+                        >
+                          [ 🔍 EXPLORE x402 ]
+                        </a>
+                      )}
+
+                      <button
+                        onClick={() => decryptIntel("/api/intel/premium", "premium")}
+                        style={{ background: "none", border: "none", color: "rgba(255, 255, 255, 0.7)", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", marginLeft: "auto", fontWeight: "bold" }}
+                      >
+                        [ ↻ RUN AGAIN ]
+                      </button>
                     </div>
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0c0303", padding: "8px", border: "1px solid #230808", borderRadius: "2px" }}>
-                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : "[ LOCKED // PAYMENT REQUIRED ]"}
+                    <div style={{ fontSize: "11.5px", color: "var(--accent)", fontWeight: "bold", fontFamily: "var(--mono)", background: "rgba(255, 77, 77, 0.05)", padding: "10px", border: "1px solid rgba(255, 77, 77, 0.2)", borderRadius: "2px", textAlign: "center" }}>
+                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : "[ LOCKED // 0.01 USDC REQUIRED ]"}
                     </div>
                     {premiumError && (
-                      <div style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                      <div style={{ fontSize: "11px", color: "#ff8080", fontFamily: "var(--mono)" }}>
                         ⚠️ ERROR: {premiumError}
                       </div>
                     )}
                     <button
                       className="btn btn-primary"
-                      onClick={() => decryptIntel("/api/intel/premium", "premium")}
-                      disabled={!!loadingPremium || !connected}
-                      style={{ padding: "8px", fontSize: "11px" }}
+                      onClick={() => {
+                        if (!connected) {
+                          setVisible(true);
+                        } else {
+                          decryptIntel("/api/intel/premium", "premium");
+                        }
+                      }}
+                      disabled={!!loadingPremium}
+                      style={{ padding: "10px", fontSize: "11.5px", fontWeight: "bold" }}
                     >
-                      {loadingPremium ? "PROCESS PAYWALL..." : connected ? "DECRYPT DOSSIER" : "CONNECT WALLET TO PAY"}
+                      {loadingPremium ? "PROCESSING PAYWALL..." : connected ? "DECRYPT DOSSIER A" : "CONNECT WALLET & DECRYPT"}
                     </button>
                   </div>
                 )}
               </div>
 
               {/* DePIN Sensor Panel */}
-              <div style={{ background: "#080808", border: "1px solid #141414", padding: "16px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ background: "#080808", border: "1px solid #201b10", padding: "20px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold", color: "#ffffff" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.05em" }}>
                     DOSSIER B: DePIN MESH SENSORS
                   </span>
-                  <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.3)", padding: "2px 6px", fontSize: "9px" }}>
+                  <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.4)", padding: "3px 8px", fontSize: "10px" }}>
                     $0.02 USDC
                   </span>
                 </div>
 
                 {depinIntel ? (
-                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "12px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px" }}>
-                    <div style={{ color: "#00ffcc", fontWeight: "bold", marginBottom: "6px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
-                    <div style={{ color: "#ffffff", fontWeight: "bold", marginBottom: "4px" }}>{depinIntel.depin?.scannerName}</div>
-                    <div style={{ color: "var(--text-dim)", marginBottom: "6px", fontSize: "11px" }}>
-                      Health: <span style={{ color: "#00ffcc" }}>{depinIntel.depin?.networkHealth}</span> | Online Nodes: {depinIntel.depin?.onlineNodes}
+                  <div style={{ background: "rgba(240, 201, 41, 0.02)", border: "1px solid rgba(240, 201, 41, 0.25)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "12px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</div>
+                    <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "13.5px" }}>{depinIntel.depin?.scannerName}</div>
+                    <div style={{ color: "rgba(255, 255, 255, 0.95)", fontSize: "12px" }}>
+                      Health Status: <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{depinIntel.depin?.networkHealth}</span> | Monitored DePIN Nodes: <span style={{ color: "#ffffff", fontWeight: "bold" }}>{depinIntel.depin?.onlineNodes}</span>
                     </div>
-                    <div style={{ fontSize: "10.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "6px" }}>
-                      <strong>Active Alerts:</strong>
+
+                    <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "11px" }}>
+                      <div style={{ color: "#ffffff", fontWeight: "bold", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "4px", marginBottom: "4px" }}>📈 FAREMETER GAS & L1 TELEMETRY</div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>AVG PRIORITY FEE:</span><span style={{ color: "#f0c929", fontWeight: "bold" }}>{depinIntel.depin?.avgPriorityFee}</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>SOLANA SLOT:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.slot}</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>EPOCH PROGRESS:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.epochProgress} (Epoch {depinIntel.depin?.epoch})</span></div>
+                    </div>
+
+                    {depinIntel.depin?.topActiveNodes && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
+                        <div style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "11.5px" }}>✅ ACTIVE DEPIN INFRASTRUCTURE (TOP STAKE):</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                          {depinIntel.depin.topActiveNodes.map((n: any, idx: number) => {
+                            const shortPubKey = n.votePubkey.slice(0, 8) + "..." + n.votePubkey.slice(-8);
+                            return (
+                              <div key={idx} style={{ display: "flex", justifyContent: "space-between", background: "rgba(255,255,255,0.02)", padding: "4px 8px", borderRadius: "2px", border: "1px solid rgba(255,255,255,0.05)", fontSize: "11px" }}>
+                                <span>{idx + 1}. Node: {shortPubKey}</span>
+                                <span>Comm: {n.commission}% | Stake: {n.stakeSol?.toLocaleString()} SOL</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {depinIntel.depin?.allDelinquentNodes && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
+                        <div style={{ color: "var(--accent)", fontWeight: "bold", fontSize: "11.5px" }}>⚠️ COMPROMISED / DELINQUENT DEPIN NODES:</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                          {depinIntel.depin.allDelinquentNodes.map((n: any, idx: number) => {
+                            const shortPubKey = n.votePubkey.slice(0, 8) + "..." + n.votePubkey.slice(-8);
+                            return (
+                              <div key={idx} style={{ display: "flex", justifyContent: "space-between", background: "rgba(255, 77, 77, 0.02)", padding: "4px 8px", borderRadius: "2px", border: "1px solid rgba(255, 77, 77, 0.08)", fontSize: "11px" }}>
+                                <span style={{ color: "var(--accent)" }}>Node: {shortPubKey}</span>
+                                <span>Offline since: Slot {n.lastVote}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ fontSize: "11.5px", color: "rgba(255, 255, 255, 0.9)", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
+                      <strong>Active System Alerts:</strong>
                       <ul style={{ margin: "4px 0 0 12px", padding: 0 }}>
                         {depinIntel.depin?.sensorAlerts?.map((alert: string, i: number) => (
-                          <li key={i} style={{ marginBottom: "2px" }}>{alert}</li>
+                          <li key={i} style={{ marginBottom: "4px", listStyleType: "square", color: "var(--accent)" }}>{alert}</li>
                         ))}
                       </ul>
+                    </div>
+
+                    {/* Actions Row */}
+                    <div style={{ display: "flex", gap: "12px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", marginTop: "4px", alignItems: "center" }}>
+                      <button
+                        onClick={() => {
+                          setShareModalData({
+                            content: `◉ DECRYPTED DOSSIER B: DePIN MESH SENSORS\n\nScanner: ${depinIntel.depin?.scannerName}\nHealth: ${depinIntel.depin?.networkHealth}\nOnline Nodes: ${depinIntel.depin?.onlineNodes}\nSolana Gas (Faremeter): ${depinIntel.depin?.avgPriorityFee}\nEpoch: ${depinIntel.depin?.epoch}`
+                          });
+                        }}
+                        style={{ background: "none", border: "none", color: "#f0c929", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: "bold" }}
+                      >
+                        [ 📤 SHARE DOSSIER ]
+                      </button>
+                      
+                      {depinIntel.depin?.explorerUrl && (
+                        <a
+                          href={depinIntel.depin.explorerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "#00e5ff", fontFamily: "var(--mono)", fontSize: "11px", textDecoration: "underline", fontWeight: "bold" }}
+                        >
+                          [ 🔍 EXPLORE x402 ]
+                        </a>
+                      )}
+
+                      <button
+                        onClick={() => decryptIntel("/api/intel/depin", "depin")}
+                        style={{ background: "none", border: "none", color: "rgba(255, 255, 255, 0.7)", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", marginLeft: "auto", fontWeight: "bold" }}
+                      >
+                        [ ↻ RUN AGAIN ]
+                      </button>
                     </div>
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0a0802", padding: "8px", border: "1px solid #231d08", borderRadius: "2px" }}>
-                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : "[ LOCKED // PAYMENT REQUIRED ]"}
+                    <div style={{ fontSize: "11.5px", color: "#f0c929", fontWeight: "bold", fontFamily: "var(--mono)", background: "rgba(240, 201, 41, 0.05)", padding: "10px", border: "1px solid rgba(240, 201, 41, 0.2)", borderRadius: "2px", textAlign: "center" }}>
+                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : "[ LOCKED // 0.02 USDC REQUIRED ]"}
                     </div>
                     {depinError && (
                       <div style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
@@ -1119,12 +1259,18 @@ To decrypt or scan target files:
                       </div>
                     )}
                     <button
-                      className="btn btn-primary"
-                      onClick={() => decryptIntel("/api/intel/depin", "depin")}
-                      disabled={!!loadingDepin || !connected}
-                      style={{ padding: "8px", fontSize: "11px", borderColor: "rgba(240, 201, 41, 0.4)", color: "#ffffff" }}
+                      className="btn"
+                      onClick={() => {
+                        if (!connected) {
+                          setVisible(true);
+                        } else {
+                          decryptIntel("/api/intel/depin", "depin");
+                        }
+                      }}
+                      disabled={!!loadingDepin}
+                      style={{ padding: "10px", fontSize: "11.5px", fontWeight: "bold", background: "#f0c929", color: "#000", border: "none" }}
                     >
-                      {loadingDepin ? "PROCESS PAYWALL..." : connected ? "DECRYPT DOSSIER" : "CONNECT WALLET TO PAY"}
+                      {loadingDepin ? "PROCESSING PAYWALL..." : connected ? "DECRYPT DOSSIER B" : "CONNECT WALLET & DECRYPT"}
                     </button>
                   </div>
                 )}

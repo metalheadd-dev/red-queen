@@ -9,24 +9,56 @@ const handler = async (req: NextRequest) => {
   try {
     // Connect to Solana Mainnet Beta
     const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
-    const voteAccounts = await connection.getVoteAccounts();
+    
+    // Fetch multiple metrics concurrently to avoid high latency
+    const [voteAccounts, epochInfo, feeMetrics] = await Promise.all([
+      connection.getVoteAccounts(),
+      connection.getEpochInfo(),
+      connection.getRecentPrioritizationFees().catch(() => [])
+    ]);
     
     const activeNodes = voteAccounts.current.length;
     const delinquentNodes = voteAccounts.delinquent.length;
     const totalNodes = activeNodes + delinquentNodes;
     const stabilityPercentage = ((activeNodes / totalNodes) * 100).toFixed(1);
     
+    // Calculate average prioritization fee (Faremeter)
+    const averageFee = feeMetrics.length > 0 
+      ? Math.round(feeMetrics.reduce((acc, f) => acc + f.prioritizationFee, 0) / feeMetrics.length)
+      : 0;
+
     // Create live alerts based on delinquent (offline) validators
-    const topDelinquent = voteAccounts.delinquent.slice(0, 2);
+    const topDelinquent = voteAccounts.delinquent.slice(0, 3);
     const sensorAlerts = topDelinquent.map((node: any) => {
       const pubkeyStr = node.votePubkey;
       const shortPubkey = pubkeyStr.slice(0, 4) + "..." + pubkeyStr.slice(-4);
-      return `Alert: Solana node ${shortPubkey} is delinquent (offline). Telemetry transmission interrupted.`;
+      return `Alert: Solana validator ${shortPubkey} is delinquent (offline). Telemetry transmission interrupted.`;
     });
     
     if (sensorAlerts.length === 0) {
       sensorAlerts.push("All monitored DePIN nodes are broadcasting active status streams.");
     }
+
+    // Sort active validators by stake to return top performers
+    const topActiveNodes = voteAccounts.current
+      .sort((a: any, b: any) => b.activatedStake - a.activatedStake)
+      .slice(0, 5)
+      .map((n: any) => ({
+        votePubkey: n.votePubkey,
+        stakeSol: Math.round(n.activatedStake / 1e9),
+        commission: n.commission,
+        lastVote: n.lastVote
+      }));
+
+    // Sliced list of delinquent validators
+    const allDelinquentNodes = voteAccounts.delinquent
+      .slice(0, 5)
+      .map((n: any) => ({
+        votePubkey: n.votePubkey,
+        stakeSol: Math.round(n.activatedStake / 1e9),
+        commission: n.commission,
+        lastVote: n.lastVote
+      }));
     
     return NextResponse.json({
       success: true,
@@ -37,8 +69,15 @@ const handler = async (req: NextRequest) => {
         onlineNodes: totalNodes,
         compromisedNodes: delinquentNodes,
         bandwidthTaintIndex: `${((delinquentNodes / totalNodes) * 100).toFixed(1)}%`,
+        networkHealth: `${stabilityPercentage}% STABLE`,
+        epoch: epochInfo.epoch,
+        slot: epochInfo.absoluteSlot,
+        epochProgress: `${((epochInfo.slotIndex / epochInfo.slotsInEpoch) * 100).toFixed(1)}%`,
+        avgPriorityFee: `${averageFee} microLamports/CU`,
         sensorAlerts,
-        networkHealth: `${stabilityPercentage}% STABLE`
+        topActiveNodes,
+        allDelinquentNodes,
+        explorerUrl: "https://www.x402scan.com/"
       }
     });
   } catch (error: any) {
@@ -57,7 +96,16 @@ const handler = async (req: NextRequest) => {
           "Anomaly detected on Node #097 (Berlin, DE) - unexpected outbound metadata burst.",
           "Node #304 (Tokyo, JP) experiencing homomorphic compute throttling.",
         ],
-        networkHealth: "99.1% STABLE"
+        networkHealth: "99.1% STABLE",
+        topActiveNodes: [
+          { votePubkey: "VoteActive111111111111111111111111111111111", stakeSol: 1250000, commission: 8, lastVote: 215320490 },
+          { votePubkey: "VoteActive222222222222222222222222222222222", stakeSol: 980000, commission: 5, lastVote: 215320489 },
+          { votePubkey: "VoteActive333333333333333333333333333333333", stakeSol: 850000, commission: 0, lastVote: 215320488 },
+        ],
+        allDelinquentNodes: [
+          { votePubkey: "VoteDelinq111111111111111111111111111111111", stakeSol: 45000, commission: 10, lastVote: 215310000 },
+          { votePubkey: "VoteDelinq222222222222222222222222222222222", stakeSol: 12000, commission: 10, lastVote: 215309500 },
+        ]
       }
     });
   }
