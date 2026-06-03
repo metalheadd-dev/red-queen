@@ -114,7 +114,7 @@ async function executeBuyback(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const minUsdcStr = searchParams.get("minUsdc") || "0.10";
+    const minUsdcStr = searchParams.get("minUsdc") || "10.00";
     const minUsdc = parseFloat(minUsdcStr);
 
     if (usdcBalanceUi < minUsdc) {
