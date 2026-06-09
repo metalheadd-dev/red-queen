@@ -628,9 +628,10 @@ export default function OperativeProfilePage() {
 
   const displayName = customName || generatedName;
   const scoreNum = profile?.last_bio_score ?? null;
+  const displayScore = scoreNum ?? 0;
   const stats = profile?.stats || DEFAULT_STATS;
-  const clearance = getClearanceLevel(scoreNum || 0);
-  const scoreColor = scoreNum === null ? "var(--text-dim)" : clearance.color;
+  const clearance = getClearanceLevel(displayScore);
+  const scoreColor = clearance.color;
 
   const filteredScenarios = activeFilter === "ALL"
     ? ALL_SCENARIOS
@@ -877,36 +878,34 @@ export default function OperativeProfilePage() {
             </div>
 
             {/* Score display with live glowing bar */}
-            {scoreNum !== null && (
-              <div style={{
-                textAlign: "left",
-                marginLeft: "auto",
-                minWidth: "240px",
-                background: "rgba(10, 10, 10, 0.4)",
-                border: "1px solid var(--border)",
-                padding: "20px",
-                borderRadius: "2px",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center"
-              }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "8px", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "6px" }}>
-                  SURVIVAL READINESS (BIO-SCORE)
-                </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "56px", fontWeight: 900, color: scoreColor, lineHeight: 1, textShadow: `0 0 8px ${scoreColor}50` }}>
-                    {scoreNum}%
-                  </span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: scoreColor, letterSpacing: "0.05em", fontWeight: "bold" }}>
-                    {scoreNum >= 80 ? "EXCELLENT" : scoreNum >= 50 ? "NOMINAL" : "CRITICAL"}
-                  </span>
-                </div>
-                <div className="threat-bar-wrap" style={{ marginTop: "16px", width: "100%", height: "6px", border: "1px solid rgba(255,255,255,0.05)", background: "#111" }}>
-                  <div className="threat-bar-fill" style={{ width: `${scoreNum}%`, background: scoreColor, boxShadow: `0 0 10px ${scoreColor}` }} />
-                </div>
+            <div style={{
+              textAlign: "left",
+              marginLeft: "auto",
+              minWidth: "240px",
+              background: "rgba(10, 10, 10, 0.4)",
+              border: "1px solid var(--border)",
+              padding: "20px",
+              borderRadius: "2px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center"
+            }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "8px", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "6px" }}>
+                SURVIVAL READINESS (BIO-SCORE)
               </div>
-            )}
+              <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "56px", fontWeight: 900, color: scoreColor, lineHeight: 1, textShadow: `0 0 8px ${scoreColor}50` }}>
+                  {displayScore}%
+                </span>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: scoreColor, letterSpacing: "0.05em", fontWeight: "bold" }}>
+                  {displayScore >= 80 ? "EXCELLENT" : displayScore >= 50 ? "NOMINAL" : "CRITICAL"}
+                </span>
+              </div>
+              <div className="threat-bar-wrap" style={{ marginTop: "16px", width: "100%", height: "6px", border: "1px solid rgba(255,255,255,0.05)", background: "#111" }}>
+                <div className="threat-bar-fill" style={{ width: `${displayScore}%`, background: scoreColor, boxShadow: `0 0 10px ${scoreColor}` }} />
+              </div>
+            </div>
           </div>
 
           {/* Action buttons */}
