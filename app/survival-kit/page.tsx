@@ -18,7 +18,7 @@ export default function SurvivalKitPage() {
     { id: "faq", label: "08. INQUIRIES", title: "FREQUENTLY ASKED QUESTIONS" },
     { id: "map-config", label: "09. MAP API", title: "MAP API CONFIGURATION" },
     { id: "usdc-paywalls", label: "10. PAYWALLS", title: "USDC PAYWALLS & MICRO-PAYMENTS" },
-    { id: "clearance-portal", label: "🔒 ACCESS PORTAL", title: "GO TO CLEARANCE PORTAL", isRedirect: true, href: "/network-clearance" }
+    { id: "clearance-portal", label: "ACCESS PORTAL", title: "GO TO CLEARANCE PORTAL", isRedirect: true, href: "/network-clearance" }
   ];
 
   return (
@@ -82,7 +82,15 @@ export default function SurvivalKitPage() {
                   boxShadow: isActive ? "0 0 10px rgba(255, 0, 51, 0.1)" : "none"
                 }}
               >
-                {t.label}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  {t.id === "clearance-portal" && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: "var(--accent)", filter: "drop-shadow(0 0 2px var(--accent))" }}>
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  )}
+                  <span>{t.label}</span>
+                </div>
               </button>
             );
           })}
@@ -114,7 +122,7 @@ export default function SurvivalKitPage() {
           >
             {tabs.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.title}
+                {t.id === "clearance-portal" ? "🔒 " + t.title : t.title}
               </option>
             ))}
           </select>
@@ -315,7 +323,13 @@ export default function SurvivalKitPage() {
               </div>
 
               <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255, 77, 77, 0.15)", padding: "24px" }}>
-                <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px", fontFamily: "var(--mono)" }}>🔒 ANONYMOUS SESSION BLOCKOUT</h3>
+                <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "8px", fontFamily: "var(--mono)", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 3px var(--accent))" }}>
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  <span>ANONYMOUS SESSION BLOCKOUT</span>
+                </h3>
                 <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
                   To maintain rigorous digital OPSEC, RED QUEEN restricts anonymous profiles to prevent crawler engines from scraping session keys. Unsigned visitors can transmit up to <strong>2 queries</strong> before a wallet prompt appears, and the terminal will <strong>completely lock after 4 queries</strong>. Connecting a Solana wallet verifies your operative signature, saves your progress, and unlocks unlimited diagnostic queries.
                 </p>
@@ -543,7 +557,24 @@ export default function SurvivalKitPage() {
                 </div>
 
                 <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(0, 255, 204, 0.15)", padding: "24px" }}>
-                  <h3 style={{ fontSize: "15px", color: "#00ffcc", marginBottom: "8px" }}>🧠 NEXT STAGE: COGNITIVE SCALING</h3>
+                  <h3 style={{ fontSize: "15px", color: "#00ffcc", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 3px currentColor)" }}>
+                      <rect x="4" y="4" width="16" height="16" rx="2" />
+                      <line x1="9" y1="9" x2="9" y2="15" />
+                      <line x1="9" y1="15" x2="15" y2="15" />
+                      <line x1="15" y1="15" x2="15" y2="9" />
+                      <line x1="15" y1="9" x2="9" y2="9" />
+                      <line x1="9" y1="1" x2="9" y2="4" />
+                      <line x1="15" y1="1" x2="15" y2="4" />
+                      <line x1="9" y1="20" x2="9" y2="23" />
+                      <line x1="15" y1="20" x2="15" y2="23" />
+                      <line x1="20" y1="9" x2="23" y2="9" />
+                      <line x1="20" y1="15" x2="23" y2="15" />
+                      <line x1="1" y1="9" x2="4" y2="9" />
+                      <line x1="1" y1="15" x2="4" y2="15" />
+                    </svg>
+                    <span>NEXT STAGE: COGNITIVE SCALING</span>
+                  </h3>
                   <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
                     Accumulated revenues are utilized to secure advanced storage nodes, lease higher compute capacity, and acquire extensive telemetry databases. This enables the Red Queen to ingest larger intelligence feeds, write sharper analysis, and raise her overall Solvival Intelligence score.
                   </p>
@@ -551,7 +582,13 @@ export default function SurvivalKitPage() {
               </div>
 
               <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(255, 0, 51, 0.15)", padding: "24px" }}>
-                <h3 style={{ fontSize: "15px", color: "var(--accent)", marginBottom: "8px", fontFamily: "var(--mono)" }}>🔒 PREMIUM CHANNELS ACTIVE</h3>
+                <h3 style={{ fontSize: "15px", color: "var(--accent)", marginBottom: "8px", fontFamily: "var(--mono)", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 3px currentColor)" }}>
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  <span>PREMIUM CHANNELS ACTIVE</span>
+                </h3>
                 <ul style={{ margin: "6px 0 0 0", paddingLeft: "20px", color: "var(--text-dim)", fontSize: "13.5px", lineHeight: "1.7" }}>
                   <li><strong>Premium AI Dossier (<code>/api/intel/premium</code>):</strong> Gated behind a <strong>$0.01 USDC</strong> payment.</li>
                   <li><strong>Live DePIN Diagnostics (<code>/api/intel/depin</code>):</strong> Gated behind a <strong>$0.02 USDC</strong> payment.</li>

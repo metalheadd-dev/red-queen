@@ -1142,8 +1142,17 @@ export default function OperativeProfilePage() {
                   ].map((cl) => (
                     <div key={cl.l} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "6px", borderBottom: "1px dashed #1b1b1b", color: cl.unlocked ? "var(--text)" : "var(--text-muted)" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span style={{ color: cl.unlocked ? "var(--accent)" : "var(--text-muted)", fontWeight: "bold" }}>
-                          {cl.unlocked ? "✓" : "🔒"}
+                        <span style={{ color: cl.unlocked ? "var(--accent)" : "var(--text-muted)", fontWeight: "bold", display: "inline-flex", alignItems: "center" }}>
+                          {cl.unlocked ? (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block" }}>
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          ) : (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block" }}>
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                          )}
                         </span>
                         <span style={{ fontWeight: cl.unlocked ? "bold" : "normal" }}>
                           Lvl {cl.l}: {cl.label}
@@ -1709,8 +1718,16 @@ export default function OperativeProfilePage() {
               flexWrap: "wrap",
               gap: "12px"
             }}>
-              <span style={{ fontSize: "12px", color: "var(--text-dim)", fontFamily: "var(--mono)" }}>
-                💡 <em>Quest status monitors in real-time.</em>
+              <span style={{ fontSize: "12px", color: "var(--text-dim)", fontFamily: "var(--mono)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: "#f0c929", filter: "drop-shadow(0 0 4px rgba(240, 201, 41, 0.6))" }}>
+                  <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .6 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+                  <line x1="9" y1="18" x2="15" y2="18" />
+                  <line x1="10" y1="22" x2="14" y2="22" />
+                  <line x1="12" y1="2" x2="12" y2="4" />
+                  <line x1="5" y1="5" x2="6.4" y2="6.4" />
+                  <line x1="19" y1="5" x2="17.6" y2="6.4" />
+                </svg>
+                <em>Quest status monitors in real-time.</em>
               </span>
               <Link href="/solvivors" style={{ 
                 fontFamily: "var(--mono)", 
@@ -1734,8 +1751,13 @@ export default function OperativeProfilePage() {
               <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--accent)", letterSpacing: "0.2em", marginBottom: "4px" }}>
                 [ SECURE MICROPAYMENT PROTOCOL (X402) ]
               </div>
-              <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase" }}>
-                💳 ACCESS RESTRICTED APOCALYPSE DOSSIERS
+              <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase", display: "flex", alignItems: "center", gap: "8px" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 3px currentColor)" }}>
+                  <rect x="2" y="5" width="20" height="14" rx="2" />
+                  <line x1="2" y1="10" x2="22" y2="10" />
+                  <line x1="6" y1="15" x2="10" y2="15" />
+                </svg>
+                <span>ACCESS RESTRICTED APOCALYPSE DOSSIERS</span>
               </h3>
             </div>
 
@@ -1768,7 +1790,14 @@ export default function OperativeProfilePage() {
                     </div>
 
                     <div style={{ background: "rgba(0, 255, 204, 0.01)", border: "1px solid rgba(0, 255, 204, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11px", display: "flex", flexDirection: "column", gap: "3px", marginTop: "4px" }}>
-                      <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "4px", marginBottom: "4px" }}>💳 x402 PROTOCOL PAYMENT RECEIPT</div>
+                      <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "4px", marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 3px currentColor)" }}>
+                          <rect x="2" y="5" width="20" height="14" rx="2" />
+                          <line x1="2" y1="10" x2="22" y2="10" />
+                          <line x1="6" y1="15" x2="10" y2="15" />
+                        </svg>
+                        <span>x402 PROTOCOL PAYMENT RECEIPT</span>
+                      </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Standard Version:</span><span>x402 V2 (Exact SVM Scheme)</span></div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Facilitator Gate:</span><span>https://facilitator.payai.network</span></div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>USDC Mint Address:</span><span style={{ fontSize: "10px" }}>EPjFWdd...t1v (Solana Mainnet)</span></div>
@@ -1842,7 +1871,14 @@ export default function OperativeProfilePage() {
                     </div>
 
                     <div style={{ background: "rgba(0, 255, 204, 0.01)", border: "1px solid rgba(0, 255, 204, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11px", display: "flex", flexDirection: "column", gap: "3px", marginTop: "4px" }}>
-                      <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "4px", marginBottom: "4px" }}>💳 x402 PROTOCOL PAYMENT RECEIPT</div>
+                      <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "4px", marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 3px currentColor)" }}>
+                          <rect x="2" y="5" width="20" height="14" rx="2" />
+                          <line x1="2" y1="10" x2="22" y2="10" />
+                          <line x1="6" y1="15" x2="10" y2="15" />
+                        </svg>
+                        <span>x402 PROTOCOL PAYMENT RECEIPT</span>
+                      </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Standard Version:</span><span>x402 V2 (Exact SVM Scheme)</span></div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Facilitator Gate:</span><span>https://facilitator.payai.network</span></div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>USDC Mint Address:</span><span style={{ fontSize: "10px" }}>EPjFWdd...t1v (Solana Mainnet)</span></div>

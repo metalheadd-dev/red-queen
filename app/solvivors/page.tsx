@@ -32,6 +32,95 @@ interface UserQuest {
   status: string;
 }
 
+function getHubIcon(id: string, color: string) {
+  switch (id) {
+    case "operations":
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", filter: `drop-shadow(0 0 3px ${color}55)` }}>
+          {/* Cyberpunk space invader emoji style line-art */}
+          <path d="M6 4h12M4 7h16M3 10h18M3 13h2M8 13h8M19 13h2M3 16h18M5 19h2M17 19h2" />
+          <circle cx="8" cy="10" r="1.5" fill={color} />
+          <circle cx="16" cy="10" r="1.5" fill={color} />
+        </svg>
+      );
+    case "broadcasts":
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", filter: `drop-shadow(0 0 3px ${color}55)` }}>
+          {/* High-tech radio transmitter style line-art */}
+          <rect x="2" y="8" width="20" height="12" rx="2" />
+          <circle cx="7" cy="14" r="3" />
+          <line x1="17" y1="11" x2="17.01" y2="11" />
+          <line x1="17" y1="14" x2="17.01" y2="14" />
+          <line x1="17" y1="17" x2="17.01" y2="17" />
+          <path d="M16 8l4-5" />
+          <path d="M12 3a6 6 0 0 1 6 6" />
+          <path d="M12 6a3 3 0 0 1 3 3" />
+        </svg>
+      );
+    case "lore":
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", filter: `drop-shadow(0 0 3px ${color}55)` }}>
+          {/* Cyber parchment/scroll style line-art */}
+          <path d="M16 5V3a1 1 0 0 0-1-1H4a2 2 0 0 0 0 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6" />
+          <path d="M8 22H19a1 1 0 0 0 1-1v-2" />
+          <line x1="8" y1="9" x2="15" y2="9" />
+          <line x1="8" y1="13" x2="16" y2="13" />
+        </svg>
+      );
+    case "comics":
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", filter: `drop-shadow(0 0 3px ${color}55)` }}>
+          {/* Cyber palette/art style line-art */}
+          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.3211 19.4625 6.07921 19.3496 6.39864 18.7845C6.79093 18.0906 7.5262 17.6 8.5 17.6C9.4738 17.6 10.2091 18.0906 10.6014 18.7845C10.9208 19.3496 11.6789 19.4625 12.1414 19C12.048 19.345 12 19.667 12 22Z" />
+          <circle cx="7.5" cy="10.5" r="1.5" fill={color} />
+          <circle cx="11.5" cy="7.5" r="1.5" fill={color} />
+          <circle cx="16.5" cy="9.5" r="1.5" fill={color} />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
+function getComingSoonIcon(id: string) {
+  switch (id) {
+    case "broadcasts":
+      return (
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f0c929" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "20px", filter: "drop-shadow(0 0 8px rgba(240, 201, 41, 0.4))" }}>
+          {/* Cyber antenna transmission radio towers */}
+          <path d="M12 20h10M2 20h10M12 20V8m0 0L8 5m4 3l4-3" />
+          <circle cx="12" cy="8" r="1" />
+          <path d="M7 11a7 7 0 0 1 10 0" />
+          <path d="M4 14a11 11 0 0 1 16 0" />
+        </svg>
+      );
+    case "lore":
+      return (
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f0c929" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "20px", filter: "drop-shadow(0 0 8px rgba(240, 201, 41, 0.4))" }}>
+          {/* Glowing cyber scroll */}
+          <path d="M16 5V3a1 1 0 0 0-1-1H4a2 2 0 0 0 0 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6" />
+          <path d="M8 22H19a1 1 0 0 0 1-1v-2" />
+          <line x1="8" y1="9" x2="15" y2="9" />
+          <line x1="8" y1="13" x2="16" y2="13" />
+          <line x1="8" y1="17" x2="14" y2="17" />
+        </svg>
+      );
+    case "comics":
+      return (
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f0c929" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "20px", filter: "drop-shadow(0 0 8px rgba(240, 201, 41, 0.4))" }}>
+          {/* Cyber art palette */}
+          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.3211 19.4625 6.07921 19.3496 6.39864 18.7845C6.79093 18.0906 7.5262 17.6 8.5 17.6C9.4738 17.6 10.2091 18.0906 10.6014 18.7845C10.9208 19.3496 11.6789 19.4625 12.1414 19C12.048 19.345 12 19.667 12 22Z" />
+          <circle cx="7.5" cy="10.5" r="1.5" fill="#f0c929" />
+          <circle cx="11.5" cy="7.5" r="1.5" fill="#f0c929" />
+          <circle cx="16.5" cy="9.5" r="1.5" fill="#f0c929" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
+
 export default function SolvivorsHubPage() {
   const { user, session, authIdentifier } = useAuth();
   const { connected } = useWallet();
@@ -144,8 +233,17 @@ export default function SolvivorsHubPage() {
           <p style={{ fontSize: "14.5px", color: "var(--text-dim)", maxWidth: "700px", margin: "0 auto 8px", lineHeight: "1.7", fontFamily: "var(--sans)" }}>
             The central operative repository. Access live community missions, tactical news, survivor logs, and classified media archives.
           </p>
-          <div style={{ fontSize: "12px", color: "#f0c929", fontFamily: "var(--mono)", letterSpacing: "0.05em", marginTop: "12px" }}>
-            💡 <em>"You can monitor the active status of your accepted tasks and bounties directly from your personal profile page."</em>
+          <div style={{ fontSize: "12px", color: "#f0c929", fontFamily: "var(--mono)", letterSpacing: "0.05em", marginTop: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 4px rgba(240, 201, 41, 0.6))" }}>
+              {/* Custom cyber-lightbulb SVG */}
+              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .6 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+              <line x1="9" y1="18" x2="15" y2="18" />
+              <line x1="10" y1="22" x2="14" y2="22" />
+              <line x1="12" y1="2" x2="12" y2="4" />
+              <line x1="5" y1="5" x2="6.4" y2="6.4" />
+              <line x1="19" y1="5" x2="17.6" y2="6.4" />
+            </svg>
+            <em>"You can monitor the active status of your accepted tasks and bounties directly from your personal profile page."</em>
           </div>
         </div>
       </div>
@@ -164,10 +262,10 @@ export default function SolvivorsHubPage() {
           flexWrap: "wrap"
         }}>
           {[
-            { id: "operations", label: "🕹️ LIVE OPERATIONS", desc: "Missions & Bounties" },
-            { id: "broadcasts", label: "📻 BROADCASTS & NEWS", desc: "Coming Soon", isComing: true },
-            { id: "lore", label: "📜 LORE & ARCHIVES", desc: "Coming Soon", isComing: true },
-            { id: "comics", label: "🎨 TACTICAL COMICS", desc: "Coming Soon", isComing: true }
+            { id: "operations", label: "LIVE OPERATIONS", desc: "Missions & Bounties" },
+            { id: "broadcasts", label: "BROADCASTS & NEWS", desc: "Coming Soon", isComing: true },
+            { id: "lore", label: "LORE & ARCHIVES", desc: "Coming Soon", isComing: true },
+            { id: "comics", label: "TACTICAL COMICS", desc: "Coming Soon", isComing: true }
           ].map((hub) => {
             const isActive = activeHub === hub.id;
             return (
@@ -185,11 +283,14 @@ export default function SolvivorsHubPage() {
                   fontFamily: "var(--mono)",
                   fontSize: "12px",
                   textAlign: "center",
-                  minWidth: "160px",
+                  minWidth: "180px",
                   transition: "all 0.2s"
                 }}
               >
-                <div style={{ fontWeight: "bold" }}>{hub.label}</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "bold" }}>
+                  {getHubIcon(hub.id, isActive ? "var(--accent)" : "var(--text-dim)")}
+                  <span>{hub.label}</span>
+                </div>
                 <div style={{ fontSize: "9px", color: isActive ? "#00ffcc" : "rgba(255,255,255,0.3)", marginTop: "2px", textTransform: "uppercase" }}>
                   {hub.desc}
                 </div>
@@ -211,7 +312,12 @@ export default function SolvivorsHubPage() {
             margin: "0 auto",
             maxWidth: "600px"
           }}>
-            <div style={{ fontSize: "54px", marginBottom: "20px" }}>🔒</div>
+            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "20px", filter: "drop-shadow(0 0 8px rgba(255, 77, 77, 0.5))" }}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              <circle cx="12" cy="15" r="1.5" fill="var(--accent)" />
+              <path d="M12 16.5V19" />
+            </svg>
             <h2 style={{ fontSize: "22px", fontFamily: "var(--mono)", letterSpacing: "0.1em", color: "var(--accent)", marginBottom: "12px" }}>
               UPLINK RESTRICTED
             </h2>
@@ -462,7 +568,7 @@ export default function SolvivorsHubPage() {
             margin: "0 auto",
             position: "relative"
           }}>
-            <div style={{ fontSize: "50px", marginBottom: "20px" }}>📡</div>
+            {getComingSoonIcon(activeHub)}
             
             {activeHub === "broadcasts" && (
               <>

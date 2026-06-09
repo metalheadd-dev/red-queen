@@ -263,8 +263,14 @@ export default function ThreatDossierPage({ params }: { params: Promise<{ id: st
               {/* Live Updates & Incidents Row */}
               <div className="responsive-grid-2" style={{ display: "grid", gap: "20px" }}>
                 <div style={{ background: "#080808", border: "1px dashed var(--border)", padding: "16px", borderRadius: "2px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text)", letterSpacing: "0.15em", marginBottom: "8px" }}>
-                    📡 LIVE INCIDENT TELEMETRY
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text)", letterSpacing: "0.15em", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 3px currentColor)" }}>
+                      <path d="M4 20h16M12 20v-4" />
+                      <path d="M6 13a6 6 0 0 1 12 0" />
+                      <path d="M12 13V7M12 7l-2-1M12 7l2-1" />
+                      <path d="M8 3c2-2 6-2 8 0" />
+                    </svg>
+                    <span>LIVE INCIDENT TELEMETRY</span>
                   </div>
                   <div style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
                     {meta.liveUpdates}
