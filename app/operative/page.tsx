@@ -126,6 +126,10 @@ export default function OperativeProfilePage() {
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [userQuests, setUserQuests] = useState<any[]>([]);
+  const [loadingQuests, setLoadingQuests] = useState(false);
+  const [proofInputs, setProofInputs] = useState<{ [key: string]: string }>({});
+  const [submittingQuest, setSubmittingQuest] = useState<string | null>(null);
 
   const [premiumIntel, setPremiumIntel] = useState<any | null>(null);
   const [depinIntel, setDepinIntel] = useState<any | null>(null);
@@ -477,6 +481,58 @@ export default function OperativeProfilePage() {
     setLoadingHistory(false);
   }, [wallet, session]);
 
+  const fetchUserQuests = useCallback(async () => {
+    if (!wallet) return;
+    setLoadingQuests(true);
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/quests/user", {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
+      const data = await res.json();
+      if (data.userQuests) {
+        setUserQuests(data.userQuests);
+      }
+    } catch (e) {
+      console.error("Failed to fetch user quests:", e);
+    }
+    setLoadingQuests(false);
+  }, [wallet, session]);
+
+  const handleSubmitQuest = async (questId: string) => {
+    const link = proofInputs[questId] || "";
+    if (!link.trim()) {
+      alert("Please enter a valid proof link.");
+      return;
+    }
+
+    setSubmittingQuest(questId);
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/quests/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({ questId, proofLink: link })
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert("Operation submission sent successfully. Status: Under Approval.");
+        setProofInputs(prev => ({ ...prev, [questId]: "" }));
+        await fetchUserQuests();
+      }
+    } catch (e: any) {
+      alert("Failed to submit proof: " + e.message);
+    }
+    setSubmittingQuest(null);
+  };
+
   useEffect(() => {
     async function checkBalance() {
       let addressToCheck = "";
@@ -551,8 +607,9 @@ export default function OperativeProfilePage() {
     if (wallet) {
       fetchProfile();
       fetchHistory();
+      fetchUserQuests();
     }
-  }, [wallet, fetchProfile, fetchHistory]);
+  }, [wallet, fetchProfile, fetchHistory, fetchUserQuests]);
 
   function toggleScenario(id: string) {
     setChosenScenarios((prev) =>
@@ -1472,8 +1529,17 @@ export default function OperativeProfilePage() {
               <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#f0c929", letterSpacing: "0.2em", marginBottom: "4px" }}>
                 [ COMMUNITY OPERATIONS & MISSIONS ]
               </div>
-              <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase" }}>
-                🎯 RED QUEEN QUESTS
+              <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase", display: "flex", alignItems: "center" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0c929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "10px" }}>
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="6" />
+                  <circle cx="12" cy="12" r="2" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                </svg>
+                RED QUEEN QUESTS
               </h3>
             </div>
 
@@ -1481,71 +1547,179 @@ export default function OperativeProfilePage() {
               <strong>What is this?</strong> Participate in targeted community challenges and network drills. Completing active quests earns massive XP rewards, upgrades your clearance tier, and grants permanent sub-stat boosts.
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
-              {[
-                { title: "SANDBOX DRILL // MEV MITIGATION", reward: "+50 XP, OPSEC +5", desc: "Successfully route three multi-hop swaps using secure private endpoints." },
-                { title: "ENTROPY HARVEST // CRAWLER BYPASS", reward: "+80 XP, Adaptability +8", desc: "Rotate transaction footprints to drop correlation indices below 15%." },
-                { title: "COGNITIVE STRAIN // FEED DECOUPLING", reward: "+60 XP, Stability +6", desc: "Isolate and ignore outline injection loops inside the Sector Gamma feed." }
-              ].map((q, idx) => (
-                <div key={idx} style={{ 
-                  background: "#080808", 
-                  border: "1px solid rgba(240, 201, 41, 0.1)", 
-                  padding: "20px", 
-                  borderRadius: "2px",
-                  position: "relative",
-                  overflow: "hidden"
-                }}>
-                  {/* Blurred locked content */}
-                  <div style={{
-                    opacity: 0.12,
-                    filter: "blur(3px)",
-                    pointerEvents: "none",
-                    userSelect: "none"
-                  }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-                      <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240, 201, 41, 0.3)", background: "rgba(240, 201, 41, 0.05)", fontSize: "10.5px" }}>
-                        QUEST 0{idx + 1}
-                      </span>
-                    </div>
-                    <h4 style={{ fontFamily: "var(--mono)", fontSize: "15px", color: "#ffffff", margin: "0 0 6px 0" }}>{q.title}</h4>
-                    <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 16px 0" }}>{q.desc}</p>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#00ffcc" }}>
-                      REWARD: {q.reward}
-                    </div>
-                  </div>
-
-                  {/* Absolute Coming Soon Overlay */}
-                  <div style={{
-                    position: "absolute",
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexDirection: "column",
-                    gap: "6px",
-                    background: "rgba(8, 8, 8, 0.6)"
-                  }}>
-                    <span style={{
-                      fontFamily: "var(--title-font)",
-                      fontSize: "15.5px",
-                      fontWeight: "bold",
-                      color: "#f0c929",
-                      letterSpacing: "0.18em",
-                      textShadow: "0 0 8px rgba(240, 201, 41, 0.3)"
-                    }}>
-                      COMING SOON
-                    </span>
-                    <span style={{
-                      fontFamily: "var(--mono)",
-                      fontSize: "11px",
-                      color: "rgba(240, 201, 41, 0.6)",
-                      letterSpacing: "0.1em"
-                    }}>
-                      [ LOCKED // CLEARANCE ACCESS ]
-                    </span>
-                  </div>
+            {loadingQuests ? (
+              <div style={{ textAlign: "center", padding: "20px", fontFamily: "var(--mono)", color: "var(--accent)" }}>
+                [ SYNCHRONIZING WITH RED QUEEN OPERATIONS... ]
+              </div>
+            ) : userQuests.length === 0 ? (
+              <div style={{
+                textAlign: "center",
+                padding: "32px",
+                border: "1px dashed rgba(240, 201, 41, 0.15)",
+                background: "rgba(240, 201, 41, 0.01)",
+                color: "var(--text-dim)",
+                borderRadius: "4px"
+              }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "13px", marginBottom: "12px" }}>
+                  [ NO ACTIVE OPERATIONS RUNNING ]
                 </div>
-              ))}
+                <Link href="/solvivors" className="btn btn-primary" style={{ fontSize: "11px", padding: "8px 16px" }}>
+                  BROWSE SOLVIVORS HUB
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "16px" }}>
+                {userQuests.map((quest) => {
+                  const title = quest.details?.title || "Classified Operation";
+                  const description = quest.details?.description || "";
+                  const rewardText = quest.type === "task" 
+                    ? `+${quest.details?.reward_xp || 0} XP`
+                    : `${quest.details?.reward_sol || 0} SOL`;
+
+                  return (
+                    <div key={quest.id} style={{ 
+                      background: "#080808", 
+                      border: "1px solid",
+                      borderColor: quest.status === "completed" ? "rgba(85, 255, 85, 0.15)" : 
+                                   quest.status === "pending" ? "rgba(240, 201, 41, 0.15)" : "rgba(240, 201, 41, 0.08)",
+                      padding: "24px", 
+                      borderRadius: "4px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between"
+                    }}>
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                          <span className="tag" style={{ 
+                            color: quest.type === "task" ? "var(--accent)" : "#f0c929", 
+                            borderColor: quest.type === "task" ? "rgba(255, 77, 77, 0.2)" : "rgba(240, 201, 41, 0.2)", 
+                            fontSize: "10.5px" 
+                          }}>
+                            {quest.type === "task" ? "TASK" : "BOUNTY"}
+                          </span>
+                          
+                          <span style={{ 
+                            fontFamily: "var(--mono)", 
+                            fontSize: "11px", 
+                            fontWeight: "bold",
+                            color: quest.status === "completed" ? "#55ff55" : 
+                                   quest.status === "pending" ? "#f0c929" : 
+                                   quest.status === "rejected" ? "var(--accent)" : "#00ffcc"
+                          }}>
+                            {quest.status === "active" && "[ STARTED ]"}
+                            {quest.status === "pending" && "[ UNDER APPROVAL ]"}
+                            {quest.status === "completed" && "[ COMPLETED ]"}
+                            {quest.status === "rejected" && "[ REJECTED ]"}
+                          </span>
+                        </div>
+
+                        <h4 style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "#ffffff", margin: "0 0 8px 0" }}>
+                          {title}
+                        </h4>
+                        <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 20px 0" }}>
+                          {description}
+                        </p>
+                      </div>
+
+                      <div style={{ borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "16px", marginTop: "auto" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>
+                            REWARD:
+                          </span>
+                          <span style={{ 
+                            fontFamily: "var(--mono)", 
+                            fontSize: "13.5px", 
+                            color: quest.type === "task" ? "#00ffcc" : "#f0c929", 
+                            fontWeight: "bold" 
+                          }}>
+                            {rewardText}
+                          </span>
+                        </div>
+
+                        {quest.status === "active" && (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            <input
+                              type="text"
+                              value={proofInputs[quest.id] || ""}
+                              onChange={(e) => setProofInputs(prev => ({ ...prev, [quest.id]: e.target.value }))}
+                              placeholder="Enter proof link (e.g. X post, YouTube link)"
+                              style={{
+                                width: "100%",
+                                padding: "8px 12px",
+                                background: "#050505",
+                                border: "1px solid rgba(255,255,255,0.1)",
+                                borderRadius: "2px",
+                                color: "#fff",
+                                fontSize: "12px",
+                                fontFamily: "var(--sans)",
+                                outline: "none"
+                              }}
+                            />
+                            <button
+                              onClick={() => handleSubmitQuest(quest.id)}
+                              disabled={submittingQuest === quest.id}
+                              className="btn btn-primary"
+                              style={{ width: "100%", fontSize: "11px", padding: "8px" }}
+                            >
+                              {submittingQuest === quest.id ? "SUBMITTING..." : "SUBMIT PROOF"}
+                            </button>
+                          </div>
+                        )}
+
+                        {quest.status === "pending" && (
+                          <div style={{ background: "rgba(240, 201, 41, 0.03)", border: "1px solid rgba(240, 201, 41, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11.5px" }}>
+                            <div style={{ color: "var(--text-dim)", wordBreak: "break-all", marginBottom: "4px" }}>
+                              <strong>Submitted Proof:</strong> <a href={quest.proof_link} target="_blank" rel="noopener noreferrer" style={{ color: "#f0c929", textDecoration: "underline" }}>{quest.proof_link}</a>
+                            </div>
+                            <span style={{ color: "#f0c929", fontStyle: "italic" }}>
+                              Queen AI is verifying payload.
+                            </span>
+                          </div>
+                        )}
+
+                        {quest.status === "completed" && (
+                          <div style={{ background: "rgba(85, 255, 85, 0.03)", border: "1px solid rgba(85, 255, 85, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11.5px", color: "#55ff55" }}>
+                            {quest.type === "task" ? (
+                              <span>✓ Approved. Awarded: <strong>+{quest.xp_awarded} XP</strong> (multiplier active)</span>
+                            ) : (
+                              <span>✓ Approved. SOL Reward logged for payout.</span>
+                            )}
+                          </div>
+                        )}
+
+                        {quest.status === "rejected" && (
+                          <div style={{ background: "rgba(255, 77, 77, 0.03)", border: "1px solid rgba(255, 77, 77, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11.5px", color: "var(--accent)" }}>
+                            <span>✗ Proof rejected. Please retry and submit a new valid proof link.</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            <div style={{ 
+              marginTop: "24px", 
+              borderTop: "1px dashed rgba(255,255,255,0.06)", 
+              paddingTop: "16px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "12px"
+            }}>
+              <span style={{ fontSize: "12px", color: "var(--text-dim)", fontFamily: "var(--mono)" }}>
+                💡 <em>Quest status monitors in real-time.</em>
+              </span>
+              <Link href="/solvivors" style={{ 
+                fontFamily: "var(--mono)", 
+                fontSize: "12px", 
+                color: "#f0c929", 
+                textDecoration: "underline" 
+              }}>
+                Browse Solvivors Hub ↗
+              </Link>
             </div>
           </div>
 

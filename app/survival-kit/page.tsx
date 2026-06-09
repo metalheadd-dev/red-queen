@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import SolvivalIcon from "@/components/SolvivalIcon";
 
 export default function SurvivalKitPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("what-is-red-queen");
 
   const tabs = [
@@ -15,7 +17,8 @@ export default function SurvivalKitPage() {
     { id: "clearance-levels", label: "07. TIERS", title: "SYSTEM CLEARANCE LEVELS" },
     { id: "faq", label: "08. INQUIRIES", title: "FREQUENTLY ASKED QUESTIONS" },
     { id: "map-config", label: "09. MAP API", title: "MAP API CONFIGURATION" },
-    { id: "usdc-paywalls", label: "10. PAYWALLS", title: "USDC PAYWALLS & MICRO-PAYMENTS" }
+    { id: "usdc-paywalls", label: "10. PAYWALLS", title: "USDC PAYWALLS & MICRO-PAYMENTS" },
+    { id: "clearance-portal", label: "🔒 ACCESS PORTAL", title: "GO TO CLEARANCE PORTAL", isRedirect: true, href: "/network-clearance" }
   ];
 
   return (
@@ -56,7 +59,13 @@ export default function SurvivalKitPage() {
             return (
               <button
                 key={t.id}
-                onClick={() => setActiveTab(t.id)}
+                onClick={() => {
+                  if ('isRedirect' in t && t.isRedirect) {
+                    router.push(t.href || "/");
+                  } else {
+                    setActiveTab(t.id);
+                  }
+                }}
                 style={{
                   textAlign: "left",
                   padding: "14px 18px",
@@ -78,12 +87,19 @@ export default function SurvivalKitPage() {
             );
           })}
         </aside>
-
+ 
         {/* Mobile Navigation Selector */}
         <div style={{ display: "none", width: "100%", marginBottom: "20px" }} className="mobile-menu-toggle">
           <select
             value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value)}
+            onChange={(e) => {
+              const selected = tabs.find(t => t.id === e.target.value);
+              if (selected && 'isRedirect' in selected && selected.isRedirect) {
+                router.push(selected.href || "/");
+              } else {
+                setActiveTab(e.target.value);
+              }
+            }}
             style={{
               width: "100%",
               padding: "12px",

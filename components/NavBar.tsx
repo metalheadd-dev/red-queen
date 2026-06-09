@@ -33,7 +33,7 @@ export default function NavBar() {
     { href: "/", label: "HUB", subtitle: "Central Command Center & Cyber Threat Map" },
     { href: "/terminal", label: "TERMINAL", subtitle: "Direct communication channel with RED QUEEN AI" },
     { href: "/threat-vector", label: "THREAT VECTORS", subtitle: "Interactive database of monitored digital and societal threats" },
-    { href: "/network-clearance", label: "CLEARANCE", subtitle: "Wallet-based access and compute permissions" },
+    { href: "/solvivors", label: "SOLVIVORS", subtitle: "Community hub, challenges, tasks, and bounties" },
     { href: "/survival-kit", label: "SURVIVAL KIT", subtitle: "Digital survival documentation and threat response protocols" },
   ];
 
