@@ -1204,7 +1204,14 @@ To decrypt or scan target files:
 
                     {premiumIntel.intel?.threatVectors && (
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
-                        <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "11.5px" }}>🚨 DETECTED TECTONIC DECAY MULTIPLIERS (USGS):</div>
+                        <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "11.5px", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 2px var(--accent))" }}>
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                          </svg>
+                          <span>DETECTED TECTONIC DECAY MULTIPLIERS (USGS):</span>
+                        </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "140px", overflowY: "auto", paddingRight: "4px" }}>
                           {premiumIntel.intel.threatVectors.map((v: any, idx: number) => (
                             <div key={idx} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "8px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "2px", fontSize: "11px" }}>

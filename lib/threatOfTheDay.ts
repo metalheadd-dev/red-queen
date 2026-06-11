@@ -9,11 +9,12 @@ export interface ThreatOfTheDay {
 }
 
 export const THREAT_OF_THE_DAY: ThreatOfTheDay = {
-  name: "Zombie Apocalypse",
-  codename: "DEAD-WALK",
-  severity: 91,
+  name: "Football Fans Invasion",
+  codename: "CUP-2026",
+  severity: 100,
   status: "CRITICAL",
-  description: "Reanimation pathogen OMEGA-Z has breached Sector 7 containment. Infected hosts exhibit total neocortex shutdown within 6 hours of exposure — motor function persists. Vector transmission confirmed via direct contact, aerosolized fluids, and compromised water supply. Urban population centers have collapsed. Government communications ceased 14 hours ago. The undead now outnumber survivors 400:1.",
-  countermeasure: "Evacuate urban centers immediately — do not wait for official confirmation. Establish elevated defensive perimeter away from hospitals, transit hubs, and food distribution nodes. Stockpile 180+ days of sealed non-perishable rations and UV water purification. Maintain radio silence except for encrypted emergency frequencies. Do not engage reanimated subjects at close range. Headshots only.",
-  publishDate: "2026-06-02",
+  description: "A massive, uncoordinated, yet highly synchronized swarm of multi-national football fan factions has breached all border containment lines across the United States, Canada, and Mexico to mark the start of the FIFA World Cup 2026. Outbreaks are characterized by intense face-painting, loud rhythmic chanting, spontaneous air-horn blasts, and localized stampedes toward sports bars. High concentration of alcohol-fueled adrenaline is threatening regional beer supplies and testing local decibel thresholds. Estimated host density in stadium perimeters exceeds 70,000:1.",
+  countermeasure: "Operatives must blend in immediately to avoid target identification. 1. Stockpile and consume high volumes of fermented beverages (cold lager or craft beer) to mirror host hydration behavior. 2. Wear brightly colored apparel (jersey or scarf) representing one of the active factions. If questioned, loudly yell \"GOAL!\" or chant \"Ole, Ole, Ole\" with enthusiasm. 3. Avoid logical debates regarding the offside rule, as this will expose your non-operative status and trigger hostile feedback. 4. Retreat to the nearest screen showing live feeds to maintain visual cover.",
+  publishDate: "2026-06-11",
 };
+

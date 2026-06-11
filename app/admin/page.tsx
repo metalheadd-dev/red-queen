@@ -175,7 +175,13 @@ export default function AdminDashboardPage() {
   if (isAdmin === false) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#050505", color: "var(--accent)", padding: "24px", textAlign: "center" }}>
-        <div style={{ fontSize: "64px", marginBottom: "20px" }}>🚨</div>
+        <div style={{ marginBottom: "20px", display: "inline-flex", alignItems: "center", color: "var(--accent)", filter: "drop-shadow(0 0 12px rgba(255, 0, 51, 0.6))" }}>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            <circle cx="12" cy="16" r="1.5" fill="currentColor" />
+          </svg>
+        </div>
         <h1 style={{ fontSize: "28px", fontFamily: "var(--mono)", letterSpacing: "0.15em", marginBottom: "16px" }}>
           ACCESS DENIED // INCIDENT LOGGED
         </h1>
