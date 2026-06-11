@@ -702,6 +702,31 @@ export default function HomePage() {
                 <Link href="/terminal" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "11px", boxShadow: "0 0 15px rgba(255,0,51,0.3)" }}>
                   ASK RED QUEEN ABOUT THIS ↗
                 </Link>
+
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                    `🚨 RED QUEEN ALERT: ${THREAT_OF_THE_DAY.name.toUpperCase()} (Severity: ${THREAT_OF_THE_DAY.severity}%, Status: ${THREAT_OF_THE_DAY.status}) detected!\n\nVector: ${THREAT_OF_THE_DAY.codename}\n\nOperative Countermeasure: ${THREAT_OF_THE_DAY.countermeasure.slice(0, 120)}...\n\nStay safe. Secure node immediately: https://redqueen.solvival.com`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-ghost"
+                  style={{
+                    width: "100%",
+                    justifyContent: "center",
+                    fontSize: "11px",
+                    marginTop: "10px",
+                    borderColor: "rgba(255, 255, 255, 0.15)",
+                    color: "#ffffff",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px"
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                  <span>SHARE ON X</span>
+                </a>
               </div>
 
             </div>
