@@ -705,7 +705,7 @@ export default function HomePage() {
 
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                    `🚨 RED QUEEN ALERT: ${THREAT_OF_THE_DAY.name.toUpperCase()} (Severity: ${THREAT_OF_THE_DAY.severity}%, Status: ${THREAT_OF_THE_DAY.status}) detected!\n\nVector: ${THREAT_OF_THE_DAY.codename}\n\nOperative Countermeasure: ${THREAT_OF_THE_DAY.countermeasure.slice(0, 120)}...\n\nStay safe. Secure node immediately: https://redqueen.solvival.com`
+                    `🚨 RED QUEEN ALERT: ${THREAT_OF_THE_DAY.name.toUpperCase()} (Severity: ${THREAT_OF_THE_DAY.severity}%, Status: ${THREAT_OF_THE_DAY.status}) detected!\n\nVector: ${THREAT_OF_THE_DAY.codename}\n\nOperative Countermeasure: ${THREAT_OF_THE_DAY.countermeasure.slice(0, 120)}...\n\nStay safe. Secure node immediately: https://redqueen.space`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
