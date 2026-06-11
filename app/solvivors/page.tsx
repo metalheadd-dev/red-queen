@@ -84,6 +84,15 @@ function getHubIcon(id: string, color: string) {
 
 function getComingSoonIcon(id: string) {
   switch (id) {
+    case "operations":
+      return (
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f0c929" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "20px", filter: "drop-shadow(0 0 8px rgba(240, 201, 41, 0.4))" }}>
+          {/* Cyberpunk space invader emoji style line-art */}
+          <path d="M6 4h12M4 7h16M3 10h18M3 13h2M8 13h8M19 13h2M3 16h18M5 19h2M17 19h2" />
+          <circle cx="8" cy="10" r="1.5" fill="#f0c929" />
+          <circle cx="16" cy="10" r="1.5" fill="#f0c929" />
+        </svg>
+      );
     case "broadcasts":
       return (
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f0c929" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "20px", filter: "drop-shadow(0 0 8px rgba(240, 201, 41, 0.4))" }}>
@@ -122,6 +131,7 @@ function getComingSoonIcon(id: string) {
 
 
 export default function SolvivorsHubPage() {
+  const OPERATIONS_COMING_SOON = true;
   const { user, session, authIdentifier } = useAuth();
   const { connected } = useWallet();
   const { setVisible } = useWalletModal();
@@ -262,7 +272,7 @@ export default function SolvivorsHubPage() {
           flexWrap: "wrap"
         }}>
           {[
-            { id: "operations", label: "LIVE OPERATIONS", desc: "Missions & Bounties" },
+            { id: "operations", label: "LIVE OPERATIONS", desc: OPERATIONS_COMING_SOON ? "Coming Soon" : "Missions & Bounties", isComing: OPERATIONS_COMING_SOON },
             { id: "broadcasts", label: "BROADCASTS & NEWS", desc: "Coming Soon", isComing: true },
             { id: "lore", label: "LORE & ARCHIVES", desc: "Coming Soon", isComing: true },
             { id: "comics", label: "TACTICAL COMICS", desc: "Coming Soon", isComing: true }
@@ -300,7 +310,56 @@ export default function SolvivorsHubPage() {
         </div>
 
         {/* Lock Overlay if not logged in (for Operations tab) */}
-        {!isLoggedIn && activeHub === "operations" ? (
+        {OPERATIONS_COMING_SOON && activeHub === "operations" ? (
+          <div style={{
+            background: "rgba(10, 10, 10, 0.4)",
+            border: "1px solid rgba(240, 201, 41, 0.15)",
+            borderRadius: "6px",
+            padding: "80px 40px",
+            textAlign: "center",
+            backdropFilter: "blur(12px)",
+            boxShadow: "0 0 40px rgba(0, 0, 0, 0.6)",
+            maxWidth: "680px",
+            margin: "0 auto",
+            position: "relative"
+          }}>
+            {getComingSoonIcon("operations")}
+            <h2 style={{ fontSize: "20px", fontFamily: "var(--mono)", color: "#f0c929", letterSpacing: "0.15em", marginBottom: "12px" }}>
+              [ LIVE OPERATIONS INACTIVE ]
+            </h2>
+            <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.7", fontFamily: "var(--sans)", margin: "0 auto 28px", maxWidth: "480px" }}>
+              The live mission control grid is currently offline. Community tasks, bounty tracking, and reward campaigns will be deployed here soon.
+            </p>
+            <div style={{
+              display: "inline-block",
+              fontFamily: "var(--title-font)",
+              fontSize: "14px",
+              fontWeight: "bold",
+              color: "#f0c929",
+              letterSpacing: "0.2em",
+              border: "1px dashed #f0c929",
+              padding: "8px 20px",
+              background: "rgba(240, 201, 41, 0.03)",
+              textShadow: "0 0 8px rgba(240, 201, 41, 0.3)"
+            }}>
+              COMING SOON // CLEARANCE GATED
+            </div>
+            {/* Blurred Mockup Elements in background */}
+            <div style={{
+              marginTop: "40px",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "12px",
+              opacity: 0.15,
+              filter: "blur(4px)",
+              pointerEvents: "none",
+              userSelect: "none"
+            }}>
+              <div style={{ background: "#111", height: "80px", border: "1px solid #fff" }} />
+              <div style={{ background: "#111", height: "80px", border: "1px solid #fff" }} />
+            </div>
+          </div>
+        ) : !isLoggedIn && activeHub === "operations" ? (
           <div style={{
             background: "rgba(10, 10, 10, 0.4)",
             border: "1px solid rgba(255, 77, 77, 0.1)",
