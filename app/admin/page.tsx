@@ -5,6 +5,18 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
 import SolvivalIcon from "@/components/SolvivalIcon";
 
+const formatDatetimeLocal = (isoString?: string) => {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return "";
+    const tzoffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzoffset).toISOString().slice(0, 16);
+  } catch {
+    return "";
+  }
+};
+
 interface Submission {
   id: string;
   created_at: string;
@@ -37,7 +49,7 @@ export default function AdminDashboardPage() {
 
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
-  const [activeTab, setActiveTab] = useState<"submissions" | "create">("submissions");
+  const [activeTab, setActiveTab] = useState<"submissions" | "create" | "manage">("submissions");
 
   // Content creation form states
   const [createType, setCreateType] = useState<"task" | "bounty">("task");
@@ -52,6 +64,23 @@ export default function AdminDashboardPage() {
 
   const [creating, setCreating] = useState(false);
   const [actioningId, setActioningId] = useState<string | null>(null);
+
+  // Manage active missions states
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [bounties, setBounties] = useState<any[]>([]);
+  const [loadingActiveMissions, setLoadingActiveMissions] = useState(false);
+  const [editingItem, setEditingItem] = useState<{
+    type: "task" | "bounty";
+    id: string;
+    title: string;
+    description: string;
+    reward_xp?: number;
+    recurrence?: string;
+    reward_sol?: number;
+    winners_count?: number;
+    deadline?: string;
+    image_url?: string;
+  } | null>(null);
 
   // Check admin status
   const checkAdminStatus = useCallback(async () => {
@@ -91,6 +120,74 @@ export default function AdminDashboardPage() {
     setLoadingSubmissions(false);
   }, [isAdmin, session]);
 
+  const fetchActiveMissions = useCallback(async () => {
+    if (!isAdmin) return;
+    setLoadingActiveMissions(true);
+    try {
+      const res = await fetch("/api/quests/all");
+      const data = await res.json();
+      if (data.tasks) setTasks(data.tasks);
+      if (data.bounties) setBounties(data.bounties);
+    } catch (e) {
+      console.error("Error loading active missions:", e);
+    }
+    setLoadingActiveMissions(false);
+  }, [isAdmin]);
+
+  const handleEditSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/edit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify(editingItem)
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert("Failed to edit: " + data.error);
+      } else {
+        alert("Successfully updated item!");
+        setEditingItem(null);
+        fetchActiveMissions();
+      }
+    } catch (e: any) {
+      alert("Error saving: " + e.message);
+    }
+  };
+
+  const handleDelete = async (type: "task" | "bounty", id: string) => {
+    if (!confirm(`Are you sure you want to delete this ${type}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({ type, id })
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert("Failed to delete: " + data.error);
+      } else {
+        alert("Successfully deleted item!");
+        fetchActiveMissions();
+      }
+    } catch (e: any) {
+      alert("Error deleting: " + e.message);
+    }
+  };
+
   useEffect(() => {
     checkAdminStatus();
   }, [checkAdminStatus]);
@@ -100,6 +197,12 @@ export default function AdminDashboardPage() {
       fetchSubmissions();
     }
   }, [isAdmin, fetchSubmissions]);
+
+  useEffect(() => {
+    if (isAdmin && activeTab === "manage") {
+      fetchActiveMissions();
+    }
+  }, [isAdmin, activeTab, fetchActiveMissions]);
 
   const handleAction = async (submissionId: string, action: "approve" | "reject") => {
     setActioningId(submissionId);
@@ -158,7 +261,7 @@ export default function AdminDashboardPage() {
         setDescription("");
         setDeadline("");
         setImageUrl("");
-        setActiveTab("submissions");
+        setActiveTab("manage");
       }
     } catch (e: any) {
       alert("Error: " + e.message);
@@ -235,6 +338,18 @@ export default function AdminDashboardPage() {
               }}
             >
               PUBLISH CONTENT
+            </button>
+            <button
+              onClick={() => setActiveTab("manage")}
+              className="btn"
+              style={{
+                fontSize: "12px",
+                fontFamily: "var(--mono)",
+                borderColor: activeTab === "manage" ? "var(--accent)" : "rgba(255,255,255,0.05)",
+                background: activeTab === "manage" ? "rgba(255, 77, 77, 0.05)" : "transparent"
+              }}
+            >
+              MANAGE ACTIVE MISSIONS
             </button>
           </div>
         </div>
@@ -333,7 +448,7 @@ export default function AdminDashboardPage() {
               </div>
             )}
           </div>
-        ) : (
+        ) : activeTab === "create" ? (
           // Publish Content Form
           <div style={{ maxWidth: "600px", margin: "0 auto" }}>
             <h2 style={{ fontSize: "18px", fontFamily: "var(--mono)", marginBottom: "24px", color: "var(--text)" }}>
@@ -594,8 +709,365 @@ export default function AdminDashboardPage() {
               </button>
             </form>
           </div>
+        ) : (
+          // Manage Active Missions View
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+              <h2 style={{ fontSize: "18px", fontFamily: "var(--mono)", margin: 0, color: "var(--text)" }}>
+                [ ACTIVE MISSIONS CONTROL PANEL ]
+              </h2>
+              <button 
+                onClick={fetchActiveMissions} 
+                className="btn btn-ghost" 
+                style={{ fontSize: "12px", padding: "6px 12px" }}
+                disabled={loadingActiveMissions}
+              >
+                {loadingActiveMissions ? "REFRESHING..." : "REFRESH LIST"}
+              </button>
+            </div>
+
+            {loadingActiveMissions ? (
+              <div style={{ textAlign: "center", padding: "40px", fontFamily: "var(--mono)", color: "var(--accent)" }}>
+                [ SCANNING ACTIVE TARGETS... ]
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", alignItems: "start" }}>
+                {/* Active Tasks */}
+                <div>
+                  <h3 style={{ fontSize: "14px", fontFamily: "var(--mono)", marginBottom: "16px", color: "var(--accent)", borderBottom: "1px dashed rgba(255, 77, 77, 0.2)", paddingBottom: "8px" }}>
+                    TASKS (XP REWARDS) - {tasks.length} ACTIVE
+                  </h3>
+                  {tasks.length === 0 ? (
+                    <div style={{ padding: "20px", border: "1px dashed rgba(255,255,255,0.05)", textAlign: "center", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "12px" }}>
+                      NO ACTIVE TASKS FOUND
+                    </div>
+                  ) : (
+                    tasks.map((task) => (
+                      <div key={task.id} className="panel" style={{ padding: "16px", background: "rgba(10, 10, 10, 0.4)", borderColor: "rgba(255, 77, 77, 0.1)", marginBottom: "12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                          <h4 style={{ fontSize: "14px", fontFamily: "var(--mono)", margin: 0, color: "#fff" }}>
+                            {task.title}
+                          </h4>
+                          <span style={{ fontSize: "10px", fontFamily: "var(--mono)", background: "rgba(255, 77, 77, 0.1)", color: "var(--accent)", padding: "2px 6px", border: "1px solid rgba(255, 77, 77, 0.2)" }}>
+                            +{task.reward_xp} XP
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.4", margin: "0 0 12px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                          {task.description}
+                        </p>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: "10px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
+                            Recurrence: {task.recurrence || "one-time"}
+                          </span>
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <button
+                              onClick={() => setEditingItem({
+                                type: "task",
+                                id: task.id,
+                                title: task.title,
+                                description: task.description,
+                                reward_xp: task.reward_xp,
+                                recurrence: task.recurrence
+                              })}
+                              className="btn"
+                              style={{ fontSize: "10px", padding: "4px 8px", borderColor: "rgba(255,255,255,0.15)" }}
+                            >
+                              EDIT
+                            </button>
+                            <button
+                              onClick={() => handleDelete("task", task.id)}
+                              className="btn btn-ghost"
+                              style={{ fontSize: "10px", padding: "4px 8px", borderColor: "var(--accent)", color: "var(--accent)" }}
+                            >
+                              DELETE
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Active Bounties */}
+                <div>
+                  <h3 style={{ fontSize: "14px", fontFamily: "var(--mono)", marginBottom: "16px", color: "#f0c929", borderBottom: "1px dashed rgba(240, 201, 41, 0.2)", paddingBottom: "8px" }}>
+                    BOUNTIES (SOL REWARDS) - {bounties.length} ACTIVE
+                  </h3>
+                  {bounties.length === 0 ? (
+                    <div style={{ padding: "20px", border: "1px dashed rgba(255,255,255,0.05)", textAlign: "center", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "12px" }}>
+                      NO ACTIVE BOUNTIES FOUND
+                    </div>
+                  ) : (
+                    bounties.map((bounty) => (
+                      <div key={bounty.id} className="panel" style={{ padding: "16px", background: "rgba(10, 10, 10, 0.4)", borderColor: "rgba(240, 201, 41, 0.1)", marginBottom: "12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                          <h4 style={{ fontSize: "14px", fontFamily: "var(--mono)", margin: 0, color: "#fff" }}>
+                            {bounty.title}
+                          </h4>
+                          <span style={{ fontSize: "10px", fontFamily: "var(--mono)", background: "rgba(240, 201, 41, 0.1)", color: "#f0c929", padding: "2px 6px", border: "1px solid rgba(240, 201, 41, 0.2)" }}>
+                            {bounty.reward_sol} SOL
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.4", margin: "0 0 12px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                          {bounty.description}
+                        </p>
+                        {bounty.image_url && (
+                          <div style={{ fontSize: "10px", color: "#00ffcc", marginBottom: "8px", fontFamily: "var(--mono)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                            Image: {bounty.image_url}
+                          </div>
+                        )}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: "10px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
+                            Deadline: {bounty.deadline ? new Date(bounty.deadline).toLocaleDateString() : "None"}
+                          </span>
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <button
+                              onClick={() => setEditingItem({
+                                type: "bounty",
+                                id: bounty.id,
+                                title: bounty.title,
+                                description: bounty.description,
+                                reward_sol: bounty.reward_sol,
+                                winners_count: bounty.winners_count,
+                                deadline: bounty.deadline,
+                                image_url: bounty.image_url || ""
+                              })}
+                              className="btn"
+                              style={{ fontSize: "10px", padding: "4px 8px", borderColor: "rgba(255,255,255,0.15)" }}
+                            >
+                              EDIT
+                            </button>
+                            <button
+                              onClick={() => handleDelete("bounty", bounty.id)}
+                              className="btn btn-ghost"
+                              style={{ fontSize: "10px", padding: "4px 8px", borderColor: "var(--accent)", color: "var(--accent)" }}
+                            >
+                              DELETE
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
+
+      {/* Edit Modal Overlay */}
+      {editingItem && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.85)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          padding: "20px"
+        }}>
+          <div className="panel" style={{ width: "100%", maxWidth: "500px", padding: "28px", background: "#080808", borderColor: editingItem.type === "task" ? "var(--accent)" : "#f0c929" }}>
+            <h3 style={{ fontSize: "18px", fontFamily: "var(--mono)", marginBottom: "20px", color: editingItem.type === "task" ? "var(--accent)" : "#f0c929" }}>
+              [ EDIT {editingItem.type.toUpperCase()} ]
+            </h3>
+            
+            <form onSubmit={handleEditSave}>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>TITLE</label>
+                <input
+                  type="text"
+                  value={editingItem.title}
+                  onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    background: "#020202",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "2px",
+                    color: "#fff",
+                    outline: "none"
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>DESCRIPTION</label>
+                <textarea
+                  value={editingItem.description}
+                  onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                  rows={4}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    background: "#020202",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "2px",
+                    color: "#fff",
+                    fontFamily: "var(--sans)",
+                    outline: "none",
+                    resize: "vertical"
+                  }}
+                  required
+                />
+              </div>
+
+              {editingItem.type === "task" ? (
+                <>
+                  <div style={{ marginBottom: "16px" }}>
+                    <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>XP REWARD</label>
+                    <input
+                      type="number"
+                      value={editingItem.reward_xp || 0}
+                      onChange={(e) => setEditingItem({ ...editingItem, reward_xp: parseInt(e.target.value) || 0 })}
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        background: "#020202",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: "2px",
+                        color: "#fff",
+                        outline: "none"
+                      }}
+                      required
+                    />
+                  </div>
+                  <div style={{ marginBottom: "20px" }}>
+                    <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>RECURRENCE</label>
+                    <select
+                      value={editingItem.recurrence || "one-time"}
+                      onChange={(e) => setEditingItem({ ...editingItem, recurrence: e.target.value })}
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        background: "#020202",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: "2px",
+                        color: "#fff",
+                        fontFamily: "var(--mono)",
+                        outline: "none"
+                      }}
+                    >
+                      <option value="one-time">ONE-TIME</option>
+                      <option value="daily">DAILY</option>
+                      <option value="weekly">WEEKLY</option>
+                    </select>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
+                    <div>
+                      <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>SOL REWARD</label>
+                      <input
+                        type="text"
+                        value={editingItem.reward_sol || 0}
+                        onChange={(e) => setEditingItem({ ...editingItem, reward_sol: parseFloat(e.target.value) || 0 })}
+                        style={{
+                          width: "100%",
+                          padding: "8px 12px",
+                          background: "#020202",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: "2px",
+                          color: "#fff",
+                          outline: "none"
+                        }}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>WINNERS</label>
+                      <input
+                        type="number"
+                        value={editingItem.winners_count || 1}
+                        onChange={(e) => setEditingItem({ ...editingItem, winners_count: parseInt(e.target.value) || 1 })}
+                        style={{
+                          width: "100%",
+                          padding: "8px 12px",
+                          background: "#020202",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: "2px",
+                          color: "#fff",
+                          outline: "none"
+                        }}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: "16px" }}>
+                    <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>DEADLINE</label>
+                    <input
+                      type="datetime-local"
+                      value={formatDatetimeLocal(editingItem.deadline)}
+                      onChange={(e) => setEditingItem({ ...editingItem, deadline: e.target.value })}
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        background: "#020202",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: "2px",
+                        color: "#fff",
+                        fontFamily: "var(--mono)",
+                        outline: "none"
+                      }}
+                      required
+                    />
+                  </div>
+                  <div style={{ marginBottom: "20px" }}>
+                    <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>IMAGE URL (OPTIONAL)</label>
+                    <input
+                      type="url"
+                      value={editingItem.image_url || ""}
+                      onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        background: "#020202",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: "2px",
+                        color: "#fff",
+                        fontFamily: "var(--mono)",
+                        outline: "none"
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="btn btn-ghost"
+                  style={{ fontSize: "12px", padding: "8px 16px" }}
+                >
+                  CANCEL
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{
+                    fontSize: "12px",
+                    padding: "8px 20px",
+                    background: editingItem.type === "task" ? "var(--accent)" : "#f0c929",
+                    borderColor: editingItem.type === "task" ? "var(--accent)" : "#f0c929",
+                    color: editingItem.type === "task" ? "#fff" : "#000",
+                    fontWeight: "bold"
+                  }}
+                >
+                  SAVE CHANGES
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
