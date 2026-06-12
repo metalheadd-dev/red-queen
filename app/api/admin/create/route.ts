@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       return Response.json({ success: true, item: data });
 
     } else {
-      const { title, description, reward_sol, winners_count, deadline } = body;
+      const { title, description, reward_sol, winners_count, deadline, image_url } = body;
       if (!title || !description || reward_sol === undefined || !deadline) {
         return Response.json({ error: "title, description, reward_sol, and deadline are required for bounties" }, { status: 400 });
       }
@@ -49,7 +49,8 @@ export async function POST(req: Request) {
           description,
           reward_sol: parseFloat(reward_sol) || 0,
           winners_count: parseInt(winners_count) || 1,
-          deadline: new Date(deadline).toISOString()
+          deadline: new Date(deadline).toISOString(),
+          image_url: image_url || null
         })
         .select()
         .single();

@@ -23,6 +23,7 @@ interface Bounty {
   winners_count: number;
   deadline: string;
   created_at: string;
+  image_url?: string;
 }
 
 interface UserQuest {
@@ -565,6 +566,11 @@ export default function SolvivorsHubPage() {
                             </span>
                             {status ? renderStatusBadge(status) : isExpired ? <span className="status-badge rejected">[ EXPIRED ]</span> : null}
                           </div>
+                          {bounty.image_url && (
+                            <div style={{ width: "100%", height: "140px", overflow: "hidden", borderRadius: "4px", marginBottom: "14px", border: "1px solid rgba(240, 201, 41, 0.15)" }}>
+                              <img src={bounty.image_url} alt={bounty.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            </div>
+                          )}
                           <h3 style={{ fontSize: "17px", fontFamily: "var(--mono)", color: "#fff", margin: "0 0 8px" }}>
                             {bounty.title}
                           </h3>
@@ -751,6 +757,12 @@ export default function SolvivorsHubPage() {
             <h2 style={{ fontSize: "22px", fontFamily: "var(--mono)", margin: "0 0 16px" }}>
               {selectedItem.item.title}
             </h2>
+
+            {selectedItem.item.image_url && (
+              <div style={{ width: "100%", maxHeight: "280px", overflow: "hidden", borderRadius: "4px", marginBottom: "20px", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
+                <img src={selectedItem.item.image_url} alt={selectedItem.item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </div>
+            )}
 
             <div style={{ 
               fontSize: "14.5px", 

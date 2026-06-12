@@ -48,6 +48,7 @@ export default function AdminDashboardPage() {
   const [rewardSol, setRewardSol] = useState("0.1");
   const [winnersCount, setWinnersCount] = useState("3");
   const [deadline, setDeadline] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
 
   const [creating, setCreating] = useState(false);
   const [actioningId, setActioningId] = useState<string | null>(null);
@@ -137,7 +138,7 @@ export default function AdminDashboardPage() {
       const token = session?.access_token;
       const payload = createType === "task" 
         ? { type: "task", title, description, reward_xp: parseInt(rewardXp) || 0, recurrence }
-        : { type: "bounty", title, description, reward_sol: parseFloat(rewardSol) || 0, winners_count: parseInt(winnersCount) || 1, deadline };
+        : { type: "bounty", title, description, reward_sol: parseFloat(rewardSol) || 0, winners_count: parseInt(winnersCount) || 1, deadline, image_url: imageUrl };
 
       const res = await fetch("/api/admin/create", {
         method: "POST",
@@ -156,6 +157,7 @@ export default function AdminDashboardPage() {
         setTitle("");
         setDescription("");
         setDeadline("");
+        setImageUrl("");
         setActiveTab("submissions");
       }
     } catch (e: any) {
@@ -527,7 +529,7 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                   </div>
-                  <div>
+                  <div style={{ marginBottom: "20px" }}>
                     <label htmlFor="deadline" style={{ display: "block", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "8px" }}>
                       CAMPAIGN EXPIRY TIMELINE
                     </label>
@@ -547,6 +549,28 @@ export default function AdminDashboardPage() {
                         outline: "none"
                       }}
                       required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="imageUrl" style={{ display: "block", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "8px" }}>
+                      IMAGE URL (OPTIONAL)
+                    </label>
+                    <input
+                      id="imageUrl"
+                      type="url"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      placeholder="e.g. https://i.imgur.com/example.png"
+                      style={{
+                        width: "100%",
+                        padding: "10px 14px",
+                        background: "#050505",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: "2px",
+                        color: "#fff",
+                        fontFamily: "var(--mono)",
+                        outline: "none"
+                      }}
                     />
                   </div>
                 </div>
