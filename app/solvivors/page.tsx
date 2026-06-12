@@ -132,7 +132,7 @@ function getComingSoonIcon(id: string) {
 
 
 export default function SolvivorsHubPage() {
-  const OPERATIONS_COMING_SOON = true;
+  const OPERATIONS_COMING_SOON = false;
   const { user, session, authIdentifier } = useAuth();
   const { connected } = useWallet();
   const { setVisible } = useWalletModal();
