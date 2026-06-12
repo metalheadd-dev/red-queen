@@ -865,7 +865,7 @@ export default function OperativeProfilePage() {
               {/* Tactical Stats Grid */}
               <div style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
                 gap: "12px",
                 maxWidth: "600px",
                 marginBottom: "16px"
@@ -881,6 +881,13 @@ export default function OperativeProfilePage() {
                   <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>CLEARANCE LEVEL</div>
                   <div style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "var(--text)", fontWeight: "bold", marginTop: "4px" }}>
                     LEVEL <span style={{ color: "var(--accent)" }}>{stats.level}</span>
+                  </div>
+                </div>
+
+                <div style={{ background: "rgba(255, 255, 255, 0.01)", border: "1px solid var(--border)", padding: "10px 14px", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>TOTAL SYSTEM XP</div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "var(--text)", fontWeight: "bold", marginTop: "4px" }}>
+                    <span style={{ color: "var(--accent)" }}>{stats.xp}</span> <span style={{ fontSize: "11px", color: "var(--text-dim)" }}>XP</span>
                   </div>
                 </div>
 
@@ -961,6 +968,10 @@ export default function OperativeProfilePage() {
               </div>
               <div className="threat-bar-wrap" style={{ marginTop: "16px", width: "100%", height: "6px", border: "1px solid rgba(255,255,255,0.05)", background: "#111" }}>
                 <div className="threat-bar-fill" style={{ width: `${displayScore}%`, background: scoreColor, boxShadow: `0 0 10px ${scoreColor}` }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px", fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "10px" }}>
+                <span>TOTAL SYSTEM XP:</span>
+                <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{stats.xp} XP</span>
               </div>
             </div>
           </div>
@@ -1122,7 +1133,7 @@ export default function OperativeProfilePage() {
                     OPERATIVE PROGRESS: LEVEL {stats.level}
                   </span>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "15px", color: "var(--accent)", fontWeight: "bold" }}>
-                    {stats.xp % 100}/100 XP
+                    {stats.xp} Total XP ({stats.xp % 100}/100 XP to next level)
                   </span>
                 </div>
                 <div className="threat-bar-wrap" style={{ height: "8px", background: "#111", marginBottom: "24px" }}>
