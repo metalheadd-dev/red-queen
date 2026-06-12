@@ -13,6 +13,7 @@ interface Task {
   reward_xp: number;
   recurrence: string;
   created_at: string;
+  image_url?: string;
 }
 
 interface Bounty {
@@ -487,6 +488,11 @@ export default function SolvivorsHubPage() {
                             </span>
                             {status && renderStatusBadge(status)}
                           </div>
+                          {task.image_url && (
+                            <div style={{ width: "100%", height: "140px", overflow: "hidden", borderRadius: "4px", marginBottom: "14px", border: "1px solid rgba(255, 77, 77, 0.15)" }}>
+                              <img src={task.image_url} alt={task.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            </div>
+                          )}
                           <h3 style={{ fontSize: "17px", fontFamily: "var(--mono)", color: "#fff", margin: "0 0 8px" }}>
                             {task.title}
                           </h3>

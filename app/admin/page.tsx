@@ -240,7 +240,7 @@ export default function AdminDashboardPage() {
     try {
       const token = session?.access_token;
       const payload = createType === "task" 
-        ? { type: "task", title, description, reward_xp: parseInt(rewardXp) || 0, recurrence }
+        ? { type: "task", title, description, reward_xp: parseInt(rewardXp) || 0, recurrence, image_url: imageUrl }
         : { type: "bounty", title, description, reward_sol: parseFloat(rewardSol) || 0, winners_count: parseInt(winnersCount) || 1, deadline, image_url: imageUrl };
 
       const res = await fetch("/api/admin/create", {
@@ -666,30 +666,32 @@ export default function AdminDashboardPage() {
                       required
                     />
                   </div>
-                  <div>
-                    <label htmlFor="imageUrl" style={{ display: "block", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "8px" }}>
-                      IMAGE URL (OPTIONAL)
-                    </label>
-                    <input
-                      id="imageUrl"
-                      type="url"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      placeholder="e.g. https://i.imgur.com/example.png"
-                      style={{
-                        width: "100%",
-                        padding: "10px 14px",
-                        background: "#050505",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        borderRadius: "2px",
-                        color: "#fff",
-                        fontFamily: "var(--mono)",
-                        outline: "none"
-                      }}
-                    />
-                  </div>
                 </div>
               )}
+
+              {/* IMAGE URL (OPTIONAL) for BOTH tasks and bounties */}
+              <div style={{ marginBottom: "28px" }}>
+                <label htmlFor="imageUrl" style={{ display: "block", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "8px" }}>
+                  IMAGE URL (OPTIONAL)
+                </label>
+                <input
+                  id="imageUrl"
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="e.g. https://i.imgur.com/example.png"
+                  style={{
+                    width: "100%",
+                    padding: "10px 14px",
+                    background: "#050505",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "2px",
+                    color: "#fff",
+                    fontFamily: "var(--mono)",
+                    outline: "none"
+                  }}
+                />
+              </div>
 
               <button
                 type="submit"
@@ -755,6 +757,11 @@ export default function AdminDashboardPage() {
                         <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.4", margin: "0 0 12px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                           {task.description}
                         </p>
+                        {task.image_url && (
+                          <div style={{ fontSize: "10px", color: "#00ffcc", marginBottom: "8px", fontFamily: "var(--mono)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                            Image: {task.image_url}
+                          </div>
+                        )}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <span style={{ fontSize: "10px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
                             Recurrence: {task.recurrence || "one-time"}
@@ -767,7 +774,8 @@ export default function AdminDashboardPage() {
                                 title: task.title,
                                 description: task.description,
                                 reward_xp: task.reward_xp,
-                                recurrence: task.recurrence
+                                recurrence: task.recurrence,
+                                image_url: task.image_url || ""
                               })}
                               className="btn"
                               style={{ fontSize: "10px", padding: "4px 8px", borderColor: "rgba(255,255,255,0.15)" }}
@@ -1019,26 +1027,28 @@ export default function AdminDashboardPage() {
                       required
                     />
                   </div>
-                  <div style={{ marginBottom: "20px" }}>
-                    <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>IMAGE URL (OPTIONAL)</label>
-                    <input
-                      type="url"
-                      value={editingItem.image_url || ""}
-                      onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        background: "#020202",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        borderRadius: "2px",
-                        color: "#fff",
-                        fontFamily: "var(--mono)",
-                        outline: "none"
-                      }}
-                    />
-                  </div>
                 </>
               )}
+
+              {/* IMAGE URL (OPTIONAL) for BOTH tasks and bounties */}
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>IMAGE URL (OPTIONAL)</label>
+                <input
+                  type="url"
+                  value={editingItem.image_url || ""}
+                  onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    background: "#020202",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "2px",
+                    color: "#fff",
+                    fontFamily: "var(--mono)",
+                    outline: "none"
+                  }}
+                />
+              </div>
 
               <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
                 <button

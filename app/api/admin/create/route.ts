@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     }
 
     if (type === "task") {
-      const { title, description, reward_xp, recurrence } = body;
+      const { title, description, reward_xp, recurrence, image_url } = body;
       if (!title || !description || reward_xp === undefined) {
         return Response.json({ error: "title, description, and reward_xp are required for tasks" }, { status: 400 });
       }
@@ -28,7 +28,8 @@ export async function POST(req: Request) {
           title,
           description,
           reward_xp: parseInt(reward_xp) || 0,
-          recurrence: recurrence || "one-time"
+          recurrence: recurrence || "one-time",
+          image_url: image_url || null
         })
         .select()
         .single();
