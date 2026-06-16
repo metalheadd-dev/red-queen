@@ -13,6 +13,7 @@ export default function Footer() {
         <Link href="/copyright">COPYRIGHT</Link>
         <Link href="/privacy">PRIVACY POLICY</Link>
         <Link href="/terms">TERMS OF SERVICE</Link>
+        <Link href="/roadmap">ROADMAP</Link>
       </p>
       <p style={{ marginTop: "12px", fontSize: "10px" }}>
         ALL SURVIVOR DATA IS LOGGED AND ANALYZED. UNAUTHORIZED ACCESS IS PUNISHABLE BY IMMEDIATE CONTAINMENT.
