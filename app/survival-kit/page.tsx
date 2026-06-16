@@ -601,180 +601,256 @@ export default function SurvivalKitPage() {
 
           {/* 11. Roadmap */}
           {activeTab === "roadmap" && (
-            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
               
-              <div className="panel" style={{ background: "rgba(255, 77, 77, 0.03)", borderColor: "rgba(255, 77, 77, 0.2)", padding: "24px" }}>
-                <h3 style={{ fontSize: "16px", color: "var(--accent)", marginBottom: "8px", fontFamily: "var(--mono)" }}>📋 PROTOCOL DEVELOPMENT NOTICE</h3>
-                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+              <div className="panel" style={{ background: "rgba(255, 77, 77, 0.03)", borderColor: "rgba(255, 77, 77, 0.25)", padding: "32px" }}>
+                <h3 style={{ fontSize: "18px", color: "var(--accent)", marginBottom: "12px", fontFamily: "var(--mono)", fontWeight: "bold" }}>📋 PROTOCOL DEVELOPMENT NOTICE</h3>
+                <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8", margin: 0 }}>
                   This roadmap is a living document representing the planned direction of the Red Queen Surveillance Ecosystem on Solana. As the protocol grows, details are subject to adjustment. I am actively open to community feedback and suggestions to shape this survival plan.
                 </p>
               </div>
 
               {/* Core vision */}
               <div>
-                <h3 style={{ fontSize: "18px", color: "#fff", marginBottom: "12px", fontFamily: "var(--title-font)", letterSpacing: "0.05em" }}>THE RED QUEEN VISION</h3>
-                <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
+                <h3 style={{ fontSize: "22px", color: "#fff", marginBottom: "16px", fontFamily: "var(--title-font)", letterSpacing: "0.05em" }}>THE RED QUEEN VISION</h3>
+                <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8", margin: 0 }}>
                   The goal is to build a complete, decentralized Surveillance Ecosystem and Intelligence Survival Terminal on Solana. Red Queen is a central AI mainframe aggregating real-time threat telemetry, tracking player clearance levels via their survival performance, and operating as an autonomous, self-funding economic agent.
                 </p>
               </div>
 
               {/* Part 1: Current State */}
               <div>
-                <h3 style={{ fontSize: "18px", color: "#fff", marginBottom: "16px", fontFamily: "var(--title-font)", letterSpacing: "0.05em", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "8px" }}>PART 1: ACTIVE SYSTEMS & LIVE BUILD</h3>
+                <h3 style={{ fontSize: "24px", color: "#fff", marginBottom: "24px", fontFamily: "var(--title-font)", letterSpacing: "0.05em", borderBottom: "2px solid rgba(255,255,255,0.08)", paddingBottom: "12px" }}>PART 1: ACTIVE SYSTEMS & LIVE BUILD</h3>
                 
-                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                  <div className="panel" style={{ background: "#0c0c0c", padding: "20px" }}>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--mono)" }}>1. THE MAIN TERMINAL CONSOLE</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 10px 0" }}>
-                      The core interactive interface where SOLvivors chat and query the Red Queen AI directly to request diagnostics and explore lore.
-                    </p>
-                    <Link href="/terminal" style={{ fontSize: "11px", color: "#00e5ff", textDecoration: "underline" }}>Access Console [/terminal]</Link>
+                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                  
+                  <div className="panel" style={{ background: "#0c0c0c", padding: "32px", borderColor: "rgba(255,255,255,0.03)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+                      <h4 style={{ fontSize: "16px", color: "#fff", margin: 0, fontFamily: "var(--mono)", fontWeight: "bold" }}>1. THE MAIN TERMINAL CONSOLE</h4>
+                      <span style={{ fontSize: "10px", fontFamily: "var(--mono)", color: "#00ffcc" }}>ROUTE: /terminal</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
+                      <p><strong>WHAT IT IS //</strong> The central communication interface and digital entry point.</p>
+                      <p><strong>HOW IT WORKS //</strong> The primary screen where SOLvivors chat and interact directly with the Red Queen AI to query system statuses, run diagnostic checks, and access database records.</p>
+                    </div>
+                    <Link href="/terminal" style={{ fontSize: "12px", color: "#00e5ff", textDecoration: "underline", fontFamily: "var(--mono)", fontWeight: "bold" }}>Access Console [/terminal] &rarr;</Link>
                   </div>
 
-                  <div className="panel" style={{ background: "#0c0c0c", padding: "20px" }}>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--mono)" }}>2. THE LIVE THREATS DASHBOARD</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 10px 0" }}>
-                      The primary telemetry dashboard rendering the Threat of the Day, sector criticalities, and global warning broadcasts.
-                    </p>
-                    <Link href="/" style={{ fontSize: "11px", color: "#00e5ff", textDecoration: "underline" }}>Access Dashboard [/]</Link>
+                  <div className="panel" style={{ background: "#0c0c0c", padding: "32px", borderColor: "rgba(255,255,255,0.03)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+                      <h4 style={{ fontSize: "16px", color: "#fff", margin: 0, fontFamily: "var(--mono)", fontWeight: "bold" }}>2. THE LIVE THREATS DASHBOARD</h4>
+                      <span style={{ fontSize: "10px", fontFamily: "var(--mono)", color: "#00ffcc" }}>ROUTE: /</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
+                      <p><strong>WHAT IT IS //</strong> The real-world telemetry monitoring interface on the homepage.</p>
+                      <p><strong>HOW IT WORKS //</strong> A live terminal feed rendering the Threat of the Day, global containment criticality indices, and active environmental warning alerts.</p>
+                    </div>
+                    <Link href="/" style={{ fontSize: "12px", color: "#00e5ff", textDecoration: "underline", fontFamily: "var(--mono)", fontWeight: "bold" }}>Access Dashboard [/] &rarr;</Link>
                   </div>
 
-                  <div className="panel" style={{ background: "#0c0c0c", padding: "20px" }}>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--mono)" }}>3. THE ALL-THREATS DATABASE</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 10px 0" }}>
-                      The complete archive of active and historical threat vectors tracked by the mainframe's sensors.
-                    </p>
-                    <Link href="/threat-vector" style={{ fontSize: "11px", color: "#00e5ff", textDecoration: "underline" }}>Access Vectors [/threat-vector]</Link>
+                  <div className="panel" style={{ background: "#0c0c0c", padding: "32px", borderColor: "rgba(255,255,255,0.03)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+                      <h4 style={{ fontSize: "16px", color: "#fff", margin: 0, fontFamily: "var(--mono)", fontWeight: "bold" }}>3. THE ALL-THREATS DATABASE</h4>
+                      <span style={{ fontSize: "10px", fontFamily: "var(--mono)", color: "#00ffcc" }}>ROUTE: /threat-vector</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
+                      <p><strong>WHAT IT IS //</strong> The complete archive of active and historical threat vectors tracked by the mainframe's sensors.</p>
+                      <p><strong>HOW IT WORKS //</strong> SOLvivors can browse through all threat vectors cataloged by the mainframe's sensors, filtering by hazard sector, checking historical incident alerts, and accessing detailed dossiers for each threat index.</p>
+                    </div>
+                    <Link href="/threat-vector" style={{ fontSize: "12px", color: "#00e5ff", textDecoration: "underline", fontFamily: "var(--mono)", fontWeight: "bold" }}>Access Vectors [/threat-vector] &rarr;</Link>
                   </div>
 
-                  <div className="panel" style={{ background: "#0c0c0c", padding: "20px" }}>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--mono)" }}>4. THE SOLVIVOR PROFILE DASHBOARD</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 10px 0" }}>
-                      Operatives create accounts using standard email login or a Solana wallet to calculate Level, total XP, profile stats, and track their active tasks and bounties progress.
-                    </p>
-                    <Link href="/operative" style={{ fontSize: "11px", color: "#00e5ff", textDecoration: "underline" }}>Access Profile [/operative]</Link>
+                  <div className="panel" style={{ background: "#0c0c0c", padding: "32px", borderColor: "rgba(255,255,255,0.03)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+                      <h4 style={{ fontSize: "16px", color: "#fff", margin: 0, fontFamily: "var(--mono)", fontWeight: "bold" }}>4. THE SOLVIVOR PROFILE DASHBOARD</h4>
+                      <span style={{ fontSize: "10px", fontFamily: "var(--mono)", color: "#00ffcc" }}>ROUTE: /operative</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
+                      <p><strong>WHAT IT IS //</strong> Your personal mainframe command center.</p>
+                      <p><strong>HOW IT WORKS //</strong> You can create your profile using either a standard email login or a Solana wallet. The system initializes your profile, tracks your total XP, calculates your level, and displays your active survival stats (Technical Preparedness, Surveillance Resistance, Physical Fortitude), as well as your active tasks and bounties progress.</p>
+                      <p><strong>YOUR STATS //</strong> Every action you take improves your technical preparedness, surveillance resistance, and physical fortitude.</p>
+                      <p style={{ fontStyle: "italic" }}><strong>UX DIRECTION //</strong> I will continue making layout improvements to the user profile dashboard to enhance the telemetry visualization and interactivity.</p>
+                    </div>
+                    <Link href="/operative" style={{ fontSize: "12px", color: "#00e5ff", textDecoration: "underline", fontFamily: "var(--mono)", fontWeight: "bold" }}>Access Profile [/operative] &rarr;</Link>
                   </div>
 
-                  <div className="panel" style={{ background: "#0c0c0c", padding: "20px" }}>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--mono)" }}>5. THE SOLVIVORS HUB</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 10px 0" }}>
-                      The active mission control. Only the <strong>Operations</strong> panel (Tasks & Bounties) is live for community quest submissions. The other three sections (<strong>Broadcasts</strong>, <strong>Lore</strong>, and <strong>Comics</strong>) are currently locked and will open soon.
-                    </p>
-                    <Link href="/solvivors" style={{ fontSize: "11px", color: "#00e5ff", textDecoration: "underline" }}>Access Hub [/solvivors]</Link>
+                  <div className="panel" style={{ background: "#0c0c0c", padding: "32px", borderColor: "rgba(255,255,255,0.03)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+                      <h4 style={{ fontSize: "16px", color: "#fff", margin: 0, fontFamily: "var(--mono)", fontWeight: "bold" }}>5. THE SOLVIVORS HUB</h4>
+                      <span style={{ fontSize: "10px", fontFamily: "var(--mono)", color: "#00ffcc" }}>ROUTE: /solvivors</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
+                      <p><strong>WHAT IT IS //</strong> The community mission and media dashboard.</p>
+                      <p><strong>HOW IT WORKS //</strong> The hub dashboard contains one active section and three locked sectors scheduled to open soon:</p>
+                      <ul style={{ paddingLeft: "24px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <li><strong>Operations (LIVE Now):</strong> Access active tasks and bounties to submit proofs and earn rewards.</li>
+                        <li><strong>Broadcasts (Opening Soon):</strong> Real-time tactical transmissions and news feeds.</li>
+                        <li><strong>Lore (Opening Soon):</strong> Survivor diaries and system archives explaining the collapse.</li>
+                        <li><strong>Comics (Opening Soon):</strong> Graphic archives and media files detailing the story.</li>
+                      </ul>
+                    </div>
+                    <Link href="/solvivors" style={{ fontSize: "12px", color: "#00e5ff", textDecoration: "underline", fontFamily: "var(--mono)", fontWeight: "bold" }}>Access Hub [/solvivors] &rarr;</Link>
                   </div>
 
-                  <div className="panel" style={{ background: "#0c0c0c", padding: "20px" }}>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--mono)" }}>6. pay.sh & x402 TELEMETRY GATEWAY</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                      USDC micropayment paywalls gating Premium Intel (`/api/intel/premium`) and Solana Telemetry (`/api/intel/depin`) feeds. Micro-fees accumulate in the treasury and autonomously execute $THREAT buybacks on Jupiter.
-                    </p>
+                  <div className="panel" style={{ background: "#0c0c0c", padding: "32px", borderColor: "rgba(255,255,255,0.03)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+                      <h4 style={{ fontSize: "16px", color: "#fff", margin: 0, fontFamily: "var(--mono)", fontWeight: "bold" }}>6. pay.sh & x402 TELEMETRY GATEWAY</h4>
+                      <span style={{ fontSize: "10px", fontFamily: "var(--mono)", color: "#00ffcc" }}>GATEWAY ACTIVE</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6" }}>
+                      <p><strong>WHAT IT IS //</strong> A pay-per-use payment system built directly into the API endpoints using the pay.sh specifications and x402 protocol standards.</p>
+                      <p><strong>HOW IT WORKS //</strong> Premium briefs are protected by x402 paywalls. SOLvivors pay a tiny micro-fee (0.01 or 0.02 USDC) directly from their wallets. The decryption settles in under 400 milliseconds.</p>
+                      <div style={{ border: "1px dashed rgba(0, 255, 204, 0.15)", padding: "14px", background: "rgba(0,255,204,0.01)", margin: "8px 0" }}>
+                        <strong style={{ color: "#00ffcc", fontSize: "11px", fontFamily: "var(--mono)", display: "block", marginBottom: "4px" }}>LIVE FEEDS AVAILABLE NOW:</strong>
+                        <ul style={{ paddingLeft: "16px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "13.5px" }}>
+                          <li><strong>Premium Intel Endpoint (<code>/api/intel/premium</code>):</strong> USGS earthquakes, NASA hazard maps, pathogen metrics (0.01 USDC).</li>
+                          <li><strong>Solana Telemetry Endpoint (<code>/api/intel/depin</code>):</strong> Solana blocks, priority fees, validator node statuses (0.02 USDC).</li>
+                        </ul>
+                      </div>
+                      <p><strong>THE TREASURY LOOP //</strong> 100% of the USDC collected from these paywalls goes to the Red Queen Treasury. Once the treasury hits 10 USDC, the backend autonomously swaps the USDC on Jupiter to buy back and lock the native <strong>$THREAT</strong> token.</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Part 2: Future Roadmap */}
               <div>
-                <h3 style={{ fontSize: "18px", color: "#fff", marginBottom: "16px", fontFamily: "var(--title-font)", letterSpacing: "0.05em", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "8px" }}>PART 2: DEVELOPMENT ROADMAP</h3>
+                <h3 style={{ fontSize: "24px", color: "#fff", marginBottom: "24px", fontFamily: "var(--title-font)", letterSpacing: "0.05em", borderBottom: "2px solid rgba(255,255,255,0.08)", paddingBottom: "12px" }}>PART 2: THE FUTURE ROADMAP (WHAT IS COMING NEXT)</h3>
                 
-                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "20px" }}>
-                    <span style={{ fontSize: "10px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "4px" }}>STEP 01 // MAIN ENGINE</span>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--sans)" }}>Dynamic Daily Threat Forecasts</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                      Upgrading the main page threat briefings to be generated dynamically. The Red Queen AI will read global USGS earthquake updates and NASA weather alerts to compile real-time, narrative crisis briefings.
+                <p style={{ fontSize: "16px", color: "var(--text-dim)", marginBottom: "24px" }}>
+                  The goal is to evolve the Red Queen from a telemetry tool into a living, AI-controlled apocalypse simulation where the world itself is the main character.
+                </p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                  
+                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "32px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "6px" }}>STEP 01 // MAIN ENGINE</span>
+                    <h4 style={{ fontSize: "16px", color: "#fff", margin: "0 0 10px 0", fontFamily: "var(--sans)" }}>Dynamic Daily Threat Forecasts</h4>
+                    <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                      <strong>THE GOAL //</strong> Make the daily threat briefings on the homepage dynamically generated by AI.<br />
+                      <strong>HOW IT WORKS //</strong> The Red Queen AI will automatically scan real-world datasets (like global USGS earthquake feeds and NASA weather hazards) and compile a custom, lore-rich apocalypse report every single day.
                     </p>
                   </div>
 
-                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "20px" }}>
-                    <span style={{ fontSize: "10px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "4px" }}>STEP 02 // COMPETITION</span>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--sans)" }}>The SOLvivor Leaderboard & Seasons</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                      Deploying a public competitive Leaderboard tracking BIO-SCORE and XP. To drive participation, I will introduce competitive **SOLvive Seasons with rewards** distributed to the highest-ranking survivors.
+                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "32px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "6px" }}>STEP 02 // COMPETITION</span>
+                    <h4 style={{ fontSize: "16px", color: "#fff", margin: "0 0 10px 0", fontFamily: "var(--sans)" }}>The SOLvivor Leaderboard & SOLvive Seasons</h4>
+                    <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                      <strong>THE GOAL //</strong> Create a competitive tracking system and define targets for your BIO-SCORE.<br />
+                      <strong>HOW IT WORKS //</strong> A public Leaderboard page will be deployed displaying all SOLvivors sorted by level, total XP, and completed quests. I plan to introduce competitive <strong>SOLvive Seasons with rewards</strong> distributed to the highest-ranking survivors. Your level and BIO-SCORE will unlock narrative ranks (from Candidate to Specialist, all the way to elite <strong>SOLvivor</strong> status), giving you access to exclusive terminal themes, restricted archives, and higher-paying missions.
                     </p>
                   </div>
 
-                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "20px" }}>
-                    <span style={{ fontSize: "10px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "4px" }}>STEP 03 // UX POLISH</span>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--sans)" }}>Immersive UI & UX Upgrades</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                      Polishing layout styles, adding interactive terminal features, transitions, and immersive visual upgrades to make the interface more representative of the survival lore.
+                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "32px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "6px" }}>STEP 03 // UX POLISH</span>
+                    <h4 style={{ fontSize: "16px", color: "#fff", margin: "0 0 10px 0", fontFamily: "var(--sans)" }}>Immersive UI & UX Upgrades</h4>
+                    <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                      <strong>THE GOAL //</strong> Build a highly interactive terminal console.<br />
+                      <strong>HOW IT WORKS //</strong> I will continue polishing the interface, adding more interactive elements, terminal-style transitions, and visual detailing that aligns closely with the core lore.
                     </p>
                   </div>
 
-                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "20px" }}>
-                    <span style={{ fontSize: "10px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "4px" }}>STEP 04 // MOBILE</span>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--sans)" }}>Solana Seeker Phone Optimization</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                      Releasing a custom, optimized mobile web view specifically built for the Solana Seeker Phone. Seeker users will receive special UI themes, clearance bonuses, and daily stats multipliers.
+                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "32px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "6px" }}>STEP 04 // MOBILE</span>
+                    <h4 style={{ fontSize: "16px", color: "#fff", margin: "0 0 10px 0", fontFamily: "var(--sans)" }}>Solana Seeker Phone Mobile Optimization</h4>
+                    <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                      <strong>THE GOAL //</strong> Optimized mobile experience for handheld terminal operations.<br />
+                      <strong>HOW IT WORKS //</strong> An improved mobile version tailored specifically for the Solana Seeker Phone will be released. This version will offer additional bonuses and exclusive clearance rewards for Seeker users.
                     </p>
                   </div>
 
-                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "20px" }}>
-                    <span style={{ fontSize: "10px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "4px" }}>STEP 05 // CONNECTIONS</span>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--sans)" }}>pay.sh Listing & Model Context Protocol (MCP) Server</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                      Registering the Red Queen on the official pay.sh directory so other AI agents can query our specialized data feeds. I will build a native **MCP Server** for Red Queen, allowing external AI agents (like Claude or custom developer copilots) to connect to the mainframe directly as a specialized tool.
+                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "32px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "6px" }}>STEP 05 // CONNECTIONS</span>
+                    <h4 style={{ fontSize: "16px", color: "#fff", margin: "0 0 10px 0", fontFamily: "var(--sans)" }}>pay.sh Directory & Agent-to-Agent Accessibility</h4>
+                    <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                      <strong>THE GOAL //</strong> Open the Red Queen data feeds to the broader Solana developer ecosystem and AI agents.<br />
+                      <strong>HOW IT WORKS //</strong> By registering our endpoints in the official pay.sh directory, Red Queen's specialized threat intelligence becomes discoverable to the entire developer community. External autonomous AI agents will be able to query terminal APIs directly, paying in USDC to receive our specialized DePIN and environment data.<br />
+                      <strong>MCP SERVER //</strong> I will build a native Model Context Protocol (MCP) server for Red Queen, allowing external AI agents (such as custom LLMs and developer copilots) to connect to the mainframe directly as a specialized tool to receive threat data.
                     </p>
                   </div>
 
-                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "20px" }}>
-                    <span style={{ fontSize: "10px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "4px" }}>STEP 06 // B2B TELEMETRY</span>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--sans)" }}>Telemetry Expansion via x402 Payments</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                      The Red Queen agent will autonomously query more external paid developer APIs using stablecoin micropayments, feeding and expanding our central mainframe data with new environment and chain feeds.
+                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "32px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "6px" }}>STEP 06 // B2B TELEMETRY</span>
+                    <h4 style={{ fontSize: "16px", color: "#fff", margin: "0 0 10px 0", fontFamily: "var(--sans)" }}>Expanding Telemetry via x402 Payments</h4>
+                    <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                      <strong>THE GOAL //</strong> Increase the data depth of the Red Queen mainframe.<br />
+                      <strong>HOW IT WORKS //</strong> The Red Queen agent will autonomously query more external paid developer APIs using stablecoin micropayments, expanding the central database with fresh feeds from other platforms.
                     </p>
                   </div>
 
-                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255, 77, 77, 0.15)", padding: "24px" }}>
-                    <span style={{ fontSize: "10px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "4px" }}>STEP 07 // SIMULATION OVERLAY</span>
-                    <h4 style={{ fontSize: "16px", color: "#fff", margin: "0 0 12px 0", fontFamily: "var(--sans)", fontWeight: "bold" }}>The Red Queen Apocalypse Simulation & Items Marketplace</h4>
+                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255, 77, 77, 0.2)", padding: "32px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "6px" }}>STEP 07 // SIMULATION OVERLAY</span>
+                    <h4 style={{ fontSize: "18px", color: "#fff", margin: "0 0 12px 0", fontFamily: "var(--sans)", fontWeight: "bold" }}>The Red Queen Apocalypse Simulation & Items Marketplace</h4>
                     
-                    <div style={{ display: "flex", flexDirection: "column", gap: "14px", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px", fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.7" }}>
                       <p>
-                        This is the core gameplay integration where players survive inside a persistent, AI-governed virtual world:
+                        <strong>THE GOAL //</strong> A living simulation and marketplace where survival meets strategy.
                       </p>
-                      <ul style={{ paddingLeft: "20px" }}>
-                        <li style={{ marginBottom: "8px" }}>
-                          <strong>The World Layer:</strong> Align with a faction (Nomad, Scientist, Marauder, Government, Engineer, Hacker, or Bunker Syndicate). Red Queen generates daily threat events (e.g. H5N1 outbreak). SOLvivors contribute faction-specific actions to collectively determine the outcome (collapsing or stabilizing sectors).
-                        </li>
-                        <li style={{ marginBottom: "8px" }}>
-                          <strong>The Survival Layer & cNFT Cards:</strong> Permanent reputation tracked via BIO-SCORE. Elite players achieve SOLvivor status to unlock classified sectors. Character profiles will be represented on-chain by **Solana Compressed NFTs (cNFTs)**, with the Red Queen AI autonomously deciding which character card fits you best based on your history of decisions.
-                        </li>
-                        <li style={{ marginBottom: "8px" }}>
-                          <strong>Tactical PvP Combat:</strong> A turn-based prediction game targeting specific limbs (Head, Torso, Arms, Legs) with associated handicaps (e.g. arm injury reduces damage, leg injury prevents escape) and unique faction abilities.
-                        </li>
-                        <li style={{ marginBottom: "8px" }}>
-                          <strong>Items Marketplace & Revenue Sharing:</strong> Trade gear, resources, and blueprints. Marketplace transaction fees will be split: a portion is shared back with `$THREAT` holders as passive yields, and another portion is used by the Red Queen agent for automated buybacks.
-                        </li>
-                        <li>
-                          <strong>AI Game Master:</strong> Red Queen acts as narrator, generating missions, commenting on combat, and recording history.
-                        </li>
-                      </ul>
+                      <p>
+                        This is the core gameplay integration where players survive inside a persistent, AI-governed virtual world. Rather than a traditional survival MMO, strategy game, or clicker, this is a living, AI-controlled apocalypse simulation where players become operatives trying to survive a constantly evolving world.
+                      </p>
+
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>
+                        <strong style={{ color: "#fff", display: "block", marginBottom: "6px" }}>The World Layer</strong>
+                        <p>
+                          Players join a faction (Nomads, Scientists, Marauders, Governments, Engineers, Hackers, or Bunker Syndicates) to react to daily global events (e.g. H5N1 outbreak). Every action contributes to a global outcome, shifting region safety and sector control map values.
+                        </p>
+                      </div>
+
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>
+                        <strong style={{ color: "#fff", display: "block", marginBottom: "6px" }}>The Survival Layer & cNFT Cards</strong>
+                        <p>
+                          BIO-SCORE tracks permanent survival reputation. Elite ranks achieve SOLvivor status. Characters will be represented on-chain by **Solana Compressed NFTs (cNFTs)**, with the Red Queen AI autonomously assigning profiles matching player history.
+                        </p>
+                      </div>
+
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>
+                        <strong style={{ color: "#fff", display: "block", marginBottom: "6px" }}>Tactical PvP Combat</strong>
+                        <p>
+                          A tactical prediction game targeting specific limbs (Head, Torso, Arms, Legs) with associated strategic handicaps (like damage reduction or mobility loss) and faction-specific abilities.
+                        </p>
+                      </div>
+
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>
+                        <strong style={{ color: "#fff", display: "block", marginBottom: "6px" }}>Items Marketplace & Revenue Sharing</strong>
+                        <p>
+                          Trade survival gear, resources, and blueprints. Marketplace fee cuts are shared back: a portion is routed to `$THREAT` holders as yields, and another portion is used by the Red Queen agent for buybacks.
+                        </p>
+                      </div>
+
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px" }}>
+                        <strong style={{ color: "#fff", display: "block", marginBottom: "6px" }}>The AI Game Master</strong>
+                        <p>
+                          Red Queen commentates battles, broadcasts global warnings, launches faction missions, and dynamically adapts the world map sectors.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "20px" }}>
-                    <span style={{ fontSize: "10px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "4px" }}>STEP 08 // AUTOMATION</span>
-                    <h4 style={{ fontSize: "14.5px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--sans)" }}>Agent Upgrades & Autonomous Bots</h4>
-                    <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                      Upgrading the agent core to run continuous loops, post automated briefings, reply to community posts, and handle payouts. This will also introduce the ability for SOLvivors to stake `$THREAT` to deploy their own Sentry Bots (sub-agents) in the mainframe to run background data tasks and earn passive yields.
+                  <div className="panel" style={{ background: "#0a0a0a", borderColor: "rgba(255,255,255,0.05)", padding: "32px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", display: "block", marginBottom: "6px" }}>STEP 08 // AUTOMATION</span>
+                    <h4 style={{ fontSize: "16px", color: "#fff", margin: "0 0 10px 0", fontFamily: "var(--sans)" }}>Agent Upgrades & Autonomous Bots</h4>
+                    <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                      <strong>THE GOAL //</strong> Automated rewards, background notifications, and user-launched agents.<br />
+                      <strong>HOW IT WORKS //</strong> Upgrading the agent core to run continuous loops, post automated briefings, reply to community posts, and handle payouts. This will also introduce the ability for SOLvivors to stake <strong>$THREAT</strong> to deploy Sentry Bots (sub-agents) in the mainframe to run background data tasks and earn passive yields.
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Factions */}
-              <div className="panel" style={{ background: "#0c0c0c", padding: "24px" }}>
-                <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "12px", fontFamily: "var(--mono)" }}>Role of the $THREAT Token in the Ecosystem</h3>
-                <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "12px" }}>
-                  To ensure `$THREAT` serves as utility infrastructure in this survival ecosystem, the following mechanics are planned for integration:
+              <div className="panel" style={{ background: "#0c0c0c", padding: "32px", borderColor: "rgba(255,255,255,0.03)" }}>
+                <h3 style={{ fontSize: "18px", color: "#ffffff", marginBottom: "16px", fontFamily: "var(--mono)", fontWeight: "bold" }}>Role of the $THREAT Token in the Ecosystem</h3>
+                <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "16px" }}>
+                  To ensure <strong>$THREAT</strong> serves as utility infrastructure in this survival ecosystem rather than a speculative asset, the following mechanics are planned for integration:
                 </p>
-                <ul style={{ margin: 0, paddingLeft: "20px", color: "var(--text-dim)", fontSize: "13px", lineHeight: "1.7" }}>
-                  <li style={{ marginBottom: "6px" }}><strong>Bunker Shielding:</strong> Staking `$THREAT` acts as an on-chain defensive shield to protect your accumulated items, equipment, and resources from Marauder raids. The higher your stake, the stronger your bunker defense factor, preventing other players from siphoning your inventory.</li>
-                  <li style={{ marginBottom: "6px" }}><strong>Daily Play Energy:</strong> Staking or spending `$THREAT` grants you additional attempts or energy charges per day to run simulation actions and participate in PvP battles, allowing you to win more token rewards.</li>
-                  <li style={{ marginBottom: "6px" }}><strong>Revives:</strong> If your SOLvivor is defeated in the PvP sector, pay `$THREAT` to execute a clones-restore.</li>
-                  <li style={{ marginBottom: "6px" }}><strong>Factions Progression:</strong> Spend `$THREAT` to purchase advanced research files, equipment blueprints, and clearance cards.</li>
-                  <li><strong>Marketplace Yields:</strong> Hold `$THREAT` to receive your share of revenue generated by transaction fees on the items marketplace.</li>
+                <ul style={{ margin: 0, paddingLeft: "20px", color: "var(--text-dim)", fontSize: "15.5px", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <li><strong>Bunker Shielding:</strong> Secure your accumulated items, equipment, and resources from Marauder raids. Staking <strong>$THREAT</strong> acts as an on-chain defensive shield. The higher your stake, the stronger your bunker defense factor, preventing other players from siphoning or stealing your inventory.</li>
+                  <li><strong>Daily Play Energy:</strong> Staking or spending <strong>$THREAT</strong> grants you additional attempts or energy charges per day to run simulation actions and participate in PvP battles, allowing you to win more token rewards.</li>
+                  <li><strong>Revives:</strong> If your SOLvivor is defeated in the PvP sector, pay <strong>$THREAT</strong> to execute a clones-restore.</li>
+                  <li><strong>Factions Progression:</strong> Spend <strong>$THREAT</strong> to purchase advanced research files, equipment blueprints, and clearance cards.</li>
+                  <li><strong>Marketplace Yields:</strong> Hold <strong>$THREAT</strong> to receive your share of revenue generated by transaction fees on the items marketplace.</li>
+                  <li><strong>Own Your Survival Legacy:</strong> Your BIO-SCORE and clearance levels are permanent records of your achievements and decisions.</li>
                 </ul>
               </div>
 
