@@ -525,7 +525,7 @@ export default function HomePage() {
       <section className="page-section" style={{
         borderTop: "1px solid var(--border)",
         borderBottom: "1px solid var(--border)",
-        padding: "80px 0",
+        padding: "45px 0",
         background: "radial-gradient(circle at center, rgba(255, 0, 51, 0.05) 0%, rgba(5, 5, 5, 1) 100%)",
         position: "relative",
         overflow: "hidden"
@@ -536,41 +536,40 @@ export default function HomePage() {
           top: 0,
           left: 0,
           right: 0,
-          height: "6px",
+          height: "4px",
           background: "repeating-linear-gradient(45deg, var(--accent), var(--accent) 10px, #000 10px, #000 20px)",
-          boxShadow: "0 2px 10px rgba(255, 0, 51, 0.5)"
+          boxShadow: "0 1px 8px rgba(255, 0, 51, 0.4)"
         }} />
-
 
         <div className="container">
           {/* Header */}
-          <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <div style={{ textAlign: "center", marginBottom: "24px" }}>
             <div className="tag tag-red" style={{
-              fontSize: "13px",
+              fontSize: "11px",
               fontFamily: "var(--mono)",
-              padding: "6px 16px",
+              padding: "4px 12px",
               animation: "pulse-dot 1.5s infinite",
-              letterSpacing: "0.2em",
+              letterSpacing: "0.15em",
               display: "inline-flex",
               alignItems: "center",
-              gap: "8px",
-              marginBottom: "16px",
-              boxShadow: "0 0 15px rgba(255, 0, 51, 0.3)"
+              gap: "6px",
+              marginBottom: "8px",
+              boxShadow: "0 0 10px rgba(255, 0, 51, 0.25)"
             }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 2px currentColor)" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 1px currentColor)" }}>
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                 <line x1="12" y1="9" x2="12" y2="13" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
               <span>IMMEDIATE SYSTEM ALERT</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 2px currentColor)" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 1px currentColor)" }}>
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                 <line x1="12" y1="9" x2="12" y2="13" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
             </div>
             <h2 className="glitch glow-text" style={{
-              fontSize: "clamp(28px, 5vw, 48px)",
+              fontSize: "clamp(20px, 3.5vw, 28px)",
               fontFamily: "var(--mono)",
               fontWeight: 900,
               color: "#ff0033",
@@ -582,10 +581,10 @@ export default function HomePage() {
             </h2>
             <p style={{
               fontFamily: "var(--mono)",
-              fontSize: "11px",
+              fontSize: "10px",
               color: "var(--text-muted)",
-              marginTop: "8px",
-              letterSpacing: "0.15em"
+              marginTop: "4px",
+              letterSpacing: "0.1em"
             }}>
               [ SECURE NODE UPLINK SHIELD IMMEDIATELY // VECTOR LOGIC LOADED ]
             </p>
@@ -594,65 +593,65 @@ export default function HomePage() {
           {/* Aggressive Layout Panel */}
           <div className="panel" style={{
             background: "#080808",
-            border: "3px solid #ff0033",
-            boxShadow: "0 0 40px rgba(255, 0, 51, 0.2)",
-            padding: "40px",
+            border: "1px solid #ff0033",
+            boxShadow: "0 0 20px rgba(255, 0, 51, 0.15)",
+            padding: "24px",
             position: "relative",
             borderRadius: "4px"
           }}>
             {/* Corner Bracket Details */}
-            <div style={{ position: "absolute", top: "10px", left: "10px", width: "20px", height: "20px", borderTop: "2px solid #ff0033", borderLeft: "2px solid #ff0033" }} />
-            <div style={{ position: "absolute", top: "10px", right: "10px", width: "20px", height: "20px", borderTop: "2px solid #ff0033", borderRight: "2px solid #ff0033" }} />
-            <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "20px", height: "20px", borderBottom: "2px solid #ff0033", borderLeft: "2px solid #ff0033" }} />
-            <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "20px", height: "20px", borderBottom: "2px solid #ff0033", borderRight: "2px solid #ff0033" }} />
+            <div style={{ position: "absolute", top: "8px", left: "8px", width: "12px", height: "12px", borderTop: "1.5px solid #ff0033", borderLeft: "1.5px solid #ff0033" }} />
+            <div style={{ position: "absolute", top: "8px", right: "8px", width: "12px", height: "12px", borderTop: "1.5px solid #ff0033", borderRight: "1.5px solid #ff0033" }} />
+            <div style={{ position: "absolute", bottom: "8px", left: "8px", width: "12px", height: "12px", borderBottom: "1.5px solid #ff0033", borderLeft: "1.5px solid #ff0033" }} />
+            <div style={{ position: "absolute", bottom: "8px", right: "8px", width: "12px", height: "12px", borderBottom: "1.5px solid #ff0033", borderRight: "1.5px solid #ff0033" }} />
 
             <div style={{
               position: "absolute",
-              top: "16px",
-              right: "24px",
+              top: "12px",
+              right: "16px",
               fontFamily: "var(--mono)",
-              fontSize: "11px",
+              fontSize: "10px",
               color: "rgba(255, 77, 77, 0.6)",
-              letterSpacing: "0.1em"
+              letterSpacing: "0.05em"
             }}>
-              NODE STAMP: {threatData?.publishDate || THREAT_OF_THE_DAY.publishDate} // SYSTEM SCAN
+              NODE STAMP: {threatData?.publishDate || THREAT_OF_THE_DAY.publishDate}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.7fr", gap: "32px", alignItems: "center" }} className="responsive-grid-2-large">
+            <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.7fr", gap: "24px", alignItems: "center" }} className="responsive-grid-2-large">
               
               {/* Left Column: Info */}
               <div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", textTransform: "uppercase", marginBottom: "6px", display: "flex", flexWrap: "wrap", alignItems: "center" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", textTransform: "uppercase", marginBottom: "4px", display: "flex", flexWrap: "wrap", alignItems: "center" }}>
                   <span>IDENTIFIED VECTOR: <span style={{ color: "var(--accent)" }}>{threatData?.codename || THREAT_OF_THE_DAY.codename}</span></span>
                   {threatData?.source && (
-                    <span style={{ marginLeft: "16px", color: "#00ffcc" }}>
+                    <span style={{ marginLeft: "12px", color: "#00ffcc" }}>
                       // SOURCE: {threatData.source}
                     </span>
                   )}
                 </div>
                 
                 <h1 className="glow-text" style={{
-                  fontSize: "clamp(32px, 4vw, 52px)",
-                  margin: "0 0 20px",
+                  fontSize: "clamp(22px, 3vw, 32px)",
+                  margin: "0 0 12px",
                   color: "#ffffff",
                   lineHeight: "1.1",
                   fontWeight: "bold",
                   textTransform: "uppercase",
-                  letterSpacing: "-0.02em"
+                  letterSpacing: "-0.01em"
                 }}>
                   {threatData?.name || THREAT_OF_THE_DAY.name}
                 </h1>
 
-                <div style={{ borderTop: "1px dashed rgba(255, 77, 77, 0.2)", paddingTop: "20px" }}>
-                  <p style={{ fontSize: "14.5px", color: "var(--text)", lineHeight: "1.8", margin: "0 0 24px" }}>
-                    <strong style={{ color: "#ff4d4d", fontFamily: "var(--mono)", fontSize: "11px", display: "block", marginBottom: "6px", letterSpacing: "0.1em" }}>
+                <div style={{ borderTop: "1px dashed rgba(255, 77, 77, 0.15)", paddingTop: "12px" }}>
+                  <p style={{ fontSize: "13.5px", color: "var(--text)", lineHeight: "1.6", margin: "0 0 14px" }}>
+                    <strong style={{ color: "#ff4d4d", fontFamily: "var(--mono)", fontSize: "10px", display: "block", marginBottom: "4px", letterSpacing: "0.05em" }}>
                       [ ASSESSMENT & BIOLOGICAL TRACE ]
                     </strong>
                     {threatData?.description || THREAT_OF_THE_DAY.description}
                   </p>
                   
-                  <p style={{ fontSize: "14.5px", color: "#00ffcc", lineHeight: "1.8", margin: 0 }}>
-                    <strong style={{ color: "#00ffcc", fontFamily: "var(--mono)", fontSize: "11px", display: "block", marginBottom: "6px", letterSpacing: "0.1em" }}>
+                  <p style={{ fontSize: "13.5px", color: "#00ffcc", lineHeight: "1.6", margin: 0 }}>
+                    <strong style={{ color: "#00ffcc", fontFamily: "var(--mono)", fontSize: "10px", display: "block", marginBottom: "4px", letterSpacing: "0.05em" }}>
                       [ REQUIRED SURVIVAL PROTOCOL ]
                     </strong>
                     {threatData?.countermeasure || THREAT_OF_THE_DAY.countermeasure}
@@ -662,9 +661,9 @@ export default function HomePage() {
 
               {/* Right Column: Risk Gauge & CTA */}
               <div style={{
-                background: "rgba(255, 0, 51, 0.03)",
-                border: "1px solid rgba(255, 77, 77, 0.15)",
-                padding: "32px 24px",
+                background: "rgba(255, 0, 51, 0.02)",
+                border: "1px solid rgba(255, 77, 77, 0.1)",
+                padding: "20px 16px",
                 textAlign: "center",
                 borderRadius: "2px",
                 display: "flex",
@@ -672,26 +671,26 @@ export default function HomePage() {
                 alignItems: "center",
                 justifyContent: "center"
               }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.1em", marginBottom: "6px" }}>
                   CRITICALITY LEVEL
                 </div>
 
                 <div style={{
                   position: "relative",
-                  width: "120px",
-                  height: "120px",
+                  width: "80px",
+                  height: "80px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   borderRadius: "50%",
-                  border: "4px double #ff0033",
-                  boxShadow: "0 0 20px rgba(255, 0, 51, 0.2)",
-                  marginBottom: "16px",
+                  border: "2px double #ff0033",
+                  boxShadow: "0 0 12px rgba(255, 0, 51, 0.15)",
+                  marginBottom: "12px",
                   background: "#030303"
                 }}>
                   <div style={{
                     fontFamily: "var(--mono)",
-                    fontSize: "36px",
+                    fontSize: "24px",
                     fontWeight: 900,
                     color: "#ff0033",
                   }}>
@@ -700,17 +699,17 @@ export default function HomePage() {
                 </div>
 
                 <span className="tag tag-red" style={{
-                  fontSize: "12px",
+                  fontSize: "10px",
                   fontFamily: "var(--mono)",
                   fontWeight: "bold",
-                  padding: "4px 12px",
-                  letterSpacing: "0.15em",
-                  marginBottom: "24px"
+                  padding: "3px 10px",
+                  letterSpacing: "0.1em",
+                  marginBottom: "16px"
                 }}>
                   STATUS: {threatData?.status || THREAT_OF_THE_DAY.status}
                 </span>
 
-                <Link href="/terminal" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "11px", boxShadow: "0 0 15px rgba(255,0,51,0.3)" }}>
+                <Link href="/terminal" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "10px", padding: "8px 12px", boxShadow: "0 0 10px rgba(255,0,51,0.2)" }}>
                   ASK RED QUEEN ABOUT THIS ↗
                 </Link>
               </div>
