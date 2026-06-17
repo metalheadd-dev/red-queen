@@ -5,6 +5,9 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Link from "next/link";
 import SolvivalIcon from "@/components/SolvivalIcon";
+import dynamic from "next/dynamic";
+
+const BroadcastMap = dynamic(() => import("@/components/BroadcastMap"), { ssr: false });
 
 interface Task {
   id: string;
@@ -132,6 +135,32 @@ function getComingSoonIcon(id: string) {
 }
 
 
+function getNodeColor(node: any): string {
+  if (node.category === "gdacs") {
+    const level = node.alertLevel || "Green";
+    if (level === "Red") return "#ff4d4d";
+    if (level === "Orange") return "#f97316";
+    if (level === "Green") return "#22c55e";
+    return "#22c55e";
+  }
+  if (node.category === "fictional")   return "#a855f7";
+  if (node.category === "satirical")   return "#f0c929";
+  if (node.category === "algorithmic") return "#00ffcc";
+  return "#ff4d4d"; // realistic
+}
+
+function getSectorLabel(node: any): string {
+  if (node.category === "gdacs") {
+    return `TACTICAL FEED // ${node.eventTypeName || node.type}`;
+  }
+  if (node.category === "realistic")   return `SECTOR ALPHA // ${node.type}`;
+  if (node.category === "fictional")   return "SECTOR BETA // ANOMALY";
+  if (node.category === "satirical")   return "SECTOR GAMMA // DEGENERACY";
+  if (node.category === "algorithmic") return "SECTOR DELTA // ALGORITHMIC";
+  return node.type;
+}
+
+
 export default function SolvivorsHubPage() {
   const OPERATIONS_COMING_SOON = false;
   const { user, session, authIdentifier } = useAuth();
@@ -140,8 +169,65 @@ export default function SolvivorsHubPage() {
 
   // Hub tabs: operations, broadcasts, lore, comics
   const [activeHub, setActiveHub] = useState<"operations" | "broadcasts" | "lore" | "comics">("operations");
+  
+  // Broadcasts map states
+  const [broadcastNodes, setBroadcastNodes] = useState<any[]>([]);
+  const [selectedBroadcastNode, setSelectedBroadcastNode] = useState<any>(null);
+  const [loadingBroadcasts, setLoadingBroadcasts] = useState(false);
+  const [broadcastFilter, setBroadcastFilter] = useState<string>("all");
+
   // Sub-toggle inside operations: tasks, bounties
   const [activeTab, setActiveTab] = useState<"tasks" | "bounties">("tasks");
+
+  useEffect(() => {
+    if (activeHub === "broadcasts" && broadcastNodes.length === 0) {
+      async function loadBroadcastData() {
+        setLoadingBroadcasts(true);
+        try {
+          // 1. Fetch live GDACS alerts
+          const gdacsRes = await fetch("/api/broadcasts/live");
+          const gdacsData = await gdacsRes.json();
+          const gdacsAlerts = gdacsData.alerts || [];
+
+          const formattedGdacs = gdacsAlerts.map((alert: any) => ({
+            id: `gdacs-${alert.id}`,
+            name: alert.title,
+            type: alert.eventTypeName || alert.eventType,
+            category: "gdacs",
+            severity: Math.round(alert.alertScore * 20) || 50,
+            lat: alert.lat,
+            lng: alert.lng,
+            region: alert.country || "Global",
+            desc: alert.desc,
+            alertLevel: alert.alertLevel,
+            pubDate: alert.pubDate,
+            link: alert.link
+          }));
+
+          // 2. Fetch existing threat map nodes
+          const threatRes = await fetch("/api/threat-map");
+          const threatData = await threatRes.json();
+
+          // Combine them!
+          const combined = [...formattedGdacs, ...threatData];
+          setBroadcastNodes(combined);
+          
+          if (combined.length > 0) {
+            setSelectedBroadcastNode(combined[0]);
+          }
+        } catch (err) {
+          console.error("Failed to load broadcast feeds:", err);
+        }
+        setLoadingBroadcasts(false);
+      }
+      loadBroadcastData();
+    }
+  }, [activeHub, broadcastNodes.length]);
+
+  const filteredBroadcastNodes = broadcastNodes.filter(node => {
+    if (broadcastFilter === "all") return true;
+    return node.category === broadcastFilter;
+  });
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [bounties, setBounties] = useState<Bounty[]>([]);
@@ -625,8 +711,141 @@ export default function SolvivorsHubPage() {
               )
             )}
           </div>
+        ) : activeHub === "broadcasts" ? (
+          // Dynamic WebGL Map and Live Feeds view
+          loadingBroadcasts ? (
+            <div style={{ textAlign: "center", padding: "100px 40px", fontFamily: "var(--mono)", color: "var(--accent)" }}>
+              [ ESTABLISHING DIGITAL TRANS-METADATA LINK... ]
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(255,255,255,0.08)", paddingBottom: "12px", flexWrap: "wrap", gap: "12px" }}>
+                <div>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)" }}>
+                    // LIVE BROADCAST MONITORING TERMINAL
+                  </span>
+                  <h2 style={{ fontSize: "20px", fontFamily: "var(--mono)", color: "#fff", margin: "4px 0 0" }}>
+                    SATELLITE INTEL TRANS-FEEDS
+                  </h2>
+                </div>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <span className="blink" style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#ff4d4d", boxShadow: "0 0 8px #ff4d4d", alignSelf: "center" }} />
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>
+                    UPLINK ACTIVE
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "24px", minHeight: "600px", flexWrap: "wrap" }}>
+                {/* Map Panel */}
+                <div style={{ 
+                  flex: 1, 
+                  minWidth: "320px", 
+                  border: "1px solid rgba(255,255,255,0.06)", 
+                  background: "rgba(10,10,10,0.5)",
+                  padding: "8px", 
+                  borderRadius: "4px",
+                  height: "600px",
+                  position: "relative"
+                }}>
+                  <BroadcastMap nodes={filteredBroadcastNodes} selectedNode={selectedBroadcastNode} onSelectNode={setSelectedBroadcastNode} />
+                </div>
+
+                {/* Sidebar feed list */}
+                <div style={{ 
+                  width: "350px", 
+                  minWidth: "300px", 
+                  display: "flex", 
+                  flexDirection: "column", 
+                  gap: "12px", 
+                  height: "600px" 
+                }}>
+                  {/* Category filters */}
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", background: "rgba(0,0,0,0.2)", padding: "4px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.03)" }}>
+                    {[
+                      { id: "all", label: "ALL", color: "#fff" },
+                      { id: "gdacs", label: "LIVE GDACS", color: "#22c55e" },
+                      { id: "realistic", label: "REALISTIC", color: "#ff4d4d" },
+                      { id: "fictional", label: "FICTIONAL", color: "#a855f7" },
+                      { id: "satirical", label: "SATIRICAL", color: "#f0c929" },
+                      { id: "algorithmic", label: "ALGORITHMIC", color: "#00ffcc" }
+                    ].map(f => {
+                      const active = broadcastFilter === f.id;
+                      return (
+                        <button
+                          key={f.id}
+                          onClick={() => setBroadcastFilter(f.id)}
+                          style={{
+                            flex: 1,
+                            padding: "6px 8px",
+                            fontFamily: "var(--mono)",
+                            fontSize: "9px",
+                            fontWeight: "bold",
+                            background: active ? "rgba(255,255,255,0.05)" : "transparent",
+                            border: "1px solid",
+                            borderColor: active ? f.color : "transparent",
+                            color: active ? "#fff" : "var(--text-dim)",
+                            cursor: "pointer",
+                            borderRadius: "2px",
+                            transition: "all 0.15s",
+                            textAlign: "center"
+                          }}
+                        >
+                          {f.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Scroller list */}
+                  <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingRight: "4px" }}>
+                    {filteredBroadcastNodes.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: "40px 10px", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "11px" }}>
+                        [ NO THREAT NODES FOUND FOR THIS VECTOR ]
+                      </div>
+                    ) : (
+                      filteredBroadcastNodes.map((node) => {
+                        const isSelected = selectedBroadcastNode?.id === node.id;
+                        const color = getNodeColor(node);
+                        const label = getSectorLabel(node);
+                        return (
+                          <div
+                            key={node.id}
+                            onClick={() => setSelectedBroadcastNode(node)}
+                            style={{
+                              padding: "12px",
+                              background: isSelected ? "rgba(255,255,255,0.03)" : "rgba(10, 10, 10, 0.4)",
+                              border: "1px solid",
+                              borderColor: isSelected ? color : "rgba(255, 255, 255, 0.05)",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              transition: "all 0.2s"
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", fontFamily: "var(--mono)", color: color, marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                              <span>[{label}]</span>
+                              <span>{node.severity}% Severity</span>
+                            </div>
+                            <div style={{ fontSize: "13px", fontWeight: "bold", color: "#fff", fontFamily: "var(--mono)" }}>{node.name}</div>
+                            <div style={{ fontSize: "11px", color: "var(--text-dim)", marginTop: "4px", lineHeight: "1.4" }}>
+                              {node.region}
+                            </div>
+                            {isSelected && node.desc && (
+                              <div style={{ fontSize: "11px", color: "#bbb", marginTop: "8px", borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "8px", lineHeight: "1.4" }}>
+                                {node.desc}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
         ) : (
-          // Coming Soon / Gated Hub tabs (Broadcasts, Lore, Comics)
+          // Lore & Comics tabs (still Gated/Coming Soon)
           <div style={{
             background: "rgba(10, 10, 10, 0.4)",
             border: "1px solid rgba(240, 201, 41, 0.15)",
@@ -640,17 +859,6 @@ export default function SolvivorsHubPage() {
             position: "relative"
           }}>
             {getComingSoonIcon(activeHub)}
-            
-            {activeHub === "broadcasts" && (
-              <>
-                <h2 style={{ fontSize: "20px", fontFamily: "var(--mono)", color: "#f0c929", letterSpacing: "0.15em", marginBottom: "12px" }}>
-                  [ DECODING SATELLITE UPLINK ]
-                </h2>
-                <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: "1.7", fontFamily: "var(--sans)", margin: "0 auto 28px", maxWidth: "480px" }}>
-                  Establishing secure channel metadata feeds. Tactical broadcasts, survival announcements, and news from the digital containment front lines will display here.
-                </p>
-              </>
-            )}
 
             {activeHub === "lore" && (
               <>
