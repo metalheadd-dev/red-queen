@@ -361,7 +361,7 @@ export default function SolvivorsHubPage() {
         }}>
           {[
             { id: "operations", label: "LIVE OPERATIONS", desc: OPERATIONS_COMING_SOON ? "Coming Soon" : "Missions & Bounties", isComing: OPERATIONS_COMING_SOON },
-            { id: "broadcasts", label: "BROADCASTS & NEWS", desc: "Coming Soon", isComing: true },
+            { id: "broadcasts", label: "BROADCASTS & NEWS", desc: "Live Threat Feed", isComing: false },
             { id: "lore", label: "LORE & ARCHIVES", desc: "Coming Soon", isComing: true },
             { id: "comics", label: "TACTICAL COMICS", desc: "Coming Soon", isComing: true }
           ].map((hub) => {

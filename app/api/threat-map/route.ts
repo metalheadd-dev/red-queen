@@ -187,6 +187,59 @@ export async function GET() {
     }
   ];
 
+  // Helper dictionary of coordinates for matching country names in news articles
+  const COUNTRY_COORDS: Record<string, { lat: number; lng: number }> = {
+    "usa": { lat: 37.0902, lng: -95.7129 },
+    "united states": { lat: 37.0902, lng: -95.7129 },
+    "china": { lat: 35.8617, lng: 104.1954 },
+    "india": { lat: 20.5937, lng: 78.9629 },
+    "brazil": { lat: -14.2350, lng: -51.9253 },
+    "united kingdom": { lat: 55.3781, lng: -3.4360 },
+    "uk": { lat: 55.3781, lng: -3.4360 },
+    "germany": { lat: 51.1657, lng: 10.4515 },
+    "france": { lat: 46.2276, lng: 2.2137 },
+    "japan": { lat: 36.2048, lng: 138.2529 },
+    "australia": { lat: -25.2744, lng: 133.7751 },
+    "canada": { lat: 56.1304, lng: -106.3468 },
+    "russia": { lat: 61.5240, lng: 105.3188 },
+    "south africa": { lat: -30.5595, lng: 22.9375 },
+    "argentina": { lat: -38.4161, lng: -63.6167 },
+    "venezuela": { lat: 6.4238, lng: -66.5897 },
+    "turkey": { lat: 38.9637, lng: 35.2433 },
+    "lebanon": { lat: 33.8547, lng: 35.8623 },
+    "congo": { lat: -4.0383, lng: 21.7587 },
+    "uganda": { lat: 1.3733, lng: 32.2903 },
+    "nigeria": { lat: 9.0820, lng: 8.6753 },
+    "kenya": { lat: -0.0236, lng: 37.9062 },
+    "saudi arabia": { lat: 23.8859, lng: 45.0792 },
+    "iran": { lat: 32.4279, lng: 53.6880 },
+    "egypt": { lat: 26.8206, lng: 30.8025 },
+    "mexico": { lat: 23.6345, lng: -102.5528 },
+    "colombia": { lat: 4.5709, lng: -74.2973 },
+    "peru": { lat: -9.1900, lng: -75.0152 },
+    "indonesia": { lat: -0.7893, lng: 113.9213 },
+    "thailand": { lat: 15.8700, lng: 100.9925 },
+    "vietnam": { lat: 14.0583, lng: 108.2772 },
+    "philippines": { lat: 12.8797, lng: 121.7740 },
+    "spain": { lat: 40.4637, lng: -3.7492 },
+    "italy": { lat: 41.8719, lng: 12.5674 },
+    "ukraine": { lat: 48.3794, lng: 31.1656 },
+    "poland": { lat: 51.9194, lng: 19.1451 },
+    "bolivia": { lat: -16.2902, lng: -63.5887 },
+    "ecuador": { lat: -1.8312, lng: -78.1834 }
+  };
+
+  function detectCountry(text: string): { lat: number; lng: number; name: string } {
+    const lower = text.toLowerCase();
+    for (const [country, coords] of Object.entries(COUNTRY_COORDS)) {
+      if (lower.includes(country)) {
+        return { lat: coords.lat, lng: coords.lng, name: country.toUpperCase() };
+      }
+    }
+    // Return slightly randomized location in mid-latitudes if unresolved
+    return { lat: 15 + Math.random() * 15, lng: -25 + Math.random() * 30, name: "Global Health Network" };
+  }
+
   try {
     // 1. Fetch USGS Earthquakes
     const usgsPromise = fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson")
@@ -252,41 +305,149 @@ export async function GET() {
       })
       .catch(() => []);
 
-    // 3. Fetch disease.sh (biological contagion events)
-    const diseasePromise = fetch("https://disease.sh/v3/covid-19/countries?sort=todayCases")
+    // 3. Fetch NOAA Space Weather alerts
+    const noaaPromise = fetch("https://services.swpc.noaa.gov/products/alerts.json")
       .then(res => res.json())
       .then(data => {
-        const countries = Array.isArray(data) ? data.slice(0, 2) : [];
-        return countries.map((c: any, index: number) => {
-          const lat = c.countryInfo?.lat || 0;
-          const lng = c.countryInfo?.long || 0;
-          const todayCases = c.todayCases || 0;
-          const active = c.active || 0;
-          const severity = Math.min(95, Math.max(60, Math.round((todayCases / Math.max(1, c.population)) * 100000) + 70));
+        const alerts = Array.isArray(data) ? data : [];
+        const resultNodes: any[] = [];
+        
+        const stormAlerts = alerts
+          .filter((a: any) => {
+            const msg = (a.message || "").toUpperCase();
+            return msg.includes("ALERT:") || msg.includes("WARNING:") || msg.includes("STORM") || msg.includes("FLUX");
+          })
+          .slice(0, 2);
           
-          return {
-            id: `disease-${index}-${c.countryInfo?.iso2 || c.country}`,
-            name: `${c.country} Pathogen Spike`,
-            type: "BIOLOGICAL" as const,
+        stormAlerts.forEach((a: any, idx: number) => {
+          const message = a.message || "";
+          const isFlare = message.toUpperCase().includes("FLUX") || message.toUpperCase().includes("FLARE");
+          const title = isFlare ? "Active Solar Radiation Alert" : "Geomagnetic Storm Warning";
+          
+          // Place alerts near auroral oval centers (Alaska/Yukon or Svalbard)
+          const isSvalbard = idx % 2 === 0;
+          const lat = isSvalbard ? 78.2232 : 64.2008;
+          const lng = isSvalbard ? 15.6469 : -149.4937;
+          const region = isSvalbard ? "Svalbard Auroral Zone" : "Alaska Auroral Zone";
+          
+          const cleanMsg = message
+            .replace(/\r\n/g, " ")
+            .replace(/\n/g, " ")
+            .substring(0, 160) + "...";
+            
+          resultNodes.push({
+            id: `noaa-alert-${idx}`,
+            name: title,
+            type: "METEOROLOGICAL" as const,
             category: "realistic" as const,
-            severity,
+            severity: message.toUpperCase().includes("SEVERE") || message.toUpperCase().includes("EXTREME") ? 92 : 78,
             lat,
             lng,
             coords: geoToSvg(lat, lng),
-            region: c.country,
-            desc: `disease.sh: Pathogen transmission load elevated. Today cases: ${todayCases.toLocaleString()}, active caseload: ${active.toLocaleString()}.`,
-            solution: "Enforce strict respirator discipline, isolate from high-density transit nodes.",
-            analysis: `RED QUEEN: Biological vector registered in ${c.country}. Ensure HEPA filtration is active in local shelter modules.`
-          };
+            region,
+            desc: `NOAA SWPC: ${cleanMsg}`,
+            solution: "Shield sensitive computing nodes in Faraday frames, transition satellite links to laser transponders.",
+            analysis: `RED QUEEN: Solar geomagnetic influx registered at ${region}. Electromagnetic shielding factor downgraded by 8%.`
+          });
         });
+        
+        return resultNodes;
       })
       .catch(() => []);
 
-    const [usgsNodes, nasaNodes, diseaseNodes] = await Promise.all([usgsPromise, nasaPromise, diseasePromise]);
+    // 4. Fetch Google News RSS for Disease Outbreaks
+    const googleNewsPromise = fetch("https://news.google.com/rss/search?q=disease+outbreak+OR+virus+outbreak+OR+who+alert&hl=en-US&gl=US&ceid=US:en")
+      .then(res => res.text())
+      .then(xmlText => {
+        const items: any[] = [];
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        let match;
+        let index = 0;
+        
+        while ((match = itemRegex.exec(xmlText)) !== null && index < 2) {
+          const item = match[1];
+          const titleMatch = item.match(/<title>([\s\S]*?)<\/title>/i);
+          const fullTitle = titleMatch ? titleMatch[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<\/?[^>]+(>|$)/g, "").trim() : "";
+          
+          if (!fullTitle) continue;
+          const cleanTitle = fullTitle.split(" - ")[0].trim();
+          
+          const pubDateMatch = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/i);
+          const pubDate = pubDateMatch ? pubDateMatch[1].trim() : new Date().toUTCString();
+          
+          const countryInfo = detectCountry(cleanTitle);
+          const severity = 75 + Math.floor(Math.random() * 20);
+          
+          items.push({
+            id: `news-outbreak-${index}`,
+            name: cleanTitle,
+            type: "BIOLOGICAL" as const,
+            category: "realistic" as const,
+            severity,
+            lat: countryInfo.lat,
+            lng: countryInfo.lng,
+            coords: geoToSvg(countryInfo.lat, countryInfo.lng),
+            region: countryInfo.name,
+            desc: `Google News Outbreaks Feed: ${cleanTitle}. Reported date: ${pubDate}.`,
+            solution: "Enforce standard respirator masks, avoid crowded gathering areas, follow local public health advisories.",
+            analysis: `RED QUEEN: Active biological outbreak vector monitored in ${countryInfo.name}. Initiating biological quarantine scan protocols.`
+          });
+          index++;
+        }
+        return items;
+      })
+      .catch(() => []);
+
+    // 5. Fetch Exchange Rates Volatility (Inflation metrics)
+    const exchangePromise = fetch("https://open.er-api.com/v6/latest/USD")
+      .then(res => res.json())
+      .then(data => {
+        const rates = data.rates || {};
+        const resultNodes: any[] = [];
+        
+        const monitored = [
+          { code: "VES", country: "Venezuela", lat: 6.4238, lng: -66.5897, name: "VES Currency Volatility", idKey: "ves" },
+          { code: "ARS", country: "Argentina", lat: -38.4161, lng: -63.6167, name: "ARS Inflation Pressure", idKey: "ars" },
+          { code: "TRY", country: "Turkey", lat: 38.9637, lng: 35.2433, name: "TRY Lira Devaluation", idKey: "try" }
+        ];
+        
+        monitored.forEach((item) => {
+          const rate = rates[item.code];
+          if (rate) {
+            resultNodes.push({
+              id: `exchange-rate-${item.idKey}`,
+              name: item.name,
+              type: "KINETIC" as const,
+              category: "realistic" as const,
+              severity: 80,
+              lat: item.lat,
+              lng: item.lng,
+              coords: geoToSvg(item.lat, item.lng),
+              region: item.country,
+              desc: `Exchange Rate API: Fiat value devalued to ${Number(rate).toLocaleString()} ${item.code} per USD. High inflationary volatility indexes flagged.`,
+              solution: "Safeguard liquid assets in decentralized stablecoins, hedge reserves using tokenized hard commodities.",
+              analysis: `RED QUEEN: Hyperinflationary feedback loops active in ${item.country}. Traditional monetary buffers are collapsing.`
+            });
+          }
+        });
+        
+        return resultNodes;
+      })
+      .catch(() => []);
+
+    const [usgsNodes, nasaNodes, noaaNodes, newsNodes, exchangeNodes] = await Promise.all([
+      usgsPromise,
+      nasaPromise,
+      noaaPromise,
+      googleNewsPromise,
+      exchangePromise
+    ]);
 
     nodes.push(...usgsNodes);
     nodes.push(...nasaNodes);
-    nodes.push(...diseaseNodes);
+    nodes.push(...noaaNodes);
+    nodes.push(...newsNodes);
+    nodes.push(...exchangeNodes);
 
     // Merge fallback data if API yields too few nodes
     if (nodes.length < 2) {

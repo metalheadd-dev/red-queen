@@ -22,8 +22,8 @@
 * **x402 Protocol Integration**: The backend automatically validates transaction signatures via the PayAI Facilitator network, releasing premium briefs in under 400ms.
 
 ### 🗺️ Live Tactical Map
-* **Global Threat Visualizer**: A Mapbox-powered interactive 3D tactical map displaying active fallout, biohazard zones, and target containment areas worldwide.
-* **Simulated Hotspots**: Real-time rendering of simulated crises (nuclear fallout, pandemics, quarantine zones) to aid tactical navigation.
+* **Global Threat Visualizer**: An open-source, keyless MapLibre GL interactive tactical map displaying active natural hazards, fallout, and target containment areas worldwide.
+* **Simulated Hotspots**: Real-time rendering of simulated and real-world crisis markers to aid tactical navigation.
 
 ### 📊 Survivor Dossier & BIO-SCORE
 * **Preparedness Calibration**: The Red Queen evaluates every interaction to assign you a dynamic **BIO-SCORE** (0-100%).
@@ -53,7 +53,7 @@
 * **Styling**: Crimson-and-black custom CSS, glowing grid elements, terminal aesthetic
 * **Intelligence**: OpenAI API (gpt-4o-mini) & Gemini 1.5 Pro
 * **Database**: Supabase
-* **Mapping**: Mapbox GL JS (3D visualization)
+* **Mapping**: MapLibre GL JS (keyless vector maps)
 
 ---
 

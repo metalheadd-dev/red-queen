@@ -1,10 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-
-const DEFAULT_USER_TOKEN = "pk.eyJ1IjoicG9seWh1bnQyMyIsImEiOiJjbXBzbjh1bjkwZWZjMnFzZTNraDN6dzU2In0.AaOHetOyEbtDlQnlR4qz3Q";
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || DEFAULT_USER_TOKEN;
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 interface MapNode {
   id: string;
@@ -47,19 +44,16 @@ function getSectorLabel(node: MapNode): string {
 
 export default function TacticalMap({ nodes, onSelectNode, selectedNode }: TacticalMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  const markersRef = useRef<maplibregl.Marker[]>([]);
   const nodesRef = useRef<MapNode[]>(nodes);
   const onSelectRef = useRef(onSelectNode);
   const [mapError, setMapError] = useState<string | null>(null);
 
-  // Keep refs in sync with latest props (avoid stale closures)
   nodesRef.current = nodes;
   onSelectRef.current = onSelectNode;
 
-  // ── Core function: clear all markers and re-add from nodesRef ──
-  function rebuildMarkers(map: mapboxgl.Map) {
-    // Remove existing markers
+  function rebuildMarkers(map: maplibregl.Map) {
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
@@ -80,7 +74,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
           <div class="marker-core" style="background:${color}"></div>
         `;
 
-        const popup = new mapboxgl.Popup({
+        const popup = new maplibregl.Popup({
           offset: 15,
           closeButton: false,
           className: "tactical-popup tactical-popup-" + (node.category || "realistic")
@@ -94,7 +88,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
           </div>
         `);
 
-        const marker = new mapboxgl.Marker({ element: el })
+        const marker = new maplibregl.Marker({ element: el })
           .setLngLat([lng, lat])
           .setPopup(popup)
           .addTo(map);
@@ -103,7 +97,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
         el.addEventListener("mouseleave", () => popup.remove());
         el.addEventListener("click", () => {
           onSelectRef.current(node);
-          try { map.flyTo({ center: [lng, lat], zoom: 4, speed: 1.2, curve: 1.4, essential: true }); } catch {}
+          try { map.flyTo({ center: [lng, lat], zoom: 4.5, speed: 1.2, curve: 1.4, essential: true }); } catch {}
         });
 
         markersRef.current.push(marker);
@@ -112,68 +106,48 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
       }
     });
 
-    // If many nodes (all sectors view), zoom to global so all colors visible
     if (nodesRef.current.length > 25) {
       try { map.flyTo({ center: [15, 20], zoom: 1.4, speed: 1.0, essential: true }); } catch {}
     }
   }
 
-  // ── Initialize map once ──
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
     try {
-      const map = new mapboxgl.Map({
+      const map = new maplibregl.Map({
         container: mapContainerRef.current,
-        style: "mapbox://styles/mapbox/dark-v11",
+        style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
         center: [15, 25],
         zoom: 1.4,
-        pitch: 25,
-        projection: { name: "globe" } as any,
+        pitch: 20,
         attributionControl: false
       });
 
       mapRef.current = map;
-      map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), "top-right");
-      // Minimal attribution in bottom-right (required by Mapbox TOS)
-      map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
+      map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
+      map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
 
-      // Use 'load' (fires after tiles ready) instead of 'style.load' for reliable marker placement
       map.on("load", () => {
-        try {
-          map.setFog({
-            color: "rgb(15, 10, 10)",
-            "high-color": "rgb(36, 10, 10)",
-            "space-color": "rgb(0, 0, 0)",
-            "horizon-blend": 0.02
-          });
-        } catch {}
-        // 100ms buffer to ensure globe projection is fully initialized
         setTimeout(() => rebuildMarkers(map), 100);
       });
 
       return () => { map.remove(); };
     } catch (err: any) {
-      console.error("Mapbox init failed:", err);
-      setMapError(err.message || "WebGL context is unsupported or Mapbox token is invalid.");
+      console.error("MapLibre init failed on main page:", err);
+      setMapError(err.message || "WebGL context is unsupported or MapLibre stylesheet is offline.");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Rebuild markers when nodes prop changes ──
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     if (map.isStyleLoaded()) {
       rebuildMarkers(map);
-    } else {
-      // Style not ready yet — wait for it (handled by the style.load listener above)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes]);
 
-  // ── Fly to selected node when it changes ──
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !selectedNode || !map.isStyleLoaded()) return;
@@ -191,7 +165,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
   if (mapError) {
     return (
       <div style={{
-        position: "relative", width: "100%", height: "420px", borderRadius: "2px",
+        position: "relative", width: "100%", height: "500px", borderRadius: "2px",
         overflow: "hidden", border: "1px solid rgba(255,77,77,0.3)",
         background: "rgba(15,10,10,0.9)", display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", padding: "24px",
@@ -219,7 +193,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
   }
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "420px", borderRadius: "2px", overflow: "hidden" }}>
+    <div style={{ position: "relative", width: "100%", height: "500px", borderRadius: "2px", overflow: "hidden" }}>
       <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
       <style jsx global>{`
         .tactical-marker { display:flex;align-items:center;justify-content:center; }
@@ -230,20 +204,19 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
           70%  { transform:scale(1.8);opacity:0; }
           100% { transform:scale(1.8);opacity:0; }
         }
-        .mapboxgl-popup-content { background:rgba(5,5,5,0.95)!important;border:1px solid #ff4d4d!important;border-radius:2px!important;padding:10px 14px!important;color:var(--text)!important;box-shadow:0 4px 20px rgba(0,0,0,0.8)!important; }
-        .mapboxgl-popup-tip { border-top-color:#ff4d4d!important;border-bottom-color:#ff4d4d!important; }
-        .tactical-popup-realistic .mapboxgl-popup-content { border-color:#ff4d4d!important; }
-        .tactical-popup-fictional  .mapboxgl-popup-content { border-color:#a855f7!important; }
-        .tactical-popup-fictional  .mapboxgl-popup-tip     { border-top-color:#a855f7!important;border-bottom-color:#a855f7!important; }
-        .tactical-popup-satirical  .mapboxgl-popup-content { border-color:#f0c929!important; }
-        .tactical-popup-satirical  .mapboxgl-popup-tip     { border-top-color:#f0c929!important;border-bottom-color:#f0c929!important; }
-        .tactical-popup-algorithmic .mapboxgl-popup-content { border-color:#00ffcc!important; }
-        .tactical-popup-algorithmic .mapboxgl-popup-tip    { border-top-color:#00ffcc!important;border-bottom-color:#00ffcc!important; }
-        /* Minimize watermark — attribution text kept (Mapbox TOS), logo hidden */
-        .mapboxgl-ctrl-logo { display:none!important; }
-        .mapboxgl-ctrl-attrib { background:rgba(0,0,0,0.4)!important;font-size:9px!important;opacity:0.4!important;transition:opacity 0.2s; }
-        .mapboxgl-ctrl-attrib:hover { opacity:1!important; }
-        .mapboxgl-ctrl-attrib a { color:#666!important; }
+        .maplibregl-popup-content { background:rgba(5,5,5,0.95)!important;border:1px solid #ff4d4d!important;border-radius:2px!important;padding:10px 14px!important;color:var(--text)!important;box-shadow:0 4px 20px rgba(0,0,0,0.8)!important; }
+        .maplibregl-popup-tip { border-top-color:#ff4d4d!important;border-bottom-color:#ff4d4d!important; }
+        .tactical-popup-realistic .maplibregl-popup-content { border-color:#ff4d4d!important; }
+        .tactical-popup-fictional  .maplibregl-popup-content { border-color:#a855f7!important; }
+        .tactical-popup-fictional  .maplibregl-popup-tip     { border-top-color:#a855f7!important;border-bottom-color:#a855f7!important; }
+        .tactical-popup-satirical  .maplibregl-popup-content { border-color:#f0c929!important; }
+        .tactical-popup-satirical  .maplibregl-popup-tip     { border-top-color:#f0c929!important;border-bottom-color:#f0c929!important; }
+        .tactical-popup-algorithmic .maplibregl-popup-content { border-color:#00ffcc!important; }
+        .tactical-popup-algorithmic .maplibregl-popup-tip    { border-top-color:#00ffcc!important;border-bottom-color:#00ffcc!important; }
+        .maplibregl-ctrl-logo { display:none!important; }
+        .maplibregl-ctrl-attrib { background:rgba(0,0,0,0.4)!important;font-size:9px!important;opacity:0.4!important;transition:opacity 0.2s; }
+        .maplibregl-ctrl-attrib:hover { opacity:1!important; }
+        .maplibregl-ctrl-attrib a { color:#666!important; }
       `}</style>
     </div>
   );

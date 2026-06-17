@@ -9,7 +9,7 @@ import { THREAT_OF_THE_DAY } from "@/lib/threatOfTheDay";
 const TacticalMap = dynamic(() => import("@/components/TacticalMap"), {
   ssr: false,
   loading: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", justifyContent: "center", height: "420px", fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "12px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", justifyContent: "center", height: "500px", fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "12px" }}>
       <span className="loading-dots">INITIALIZING TACTICAL MAP SENSORS<span>.</span><span>.</span><span>.</span></span>
     </div>
   )
@@ -78,7 +78,7 @@ export default function HomePage() {
     sessionStorage.setItem("rq-booted", "1");
     setBooted(true);
   };
-  const [threatData, setThreatData] = useState<{ scenario: string; transmission: string } | null>(null);
+  const [threatData, setThreatData] = useState<any>(null);
   const [loadingThreat, setLoadingThreat] = useState(false);
   
   // Interactive state
@@ -154,8 +154,14 @@ export default function HomePage() {
       setThreatData(data);
     } catch {
       setThreatData({
-        scenario: "WALLET-TRAIL",
-        transmission: "[ERR_0x9B] SIGNAL CORRUPTED. RE-ESTABLISH UPLINK.",
+        codename: "SYS-MOCK",
+        name: "SECTOR ALERT PROTOCOL",
+        description: "[ERR_0x9B] Queen uplink lost. Re-establishing telemetry streams.",
+        countermeasure: "Remain in secure quadrants, stand by for telemetry reset.",
+        severity: 99,
+        status: "CRITICAL",
+        publishDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
+        source: "Mainframe Connection Terminal"
       });
     }
     setLoadingThreat(false);
@@ -609,15 +615,20 @@ export default function HomePage() {
               color: "rgba(255, 77, 77, 0.6)",
               letterSpacing: "0.1em"
             }}>
-              NODE STAMP: {THREAT_OF_THE_DAY.publishDate} // SYSTEM SCAN
+              NODE STAMP: {threatData?.publishDate || THREAT_OF_THE_DAY.publishDate} // SYSTEM SCAN
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.7fr", gap: "32px", alignItems: "center" }} className="responsive-grid-2-large">
               
               {/* Left Column: Info */}
               <div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", textTransform: "uppercase", marginBottom: "6px" }}>
-                  IDENTIFIED VECTOR: <span style={{ color: "var(--accent)" }}>{THREAT_OF_THE_DAY.codename}</span>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", textTransform: "uppercase", marginBottom: "6px", display: "flex", flexWrap: "wrap", alignItems: "center" }}>
+                  <span>IDENTIFIED VECTOR: <span style={{ color: "var(--accent)" }}>{threatData?.codename || THREAT_OF_THE_DAY.codename}</span></span>
+                  {threatData?.source && (
+                    <span style={{ marginLeft: "16px", color: "#00ffcc" }}>
+                      // SOURCE: {threatData.source}
+                    </span>
+                  )}
                 </div>
                 
                 <h1 className="glow-text" style={{
@@ -629,7 +640,7 @@ export default function HomePage() {
                   textTransform: "uppercase",
                   letterSpacing: "-0.02em"
                 }}>
-                  {THREAT_OF_THE_DAY.name}
+                  {threatData?.name || THREAT_OF_THE_DAY.name}
                 </h1>
 
                 <div style={{ borderTop: "1px dashed rgba(255, 77, 77, 0.2)", paddingTop: "20px" }}>
@@ -637,14 +648,14 @@ export default function HomePage() {
                     <strong style={{ color: "#ff4d4d", fontFamily: "var(--mono)", fontSize: "11px", display: "block", marginBottom: "6px", letterSpacing: "0.1em" }}>
                       [ ASSESSMENT & BIOLOGICAL TRACE ]
                     </strong>
-                    {THREAT_OF_THE_DAY.description}
+                    {threatData?.description || THREAT_OF_THE_DAY.description}
                   </p>
                   
                   <p style={{ fontSize: "14.5px", color: "#00ffcc", lineHeight: "1.8", margin: 0 }}>
                     <strong style={{ color: "#00ffcc", fontFamily: "var(--mono)", fontSize: "11px", display: "block", marginBottom: "6px", letterSpacing: "0.1em" }}>
                       [ REQUIRED SURVIVAL PROTOCOL ]
                     </strong>
-                    {THREAT_OF_THE_DAY.countermeasure}
+                    {threatData?.countermeasure || THREAT_OF_THE_DAY.countermeasure}
                   </p>
                 </div>
               </div>
@@ -684,7 +695,7 @@ export default function HomePage() {
                     fontWeight: 900,
                     color: "#ff0033",
                   }}>
-                    {THREAT_OF_THE_DAY.severity}%
+                    {threatData?.severity || THREAT_OF_THE_DAY.severity}%
                   </div>
                 </div>
 
@@ -696,7 +707,7 @@ export default function HomePage() {
                   letterSpacing: "0.15em",
                   marginBottom: "24px"
                 }}>
-                  STATUS: {THREAT_OF_THE_DAY.status}
+                  STATUS: {threatData?.status || THREAT_OF_THE_DAY.status}
                 </span>
 
                 <Link href="/terminal" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "11px", boxShadow: "0 0 15px rgba(255,0,51,0.3)" }}>
@@ -749,13 +760,13 @@ export default function HomePage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "32px", marginTop: "24px" }} className="responsive-grid-2-large">
             {/* Mapbox Network Map */}
-            <div className="panel" style={{ background: "#020202", borderColor: "rgba(255,0,51,0.15)", position: "relative", minHeight: "420px", padding: "0", overflow: "hidden" }}>
+            <div className="panel" style={{ background: "#020202", borderColor: "rgba(255,0,51,0.15)", position: "relative", minHeight: "500px", padding: "0", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: "16px", left: "16px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", zIndex: 10, background: "rgba(0,0,0,0.6)", padding: "4px 8px", borderRadius: "2px" }}>
                 [ SYSTEM RADAR MONITORING NETWORK // LIVE GEOGRAPHY ]
               </div>
 
               {loadingMap || !Array.isArray(mapNodes) || mapNodes.length === 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", justifyContent: "center", height: "420px", fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "12px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", justifyContent: "center", height: "500px", fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "12px" }}>
                   <span className="loading-dots">SYNCHRONIZING TACTICAL RADAR NODES<span>.</span><span>.</span><span>.</span></span>
                 </div>
               ) : (() => {

@@ -491,26 +491,26 @@ export default function SurvivalKitPage() {
           {activeTab === "map-config" && (
             <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               <p style={{ fontSize: "16px", color: "var(--text-dim)", lineHeight: "1.8" }}>
-                Connecting the Mapbox API enables full geographic tracking and high-fidelity rendering of active global threat vectors. Follow these instructions to authenticate and deploy the live tactical map:
+                The RED QUEEN mapping system is fully decentralized, running on keyless GPU-accelerated MapLibre GL. This eliminates proprietary access tokens, API request caps, and setup requirements. Here is how the tactical feed functions:
               </p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 {[
                   {
-                    step: "1. CREATE MAPBOX ACCOUNT",
-                    desc: "Visit Mapbox (mapbox.com) and register for a developer account. The base tier is free and offers generous monthly tile loading allowances."
+                    step: "1. OPEN-SOURCE ENGINE",
+                    desc: "Leverages MapLibre GL, a high-performance open-source fork of Mapbox GL. It communicates directly with client-side WebGL/WebGPU layers to render maps natively."
                   },
                   {
-                    step: "2. OBTAIN PUBLIC ACCESS TOKEN",
-                    desc: "Navigate to your Account Dashboard and copy the default public access token. Public tokens always start with the prefix 'pk.eyJ...'."
+                    step: "2. KEYLESS VECTOR TILES",
+                    desc: "Uses CartoDB's public dark-matter vector tile stylesheets. No developer account creation or authorization headers are necessary to load the global basemap."
                   },
                   {
-                    step: "3. ROOT ENVIRONMENT CONFIGURATION",
-                    desc: "Create or open a '.env.local' file in the root directory of your project. Inject your token using the public client prefix: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.your_token_here"
+                    step: "3. ZERO-CONFIGURATION DEPLOYMENTS",
+                    desc: "Since the map is keyless, NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN and other external API keys are completely obsolete. Dev nodes and production pipelines compile cleanly out-of-the-box."
                   },
                   {
-                    step: "4. VERCEL DEPLOYMENT CONFIGURATION",
-                    desc: "When deploying to Vercel, navigate to Project Settings > Environment Variables. Add the key 'NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN' with your copied token as the value, then trigger a redeploy to inject the environment build variable."
+                    step: "4. LIVE telemetry parsing",
+                    desc: "Integrates directly with backend APIs parsing live geological tremors from USGS, environmental anomalies from NASA EONET, and natural disaster alert events from GDACS."
                   }
                 ].map((item, idx) => (
                   <div key={idx} style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.03)", padding: "16px 20px", borderRadius: "2px" }}>
@@ -521,9 +521,9 @@ export default function SurvivalKitPage() {
               </div>
 
               <div className="panel" style={{ background: "#0c0c0c", borderColor: "rgba(0, 255, 204, 0.15)", padding: "24px" }}>
-                <h3 style={{ fontSize: "15px", color: "#00ffcc", marginBottom: "8px", fontFamily: "var(--mono)" }}>🛰️ AUTOMATED GRID FALLBACK</h3>
+                <h3 style={{ fontSize: "15px", color: "#00ffcc", marginBottom: "8px", fontFamily: "var(--mono)" }}>🛰️ HARDWARE ACCELERATION NOTICE</h3>
                 <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", margin: 0 }}>
-                  If the <code>NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code> environment variable is missing, the RED QUEEN will automatically fallback to a low-fidelity local terminal matrix simulator, preserving the tactical interface styling while logging diagnostic warning events in the console.
+                  MapLibre GL requires WebGL context support. If the radar map fails to load, verify that hardware acceleration is enabled in your browser settings and that privacy blockers are not preventing canvas rendering.
                 </p>
               </div>
             </div>
