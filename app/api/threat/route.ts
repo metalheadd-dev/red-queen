@@ -168,7 +168,7 @@ You must output a JSON object containing exactly the following keys:
   "countermeasure": "Direct, practical survival instructions for operatives to safeguard their health, computing links, or resources.",
   "severity": A number between 65 and 99 representing the severity percentage,
   "status": "CRITICAL", "SEVERE", or "HIGH",
-  "location": "A short description of the primary geographical region or target zone affected, e.g., 'Central Mid-Atlantic Ridge', 'Philippines Basin', 'Global High-Altitude Orbit'",
+  "location": "A highly concrete description of the primary geographical target/epicenter affected, citing specific cities, coordinate bounds, local sub-regions, or states derived from the telemetry details (e.g., 'Cruz Bay, U.S. Virgin Islands', 'Venilale, Timor-Leste', or 'Fairbanks Auroral Zone, Alaska (64.8° N)')",
   "publishDate": "E.g. 'JUN 17, 2026'",
   "source": "A short list of the actual sources used for this threat, e.g., 'USGS Seismic & NOAA Space Feeds' or 'GDACS Flood telemetry & WHO Disease reports'"
 }
