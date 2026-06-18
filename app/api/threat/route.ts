@@ -130,6 +130,7 @@ export async function POST() {
     countermeasure: "Acknowledge primary firewall guidelines. Monitor local environment vectors.",
     severity: 85,
     status: "CRITICAL",
+    location: "Global Containment Sectors",
     publishDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
     source: "System Mainframe Fallback Backup Logs"
   };
@@ -167,6 +168,7 @@ You must output a JSON object containing exactly the following keys:
   "countermeasure": "Direct, practical survival instructions for operatives to safeguard their health, computing links, or resources.",
   "severity": A number between 65 and 99 representing the severity percentage,
   "status": "CRITICAL", "SEVERE", or "HIGH",
+  "location": "A short description of the primary geographical region or target zone affected, e.g., 'Central Mid-Atlantic Ridge', 'Philippines Basin', 'Global High-Altitude Orbit'",
   "publishDate": "E.g. 'JUN 17, 2026'",
   "source": "A short list of the actual sources used for this threat, e.g., 'USGS Seismic & NOAA Space Feeds' or 'GDACS Flood telemetry & WHO Disease reports'"
 }
@@ -191,6 +193,7 @@ Keep descriptions and countermeasures technical, cold, and post-apocalyptic in t
       countermeasure: parsed.countermeasure || "Remain inside secure quarantine zones.",
       severity: parsed.severity || 80,
       status: parsed.status || "CRITICAL",
+      location: parsed.location || "Global Containment Zones",
       publishDate: parsed.publishDate || fallbackData.publishDate,
       source: parsed.source || "Multiple Telemetry Sources"
     });

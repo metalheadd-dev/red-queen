@@ -704,10 +704,42 @@ export default function HomePage() {
                   fontWeight: "bold",
                   padding: "3px 10px",
                   letterSpacing: "0.1em",
-                  marginBottom: "16px"
+                  marginBottom: "12px"
                 }}>
                   STATUS: {loadingThreat ? "SCANNING" : (threatData?.status || THREAT_OF_THE_DAY.status)}
                 </span>
+
+                {/* Target Zone */}
+                <div style={{ 
+                  width: "100%", 
+                  borderTop: "1px dashed rgba(255, 77, 77, 0.15)", 
+                  paddingTop: "10px", 
+                  marginBottom: "10px", 
+                  textAlign: "left" 
+                }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "3px" }}>
+                    TARGET ZONE
+                  </div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", fontWeight: "bold", textTransform: "uppercase", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", maxHeight: "32px", lineHeight: "1.2" }} title={loadingThreat ? "Calculating..." : (threatData?.location || "Global Sectors")}>
+                    📍 {loadingThreat ? "CALCULATING..." : (threatData?.location || "Global Sectors")}
+                  </div>
+                </div>
+
+                {/* Data Sources */}
+                <div style={{ 
+                  width: "100%", 
+                  borderTop: "1px dashed rgba(255, 77, 77, 0.15)", 
+                  paddingTop: "10px", 
+                  marginBottom: "16px", 
+                  textAlign: "left" 
+                }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "3px" }}>
+                    TELEMETRY SOURCE
+                  </div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "rgba(255, 255, 255, 0.7)", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", maxHeight: "30px", lineHeight: "1.2" }} title={loadingThreat ? "Scanning DePIN links..." : (threatData?.source || "Multiple Sources")}>
+                    📡 {loadingThreat ? "SCANNING DEPIN..." : (threatData?.source || "Multiple Sources")}
+                  </div>
+                </div>
 
                 <Link href="/terminal" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "10px", padding: "8px 12px", boxShadow: "0 0 10px rgba(255,0,51,0.2)" }}>
                   ASK RED QUEEN ABOUT THIS ↗
