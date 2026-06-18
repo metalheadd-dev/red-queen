@@ -49,7 +49,10 @@ export default function AdminDashboardPage() {
 
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
-  const [activeTab, setActiveTab] = useState<"submissions" | "create" | "manage">("submissions");
+  const [activeTab, setActiveTab] = useState<"submissions" | "create" | "manage" | "twitter">("submissions");
+  const [tweetText, setTweetText] = useState(
+    "gmgn guys. Made several deployments and updates for Red Queen:\n\n1. Live threat telemetry (NOAA space weather, USGS earthquakes, GDELT disease RSS & GDACS) integrated.\n2. Gemini AI dynamically synthesizes the homepage Threat of the Day card with source citations.\n3. Swapped Mapbox GL for open-source MapLibre GL."
+  );
 
   // Content creation form states
   const [createType, setCreateType] = useState<"task" | "bounty">("task");
@@ -314,7 +317,7 @@ export default function AdminDashboardPage() {
               COMMAND <span style={{ color: "var(--accent)" }}>CONTROL</span>
             </h1>
           </div>
-          <div style={{ display: "flex", gap: "12px" }}>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             <button
               onClick={() => setActiveTab("submissions")}
               className="btn"
@@ -350,6 +353,19 @@ export default function AdminDashboardPage() {
               }}
             >
               MANAGE ACTIVE MISSIONS
+            </button>
+            <button
+              onClick={() => setActiveTab("twitter")}
+              className="btn"
+              style={{
+                fontSize: "12px",
+                fontFamily: "var(--mono)",
+                borderColor: activeTab === "twitter" ? "#1d9bf0" : "rgba(255,255,255,0.05)",
+                background: activeTab === "twitter" ? "rgba(29, 155, 240, 0.05)" : "transparent",
+                color: activeTab === "twitter" ? "#1d9bf0" : "var(--text)"
+              }}
+            >
+              𝕏 / TWITTER COMPOSER
             </button>
           </div>
         </div>

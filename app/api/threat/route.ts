@@ -3,9 +3,25 @@ import OpenAI from "openai";
 
 export const dynamic = "force-dynamic";
 
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 4000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+}
+
 async function fetchUSGS() {
   try {
-    const res = await fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson");
+    const res = await fetchWithTimeout("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson");
     const data = await res.json();
     const events = data.features || [];
     return events.slice(0, 2).map((e: any) => `USGS: M ${e.properties.mag} Earthquake in ${e.properties.place}`);
@@ -16,7 +32,7 @@ async function fetchUSGS() {
 
 async function fetchNASA() {
   try {
-    const res = await fetch("https://eonet.gsfc.nasa.gov/api/v3/events?limit=3&status=open");
+    const res = await fetchWithTimeout("https://eonet.gsfc.nasa.gov/api/v3/events?limit=3&status=open");
     const data = await res.json();
     const events = data.events || [];
     return events.map((e: any) => `NASA EONET: ${e.title} (${e.categories[0]?.title})`);
@@ -27,7 +43,7 @@ async function fetchNASA() {
 
 async function fetchGDACS() {
   try {
-    const res = await fetch("https://www.gdacs.org/xml/rss.xml");
+    const res = await fetchWithTimeout("https://www.gdacs.org/xml/rss.xml");
     const xmlText = await res.text();
     const items: string[] = [];
     const itemRegex = /<title>([\s\S]*?)<\/title>/g;
@@ -48,7 +64,7 @@ async function fetchGDACS() {
 
 async function fetchNOAA() {
   try {
-    const res = await fetch("https://services.swpc.noaa.gov/products/alerts.json");
+    const res = await fetchWithTimeout("https://services.swpc.noaa.gov/products/alerts.json");
     const data = await res.json();
     const alerts = Array.isArray(data) ? data : [];
     return alerts
@@ -62,7 +78,7 @@ async function fetchNOAA() {
 
 async function fetchGoogleNewsOutbreaks() {
   try {
-    const res = await fetch("https://news.google.com/rss/search?q=disease+outbreak+OR+virus+outbreak+OR+who+alert&hl=en-US&gl=US&ceid=US:en");
+    const res = await fetchWithTimeout("https://news.google.com/rss/search?q=disease+outbreak+OR+virus+outbreak+OR+who+alert&hl=en-US&gl=US&ceid=US:en");
     const xmlText = await res.text();
     const items: string[] = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
@@ -86,7 +102,7 @@ async function fetchGoogleNewsOutbreaks() {
 
 async function fetchExchangeRates() {
   try {
-    const res = await fetch("https://open.er-api.com/v6/latest/USD");
+    const res = await fetchWithTimeout("https://open.er-api.com/v6/latest/USD");
     const data = await res.json();
     const rates = data.rates || {};
     const items: string[] = [];

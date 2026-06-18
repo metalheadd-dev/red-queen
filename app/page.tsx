@@ -622,10 +622,10 @@ export default function HomePage() {
               {/* Left Column: Info */}
               <div>
                 <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", textTransform: "uppercase", marginBottom: "4px", display: "flex", flexWrap: "wrap", alignItems: "center" }}>
-                  <span>IDENTIFIED VECTOR: <span style={{ color: "var(--accent)" }}>{threatData?.codename || THREAT_OF_THE_DAY.codename}</span></span>
-                  {threatData?.source && (
+                  <span>IDENTIFIED VECTOR: <span style={{ color: "var(--accent)" }}>{loadingThreat ? "[ DECRYPTING VECTOR... ]" : (threatData?.codename || THREAT_OF_THE_DAY.codename)}</span></span>
+                  {(loadingThreat || threatData?.source) && (
                     <span style={{ marginLeft: "12px", color: "#00ffcc" }}>
-                      // SOURCE: {threatData.source}
+                      // {loadingThreat ? "SOURCE: DEPIN TELEMETRY LINKED" : `SOURCE: ${threatData?.source}`}
                     </span>
                   )}
                 </div>
@@ -639,7 +639,7 @@ export default function HomePage() {
                   textTransform: "uppercase",
                   letterSpacing: "-0.01em"
                 }}>
-                  {threatData?.name || THREAT_OF_THE_DAY.name}
+                  {loadingThreat ? "RETRIEVING INTEL BROADCAST..." : (threatData?.name || THREAT_OF_THE_DAY.name)}
                 </h1>
 
                 <div style={{ borderTop: "1px dashed rgba(255, 77, 77, 0.15)", paddingTop: "12px" }}>
@@ -647,14 +647,14 @@ export default function HomePage() {
                     <strong style={{ color: "#ff4d4d", fontFamily: "var(--mono)", fontSize: "10px", display: "block", marginBottom: "4px", letterSpacing: "0.05em" }}>
                       [ ASSESSMENT & BIOLOGICAL TRACE ]
                     </strong>
-                    {threatData?.description || THREAT_OF_THE_DAY.description}
+                    {loadingThreat ? "Connecting to global sensors. Intercepting NOAA solar flares, USGS seismics, GDACS disasters, and hyperinflation indices. RED QUEEN agent is parsing the dataset..." : (threatData?.description || THREAT_OF_THE_DAY.description)}
                   </p>
                   
                   <p style={{ fontSize: "13.5px", color: "#00ffcc", lineHeight: "1.6", margin: 0 }}>
                     <strong style={{ color: "#00ffcc", fontFamily: "var(--mono)", fontSize: "10px", display: "block", marginBottom: "4px", letterSpacing: "0.05em" }}>
                       [ REQUIRED SURVIVAL PROTOCOL ]
                     </strong>
-                    {threatData?.countermeasure || THREAT_OF_THE_DAY.countermeasure}
+                    {loadingThreat ? "Stand by. RED QUEEN AI is analyzing threat indicators and formulating countermeasures." : (threatData?.countermeasure || THREAT_OF_THE_DAY.countermeasure)}
                   </p>
                 </div>
               </div>
@@ -690,11 +690,11 @@ export default function HomePage() {
                 }}>
                   <div style={{
                     fontFamily: "var(--mono)",
-                    fontSize: "24px",
+                    fontSize: loadingThreat ? "14px" : "24px",
                     fontWeight: 900,
                     color: "#ff0033",
                   }}>
-                    {threatData?.severity || THREAT_OF_THE_DAY.severity}%
+                    {loadingThreat ? "CALC..." : `${threatData?.severity || THREAT_OF_THE_DAY.severity}%`}
                   </div>
                 </div>
 
@@ -706,7 +706,7 @@ export default function HomePage() {
                   letterSpacing: "0.1em",
                   marginBottom: "16px"
                 }}>
-                  STATUS: {threatData?.status || THREAT_OF_THE_DAY.status}
+                  STATUS: {loadingThreat ? "SCANNING" : (threatData?.status || THREAT_OF_THE_DAY.status)}
                 </span>
 
                 <Link href="/terminal" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "10px", padding: "8px 12px", boxShadow: "0 0 10px rgba(255,0,51,0.2)" }}>
