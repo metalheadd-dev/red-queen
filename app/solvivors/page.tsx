@@ -6,6 +6,15 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Link from "next/link";
 import SolvivalIcon from "@/components/SolvivalIcon";
 import dynamic from "next/dynamic";
+import Leaderboard from "@/components/Leaderboard";
+
+// Client-side SHA-256 generator to display the Hashed Passport matching server index
+async function generateHashedPassport(pubkey: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(pubkey + "red-queen-cyber-salt-2026");
+  const hashBuffer = await window.crypto.subtle.digest("SHA-256", msgBuffer as any);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 const BroadcastMap = dynamic(() => import("@/components/BroadcastMap"), { ssr: false });
 
@@ -80,6 +89,16 @@ function getHubIcon(id: string, color: string) {
           <circle cx="7.5" cy="10.5" r="1.5" fill={color} />
           <circle cx="11.5" cy="7.5" r="1.5" fill={color} />
           <circle cx="16.5" cy="9.5" r="1.5" fill={color} />
+        </svg>
+      );
+    case "leaderboard":
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", filter: `drop-shadow(0 0 3px ${color}55)` }}>
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
+          <path d="M12 2a4 4 0 0 1 4 4v7H8V6a4 4 0 0 1 4-4z" />
         </svg>
       );
     default:
@@ -164,11 +183,22 @@ function getSectorLabel(node: any): string {
 export default function SolvivorsHubPage() {
   const OPERATIONS_COMING_SOON = false;
   const { user, session, authIdentifier } = useAuth();
-  const { connected } = useWallet();
+  const { connected, publicKey } = useWallet();
   const { setVisible } = useWalletModal();
 
-  // Hub tabs: operations, broadcasts, lore, comics
-  const [activeHub, setActiveHub] = useState<"operations" | "broadcasts" | "lore" | "comics">("operations");
+  // Hub tabs: operations, broadcasts, leaderboard, lore, comics
+  const [activeHub, setActiveHub] = useState<"operations" | "broadcasts" | "leaderboard" | "lore" | "comics">("operations");
+  const [hashedWallet, setHashedWallet] = useState<string | null>(null);
+
+  const wallet = authIdentifier || (publicKey ? publicKey.toString() : null);
+
+  useEffect(() => {
+    if (wallet) {
+      generateHashedPassport(wallet).then((hash) => setHashedWallet(hash));
+    } else {
+      setHashedWallet(null);
+    }
+  }, [wallet]);
   
   // Broadcasts map states
   const [broadcastNodes, setBroadcastNodes] = useState<any[]>([]);
@@ -362,6 +392,7 @@ export default function SolvivorsHubPage() {
           {[
             { id: "operations", label: "LIVE OPERATIONS", desc: OPERATIONS_COMING_SOON ? "Coming Soon" : "Missions & Bounties", isComing: OPERATIONS_COMING_SOON },
             { id: "broadcasts", label: "BROADCASTS & NEWS", desc: "Live Threat Feed", isComing: false },
+            { id: "leaderboard", label: "LEADERBOARD", desc: "Global Standings", isComing: false },
             { id: "lore", label: "LORE & ARCHIVES", desc: "Coming Soon", isComing: true },
             { id: "comics", label: "TACTICAL COMICS", desc: "Coming Soon", isComing: true }
           ].map((hub) => {
@@ -844,6 +875,8 @@ export default function SolvivorsHubPage() {
               </div>
             </div>
           )
+        ) : activeHub === "leaderboard" ? (
+          <Leaderboard currentHashedWallet={hashedWallet} />
         ) : (
           // Lore & Comics tabs (still Gated/Coming Soon)
           <div style={{

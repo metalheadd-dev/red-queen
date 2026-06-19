@@ -86,6 +86,7 @@ type Profile = {
   email?: string | null;
   linked_wallet_address?: string | null;
   stats?: typeof DEFAULT_STATS;
+  rank?: number | null;
 };
 
 // Client-side SHA-256 generator to display the Hashed Passport
@@ -816,30 +817,78 @@ export default function OperativeProfilePage() {
                     onClick={() => confirmName(customName)}>CONFIRM</button>
                 </div>
               ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px", flexWrap: "wrap" }}>
-                  <h2 className="glow-text" style={{ fontSize: "clamp(20px, 3vw, 26px)", margin: 0, color: "var(--text)", letterSpacing: "0.05em", fontFamily: "var(--title-font)" }}>
-                    {displayName}
-                  </h2>
-                  <button
-                    onClick={() => setEditingName(true)}
-                    style={{
-                      background: "rgba(255, 255, 255, 0.02)",
-                      border: "1px solid var(--border)",
-                      color: "var(--text-dim)",
-                      fontFamily: "var(--mono)",
+                <>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px", flexWrap: "wrap" }}>
+                    <h2 className="glow-text" style={{ fontSize: "clamp(20px, 3vw, 26px)", margin: 0, color: "var(--text)", letterSpacing: "0.05em", fontFamily: "var(--title-font)" }}>
+                      {displayName}
+                    </h2>
+                    <button
+                      onClick={() => setEditingName(true)}
+                      style={{
+                        background: "rgba(255, 255, 255, 0.02)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-dim)",
+                        fontFamily: "var(--mono)",
+                        fontSize: "11px",
+                        padding: "3.5px 12px",
+                        cursor: "pointer",
+                        borderRadius: "2px",
+                        letterSpacing: "0.05em",
+                        transition: "all 0.2s"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--accent)"}
+                      onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border)"}
+                    >
+                      ✎ RENAME
+                    </button>
+                    <Link href="/leaderboard" style={{ textDecoration: "none" }}>
+                      <button
+                        style={{
+                          background: "rgba(255, 77, 77, 0.05)",
+                          border: "1px solid var(--accent)",
+                          color: "var(--text)",
+                          fontFamily: "var(--mono)",
+                          fontSize: "11px",
+                          padding: "3.5px 12px",
+                          cursor: "pointer",
+                          borderRadius: "2px",
+                          letterSpacing: "0.05em",
+                          transition: "all 0.2s",
+                          display: "inline-flex",
+                          alignItems: "center"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 77, 77, 0.15)"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255, 77, 77, 0.05)"}
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", marginRight: "6px" }}>
+                          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                          <path d="M4 22h16" />
+                          <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
+                          <path d="M12 2a4 4 0 0 1 4 4v7H8V6a4 4 0 0 1 4-4z" />
+                        </svg>
+                        LEADERBOARD
+                      </button>
+                    </Link>
+                  </div>
+                  {profile && typeof profile.rank === "number" && (
+                    <div style={{
+                      display: "inline-block",
+                      background: "rgba(0, 255, 204, 0.04)",
+                      border: "1px solid rgba(0, 255, 204, 0.15)",
+                      borderLeft: "3px solid #00ffcc",
+                      padding: "5px 12px",
                       fontSize: "11px",
-                      padding: "3px 10px",
-                      cursor: "pointer",
-                      borderRadius: "2px",
+                      fontFamily: "var(--mono)",
+                      color: "var(--text)",
+                      marginBottom: "16px",
                       letterSpacing: "0.05em",
-                      transition: "all 0.2s"
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--accent)"}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border)"}
-                  >
-                    ✎ RENAME
-                  </button>
-                </div>
+                      borderRadius: "2px"
+                    }}>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>// RANKING STATUS:</span> MAINFRAME_STANDINGS <span style={{ color: "#00ffcc", fontWeight: "bold" }}>#{profile.rank}</span>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Hashed Passport display */}

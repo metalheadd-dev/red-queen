@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { getHashedWallet } from "@/lib/crypto";
-import { getCleanScenarios, getStatsFromScenarios } from "@/lib/progression";
+import { getCleanScenarios, getStatsFromScenarios, calculateBioScore } from "@/lib/progression";
 
 export const dynamic = "force-dynamic";
 
@@ -44,11 +44,48 @@ export async function GET(req: Request) {
   if (data) {
     const cleanScenarios = getCleanScenarios(data.chosen_scenarios);
     const stats = getStatsFromScenarios(data.chosen_scenarios);
+
+    // Calculate user's current leaderboard rank
+    let rank = null;
+    try {
+      const { data: allUsers } = await supabase
+        .from("users")
+        .select("wallet_address, chosen_scenarios, last_bio_score");
+      
+      if (allUsers) {
+        const processed = allUsers.map((u) => {
+          const s = getStatsFromScenarios(u.chosen_scenarios);
+          const computedBio = calculateBioScore(s);
+          return {
+            wallet_address: u.wallet_address,
+            xp: s.xp || 0,
+            bio_score: computedBio || u.last_bio_score || 0,
+            level: s.level || 1,
+          };
+        });
+
+        // Sort by same rules: XP -> Bio Score -> Level
+        processed.sort((a, b) => {
+          if (b.xp !== a.xp) return b.xp - a.xp;
+          if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
+          return b.level - a.level;
+        });
+
+        const index = processed.findIndex((u) => u.wallet_address === hashedWallet);
+        if (index !== -1) {
+          rank = index + 1;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to compute profile rank:", e);
+    }
+
     return Response.json({
       profile: {
         ...data,
         chosen_scenarios: cleanScenarios,
-        stats: stats
+        stats: stats,
+        rank: rank
       }
     });
   }
