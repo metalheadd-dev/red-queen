@@ -45,8 +45,9 @@ export async function GET(req: Request) {
     const cleanScenarios = getCleanScenarios(data.chosen_scenarios);
     const stats = getStatsFromScenarios(data.chosen_scenarios);
 
-    // Calculate user's current leaderboard rank
-    let rank = null;
+    // Calculate user's current leaderboard ranks (both XP and Bio-Score)
+    let xpRank = null;
+    let bioScoreRank = null;
     try {
       const { data: allUsers } = await supabase
         .from("users")
@@ -64,20 +65,30 @@ export async function GET(req: Request) {
           };
         });
 
-        // Sort by same rules: XP -> Bio Score -> Level
-        processed.sort((a, b) => {
+        // 1. Sort by XP (primary) -> Bio Score -> Level
+        const xpSorted = [...processed].sort((a, b) => {
           if (b.xp !== a.xp) return b.xp - a.xp;
           if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
           return b.level - a.level;
         });
+        const xpIndex = xpSorted.findIndex((u) => u.wallet_address === hashedWallet);
+        if (xpIndex !== -1) {
+          xpRank = xpIndex + 1;
+        }
 
-        const index = processed.findIndex((u) => u.wallet_address === hashedWallet);
-        if (index !== -1) {
-          rank = index + 1;
+        // 2. Sort by Bio-Score (primary) -> XP -> Level
+        const bioSorted = [...processed].sort((a, b) => {
+          if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
+          if (b.xp !== a.xp) return b.xp - a.xp;
+          return b.level - a.level;
+        });
+        const bioIndex = bioSorted.findIndex((u) => u.wallet_address === hashedWallet);
+        if (bioIndex !== -1) {
+          bioScoreRank = bioIndex + 1;
         }
       }
     } catch (e) {
-      console.error("Failed to compute profile rank:", e);
+      console.error("Failed to compute profile ranks:", e);
     }
 
     return Response.json({
@@ -85,7 +96,8 @@ export async function GET(req: Request) {
         ...data,
         chosen_scenarios: cleanScenarios,
         stats: stats,
-        rank: rank
+        xp_rank: xpRank,
+        bio_score_rank: bioScoreRank
       }
     });
   }

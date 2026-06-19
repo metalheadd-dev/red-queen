@@ -86,7 +86,8 @@ type Profile = {
   email?: string | null;
   linked_wallet_address?: string | null;
   stats?: typeof DEFAULT_STATS;
-  rank?: number | null;
+  xp_rank?: number | null;
+  bio_score_rank?: number | null;
 };
 
 // Client-side SHA-256 generator to display the Hashed Passport
@@ -871,7 +872,7 @@ export default function OperativeProfilePage() {
                       </button>
                     </Link>
                   </div>
-                  {profile && typeof profile.rank === "number" && (
+                  {profile && (typeof profile.xp_rank === "number" || typeof profile.bio_score_rank === "number") && (
                     <div style={{
                       display: "inline-block",
                       background: "rgba(0, 255, 204, 0.04)",
@@ -885,7 +886,20 @@ export default function OperativeProfilePage() {
                       letterSpacing: "0.05em",
                       borderRadius: "2px"
                     }}>
-                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>// RANKING STATUS:</span> MAINFRAME_STANDINGS <span style={{ color: "#00ffcc", fontWeight: "bold" }}>#{profile.rank}</span>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>// MAINFRAME STANDINGS:</span>{" "}
+                      {typeof profile.xp_rank === "number" && (
+                        <span>
+                          XP RANK <span style={{ color: "#00ffcc", fontWeight: "bold" }}>#{profile.xp_rank}</span>
+                        </span>
+                      )}
+                      {typeof profile.xp_rank === "number" && typeof profile.bio_score_rank === "number" && (
+                        <span style={{ color: "rgba(255,255,255,0.2)", margin: "0 8px" }}>|</span>
+                      )}
+                      {typeof profile.bio_score_rank === "number" && (
+                        <span>
+                          BIO-SCORE RANK <span style={{ color: "#00ffcc", fontWeight: "bold" }}>#{profile.bio_score_rank}</span>
+                        </span>
+                      )}
                     </div>
                   )}
                 </>

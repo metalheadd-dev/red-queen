@@ -42,11 +42,44 @@ export default function Leaderboard({ currentHashedWallet }: LeaderboardProps) {
     fetchLeaderboard();
   }, []);
 
+  const [sortBy, setSortBy] = useState<"xp" | "bio_score">("xp");
+
   const filteredData = data.filter((user) => {
     const name = user.apocalyptic_name?.toLowerCase() || "";
     const wallet = user.wallet_address?.toLowerCase() || "";
     const query = searchQuery.toLowerCase();
     return name.includes(query) || wallet.includes(query);
+  });
+
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (sortBy === "xp") {
+      if (b.xp !== a.xp) return b.xp - a.xp;
+      if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
+      return b.level - a.level;
+    } else {
+      if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
+      if (b.xp !== a.xp) return b.xp - a.xp;
+      return b.level - a.level;
+    }
+  });
+
+  const rankedData = sortedData.map((item) => {
+    const globalSorted = [...data].sort((a, b) => {
+      if (sortBy === "xp") {
+        if (b.xp !== a.xp) return b.xp - a.xp;
+        if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
+        return b.level - a.level;
+      } else {
+        if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
+        if (b.xp !== a.xp) return b.xp - a.xp;
+        return b.level - a.level;
+      }
+    });
+    const globalRank = globalSorted.findIndex(u => u.wallet_address === item.wallet_address) + 1;
+    return {
+      ...item,
+      displayRank: globalRank
+    };
   });
 
   return (
@@ -98,7 +131,7 @@ export default function Leaderboard({ currentHashedWallet }: LeaderboardProps) {
       </div>
 
       {/* Search Filter input */}
-      <div style={{ marginBottom: "20px" }}>
+      <div style={{ marginBottom: "12px" }}>
         <input 
           type="text"
           placeholder="SEARCH FOR OPERATIVE NAME / PASSPORT HASH..."
@@ -116,6 +149,54 @@ export default function Leaderboard({ currentHashedWallet }: LeaderboardProps) {
             boxSizing: "border-box"
           }}
         />
+      </div>
+
+      {/* Leaderboard Category Tabs (XP vs Bio-Score) */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "24px", flexWrap: "wrap" }}>
+        <button
+          onClick={() => setSortBy("xp")}
+          style={{
+            flex: 1,
+            padding: "8px 12px",
+            background: sortBy === "xp" ? "rgba(255, 77, 77, 0.05)" : "transparent",
+            border: "1px solid",
+            borderColor: sortBy === "xp" ? "var(--accent)" : "rgba(255,255,255,0.05)",
+            color: sortBy === "xp" ? "#fff" : "var(--text-dim)",
+            fontFamily: "var(--mono)",
+            fontSize: "11px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            borderRadius: "2px",
+            transition: "all 0.2s",
+            letterSpacing: "0.05em",
+            minWidth: "150px",
+            textAlign: "center"
+          }}
+        >
+          // XP STANDINGS [PRIMARY]
+        </button>
+        <button
+          onClick={() => setSortBy("bio_score")}
+          style={{
+            flex: 1,
+            padding: "8px 12px",
+            background: sortBy === "bio_score" ? "rgba(0, 255, 204, 0.04)" : "transparent",
+            border: "1px solid",
+            borderColor: sortBy === "bio_score" ? "#00ffcc" : "rgba(255,255,255,0.05)",
+            color: sortBy === "bio_score" ? "#fff" : "var(--text-dim)",
+            fontFamily: "var(--mono)",
+            fontSize: "11px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            borderRadius: "2px",
+            transition: "all 0.2s",
+            letterSpacing: "0.05em",
+            minWidth: "150px",
+            textAlign: "center"
+          }}
+        >
+          // BIO-SCORE STANDINGS [SURVIVAL]
+        </button>
       </div>
 
       {loading && (
@@ -146,14 +227,14 @@ export default function Leaderboard({ currentHashedWallet }: LeaderboardProps) {
               </tr>
             </thead>
             <tbody>
-              {filteredData.length === 0 ? (
+              {rankedData.length === 0 ? (
                 <tr>
                   <td colSpan={6} style={{ padding: "20px 8px", textAlign: "center", color: "var(--text-dim)" }}>
                     NO DATA MATCHES THE TELEMETRY PARAMETERS
                   </td>
                 </tr>
               ) : (
-                filteredData.map((user) => {
+                rankedData.map((user) => {
                   const isSelf = currentHashedWallet && user.wallet_address === currentHashedWallet;
                   const clearance = getClearanceLevel(user.bio_score);
 
@@ -168,7 +249,7 @@ export default function Leaderboard({ currentHashedWallet }: LeaderboardProps) {
                       }}
                     >
                       <td style={{ padding: "12px 8px", fontWeight: "bold", color: isSelf ? "var(--accent)" : "var(--text)" }}>
-                        #{user.rank}
+                        #{user.displayRank}
                       </td>
                       <td style={{ padding: "12px 8px", color: isSelf ? "var(--accent)" : "var(--text)" }}>
                         <span style={{ fontWeight: 600 }}>{user.apocalyptic_name}</span>
