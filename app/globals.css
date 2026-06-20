@@ -1296,3 +1296,148 @@ h1:hover, h2:hover, h3:hover, .glow-text:hover, .navbar-logo-text:hover {
   66%       { transform: translateY(2px)  rotate(2deg); }
 }
 
+/* ── HUD Core Architecture overrides ── */
+body:has(#game-arena-root), body:has(#game-bunker-root) {
+  overflow: hidden !important;
+  height: 100vh !important;
+  background: #000000 !important;
+}
+
+body:has(#game-arena-root) .navbar, 
+body:has(#game-arena-root) .footer,
+body:has(#game-bunker-root) .navbar,
+body:has(#game-bunker-root) .footer {
+  display: none !important;
+}
+
+body:has(#game-arena-root) .page-content,
+body:has(#game-bunker-root) .page-content {
+  padding-top: 0 !important;
+  min-height: 100vh !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Tactical Panel with bracket corners */
+.hud-panel {
+  border: 1px solid rgba(255, 0, 60, 0.15);
+  background: rgba(3, 3, 3, 0.88);
+  position: relative;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+}
+.hud-panel::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 8px; height: 8px;
+  border-top: 2px solid #ff003c;
+  border-left: 2px solid #ff003c;
+  pointer-events: none;
+}
+.hud-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 8px; height: 8px;
+  border-bottom: 2px solid #ff003c;
+  border-right: 2px solid #ff003c;
+  pointer-events: none;
+}
+
+/* Technical HUD buttons */
+.hud-btn {
+  background: rgba(255, 0, 60, 0.08);
+  border: 1px solid rgba(255, 0, 60, 0.3);
+  color: #ff003c;
+  font-family: 'Orbitron', 'Oxanium', sans-serif;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 10px rgba(255, 0, 60, 0.05);
+}
+.hud-btn:hover {
+  background: #ff003c;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(255, 0, 60, 0.45);
+  border-color: #ff003c;
+}
+.hud-btn:active {
+  transform: scale(0.98);
+}
+
+.hud-btn-secondary {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-family: 'Orbitron', sans-serif;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.hud-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+/* Custom scrollbars */
+.hud-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.hud-scrollbar::-webkit-scrollbar-track {
+  background: rgba(5, 5, 5, 0.95);
+}
+.hud-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 0, 60, 0.45);
+}
+.hud-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #ff003c;
+}
+
+/* Blinking animations */
+.hud-blink-fast {
+  animation: hud-blink 1.2s infinite;
+}
+@keyframes hud-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* Matrix scanning line overlay */
+.hud-scanline {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 0, 60, 0) 0%,
+    rgba(255, 0, 60, 0.03) 10%,
+    rgba(255, 0, 60, 0) 20%
+  );
+  background-size: 100% 500px;
+  animation: hud-sweep 8s linear infinite;
+  pointer-events: none;
+  z-index: 99;
+}
+@keyframes hud-sweep {
+  0% { background-position-y: 0px; }
+  100% { background-position-y: 500px; }
+}
+
+/* CRT Screen shake hit effect */
+.hud-screen-shake {
+  animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes shake {
+  10%, 90% { transform: translate3d(-2px, 0, 0); }
+  20%, 80% { transform: translate3d(3px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+  40%, 60% { transform: translate3d(5px, 0, 0); }
+}
+
+
