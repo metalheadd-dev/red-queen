@@ -1523,5 +1523,42 @@ body:has(#game-bunker-root) .page-content {
   z-index: 1;
 }
 
+/* Holographic 3D tilt effects */
+.hud-tilt-left {
+  transform: perspective(1200px) rotateY(12deg) translateZ(10px);
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hud-tilt-right {
+  transform: perspective(1200px) rotateY(-12deg) translateZ(10px);
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Slightly adjust depth on hover to simulate interactive parallax cursor shifts */
+.hud-tilt-left:hover {
+  transform: perspective(1200px) rotateY(7deg) translateZ(25px);
+}
+
+.hud-tilt-right:hover {
+  transform: perspective(1200px) rotateY(-7deg) translateZ(25px);
+}
+
+/* Perspective 3D Dot Grid Floor */
+.hud-floor-grid {
+  position: absolute;
+  bottom: -40px; left: -10%; right: -10%;
+  height: 48vh;
+  background-image: radial-gradient(rgba(255, 0, 60, 0.14) 1.5px, transparent 1.5px);
+  background-size: 32px 32px;
+  transform: perspective(500px) rotateX(82deg);
+  transform-origin: bottom center;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 1;
+}
+
+
 
 
