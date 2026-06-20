@@ -7,7 +7,7 @@ const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZ
 const handler = async (req: NextRequest) => {
   let xpAwarded: any = undefined;
   
-  const authHeader = req.headers.get("Authorization");
+  const authHeader = req.headers.get("X-Operative-Token") || req.headers.get("Authorization");
   if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
     const hasPaymentSig = req.headers.get("PAYMENT-SIGNATURE") || req.headers.get("payment-signature");

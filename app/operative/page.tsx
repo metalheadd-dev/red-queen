@@ -155,6 +155,7 @@ export default function OperativeProfilePage() {
       const token = session?.access_token;
       let headers: Record<string, string> = {};
       if (token) {
+        headers["X-Operative-Token"] = `Bearer ${token}`;
         headers["Authorization"] = `Bearer ${token}`;
       }
       let res = await fetch(endpoint, { headers });
