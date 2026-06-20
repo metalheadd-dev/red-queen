@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
@@ -20,53 +20,73 @@ const FACTIONS: Faction[] = [
     name: "NOMADS",
     trait: "+15% Scavenging Yield",
     description: "Wasteland scouts who excel at recovering items in highly toxic sectors.",
-    borderColor: "#f0c929",
-    glowColor: "rgba(240, 201, 41, 0.25)"
+    borderColor: "rgba(255,0,60,0.3)",
+    glowColor: "rgba(255, 0, 60, 0.05)"
   },
   {
     id: "scientists",
     name: "SCIENTISTS",
     trait: "-20% Decode Time",
     description: "Pre-collapse research remnants utilizing cryptography to decrypt hidden technology nodes.",
-    borderColor: "#a855f7",
-    glowColor: "rgba(168, 85, 247, 0.25)"
+    borderColor: "rgba(255,0,60,0.3)",
+    glowColor: "rgba(255, 0, 60, 0.05)"
   },
   {
     id: "marauders",
     name: "MARAUDERS",
     trait: "+10% Limb Strike Damage",
     description: "Aggressive combatants specialized in targeting vulnerability points.",
-    borderColor: "#ff0033",
-    glowColor: "rgba(255, 0, 51, 0.25)"
+    borderColor: "rgba(255,0,60,0.3)",
+    glowColor: "rgba(255, 0, 60, 0.05)"
   },
   {
     id: "engineers",
     name: "ENGINEERS",
     trait: "-15% Repair Cost",
     description: "DePIN hardware operators specialized in bunker fortification and power grid routing.",
-    borderColor: "#00ffcc",
-    glowColor: "rgba(0, 255, 204, 0.25)"
+    borderColor: "rgba(255,0,60,0.3)",
+    glowColor: "rgba(255, 0, 60, 0.05)"
   },
   {
     id: "syndicates",
     name: "BUNKER SYNDICATES",
     trait: "+20% Defensive Shield",
     description: "Fortified underground network syndicates utilizing heavy hardware to resist hostile raids.",
-    borderColor: "#22c55e",
-    glowColor: "rgba(34, 197, 94, 0.25)"
+    borderColor: "rgba(255,0,60,0.3)",
+    glowColor: "rgba(255, 0, 60, 0.05)"
   },
   {
     id: "hackers",
     name: "HACKERS",
     trait: "Preview Next Threat",
     description: "Mainframe infiltrators capable of intercepting upcoming environmental vector shifts.",
-    borderColor: "#3b82f6",
-    glowColor: "rgba(59, 130, 246, 0.25)"
+    borderColor: "rgba(255,0,60,0.3)",
+    glowColor: "rgba(255, 0, 60, 0.05)"
   }
 ];
 
+interface TacticalResourceBarProps {
+  label: string;
+  value: number;
+  color: string;
+}
+
+function TacticalResourceBar({ label, value, color }: TacticalResourceBarProps) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "2px", width: "100%" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9.5px", color: "rgba(255, 255, 255, 0.5)", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 600 }}>
+        <span>{label}</span>
+        <span style={{ color: "#ffffff", fontWeight: 700 }}>{value}%</span>
+      </div>
+      <div style={{ height: "3px", background: "#111111", border: "1px solid rgba(255,255,255,0.05)", position: "relative" }}>
+        <div style={{ height: "100%", width: `${value}%`, background: color, boxShadow: `0 0 6px ${color}88` }} />
+      </div>
+    </div>
+  );
+}
+
 export default function BunkerPage() {
-  const { session, authIdentifier } = useAuth();
+  const { authIdentifier } = useAuth();
   const { publicKey } = useWallet();
 
   // Faction state
@@ -77,9 +97,9 @@ export default function BunkerPage() {
   const [shieldIntegrity, setShieldIntegrity] = useState<number>(65);
 
   // Resource parameters
-  const [waterLevel, setWaterLevel] = useState<number>(45);
-  const [foodLevel, setFoodLevel] = useState<number>(62);
-  const [powerGrid, setPowerGrid] = useState<number>(78);
+  const [waterLevel] = useState<number>(45);
+  const [foodLevel] = useState<number>(62);
+  const [powerGrid] = useState<number>(78);
 
   // Auto-calculating shield integrity based on staked $THREAT
   useEffect(() => {
@@ -91,234 +111,262 @@ export default function BunkerPage() {
   const currentWallet = authIdentifier || (publicKey ? publicKey.toString() : null);
 
   return (
-    <div style={{ background: "#050505", minHeight: "100vh", color: "#ffffff", fontFamily: "var(--mono), monospace", paddingBottom: "80px", position: "relative" }}>
-      {/* Background CRT Scanlines */}
-      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))", backgroundSize: "100% 4px, 6px 100%", zIndex: 10, pointerEvents: "none", opacity: 0.4 }} />
+    <div id="game-bunker-root" style={{ background: "#050505", minHeight: "100vh", color: "#ffffff", fontFamily: "Exo 2, Rajdhani, sans-serif", padding: "16px 24px", position: "relative", boxSizing: "border-box", overflowX: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+      {/* Google Fonts import locally for game-specific typographies */}
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700&family=Orbitron:wght@500;800;900&family=Oxanium:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+        /* Fullscreen CRT scanline overlay */
+        #game-bunker-root::before {
+          content: " ";
+          display: block;
+          position: absolute;
+          top: 0; left: 0; bottom: 0; right: 0;
+          background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,.01) 3px);
+          background-size: 100% 4px;
+          z-index: 10;
+          pointer-events: none;
+          opacity: 0.4;
+        }
+
+        /* 50px grid overlay */
+        #game-bunker-root::after {
+          content: " ";
+          display: block;
+          position: absolute;
+          top: 0; left: 0; bottom: 0; right: 0;
+          background-image: linear-gradient(rgba(255, 0, 60, 0.015) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255, 0, 60, 0.015) 1px, transparent 1px);
+          background-size: 50px 50px;
+          z-index: 1;
+          pointer-events: none;
+        }
+
+        /* Radar sweep animation overlay */
+        .radar-sweep {
+          position: absolute;
+          top: 0; left: 0; width: 100%; height: 100%;
+          background: linear-gradient(to bottom, rgba(255,0,60,0) 0%, rgba(255,0,60,0.02) 50%, rgba(255,0,60,0) 100%);
+          animation: sweep-down 8s linear infinite;
+          z-index: 2;
+          pointer-events: none;
+        }
+
+        @keyframes sweep-down {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
+        }
+
+        @keyframes spin { 
+          0% { transform: rotate(0deg); } 
+          100% { transform: rotate(360deg); } 
+        }
+        @keyframes spin-reverse { 
+          0% { transform: rotate(360deg); } 
+          100% { transform: rotate(0deg); } 
+        }
+        .hover-glow:hover {
+          color: #ff003c !important;
+          text-shadow: 0 0 10px rgba(255,0,60,0.8);
+        }
+      `}</style>
+
+      {/* Dynamic scanline sweeps layer */}
+      <div className="radar-sweep" />
+
+      {/* Screen Frame Border */}
+      <div style={{ position: "absolute", top: "12px", left: "12px", right: "12px", bottom: "12px", border: "1px solid rgba(255, 0, 60, 0.08)", pointerEvents: "none", zIndex: 5 }} />
 
       {/* Navigation Header */}
-      <nav style={{ borderBottom: "1px solid #ff0033", padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#080808" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ color: "#ff0033", fontWeight: "bold", fontSize: "16px", textShadow: "0 0 6px rgba(255, 0, 51, 0.6)", fontFamily: "Orbitron, sans-serif" }}>
-            RED QUEEN // BUNKER SIMULATION
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "8px", position: "relative", zIndex: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+          <span style={{ color: "#ff003c", fontWeight: "900", fontSize: "14px", fontFamily: "Orbitron, sans-serif", textShadow: "0 0 8px rgba(255, 0, 60, 0.6)", letterSpacing: "0.15em" }}>
+            &gt; RED QUEEN // BUNKER SIMULATION
           </span>
-          <span style={{ fontSize: "11px", background: "rgba(255, 0, 51, 0.15)", border: "1px solid #ff0033", padding: "2px 8px", borderRadius: "1px", color: "#ff0033" }}>
-            BETA ENGINE
-          </span>
+          <div style={{ display: "flex", gap: "12px", fontSize: "10px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 600 }}>
+            <Link href="/solvivors" style={{ color: "#8a8a8a", textDecoration: "none" }} className="hover-glow">[ HUB ]</Link>
+            <Link href="/operative" style={{ color: "#8a8a8a", textDecoration: "none" }} className="hover-glow">[ DOSSIERS ]</Link>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: "20px", fontSize: "13px" }}>
-          <Link href="/solvivors" style={{ color: "var(--text-dim)", textDecoration: "none" }} className="hover-glow">[ RETURN TO HUB ]</Link>
-          <Link href="/operative" style={{ color: "var(--text-dim)", textDecoration: "none" }} className="hover-glow">[ DOSSIERS ]</Link>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "10px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 600 }}>
+          <span>BETA ENGINE</span>
+          <span style={{ color: "#ff003c" }}>●</span>
+          <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "#ffffff" }}>SECTOR HASH: <span style={{ color: "#ff003c", fontSize: "8.5px" }}>{currentWallet ? `${currentWallet.slice(0, 6)}...${currentWallet.slice(-4)}` : "OFFLINE"}</span></span>
         </div>
-      </nav>
+      </header>
 
-      {/* Main Grid Command Mainframe */}
-      <main style={{ maxWidth: "1200px", margin: "40px auto", padding: "0 24px", display: "flex", flexDirection: "column", gap: "32px" }}>
+      {/* Main Bunker Command Mainframe layout */}
+      <main style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr 1fr", gap: "24px", flexGrow: 1, alignItems: "center", position: "relative", zIndex: 10, minHeight: "0", margin: "12px 0" }}>
         
-        {/* Banner Alert Command */}
-        <section style={{ border: "1px solid #ff0033", background: "rgba(255, 0, 51, 0.02)", padding: "24px", position: "relative", boxShadow: "0 0 10px rgba(255, 0, 51, 0.1)" }}>
-          <div style={{ position: "absolute", top: "-10px", left: "20px", background: "#050505", padding: "0 10px", color: "#ff0033", fontSize: "12px", fontWeight: "bold" }}>
-            COMMAND TERMINAL // ACTIVE SECTOR
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "20px" }}>
-            <div>
-              <h1 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "24px", letterSpacing: "1px", margin: "0 0 8px 0", color: "#ffffff" }}>
-                BUNKER DIRECTIVE: SURVIVE THE MATRIX
-              </h1>
-              <p style={{ margin: 0, color: "var(--text-dim)", fontSize: "13.5px", lineHeight: "1.6" }}>
-                Pledge your faction, adjust your $THREAT Staking defensive shields, and enter the turn-based 1v1 tactical PvP combat grid to verify your operative survivability.
-              </p>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", background: "#080808", padding: "12px", border: "1px solid #1f1f1f", minWidth: "220px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-muted)" }}>SECTOR RATING:</span><span style={{ color: "#ff0033" }}>94% HAZARD</span></div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-muted)" }}>CLEARANCE:</span><span>LEVEL 5 ACTUATOR</span></div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-muted)" }}>PASSPORT HASH:</span><span style={{ fontSize: "10px" }}>{currentWallet ? `${currentWallet.slice(0, 6)}...${currentWallet.slice(-6)}` : "OFFLINE"}</span></div>
-            </div>
-          </div>
-        </section>
+        {/* LEFT PANEL: Faction Alliances */}
+        <div style={{ background: "rgba(10, 10, 10, 0.85)", border: "1px solid rgba(255, 0, 60, 0.08)", backdropFilter: "blur(12px)", borderRadius: "2px", padding: "16px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div>
+            <h2 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "12px", color: "#ff003c", marginTop: 0, marginBottom: "8px", letterSpacing: "0.1em", fontWeight: 900 }}>
+              1. FACTION STANDING
+            </h2>
+            <p style={{ fontSize: "11px", color: "#8a8a8a", marginTop: 0, marginBottom: "12px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>
+              Select a faction to overlay its active attributes on your core.
+            </p>
 
-        {/* Double Column Dashboard layout */}
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "32px" }} className="responsive-grid-2">
-          
-          {/* Left Column widgets */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-            
-            {/* Widget 1: Factions system */}
-            <div style={{ border: "1px solid #1f1f1f", background: "#080808", padding: "24px" }}>
-              <h2 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "16px", color: "#ffffff", marginTop: 0, marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ display: "inline-block", width: "8px", height: "8px", background: "#ff0033" }} />
-                1. SELECT FACTION ALLIANCE
-              </h2>
-              <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: 0, marginBottom: "20px" }}>
-                Pledge your alliance to modify your active parameters, stats scaling multipliers, and combat abilities.
-              </p>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }} className="responsive-grid-2">
-                {FACTIONS.map(f => {
-                  const isSelected = selectedFaction?.id === f.id;
-                  return (
-                    <div
-                      key={f.id}
-                      onClick={() => setSelectedFaction(f)}
-                      style={{
-                        border: `1px solid ${isSelected ? f.borderColor : "#1a1a1a"}`,
-                        background: isSelected ? f.glowColor : "#050505",
-                        padding: "16px",
-                        borderRadius: "2px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease-in-out",
-                        boxShadow: isSelected ? `0 0 10px ${f.borderColor}33` : "none"
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                        <span style={{ fontWeight: "bold", fontSize: "14px", color: isSelected ? f.borderColor : "#ffffff" }}>{f.name}</span>
-                        <span style={{ fontSize: "11px", color: f.borderColor, border: `1px solid ${f.borderColor}44`, padding: "1px 6px", borderRadius: "1px", background: "rgba(0,0,0,0.3)" }}>{f.trait}</span>
-                      </div>
-                      <div style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.5" }}>{f.description}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", maxHeight: "360px", paddingRight: "4px" }}>
+              {FACTIONS.map(f => {
+                const isSelected = selectedFaction?.id === f.id;
+                return (
+                  <div
+                    key={f.id}
+                    onClick={() => setSelectedFaction(f)}
+                    style={{
+                      border: `1px solid ${isSelected ? "#ff003c" : "rgba(255, 255, 255, 0.05)"}`,
+                      background: isSelected ? "rgba(255, 0, 60, 0.05)" : "rgba(5, 5, 5, 0.5)",
+                      padding: "10px",
+                      borderRadius: "2px",
+                      cursor: "pointer",
+                      transition: "all 0.18s ease-in-out"
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                      <span style={{ fontWeight: "bold", fontSize: "11px", color: isSelected ? "#ff003c" : "#ffffff", fontFamily: "Orbitron, sans-serif" }}>{f.name}</span>
+                      <span style={{ fontSize: "9px", color: "#ff003c", border: "1px solid rgba(255,0,60,0.2)", padding: "1px 5px", background: "rgba(0,0,0,0.4)", fontFamily: "Rajdhani, sans-serif", fontWeight: 700 }}>{f.trait}</span>
                     </div>
-                  );
-                })}
-              </div>
-
-              {selectedFaction && (
-                <div style={{ marginTop: "20px", padding: "12px", border: "1px solid rgba(0, 255, 204, 0.2)", background: "rgba(0, 255, 204, 0.02)", fontSize: "13px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>ACTIVE MODIFIER PLEDGED:</span>
-                  <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{selectedFaction.name} // {selectedFaction.trait}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Widget 2: P2P Combat Arena Entry */}
-            <div style={{ border: "1px solid #ff0033", background: "rgba(255,0,51,0.02)", padding: "24px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 0 15px rgba(255,0,51,0.05)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h2 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "16px", color: "#ffffff", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ display: "inline-block", width: "8px", height: "8px", background: "#ff0033" }} />
-                  2. P2P BATTLE ARENA
-                </h2>
-                <span style={{ fontSize: "10px", background: "rgba(255, 0, 51, 0.15)", border: "1px solid #ff0033", padding: "2px 8px", color: "#ff0033" }}>
-                  1v1 DUEL ONLINE
-                </span>
-              </div>
-              <div style={{ border: "1px dashed rgba(255,0,51,0.3)", padding: "20px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "#050505", gap: "12px", textAlign: "center" }}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ff0033" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: "drop-shadow(0 0 8px rgba(255,0,51,0.25))" }}>
-                  <path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l2 2m4-4l2 2" />
-                </svg>
-                <span style={{ fontSize: "14px", color: "#ffffff", fontWeight: "bold" }}>ARENA DEPLOYMENT TERMINAL</span>
-                <span style={{ fontSize: "11px", color: "var(--text-dim)", maxWidth: "320px" }}>
-                  Enter the live cybernetic grid to match with online hostiles. Risk and lock $THREAT in ranked combat matchups.
-                </span>
-                <Link
-                  href="/arena"
-                  style={{
-                    marginTop: "8px",
-                    background: "#ff0033",
-                    border: "none",
-                    color: "#ffffff",
-                    padding: "10px 24px",
-                    fontSize: "12px",
-                    fontFamily: "var(--mono)",
-                    fontWeight: "bold",
-                    textDecoration: "none",
-                    cursor: "pointer",
-                    boxShadow: "0 0 10px rgba(255,0,51,0.4)"
-                  }}
-                  className="hover-glow"
-                >
-                  [ ENTER P2P BATTLE ARENA ]
-                </Link>
-              </div>
+                    <div style={{ fontSize: "10px", color: "#8a8a8a", lineHeight: "1.4" }}>{f.description}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Right Column widgets */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+          {selectedFaction && (
+            <div style={{ marginTop: "12px", padding: "8px", border: "1px solid rgba(255, 0, 60, 0.15)", background: "rgba(255, 0, 60, 0.03)", fontSize: "10px", display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>
+              <span style={{ color: "#8a8a8a" }}>PLEDGED SIGNAL:</span>
+              <span style={{ color: "#ff003c", fontWeight: "bold" }}>{selectedFaction.name} // LOCKED</span>
+            </div>
+          )}
+        </div>
+
+        {/* CENTER PANEL: Main active radar HUD & redirect */}
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", padding: "10px 0", height: "100%" }}>
+          
+          {/* Top terminal headers */}
+          <div style={{ textAlign: "center" }}>
+            <span style={{ fontSize: "9px", color: "#8a8a8a", letterSpacing: "0.15em", fontFamily: "Rajdhani, sans-serif", fontWeight: 600 }}>TACTICAL RADAR</span>
+            <div style={{ fontFamily: "Orbitron, sans-serif", fontSize: "18px", color: "#ffffff", fontWeight: "900", letterSpacing: "0.1em", marginTop: "2px" }}>
+              SECTOR ALPHA SCANNER
+            </div>
+          </div>
+
+          {/* Symmetrical Concentric Targeting Scanner */}
+          <div style={{ position: "relative", width: "190px", height: "190px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+            {/* outer rings */}
+            <div style={{ position: "absolute", width: "100%", height: "100%", borderRadius: "50%", border: "1px dashed rgba(255, 0, 60, 0.25)", animation: "spin 36s linear infinite" }} />
+            <div style={{ position: "absolute", width: "88%", height: "88%", borderRadius: "50%", border: "1px dashed rgba(255, 255, 255, 0.08)", animation: "spin-reverse 18s linear infinite" }} />
+            <div style={{ position: "absolute", width: "76%", height: "76%", borderRadius: "50%", border: "1px solid rgba(255, 0, 60, 0.1)" }} />
             
-            {/* Widget 3: $THREAT Staking defensive shield */}
-            <div style={{ border: "1px solid #1f1f1f", background: "#080808", padding: "24px" }}>
-              <h2 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "16px", color: "#ffffff", marginTop: 0, marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ display: "inline-block", width: "8px", height: "8px", background: "#ff0033" }} />
-                3. DEFENSIVE SHIELD GRID
-              </h2>
-              
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
-                {/* Visual Circular Shield Indicator */}
-                <div style={{ width: "120px", height: "120px", borderRadius: "50%", border: "4px solid #1f1f1f", borderTopColor: "#00ffcc", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", position: "relative", boxShadow: "0 0 15px rgba(0,255,204,0.15)" }}>
-                  <span style={{ fontSize: "20px", fontWeight: "bold", color: "#00ffcc" }}>{shieldIntegrity}%</span>
-                  <span style={{ fontSize: "9px", color: "var(--text-muted)" }}>SHIELD OK</span>
-                </div>
-              </div>
+            {/* Radar crosshairs */}
+            <div style={{ position: "absolute", width: "120%", height: "1px", background: "linear-gradient(90deg, rgba(255,0,60,0) 0%, rgba(255,0,60,0.12) 50%, rgba(255,0,60,0) 100%)" }} />
+            <div style={{ position: "absolute", height: "120%", width: "1px", background: "linear-gradient(180deg, rgba(255,0,60,0) 0%, rgba(255,0,60,0.12) 50%, rgba(255,0,60,0) 100%)" }} />
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div style={{ fontSize: "12px", display: "flex", justifyContent: "space-between" }}>
-                  <span>STAKED $THREAT ESCROW:</span>
-                  <span style={{ color: "#f0c929", fontWeight: "bold" }}>{stakedThreat} $THREAT</span>
-                </div>
-                
-                <input
-                  type="range"
-                  min="0"
-                  max="1000"
-                  value={stakedThreat}
-                  onChange={(e) => setStakedThreat(Number(e.target.value))}
-                  style={{ width: "100%", accentColor: "#00ffcc", cursor: "pointer" }}
-                />
-                
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: "1.4", borderTop: "1px solid #1f1f1f", paddingTop: "10px", marginTop: "4px" }}>
-                  Staking native token holdings projects an active electromagnetic shield layer over your bunker core inventory. Scaled to protect items from raid intrusions.
-                </div>
-              </div>
+            {/* Pulsing hazard point */}
+            <div style={{ position: "absolute", top: "50px", left: "60px", width: "6px", height: "6px", borderRadius: "50%", background: "#ff003c", boxShadow: "0 0 10px #ff003c", animation: "pulse 1.2s infinite" }} />
+            
+            <div style={{ width: "90px", height: "90px", borderRadius: "50%", background: "#050505", border: "2px solid #ff003c", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", zIndex: 5, boxShadow: "0 0 15px rgba(255, 0, 60, 0.45)" }}>
+              <span style={{ fontSize: "8px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.1em", fontWeight: 700 }}>HAZARD</span>
+              <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "18px", color: "#ff003c", fontWeight: "900", textShadow: "0 0 6px #ff003c" }}>94%</span>
             </div>
-
-            {/* Widget 4: Resource Scarcity & Radar */}
-            <div style={{ border: "1px solid #1f1f1f", background: "#080808", padding: "24px" }}>
-              <h2 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "16px", color: "#ffffff", marginTop: 0, marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ display: "inline-block", width: "8px", height: "8px", background: "#ff0033" }} />
-                4. SCAVENGING RESOURCE LEVEL
-              </h2>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {/* Water meter */}
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "4px" }}>
-                    <span>CLEAN WATER SUPPLY:</span>
-                    <span style={{ color: "#3b82f6", fontWeight: "bold" }}>{waterLevel}%</span>
-                  </div>
-                  <div style={{ height: "6px", background: "#1f1f1f", borderRadius: "1px" }}>
-                    <div style={{ width: `${waterLevel}%`, height: "100%", background: "#3b82f6" }} />
-                  </div>
-                </div>
-
-                {/* Food meter */}
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "4px" }}>
-                    <span>FOOD PROVISIONS:</span>
-                    <span style={{ color: "#f0c929", fontWeight: "bold" }}>{foodLevel}%</span>
-                  </div>
-                  <div style={{ height: "6px", background: "#1f1f1f", borderRadius: "1px" }}>
-                    <div style={{ width: `${foodLevel}%`, height: "100%", background: "#f0c929" }} />
-                  </div>
-                </div>
-
-                {/* Energy grid meter */}
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "4px" }}>
-                    <span>GRID ELECTROMAGNETIC INPUT:</span>
-                    <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{powerGrid}%</span>
-                  </div>
-                  <div style={{ height: "6px", background: "#1f1f1f", borderRadius: "1px" }}>
-                    <div style={{ width: `${powerGrid}%`, height: "100%", background: "#00ffcc" }} />
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ border: "1px solid #ff0033", background: "rgba(255, 0, 51, 0.05)", padding: "10px", marginTop: "20px", fontSize: "11px", color: "#ff0033", lineHeight: "1.4" }}>
-                <strong>LIVE ANOMALY ADVISORY:</strong> Real-world wildfire vectors registered in Sector Alpha. Water supply is decreasing dynamically. Scarcity multipliers activated.
-              </div>
-            </div>
-
           </div>
+
+          {/* Active Live Advisory ticker */}
+          <div style={{ textAlign: "center", padding: "0 10px" }}>
+            <span style={{ fontSize: "8px", color: "#ff003c", letterSpacing: "0.2em", fontWeight: 900, fontFamily: "Orbitron, sans-serif", display: "block", marginBottom: "4px" }}>
+              WARNING // DYNAMIC VECTOR SHIFT
+            </span>
+            <span style={{ fontSize: "11px", color: "#ffffff", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.05em", lineHeight: "1.4" }}>
+              Wildfire vectors registered. Scarcity multipliers activated on Water supply.
+            </span>
+          </div>
+
+          {/* RED BUTTON: Route directly to P2P Arena */}
+          <div style={{ width: "100%", padding: "0 16px" }}>
+            <Link
+              href="/arena"
+              style={{
+                display: "block",
+                textAlign: "center",
+                background: "#ff003c",
+                border: "none",
+                color: "#ffffff",
+                fontFamily: "Orbitron, sans-serif",
+                fontSize: "11px",
+                fontWeight: "900",
+                padding: "12px",
+                textDecoration: "none",
+                cursor: "pointer",
+                borderRadius: "2px",
+                letterSpacing: "0.15em",
+                boxShadow: "0 0 10px rgba(255, 0, 60, 0.5), 0 0 20px rgba(255, 0, 60, 0.25)"
+              }}
+              className="hover-glow"
+            >
+              [ DEPLOY TO COMBAT ARENA ]
+            </Link>
+          </div>
+
+        </div>
+
+        {/* RIGHT PANEL: Shield Grid & Resources */}
+        <div style={{ background: "rgba(10, 10, 10, 0.85)", border: "1px solid rgba(255, 0, 60, 0.08)", backdropFilter: "blur(12px)", borderRadius: "2px", padding: "16px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          
+          {/* Defensive Shield Grid */}
+          <div>
+            <h2 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "12px", color: "#ff003c", marginTop: 0, marginBottom: "8px", letterSpacing: "0.1em", fontWeight: 900 }}>
+              2. SHIELD CORE GRID
+            </h2>
+            <p style={{ fontSize: "11px", color: "#8a8a8a", marginTop: 0, marginBottom: "16px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>
+              Adjust $THREAT Staking level to project electromagnetic barrier protection.
+            </p>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", background: "rgba(5,5,5,0.6)", padding: "10px", border: "1px solid rgba(255,255,255,0.03)", borderRadius: "2px" }}>
+              <div>
+                <div style={{ fontSize: "8.5px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.1em" }}>STAKED ESCROW</div>
+                <div style={{ fontSize: "14px", fontWeight: "bold", color: "#ff003c", fontFamily: "Orbitron, sans-serif" }}>{stakedThreat} $THREAT</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "8.5px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.1em" }}>INTEGRITY</div>
+                <div style={{ fontSize: "14px", fontWeight: "bold", color: "#ffffff", fontFamily: "Orbitron, sans-serif" }}>{shieldIntegrity}%</div>
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min="0"
+              max="1000"
+              value={stakedThreat}
+              onChange={(e) => setStakedThreat(Number(e.target.value))}
+              style={{ width: "100%", accentColor: "#ff003c", cursor: "pointer", background: "#111111", height: "4px", outline: "none", border: "none" }}
+            />
+          </div>
+
+          {/* Scavenging Resource Levels */}
+          <div style={{ borderTop: "1px solid rgba(255, 0, 60, 0.08)", paddingTop: "12px" }}>
+            <h2 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "11px", color: "#ff003c", marginTop: 0, marginBottom: "12px", letterSpacing: "0.1em", fontWeight: 900 }}>
+              3. RESOURCES
+            </h2>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <TacticalResourceBar label="CLEAN WATER SUPPLY" value={waterLevel} color="#ff003c" />
+              <TacticalResourceBar label="FOOD PROVISIONS" value={foodLevel} color="#ff003c" />
+              <TacticalResourceBar label="GRID ELECTROMAGNETIC INPUT" value={powerGrid} color="#ff003c" />
+            </div>
+          </div>
+
         </div>
 
       </main>
+
+      {/* Technical Footer metadata */}
+      <footer style={{ borderTop: "1px solid rgba(255, 0, 60, 0.08)", paddingTop: "6px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "9px", color: "rgba(255,255,255,0.35)", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", zIndex: 20 }}>
+        <span>SEC_SYS: STABLE // SCANNER_LOCK: STABLE</span>
+        <span>SYS_VER: 7.4.1 // TERMINAL_ACTIVE</span>
+      </footer>
     </div>
   );
 }

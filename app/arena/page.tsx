@@ -24,13 +24,13 @@ interface StatBarProps {
 function StatBar({ label, value, max, color }: StatBarProps) {
   const percentage = Math.min(100, Math.round((value / max) * 100));
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2px", width: "100%" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", color: color === "#ff003c" ? "#ff003c" : "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "2px", width: "100%", position: "relative", zIndex: 3 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: color === "#ff003c" ? "#ff003c" : "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600 }}>
         <span>{label}</span>
         <span style={{ color: "#ffffff", fontWeight: 700 }}>{value}</span>
       </div>
-      <div style={{ height: "3px", background: "#111111", border: "1px solid #1a1a1a", position: "relative" }}>
-        <div style={{ height: "100%", width: `${percentage}%`, background: color, boxShadow: color === "#ff003c" ? "0 0 8px rgba(255, 0, 60, 0.45)" : "0 0 8px rgba(255, 255, 255, 0.2)" }} />
+      <div style={{ height: "3px", background: "rgba(17,17,17,0.6)", border: "1px solid rgba(255,255,255,0.05)", position: "relative" }}>
+        <div style={{ height: "100%", width: `${percentage}%`, background: color, boxShadow: color === "#ff003c" ? "0 0 10px rgba(255, 0, 60, 0.6)" : "0 0 10px rgba(255, 255, 255, 0.4)" }} />
       </div>
     </div>
   );
@@ -47,19 +47,19 @@ function InventorySlot({ icon, color }: InventorySlotProps) {
       style={{ 
         width: "44px", 
         height: "44px", 
-        border: `1px solid ${color === "#ff003c" ? "rgba(255, 0, 60, 0.25)" : "rgba(255, 255, 255, 0.15)"}`, 
-        background: "rgba(10, 10, 10, 0.85)", 
+        border: `1px solid ${color === "#ff003c" ? "rgba(255, 0, 60, 0.15)" : "rgba(255, 255, 255, 0.1)"}`, 
+        background: "rgba(5, 5, 5, 0.8)", 
         display: "flex", 
         justifyContent: "center", 
         alignItems: "center", 
         position: "relative",
         borderRadius: "2px",
-        boxShadow: "inset 0 0 10px rgba(0,0,0,0.9)",
-        transition: "all 0.18s ease"
+        boxShadow: "inset 0 0 8px rgba(0,0,0,0.95)",
+        zIndex: 3
       }} 
       className="inventory-slot"
     >
-      <div style={{ color: color, opacity: 0.8 }}>{icon}</div>
+      <div style={{ color: color, opacity: 0.75 }}>{icon}</div>
       <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: `1px solid ${color}0b`, pointerEvents: "none" }} />
     </div>
   );
@@ -355,36 +355,50 @@ export default function ArenaPage() {
   );
 
   return (
-    <div id="game-arena-root" style={{ background: "#050505", minHeight: "100vh", color: "#ffffff", fontFamily: "Exo 2, Rajdhani, sans-serif", padding: "20px", position: "relative", boxSizing: "border-box", overflowX: "hidden" }}>
-      {/* Google Fonts import locally for game-specific typographies */}
+    <div id="game-arena-root" style={{ background: "#050505", minHeight: "100vh", color: "#ffffff", fontFamily: "Exo 2, Rajdhani, sans-serif", padding: "16px 24px", position: "relative", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+      {/* Global CSS Style tag for typography, scanning sweeps and targeting effects */}
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700&family=Orbitron:wght@500;800;900&family=Oxanium:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&display=swap');
 
-        /* Dynamic Scanline sweep and pulsing overlays */
+        /* Fullscreen CRT scanline overlay */
         #game-arena-root::before {
           content: " ";
           display: block;
           position: absolute;
           top: 0; left: 0; bottom: 0; right: 0;
-          background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                      linear-gradient(90deg, rgba(255, 0, 60, 0.04), rgba(0, 255, 204, 0.01), rgba(0, 0, 255, 0.04));
-          background-size: 100% 4px, 6px 100%;
-          zIndex: 10;
+          background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,.012) 3px);
+          background-size: 100% 4px;
+          z-index: 10;
           pointer-events: none;
-          opacity: 0.3;
+          opacity: 0.45;
         }
 
-        /* Grid Overlay */
+        /* 50px grid overlay */
         #game-arena-root::after {
           content: " ";
           display: block;
           position: absolute;
           top: 0; left: 0; bottom: 0; right: 0;
-          background-image: linear-gradient(rgba(255, 0, 60, 0.02) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(255, 0, 60, 0.02) 1px, transparent 1px);
+          background-image: linear-gradient(rgba(255, 0, 60, 0.015) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255, 0, 60, 0.015) 1px, transparent 1px);
           background-size: 50px 50px;
           z-index: 1;
           pointer-events: none;
+        }
+
+        /* Radar sweep animation overlay */
+        .radar-sweep {
+          position: absolute;
+          top: 0; left: 0; width: 100%; height: 100%;
+          background: linear-gradient(to bottom, rgba(255,0,60,0) 0%, rgba(255,0,60,0.02) 50%, rgba(255,0,60,0) 100%);
+          animation: sweep-down 6s linear infinite;
+          z-index: 2;
+          pointer-events: none;
+        }
+
+        @keyframes sweep-down {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
         }
 
         @keyframes spin { 
@@ -397,449 +411,470 @@ export default function ArenaPage() {
         }
         .hover-glow:hover {
           color: #ff003c !important;
-          text-shadow: 0 0 8px rgba(255,0,60,0.6);
+          text-shadow: 0 0 10px rgba(255,0,60,0.8);
         }
       `}</style>
 
+      {/* Dynamic scanline sweeps layer */}
+      <div className="radar-sweep" />
+
       {/* Screen Frame Border */}
-      <div style={{ position: "absolute", top: "12px", left: "12px", right: "12px", bottom: "12px", border: "1px solid rgba(255, 0, 60, 0.15)", pointerEvents: "none", zIndex: 5, boxShadow: "inset 0 0 20px rgba(255,0,60,0.05)" }} />
+      <div style={{ position: "absolute", top: "12px", left: "12px", right: "12px", bottom: "12px", border: "1px solid rgba(255, 0, 60, 0.08)", pointerEvents: "none", zIndex: 5 }} />
 
-      {/* Main Container */}
-      <div style={{ maxWidth: "1240px", margin: "0 auto", position: "relative", zIndex: 6, display: "flex", flexDirection: "column", gap: "16px", minHeight: "calc(100vh - 40px)" }}>
+      {/* Header Bar */}
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "8px", position: "relative", zIndex: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+          <span style={{ color: "#ff003c", fontWeight: "900", fontSize: "14px", fontFamily: "Orbitron, sans-serif", textShadow: "0 0 8px rgba(255, 0, 60, 0.6)", letterSpacing: "0.15em" }}>
+            &gt; P2P ARENA &nbsp; /// &nbsp; 1v1 DUEL &nbsp; ///
+          </span>
+          <div style={{ display: "flex", gap: "12px", fontSize: "10px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 600 }}>
+            <Link href="/solvivors" style={{ color: "#8a8a8a", textDecoration: "none" }} className="hover-glow">[ HUB ]</Link>
+            <Link href="/bunker" style={{ color: "#8a8a8a", textDecoration: "none" }} className="hover-glow">[ BUNKER ]</Link>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "10px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 600 }}>
+          <span>SEASON 1</span>
+          <span style={{ color: "#ff003c" }}>●</span>
+          <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "#ffffff" }}>RANKED MATCH <span style={{ color: "#ff003c" }}>★</span></span>
+        </div>
+      </header>
+
+      {/* Main 1v1 Arena HUD Layer */}
+      <main style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr 1fr", gap: "24px", flexGrow: 1, alignItems: "center", position: "relative", zIndex: 10, minHeight: "0", margin: "12px 0" }}>
         
-        {/* Navigation / Header Bar */}
-        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.15)", paddingBottom: "10px", marginTop: "8px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <span style={{ color: "#ff003c", fontWeight: "900", fontSize: "14px", fontFamily: "Orbitron, sans-serif", textShadow: "0 0 8px rgba(255, 0, 60, 0.6)", letterSpacing: "0.15em", textTransform: "uppercase" }}>
-              &gt; P2P ARENA &nbsp; /// &nbsp; 1v1 DUEL &nbsp; ///
-            </span>
-            <div style={{ display: "flex", gap: "12px", fontSize: "10px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 600 }}>
-              <Link href="/solvivors" style={{ color: "#8a8a8a", textDecoration: "none" }} className="hover-glow">[ HUB ]</Link>
-              <Link href="/bunker" style={{ color: "#8a8a8a", textDecoration: "none" }} className="hover-glow">[ BUNKER ]</Link>
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "10px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 600 }}>
-            <span>SEASON 1</span>
-            <span style={{ color: "#ff003c" }}>●</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "#ffffff" }}>RANKED MATCH <span style={{ color: "#ff003c" }}>★</span></span>
-          </div>
-        </header>
-
-        {/* 1v1 Duel Layout Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr 1fr", gap: "20px", flexGrow: 1, alignItems: "center" }}>
+        {/* PLAYER A (Left Panel) */}
+        <div style={{ display: "flex", gap: "16px", alignItems: "center", height: "100%", position: "relative", padding: "12px" }}>
           
-          {/* LEFT COMMANDER: REDQUEEN_X */}
-          <div style={{ display: "flex", gap: "16px", alignItems: "center", background: "rgba(10, 10, 10, 0.85)", border: "1px solid rgba(255, 0, 60, 0.15)", backdropFilter: "blur(12px)", borderRadius: "2px", padding: "16px", height: "100%", justifyContent: "center", position: "relative" }}>
-            {/* Inventory Slots on Left */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px", zIndex: 2 }}>
-              <InventorySlot icon={<HelmetIcon />} color="#ff003c" />
-              <InventorySlot icon={<ArmorIcon />} color="#ff003c" />
-              <InventorySlot icon={<WeaponIcon />} color="#ff003c" />
-              <InventorySlot icon={<PantsIcon />} color="#ff003c" />
-              <InventorySlot icon={<BootsIcon />} color="#ff003c" />
-            </div>
+          {/* Crimson Red Glow Queen Silhouette standing in the background */}
+          <img
+            src="/images/redqueen_silhouette.png"
+            alt="Red Queen Silhouette"
+            style={{
+              position: "absolute",
+              top: "10%",
+              left: "50%",
+              transform: "translateX(-40%)",
+              height: "75%",
+              width: "auto",
+              opacity: 0.65,
+              filter: "drop-shadow(0 0 25px rgba(255, 0, 60, 0.65))",
+              zIndex: 1,
+              pointerEvents: "none"
+            }}
+          />
 
-            {/* Profile Panel & Silhouette */}
-            <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "12px", zIndex: 2, height: "100%", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#ff003c" }}>
-                    <span style={{ fontSize: "16px", fontWeight: "900", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.05em", textShadow: "0 0 10px rgba(255, 0, 60, 0.6)" }}>REDQUEEN_X</span>
-                    <span style={{ fontSize: "10px" }}>★</span>
-                  </div>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#8a8a8a", marginTop: "2px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600 }}>
-                  <span>RANK: <span style={{ color: "#ff003c" }}>RED QUEEN</span></span>
-                  <span>RATING: 1847</span>
-                </div>
-              </div>
-
-              {/* HP Bar */}
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", marginBottom: "4px", color: "#ff003c", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.1em", fontWeight: 700 }}>
-                  <span>HP</span>
-                  <span style={{ color: "#ffffff" }}>{playerHp} / {playerMaxHp}</span>
-                </div>
-                <div style={{ display: "flex", gap: "2px" }}>
-                  {Array.from({ length: 18 }).map((_, i) => {
-                    const blockVal = (playerMaxHp / 18) * (i + 1);
-                    const isActive = playerHp >= blockVal;
-                    return (
-                      <div
-                        key={i}
-                        style={{
-                          height: "10px",
-                          flexGrow: 1,
-                          background: isActive ? "#ff003c" : "#111111",
-                          border: "1px solid #1a1a1a",
-                          boxShadow: isActive ? "0 0 8px rgba(255, 0, 60, 0.65)" : "none",
-                          borderRadius: "0px"
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Silhouette Container */}
-              <div style={{ flexGrow: 1, height: "240px", background: "radial-gradient(circle at center, rgba(255, 0, 60, 0.15) 0%, rgba(0,0,0,0) 80%)", border: "1px solid rgba(255,0,60,0.1)", display: "flex", justifyContent: "center", alignItems: "center", position: "relative", overflow: "hidden" }}>
-                <img
-                  src="/images/redqueen_silhouette.png"
-                  alt="Red Queen Silhouette"
-                  style={{ height: "92%", width: "auto", filter: "drop-shadow(0 0 12px rgba(255, 0, 60, 0.6))", objectFit: "contain" }}
-                />
-                <div style={{ position: "absolute", bottom: "8px", left: "10px", fontSize: "9px", color: "rgba(255, 0, 60, 0.8)", letterSpacing: "0.15em", fontFamily: "Rajdhani, sans-serif", fontWeight: 700 }}>// ACTIVE INTEGRITY</div>
-              </div>
-
-              {/* Stats graphs */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <StatBar label="ATTACK" value={playerStats.attack} max={100} color="#ff003c" />
-                <StatBar label="DEFENSE" value={playerStats.defense} max={100} color="#ff003c" />
-                <StatBar label="AGILITY" value={playerStats.agility} max={100} color="#ff003c" />
-                <StatBar label="INTELLECT" value={playerStats.intellect} max={100} color="#ff003c" />
-                <StatBar label="LUCK" value={playerStats.luck} max={100} color="#ff003c" />
-              </div>
-            </div>
+          {/* Symmetrical items stacked on A far left */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", zIndex: 3 }}>
+            <InventorySlot icon={<HelmetIcon />} color="#ff003c" />
+            <InventorySlot icon={<ArmorIcon />} color="#ff003c" />
+            <InventorySlot icon={<WeaponIcon />} color="#ff003c" />
+            <InventorySlot icon={<PantsIcon />} color="#ff003c" />
+            <InventorySlot icon={<BootsIcon />} color="#ff003c" />
           </div>
 
-          {/* CENTER PANEL: ARENA & BATTLE CONTROL */}
-          <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", padding: "10px 0", height: "100%" }}>
-            
-            {/* Top countdown */}
-            <div style={{ textAlign: "center", marginTop: "4px" }}>
-              <span style={{ fontSize: "10px", color: "#8a8a8a", letterSpacing: "0.15em", fontFamily: "Rajdhani, sans-serif", fontWeight: 600 }}>MATCH STARTS IN</span>
-              <div style={{ fontFamily: "Orbitron, sans-serif", fontSize: "36px", color: "#ff003c", fontWeight: "900", textShadow: "0 0 10px rgba(255, 0, 60, 0.8), 0 0 20px rgba(255, 0, 60, 0.4)", marginTop: "2px" }}>
-                00:{countdown.toString().padStart(2, "0")}
+          {/* Symmetrical stats layout overlaid on B */}
+          <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", maxWidth: "220px", zIndex: 3 }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#ff003c" }}>
+                <span style={{ fontSize: "16px", fontWeight: "900", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.05em", textShadow: "0 0 10px rgba(255, 0, 60, 0.5)" }}>REDQUEEN_X</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", color: "#8a8a8a", marginTop: "2px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 600 }}>
+                <span>RANK: <span style={{ color: "#ff003c" }}>RED QUEEN</span></span>
+                <span>RAT: 1847</span>
               </div>
             </div>
 
-            {/* Circular VS logo */}
-            <div style={{ position: "relative", width: "170px", height: "170px", display: "flex", justifyContent: "center", alignItems: "center" }}>
-              {/* Spinning tech wheels */}
-              <div style={{ position: "absolute", width: "100%", height: "100%", borderRadius: "50%", border: "1px dashed rgba(255, 0, 60, 0.3)", animation: "spin 30s linear infinite" }} />
-              <div style={{ position: "absolute", width: "88%", height: "88%", borderRadius: "50%", border: "1px dashed rgba(255, 255, 255, 0.1)", animation: "spin-reverse 20s linear infinite" }} />
-              <div style={{ position: "absolute", width: "75%", height: "75%", borderRadius: "50%", border: "1px solid rgba(255, 0, 60, 0.15)" }} />
-              
-              <div style={{ width: "94px", height: "94px", borderRadius: "50%", background: "#050505", border: "2px solid #ff003c", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 5, boxShadow: "0 0 15px rgba(255, 0, 60, 0.45), 0 0 30px rgba(255, 0, 60, 0.2)" }}>
-                <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "32px", color: "#ff003c", fontWeight: "900", textShadow: "0 0 8px #ff003c" }}>VS</span>
+            {/* HP Bar */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", marginBottom: "4px", color: "#ff003c", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 700 }}>
+                <span>HP</span>
+                <span style={{ color: "#ffffff" }}>{playerHp} / {playerMaxHp}</span>
               </div>
-            </div>
-
-            {/* Match details HUD */}
-            <div style={{ textAlign: "center", width: "100%", display: "flex", flexDirection: "column", gap: "8px", fontFamily: "Rajdhani, sans-serif" }}>
-              <div>
-                <span style={{ fontSize: "9px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 600 }}>ARENA</span>
-                <div style={{ fontSize: "13px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.05em", textTransform: "uppercase" }}>WASTELAND COLISEUM</div>
-              </div>
-              
-              <div>
-                <span style={{ fontSize: "9px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 600 }}>BET</span>
-                <div style={{ fontSize: "14px", fontWeight: "bold", color: "#ff003c", textShadow: "0 0 8px rgba(255, 0, 60, 0.4)" }}>10 THREAT</div>
-              </div>
-              
-              <div>
-                <span style={{ fontSize: "9px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 600 }}>MATCH TYPE</span>
-                <div style={{ fontSize: "11px", color: "#ffffff", letterSpacing: "0.05em" }}>RANKED 1v1</div>
-              </div>
-            </div>
-
-            {/* Action launcher */}
-            <div style={{ width: "100%", padding: "0 12px" }}>
-              {!matchActive ? (
-                <button
-                  onClick={triggerStartMatch}
-                  style={{
-                    width: "100%",
-                    background: "#ff003c",
-                    border: "none",
-                    color: "#ffffff",
-                    fontFamily: "Orbitron, sans-serif",
-                    fontSize: "11px",
-                    fontWeight: "900",
-                    padding: "12px",
-                    cursor: "pointer",
-                    borderRadius: "2px",
-                    letterSpacing: "0.15em",
-                    boxShadow: "0 0 10px rgba(255, 0, 60, 0.45), 0 0 20px rgba(255, 0, 60, 0.2)"
-                  }}
-                  className="hover-glow"
-                >
-                  [ INITIATE ENCOUNTER ]
-                </button>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ fontSize: "9px", color: "#8a8a8a", textAlign: "center", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.1em", fontWeight: 600 }}>TARGET INPUT ZONE:</div>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    <div style={{ flex: 1, border: "1px solid rgba(255, 0, 60, 0.3)", background: "rgba(255, 0, 60, 0.05)", padding: "5px", fontSize: "10px", textAlign: "center", fontFamily: "Rajdhani, sans-serif", fontWeight: 700, color: "#ff003c" }}>
-                      ATTACK: {selectedAttack || "..."}
-                    </div>
-                    <div style={{ flex: 1, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255, 255, 255, 0.05)", padding: "5px", fontSize: "10px", textAlign: "center", fontFamily: "Rajdhani, sans-serif", fontWeight: 700, color: "#ffffff" }}>
-                      SHIELD: {selectedDefense || "..."}
-                    </div>
-                  </div>
-                  {selectedAttack && selectedDefense && (
-                    <button
-                      onClick={submitTacticalMoves}
+              <div style={{ display: "flex", gap: "2px" }}>
+                {Array.from({ length: 18 }).map((_, i) => {
+                  const blockVal = (playerMaxHp / 18) * (i + 1);
+                  const isActive = playerHp >= blockVal;
+                  return (
+                    <div
+                      key={i}
                       style={{
-                        width: "100%",
-                        background: "#ff003c",
-                        border: "none",
-                        color: "#ffffff",
-                        fontFamily: "Orbitron, sans-serif",
-                        fontSize: "10px",
-                        fontWeight: "900",
-                        padding: "10px",
-                        cursor: "pointer",
-                        borderRadius: "2px",
-                        letterSpacing: "0.1em",
-                        boxShadow: "0 0 10px rgba(255, 0, 60, 0.5)"
+                        height: "8px",
+                        flexGrow: 1,
+                        background: isActive ? "#ff003c" : "rgba(17,17,17,0.7)",
+                        border: "1px solid rgba(0,0,0,0.6)",
+                        boxShadow: isActive ? "0 0 6px rgba(255, 0, 60, 0.6)" : "none"
                       }}
-                      className="hover-glow"
-                    >
-                      [ EXECUTE ATTACKS ]
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-          </div>
-
-          {/* RIGHT COMMANDER: DESGECEAN */}
-          <div style={{ display: "flex", gap: "16px", alignItems: "center", background: "rgba(10, 10, 10, 0.85)", border: "1px solid rgba(255, 255, 255, 0.08)", backdropFilter: "blur(12px)", borderRadius: "2px", padding: "16px", height: "100%", justifyContent: "center", position: "relative" }}>
-            
-            {/* Profile Panel & Silhouette */}
-            <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "12px", zIndex: 2, height: "100%", justifyContent: "space-between" }}>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px" }}>
-                  <span style={{ fontSize: "16px", fontWeight: "900", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.05em", color: "#ffffff", textShadow: "0 0 10px rgba(255, 255, 255, 0.2)" }}>DESGECEAN</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#8a8a8a", marginTop: "2px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600 }}>
-                  <span>RANK: SURVIVOR</span>
-                  <span>RATING: 1732</span>
-                </div>
-              </div>
-
-              {/* HP Bar */}
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", marginBottom: "4px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.1em", fontWeight: 700 }}>
-                  <span>HP</span>
-                  <span style={{ color: "#ffffff" }}>{opponentHp} / {opponentMaxHp}</span>
-                </div>
-                <div style={{ display: "flex", gap: "2px" }}>
-                  {Array.from({ length: 18 }).map((_, i) => {
-                    const blockVal = (opponentMaxHp / 18) * (i + 1);
-                    const isActive = opponentHp >= blockVal;
-                    return (
-                      <div
-                        key={i}
-                        style={{
-                          height: "10px",
-                          flexGrow: 1,
-                          background: isActive ? "#ffffff" : "#111111",
-                          border: "1px solid #1a1a1a",
-                          boxShadow: isActive ? "0 0 8px rgba(255, 255, 255, 0.4)" : "none",
-                          borderRadius: "0px"
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Silhouette Container */}
-              <div style={{ flexGrow: 1, height: "240px", background: "radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0) 80%)", border: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "center", alignItems: "center", position: "relative", overflow: "hidden" }}>
-                <img
-                  src="/images/soldier_silhouette.png"
-                  alt="Soldier Silhouette"
-                  style={{ height: "92%", width: "auto", filter: "brightness(0.85) drop-shadow(0 0 12px rgba(255,255,255,0.25))", objectFit: "contain" }}
-                />
-                <div style={{ position: "absolute", bottom: "8px", right: "10px", fontSize: "9px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.15em", fontFamily: "Rajdhani, sans-serif", fontWeight: 700 }}>// THREAT ALIGNED</div>
-              </div>
-
-              {/* Stats graphs */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <StatBar label="ATTACK" value={opponentStats.attack} max={100} color="#8a8a8a" />
-                <StatBar label="DEFENSE" value={opponentStats.defense} max={100} color="#8a8a8a" />
-                <StatBar label="AGILITY" value={opponentStats.agility} max={100} color="#8a8a8a" />
-                <StatBar label="INTELLECT" value={opponentStats.intellect} max={100} color="#8a8a8a" />
-                <StatBar label="LUCK" value={opponentStats.luck} max={100} color="#8a8a8a" />
+                    />
+                  );
+                })}
               </div>
             </div>
 
-            {/* Inventory Slots on Right */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px", zIndex: 2 }}>
-              <InventorySlot icon={<HelmetIcon />} color="#8a8a8a" />
-              <InventorySlot icon={<ArmorIcon />} color="#8a8a8a" />
-              <InventorySlot icon={<WeaponIcon />} color="#8a8a8a" />
-              <InventorySlot icon={<PantsIcon />} color="#8a8a8a" />
-              <InventorySlot icon={<BootsIcon />} color="#8a8a8a" />
+            {/* Faint technical label */}
+            <div style={{ fontSize: "8px", color: "rgba(255,0,60,0.6)", letterSpacing: "0.2em", fontFamily: "Rajdhani, sans-serif", fontWeight: 700, margin: "8px 0" }}>
+              // SECURE_LOCK: LOCKED_A
+            </div>
+
+            {/* Stats bars */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <StatBar label="ATTACK" value={playerStats.attack} max={100} color="#ff003c" />
+              <StatBar label="DEFENSE" value={playerStats.defense} max={100} color="#ff003c" />
+              <StatBar label="AGILITY" value={playerStats.agility} max={100} color="#ff003c" />
+              <StatBar label="INTELLECT" value={playerStats.intellect} max={100} color="#ff003c" />
+              <StatBar label="LUCK" value={playerStats.luck} max={100} color="#ff003c" />
             </div>
           </div>
 
         </div>
 
-        {/* BOTTOM HUD SECTION: CHAT, MUTATORS, LOG */}
-        <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr 1.15fr", gap: "16px", minHeight: "210px", maxHeight: "230px", marginBottom: "8px" }}>
+        {/* TARGETING SYSTEM CENTER */}
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", padding: "10px 0", height: "100%", zIndex: 5 }}>
           
-          {/* Bottom Left: Arena Chat */}
-          <div style={{ background: "rgba(10, 10, 10, 0.85)", border: "1px solid rgba(255, 0, 60, 0.15)", backdropFilter: "blur(12px)", borderRadius: "2px", padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between", position: "relative" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.15)", paddingBottom: "6px", marginBottom: "8px" }}>
-              <span style={{ fontSize: "10px", color: "#ff003c", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em" }}>● ARENA CHAT</span>
-              <button style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", cursor: "pointer", fontSize: "10px", padding: 0 }} className="hover-glow">✕</button>
+          {/* Target Countdown */}
+          <div style={{ textAlign: "center" }}>
+            <span style={{ fontSize: "9px", color: "#8a8a8a", letterSpacing: "0.15em", fontFamily: "Rajdhani, sans-serif", fontWeight: 600 }}>ACQUISITION TIME</span>
+            <div style={{ fontFamily: "Orbitron, sans-serif", fontSize: "32px", color: "#ff003c", fontWeight: "900", textShadow: "0 0 10px rgba(255, 0, 60, 0.7)", marginTop: "2px" }}>
+              00:{countdown.toString().padStart(2, "0")}
+            </div>
+          </div>
+
+          {/* Concentric Circle Target system */}
+          <div style={{ position: "relative", width: "190px", height: "190px", display: "flex", justifyContent: "center", alignItems: "center", margin: "10px 0" }}>
+            {/* outer rings */}
+            <div style={{ position: "absolute", width: "100%", height: "100%", borderRadius: "50%", border: "1px dashed rgba(255, 0, 60, 0.25)", animation: "spin 40s linear infinite" }} />
+            <div style={{ position: "absolute", width: "88%", height: "88%", borderRadius: "50%", border: "1.5px dashed rgba(255, 255, 255, 0.08)", animation: "spin-reverse 20s linear infinite" }} />
+            <div style={{ position: "absolute", width: "76%", height: "76%", borderRadius: "50%", border: "1px solid rgba(255, 0, 60, 0.12)" }} />
+            
+            {/* Crosshair indicators */}
+            <div style={{ position: "absolute", width: "120%", height: "1px", background: "linear-gradient(90deg, rgba(255,0,60,0) 0%, rgba(255,0,60,0.15) 50%, rgba(255,0,60,0) 100%)" }} />
+            <div style={{ position: "absolute", height: "120%", width: "1px", background: "linear-gradient(180deg, rgba(255,0,60,0) 0%, rgba(255,0,60,0.15) 50%, rgba(255,0,60,0) 100%)" }} />
+
+            {/* Tech metadata details */}
+            <div style={{ position: "absolute", top: "15px", left: "-25px", fontSize: "7.5px", color: "rgba(255,0,60,0.5)", fontFamily: "var(--mono)" }}>LOCK: ACQ</div>
+            <div style={{ position: "absolute", bottom: "15px", right: "-30px", fontSize: "7.5px", color: "#8a8a8a", fontFamily: "var(--mono)" }}>DIST: 42.1KM</div>
+            
+            <div style={{ width: "90px", height: "90px", borderRadius: "50%", background: "#050505", border: "2px solid #ff003c", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 5, boxShadow: "0 0 15px rgba(255, 0, 60, 0.5)" }}>
+              <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "32px", color: "#ff003c", fontWeight: "900", textShadow: "0 0 6px #ff003c", letterSpacing: "-0.05em" }}>VS</span>
+            </div>
+          </div>
+
+          {/* Technical targeting details */}
+          <div style={{ textAlign: "center", width: "100%", display: "flex", flexDirection: "column", gap: "6px", fontFamily: "Rajdhani, sans-serif" }}>
+            <div>
+              <span style={{ fontSize: "9px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 600 }}>ARENA COORDINATE</span>
+              <div style={{ fontSize: "12px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.05em" }}>WASTELAND COLISEUM</div>
             </div>
             
-            <div style={{ overflowY: "auto", flexGrow: 1, fontSize: "10.5px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px", paddingRight: "4px", fontFamily: "var(--mono), monospace" }}>
-              {chatMessages.map((msg, i) => (
-                <div key={i} style={{ lineHeight: "1.3" }}>
-                  <span style={{ color: "rgba(255,255,255,0.25)", marginRight: "6px" }}>[{msg.time}]</span>
-                  <span style={{ color: msg.color || "#8a8a8a", fontWeight: "bold", marginRight: "6px" }}>{msg.sender}:</span>
-                  <span style={{ color: "rgba(255,255,255,0.75)" }}>{msg.text}</span>
-                </div>
-              ))}
-              <div ref={chatEndRef} />
+            <div>
+              <span style={{ fontSize: "9px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 600 }}>LOCKED ESCROW</span>
+              <div style={{ fontSize: "14px", fontWeight: "bold", color: "#ff003c", textShadow: "0 0 8px rgba(255, 0, 60, 0.45)" }}>10 $THREAT</div>
             </div>
+          </div>
 
-            <form onSubmit={handleSendChat} style={{ display: "flex", border: "1px solid #222222", background: "#050505" }}>
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="TYPE MESSAGE..."
-                style={{ flexGrow: 1, background: "transparent", border: "none", color: "#ffffff", fontFamily: "var(--mono), monospace", fontSize: "10px", padding: "6px 8px", outline: "none", textTransform: "uppercase" }}
-              />
+          {/* Action Trigger */}
+          <div style={{ width: "100%", padding: "0 16px" }}>
+            {!matchActive ? (
               <button
-                type="submit"
-                style={{ background: "transparent", border: "none", color: "#ff003c", cursor: "pointer", padding: "0 8px", display: "flex", alignItems: "center" }}
+                onClick={triggerStartMatch}
+                style={{
+                  width: "100%",
+                  background: "#ff003c",
+                  border: "none",
+                  color: "#ffffff",
+                  fontFamily: "Orbitron, sans-serif",
+                  fontSize: "11px",
+                  fontWeight: "900",
+                  padding: "11px",
+                  cursor: "pointer",
+                  borderRadius: "2px",
+                  letterSpacing: "0.15em",
+                  boxShadow: "0 0 10px rgba(255, 0, 60, 0.4)"
+                }}
+                className="hover-glow"
               >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+                [ ENGAGE DUEL ]
               </button>
-            </form>
-          </div>
-
-          {/* Bottom Center: Mutators Panel */}
-          <div style={{ background: "rgba(10, 10, 10, 0.85)", border: "1px solid rgba(255, 0, 60, 0.15)", backdropFilter: "blur(12px)", borderRadius: "2px", padding: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <span style={{ fontSize: "10px", color: "#8a8a8a", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", borderBottom: "1px solid rgba(255, 0, 60, 0.15)", paddingBottom: "6px" }}>MUTATORS</span>
-            
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", flexGrow: 1, minHeight: "0" }}>
-              {/* Mutator 1: TOXIC FOG */}
-              <div style={{ border: "1px solid rgba(255, 0, 60, 0.15)", background: "rgba(10, 10, 10, 0.85)", padding: "6px 8px", display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: "2px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                  <span style={{ color: "#ff003c", fontSize: "11px" }}>💀</span>
-                  <div style={{ fontSize: "9px", fontWeight: "bold", color: "#ffffff", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>TOXIC FOG</div>
-                </div>
-                <span style={{ fontSize: "9px", color: "#ff003c", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif" }}>-10% HP REGEN</span>
-              </div>
-
-              {/* Mutator 2: SCARCE AMMO */}
-              <div style={{ border: "1px solid rgba(255, 0, 60, 0.15)", background: "rgba(10, 10, 10, 0.85)", padding: "6px 8px", display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: "2px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                  <span style={{ color: "#ff003c", fontSize: "11px" }}>⚡</span>
-                  <div style={{ fontSize: "9px", fontWeight: "bold", color: "#ffffff", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>SCARCE AMMO</div>
-                </div>
-                <span style={{ fontSize: "9px", color: "#ff003c", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif" }}>-15% DAMAGE</span>
-              </div>
-
-              {/* Mutator 3: ELECTRO SURGE */}
-              <div style={{ border: "1px solid rgba(255, 0, 60, 0.15)", background: "rgba(10, 10, 10, 0.85)", padding: "6px 8px", display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: "2px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                  <span style={{ color: "#ff003c", fontSize: "11px" }}>⚡</span>
-                  <div style={{ fontSize: "9px", fontWeight: "bold", color: "#ffffff", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>ELECTRO SURGE</div>
-                </div>
-                <span style={{ fontSize: "9px", color: "#ff003c", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif" }}>+10% AGILITY</span>
-              </div>
-
-              {/* Mutator 4: DATA BREACH */}
-              <div style={{ border: "1px solid rgba(255, 0, 60, 0.15)", background: "rgba(10, 10, 10, 0.85)", padding: "6px 8px", display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: "2px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                  <span style={{ color: "#ff003c", fontSize: "11px" }}>🔒</span>
-                  <div style={{ fontSize: "9px", fontWeight: "bold", color: "#ffffff", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>DATA BREACH</div>
-                </div>
-                <span style={{ fontSize: "9px", color: "#ff003c", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif" }}>-5% INTELLECT</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Right: Battle Log */}
-          <div style={{ background: "rgba(10, 10, 10, 0.85)", border: "1px solid rgba(255, 0, 60, 0.15)", backdropFilter: "blur(12px)", borderRadius: "2px", padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.15)", paddingBottom: "6px", marginBottom: "8px" }}>
-              <span style={{ fontSize: "10px", color: "#8a8a8a", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em" }}>BATTLE LOG</span>
-              <button style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", cursor: "pointer", fontSize: "10px", padding: 0 }} className="hover-glow">✕</button>
-            </div>
-
-            <div style={{ overflowY: "auto", flexGrow: 1, fontSize: "10px", display: "flex", flexDirection: "column", gap: "4px", paddingRight: "4px", marginBottom: "4px", fontFamily: "var(--mono), monospace" }}>
-              {battleLogs.map((log, i) => (
-                <div key={i} style={{ lineHeight: "1.3" }}>
-                  <span style={{ color: "rgba(255,255,255,0.25)", marginRight: "6px" }}>[{log.time}]</span>
-                  <span style={{
-                    color: log.color ? log.color :
-                           log.sender === "REDQUEEN_X" ? "#00ffcc" : 
-                           log.sender === "DESGECEAN" ? "#ff003c" : "rgba(255,255,255,0.55)"
-                  }}>
-                    {log.text}
-                  </span>
-                </div>
-              ))}
-              <div ref={logEndRef} />
-            </div>
-
-            {/* Combat Selection overlay when match is active */}
-            {matchActive && !combatOutcome && (
-              <div style={{ borderTop: "1px solid #222222", paddingTop: "6px", display: "flex", flexDirection: "column", gap: "5px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "9px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>SELECT ATTACK:</span>
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    {(["HEAD", "TORSO", "ARMS", "LEGS"] as Limb[]).map(l => (
-                      <button
-                        key={l}
-                        onClick={() => setSelectedAttack(l)}
-                        style={{
-                          background: selectedAttack === l ? "#ff003c" : "#050505",
-                          border: `1px solid ${selectedAttack === l ? "#ff003c" : "#1a1a1a"}`,
-                          color: "#ffffff",
-                          fontSize: "8.5px",
-                          fontFamily: "var(--mono), monospace",
-                          padding: "2px 5px",
-                          cursor: "pointer",
-                          borderRadius: "2px"
-                        }}
-                      >
-                        {l}
-                      </button>
-                    ))}
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <div style={{ flex: 1, border: "1px solid rgba(255, 0, 60, 0.15)", background: "rgba(5, 5, 5, 0.8)", padding: "4px", fontSize: "9px", textAlign: "center", fontFamily: "Rajdhani, sans-serif", fontWeight: 700, color: "#ff003c" }}>
+                    ATTACK: {selectedAttack || "---"}
+                  </div>
+                  <div style={{ flex: 1, border: "1px solid rgba(255, 255, 255, 0.1)", background: "rgba(5, 5, 5, 0.8)", padding: "4px", fontSize: "9px", textAlign: "center", fontFamily: "Rajdhani, sans-serif", fontWeight: 700, color: "#ffffff" }}>
+                    SHIELD: {selectedDefense || "---"}
                   </div>
                 </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "9px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>SELECT SHIELD:</span>
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    {(["HEAD", "TORSO", "ARMS", "LEGS"] as Limb[]).map(l => (
-                      <button
-                        key={l}
-                        onClick={() => setSelectedDefense(l)}
-                        style={{
-                          background: selectedDefense === l ? "#ffffff" : "#050505",
-                          border: `1px solid ${selectedDefense === l ? "#ffffff" : "#1a1a1a"}`,
-                          color: selectedDefense === l ? "#050505" : "#ffffff",
-                          fontSize: "8.5px",
-                          fontFamily: "var(--mono), monospace",
-                          padding: "2px 5px",
-                          cursor: "pointer",
-                          borderRadius: "2px"
-                        }}
-                      >
-                        {l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {selectedAttack && selectedDefense && (
+                  <button
+                    onClick={submitTacticalMoves}
+                    style={{
+                      width: "100%",
+                      background: "#ff003c",
+                      border: "none",
+                      color: "#ffffff",
+                      fontFamily: "Orbitron, sans-serif",
+                      fontSize: "10px",
+                      fontWeight: "900",
+                      padding: "8px",
+                      cursor: "pointer",
+                      borderRadius: "2px",
+                      letterSpacing: "0.1em",
+                      boxShadow: "0 0 10px rgba(255, 0, 60, 0.45)"
+                    }}
+                    className="hover-glow"
+                  >
+                    [ LOCK STRIKES ]
+                  </button>
+                )}
               </div>
             )}
           </div>
 
         </div>
 
-      </div>
+        {/* PLAYER B (Right Panel) */}
+        <div style={{ display: "flex", gap: "16px", alignItems: "center", height: "100%", justifyContent: "flex-end", position: "relative", padding: "12px" }}>
+          
+          {/* White Rim Glow Soldier Silhouette standing in the background */}
+          <img
+            src="/images/soldier_silhouette.png"
+            alt="Soldier Silhouette"
+            style={{
+              position: "absolute",
+              top: "10%",
+              left: "50%",
+              transform: "translateX(-60%)",
+              height: "75%",
+              width: "auto",
+              opacity: 0.65,
+              filter: "drop-shadow(0 0 25px rgba(255, 255, 255, 0.25))",
+              zIndex: 1,
+              pointerEvents: "none"
+            }}
+          />
+
+          {/* Symmetrical stats layout overlaid on B */}
+          <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "220px", zIndex: 3 }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px" }}>
+                <span style={{ fontSize: "16px", fontWeight: "900", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.05em", color: "#ffffff", textShadow: "0 0 10px rgba(255, 255, 255, 0.2)" }}>DESGECEAN</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", color: "#8a8a8a", marginTop: "2px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 600 }}>
+                <span>RANK: SURVIVOR</span>
+                <span>RAT: 1732</span>
+              </div>
+            </div>
+
+            {/* HP Bar */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", marginBottom: "4px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 700 }}>
+                <span>HP</span>
+                <span style={{ color: "#ffffff" }}>{opponentHp} / {opponentMaxHp}</span>
+              </div>
+              <div style={{ display: "flex", gap: "2px" }}>
+                {Array.from({ length: 18 }).map((_, i) => {
+                  const blockVal = (opponentMaxHp / 18) * (i + 1);
+                  const isActive = opponentHp >= blockVal;
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        height: "8px",
+                        flexGrow: 1,
+                        background: isActive ? "#ffffff" : "rgba(17,17,17,0.7)",
+                        border: "1px solid rgba(0,0,0,0.6)",
+                        boxShadow: isActive ? "0 0 6px rgba(255, 255, 255, 0.4)" : "none"
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Faint technical label */}
+            <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.2em", fontFamily: "Rajdhani, sans-serif", fontWeight: 700, margin: "8px 0", textAlign: "right" }}>
+              // SECURE_LOCK: LOCKED_B
+            </div>
+
+            {/* Stats bars */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <StatBar label="ATTACK" value={opponentStats.attack} max={100} color="#8a8a8a" />
+              <StatBar label="DEFENSE" value={opponentStats.defense} max={100} color="#8a8a8a" />
+              <StatBar label="AGILITY" value={opponentStats.agility} max={100} color="#8a8a8a" />
+              <StatBar label="INTELLECT" value={opponentStats.intellect} max={100} color="#8a8a8a" />
+              <StatBar label="LUCK" value={opponentStats.luck} max={100} color="#8a8a8a" />
+            </div>
+          </div>
+
+          {/* Symmetrical items stacked on B far right */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", zIndex: 3 }}>
+            <InventorySlot icon={<HelmetIcon />} color="#8a8a8a" />
+            <InventorySlot icon={<ArmorIcon />} color="#8a8a8a" />
+            <InventorySlot icon={<WeaponIcon />} color="#8a8a8a" />
+            <InventorySlot icon={<PantsIcon />} color="#8a8a8a" />
+            <InventorySlot icon={<BootsIcon />} color="#8a8a8a" />
+          </div>
+
+        </div>
+
+      </main>
+
+      {/* BOTTOM PANEL ROW: Floating HUD with near-invisible borders */}
+      <footer style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr 1.15fr", gap: "16px", minHeight: "190px", maxHeight: "210px", position: "relative", zIndex: 20 }}>
+        
+        {/* Arena Chat Box */}
+        <div style={{ background: "rgba(10, 10, 10, 0.85)", border: "1px solid rgba(255, 0, 60, 0.08)", backdropFilter: "blur(12px)", padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: "2px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "4px", marginBottom: "8px" }}>
+            <span style={{ fontSize: "9.5px", color: "#ff003c", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em" }}>● ARENA CHAT</span>
+            <button style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", cursor: "pointer", fontSize: "10px" }} className="hover-glow">✕</button>
+          </div>
+          
+          <div style={{ overflowY: "auto", flexGrow: 1, fontSize: "10.5px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px", paddingRight: "4px", fontFamily: "var(--mono), monospace" }}>
+            {chatMessages.map((msg, i) => (
+              <div key={i} style={{ lineHeight: "1.3" }}>
+                <span style={{ color: "rgba(255,255,255,0.25)", marginRight: "6px" }}>[{msg.time}]</span>
+                <span style={{ color: msg.color || "#8a8a8a", fontWeight: "bold", marginRight: "6px" }}>{msg.sender}:</span>
+                <span style={{ color: "rgba(255,255,255,0.7)" }}>{msg.text}</span>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+
+          <form onSubmit={handleSendChat} style={{ display: "flex", border: "1px solid rgba(255,0,60,0.15)", background: "#050505" }}>
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="TYPE TRANSMISSION..."
+              style={{ flexGrow: 1, background: "transparent", border: "none", color: "#ffffff", fontFamily: "var(--mono), monospace", fontSize: "9.5px", padding: "5px 8px", outline: "none", textTransform: "uppercase" }}
+            />
+            <button type="submit" style={{ background: "transparent", border: "none", color: "#ff003c", cursor: "pointer", padding: "0 8px", display: "flex", alignItems: "center" }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+            </button>
+          </form>
+        </div>
+
+        {/* Environmental Mutators Box */}
+        <div style={{ background: "rgba(10, 10, 10, 0.85)", border: "1px solid rgba(255, 0, 60, 0.08)", backdropFilter: "blur(12px)", padding: "12px", display: "flex", flexDirection: "column", gap: "6px", borderRadius: "2px" }}>
+          <span style={{ fontSize: "9.5px", color: "#8a8a8a", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "4px" }}>ENVIRONMENT MUTATORS</span>
+          
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", flexGrow: 1, minHeight: "0" }}>
+            {/* Mutator 1: TOXIC FOG */}
+            <div style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(5, 5, 5, 0.5)", padding: "5px 8px", display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: "2px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <span style={{ color: "#ff003c", fontSize: "10px" }}>💀</span>
+                <div style={{ fontSize: "9px", fontWeight: "bold", color: "#ffffff", fontFamily: "Rajdhani, sans-serif" }}>TOXIC FOG</div>
+              </div>
+              <span style={{ fontSize: "9px", color: "#ff003c", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif" }}>-10% HP REGEN</span>
+            </div>
+
+            {/* Mutator 2: SCARCE AMMO */}
+            <div style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(5, 5, 5, 0.5)", padding: "5px 8px", display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: "2px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <span style={{ color: "#ff003c", fontSize: "10px" }}>🛡️</span>
+                <div style={{ fontSize: "9px", fontWeight: "bold", color: "#ffffff", fontFamily: "Rajdhani, sans-serif" }}>SCARCE AMMO</div>
+              </div>
+              <span style={{ fontSize: "9px", color: "#ff003c", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif" }}>-15% DAMAGE</span>
+            </div>
+
+            {/* Mutator 3: ELECTRO SURGE */}
+            <div style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(5, 5, 5, 0.5)", padding: "5px 8px", display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: "2px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <span style={{ color: "#ff003c", fontSize: "10px" }}>⚡</span>
+                <div style={{ fontSize: "9px", fontWeight: "bold", color: "#ffffff", fontFamily: "Rajdhani, sans-serif" }}>ELECTRO SURGE</div>
+              </div>
+              <span style={{ fontSize: "9px", color: "#ff003c", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif" }}>+10% AGILITY</span>
+            </div>
+
+            {/* Mutator 4: DATA BREACH */}
+            <div style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(5, 5, 5, 0.5)", padding: "5px 8px", display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: "2px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <span style={{ color: "#ff003c", fontSize: "10px" }}>🔒</span>
+                <div style={{ fontSize: "9px", fontWeight: "bold", color: "#ffffff", fontFamily: "Rajdhani, sans-serif" }}>DATA BREACH</div>
+              </div>
+              <span style={{ fontSize: "9px", color: "#ff003c", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif" }}>-5% INTELLECT</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Combat Log Box */}
+        <div style={{ background: "rgba(10, 10, 10, 0.85)", border: "1px solid rgba(255, 0, 60, 0.08)", backdropFilter: "blur(12px)", padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between", borderRadius: "2px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "4px", marginBottom: "8px" }}>
+            <span style={{ fontSize: "9.5px", color: "#8a8a8a", fontWeight: "bold", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em" }}>BATTLE LOGS</span>
+            <button style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", cursor: "pointer", fontSize: "10px" }} className="hover-glow">✕</button>
+          </div>
+
+          <div style={{ overflowY: "auto", flexGrow: 1, fontSize: "10px", display: "flex", flexDirection: "column", gap: "4px", paddingRight: "4px", marginBottom: "4px", fontFamily: "var(--mono), monospace" }}>
+            {battleLogs.map((log, i) => (
+              <div key={i} style={{ lineHeight: "1.3" }}>
+                <span style={{ color: "rgba(255,255,255,0.25)", marginRight: "6px" }}>[{log.time}]</span>
+                <span style={{
+                  color: log.color ? log.color :
+                         log.sender === "REDQUEEN_X" ? "#00ffcc" : 
+                         log.sender === "DESGECEAN" ? "#ff003c" : "rgba(255,255,255,0.55)"
+                }}>
+                  {log.text}
+                </span>
+              </div>
+            ))}
+            <div ref={logEndRef} />
+          </div>
+
+          {/* Combat Selection options overlay */}
+          {matchActive && !combatOutcome && (
+            <div style={{ borderTop: "1px solid rgba(255,0,60,0.15)", paddingTop: "6px", display: "flex", flexDirection: "column", gap: "5px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "9px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>ATTACK TARGET:</span>
+                <div style={{ display: "flex", gap: "3px" }}>
+                  {(["HEAD", "TORSO", "ARMS", "LEGS"] as Limb[]).map(l => (
+                    <button
+                      key={l}
+                      onClick={() => setSelectedAttack(l)}
+                      style={{
+                        background: selectedAttack === l ? "#ff003c" : "#050505",
+                        border: `1px solid ${selectedAttack === l ? "#ff003c" : "#1a1a1a"}`,
+                        color: "#ffffff",
+                        fontSize: "8.5px",
+                        fontFamily: "var(--mono), monospace",
+                        padding: "2px 4px",
+                        cursor: "pointer",
+                        borderRadius: "2px"
+                      }}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "9px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.08em" }}>SHIELD SECTOR:</span>
+                <div style={{ display: "flex", gap: "3px" }}>
+                  {(["HEAD", "TORSO", "ARMS", "LEGS"] as Limb[]).map(l => (
+                    <button
+                      key={l}
+                      onClick={() => setSelectedDefense(l)}
+                      style={{
+                        background: selectedDefense === l ? "#ffffff" : "#050505",
+                        border: `1px solid ${selectedDefense === l ? "#ffffff" : "#1a1a1a"}`,
+                        color: selectedDefense === l ? "#050505" : "#ffffff",
+                        fontSize: "8.5px",
+                        fontFamily: "var(--mono), monospace",
+                        padding: "2px 4px",
+                        cursor: "pointer",
+                        borderRadius: "2px"
+                      }}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+      </footer>
     </div>
   );
 }
