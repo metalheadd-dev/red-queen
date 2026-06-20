@@ -28,7 +28,7 @@ const FACTIONS: Faction[] = [
   {
     id: "nomads",
     name: "NOMADS",
-    themeColor: "#8b5a2b",
+    themeColor: "#ff003c",
     startingItem: "Compass",
     passiveFormula: "Scavenger (Yield = Base * 1.15)",
     weakness: "Physical armor reduced by 15%",
@@ -37,7 +37,7 @@ const FACTIONS: Faction[] = [
   {
     id: "marauders",
     name: "MARAUDERS",
-    themeColor: "#cc0000",
+    themeColor: "#ff003c",
     startingItem: "Spiked Vest",
     passiveFormula: "Vandal (Damage = Base * 1.10)",
     weakness: "Predictable attack target selectors",
@@ -46,7 +46,7 @@ const FACTIONS: Faction[] = [
   {
     id: "scientists",
     name: "SCIENTISTS",
-    themeColor: "#00a8ff",
+    themeColor: "#ffffff",
     startingItem: "Slate",
     passiveFormula: "Blueprint (Time = Base * 0.80)",
     weakness: "Physical HP capacity reduced by 10%",
@@ -55,7 +55,7 @@ const FACTIONS: Faction[] = [
   {
     id: "governments",
     name: "GOVERNMENTS",
-    themeColor: "#5c6b73",
+    themeColor: "#ffffff",
     startingItem: "Comms Badge",
     passiveFormula: "Intercept (Reduces target escape chance)",
     weakness: "Initiative checks penalized by 10%",
@@ -64,7 +64,7 @@ const FACTIONS: Faction[] = [
   {
     id: "engineers",
     name: "ENGINEERS",
-    themeColor: "#ff6b00",
+    themeColor: "#ff003c",
     startingItem: "Heavy Wrench",
     passiveFormula: "Fortify (Build Cost = Base * 0.85)",
     weakness: "Critical hits capped at 1.2x damage",
@@ -73,7 +73,7 @@ const FACTIONS: Faction[] = [
   {
     id: "hackers",
     name: "HACKERS",
-    themeColor: "#00ff00",
+    themeColor: "#ff003c",
     startingItem: "Decryption Rig",
     passiveFormula: "Bypass (Predicts environmental events)",
     weakness: "Melee combat damage reduced by 25%",
@@ -82,7 +82,7 @@ const FACTIONS: Faction[] = [
   {
     id: "syndicates",
     name: "BUNKER SYNDICATES",
-    themeColor: "#d4af37",
+    themeColor: "#ff003c",
     startingItem: "Energy Shield",
     passiveFormula: "Escrow (Shield Capacity = Base * 1.20)",
     weakness: "Maintenance fees increased by 15%",
@@ -101,7 +101,7 @@ const SEED_CHAT_MESSAGES: ChatMessage[] = [
   { time: "01:05", sender: "CYBER_NOMAD", text: "WATER LEVELS IN SECTOR 4 ARE DOWN TO 12%. ANYONE GOT FILTERS?" },
   { time: "01:08", sender: "GATEKEEPER_X", text: "SYNDICATE SHIELDS STABILIZED. STAKED 300 $THREAT." },
   { time: "01:12", sender: "RADIO_GHOST", text: "RED QUEEN ADDED BOUNTY ON MARAUDER_BLADE. TARGET AUDIT ACTIVE." },
-  { time: "01:14", sender: "NET_VIPER", text: "HACKERS FORECASTING DUST STORM IN 24H. SECURE TRANSMISSION LINES." }
+  { time: "01:14", sender: "NET_VIPER", text: "NET SCAN COMPLETED. SECURE TRANSMISSION LINES." }
 ];
 
 export default function BunkerPage() {
@@ -360,34 +360,79 @@ export default function BunkerPage() {
   };
 
   return (
-    <div id="game-bunker-root" style={{ background: "#000000", minHeight: "100vh", color: "#ffffff", fontFamily: "Rajdhani, sans-serif", padding: "30px 24px", position: "relative", boxSizing: "border-box" }}>
+    <div id="game-bunker-root" style={{ background: "#030303", minHeight: "100vh", color: "#ffffff", fontFamily: "Rajdhani, sans-serif", padding: "30px 24px", position: "relative", boxSizing: "border-box", overflowX: "hidden" }}>
+      {/* Ambient Edge Blooms */}
+      <div className="hud-ambient-crimson-left" />
+      <div className="hud-ambient-white-right" />
+
+      {/* CRT Scanline */}
       <div className="hud-scanline" />
+      
+      {/* 40px HUD grid */}
       <div style={{
         position: "absolute",
         top: 0, left: 0, right: 0, bottom: 0,
-        backgroundImage: "linear-gradient(rgba(255, 0, 60, 0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 0, 60, 0.015) 1px, transparent 1px)",
+        backgroundImage: "linear-gradient(rgba(255, 0, 60, 0.006) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 0, 60, 0.006) 1px, transparent 1px)",
         backgroundSize: "40px 40px",
         pointerEvents: "none",
         zIndex: 1
       }} />
 
-      {/* red perimeter borders */}
-      <div style={{ position: "absolute", top: "12px", left: "12px", right: "12px", bottom: "12px", border: "1px solid rgba(255, 0, 60, 0.15)", pointerEvents: "none", zIndex: 10 }} />
+      {/* Red perimeter borders */}
+      <div style={{ position: "absolute", top: "12px", left: "12px", right: "12px", bottom: "12px", border: "1px solid rgba(255, 0, 60, 0.06)", pointerEvents: "none", zIndex: 10 }} />
+
+      {/* CHARACTER A BLUEPRINT (LEFT BACKGROUND) */}
+      <div 
+        className="hud-silhouette-left"
+        style={{
+          position: "absolute",
+          bottom: "0px",
+          left: "-5vw",
+          width: "40vw",
+          height: "90vh",
+          backgroundImage: "url(/images/redqueen_silhouette.png)",
+          backgroundSize: "contain",
+          backgroundPosition: "left bottom",
+          backgroundRepeat: "no-repeat",
+          zIndex: 2,
+          opacity: 0.3,
+          pointerEvents: "none"
+        }} 
+      />
+
+      {/* CHARACTER B BLUEPRINT (RIGHT BACKGROUND) */}
+      <div 
+        className="hud-silhouette-right"
+        style={{
+          position: "absolute",
+          bottom: "0px",
+          right: "-5vw",
+          width: "40vw",
+          height: "90vh",
+          backgroundImage: "url(/images/soldier_silhouette.png)",
+          backgroundSize: "contain",
+          backgroundPosition: "right bottom",
+          backgroundRepeat: "no-repeat",
+          zIndex: 2,
+          opacity: 0.3,
+          pointerEvents: "none"
+        }} 
+      />
 
       {/* HEADER */}
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "2px solid rgba(255, 0, 60, 0.25)", paddingBottom: "12px", zIndex: 20, position: "relative", marginBottom: "24px" }}>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "12px", zIndex: 20, position: "relative", marginBottom: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-          <span style={{ color: "#ff003c", fontWeight: "900", fontSize: "22px", fontFamily: "Orbitron, sans-serif", textShadow: "0 0 10px rgba(255, 0, 60, 0.6)", letterSpacing: "0.2em" }}>
+          <span className="font-orbitron" style={{ color: "#ff003c", fontWeight: "900", fontSize: "20px", letterSpacing: "0.2em" }}>
             &gt; RED QUEEN CORE // BUNKER MONITOR
           </span>
-          <div style={{ display: "flex", gap: "16px", fontSize: "13px", fontFamily: "monospace", fontWeight: "bold" }}>
+          <div className="font-oxanium" style={{ display: "flex", gap: "16px", fontSize: "13px", fontWeight: "bold" }}>
             <Link href="/" style={{ color: "#8a8a8a", textDecoration: "none" }} className="hover-glow">[ DISCONNECT_HUB ]</Link>
           </div>
         </div>
         
-        <div style={{ display: "flex", alignItems: "center", gap: "20px", fontSize: "13px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 700 }}>
+        <div className="font-rajdhani" style={{ display: "flex", alignItems: "center", gap: "20px", fontSize: "13px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 700 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ color: "#00ffcc", animation: "hud-blink 1.5s infinite" }}>●</span>
+            <span style={{ color: "#ff003c", animation: "hud-blink 1.5s infinite" }}>●</span>
             <span style={{ color: "#ffffff" }}>GRID STATUS: STABLE</span>
           </div>
           <span>BETA NODE_v7.4.1</span>
@@ -400,11 +445,11 @@ export default function BunkerPage() {
       <main style={{ display: "grid", gridTemplateColumns: "1fr 1.25fr 1fr", gap: "24px", minHeight: "0", zIndex: 10, position: "relative", alignItems: "start" }}>
         
         {/* LEFT COLUMN: FACTION REGISTRY CARD */}
-        <div className="hud-panel" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
-          <h2 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "16px", color: "#ff003c", margin: 0, letterSpacing: "0.15em", fontWeight: 900 }}>
+        <div className="hud-panel" style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(3, 3, 3, 0.35)", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", backdropFilter: "blur(4px)" }}>
+          <h2 className="font-orbitron" style={{ fontSize: "16px", color: "#ff003c", margin: 0, letterSpacing: "0.15em", fontWeight: 900 }}>
             [ 01. FACTION SELECTOR ]
           </h2>
-          <p style={{ fontSize: "13px", color: "#8a8a8a", margin: 0, letterSpacing: "0.08em" }}>
+          <p className="font-rajdhani" style={{ fontSize: "13px", color: "#8a8a8a", margin: 0, letterSpacing: "0.08em", fontWeight: 600 }}>
             PLEDGE STANDING MATRIX FOR ACTIVE STAT MODIFIERS:
           </p>
 
@@ -428,21 +473,20 @@ export default function BunkerPage() {
                   className="hover-glow"
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: "14px", fontFamily: "Orbitron, sans-serif", color: isSelected ? "#ff003c" : "#ffffff", fontWeight: 700 }}>
+                    <span className="font-orbitron" style={{ fontSize: "14px", color: isSelected ? "#ff003c" : "#ffffff", fontWeight: 700 }}>
                       {f.name}
                     </span>
-                    <span style={{
+                    <span className="font-oxanium" style={{
                       fontSize: "10px",
-                      color: "#000000",
-                      background: f.themeColor,
+                      color: "#ffffff",
+                      border: "1px solid rgba(255,255,255,0.2)",
                       padding: "2px 8px",
-                      fontWeight: 900,
-                      fontFamily: "Orbitron, sans-serif"
+                      fontWeight: 900
                     }}>
                       {f.startingItem.toUpperCase()}
                     </span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "rgba(255,255,255,0.7)" }}>
+                  <div className="font-rajdhani" style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "rgba(255,255,255,0.7)", letterSpacing: "0.05em" }}>
                     <span>{f.passiveFormula}</span>
                   </div>
                 </div>
@@ -451,14 +495,14 @@ export default function BunkerPage() {
           </div>
 
           {/* Dossier Detail */}
-          <div style={{ borderTop: "1px solid rgba(255, 0, 60, 0.2)", paddingTop: "14px" }}>
-            <div style={{ fontSize: "12px", color: "#ff003c", fontFamily: "Orbitron, sans-serif", fontWeight: 900, letterSpacing: "0.1em", marginBottom: "4px" }}>
+          <div style={{ borderTop: "1px solid rgba(255, 0, 60, 0.08)", paddingTop: "14px" }}>
+            <div className="font-orbitron" style={{ fontSize: "12px", color: "#ff003c", fontWeight: 900, letterSpacing: "0.1em", marginBottom: "4px" }}>
               // FACTION MISSION SCHEMATIC
             </div>
             <div style={{ fontSize: "14px", color: "#ffffff", lineHeight: "1.4", marginBottom: "8px" }}>
               {selectedFaction.description}
             </div>
-            <div style={{ fontSize: "12px", fontFamily: "monospace", color: "#8a8a8a" }}>
+            <div className="font-oxanium" style={{ fontSize: "12px", color: "#8a8a8a" }}>
               STRUCTURAL WEAKNESS: <span style={{ color: "#ff003c" }}>{selectedFaction.weakness}</span>
             </div>
           </div>
@@ -468,12 +512,12 @@ export default function BunkerPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           
           {/* Main Visual Display */}
-          <div className="hud-panel" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.15)", paddingBottom: "8px" }}>
-              <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "15px", color: "#ff003c", fontWeight: "900", letterSpacing: "0.15em" }}>
+          <div className="hud-panel" style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(3, 3, 3, 0.35)", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", backdropFilter: "blur(4px)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "8px" }}>
+              <span className="font-orbitron" style={{ fontSize: "15px", color: "#ff003c", fontWeight: "900", letterSpacing: "0.15em" }}>
                 [ 02. CORE DEPIN SECTOR MONITOR ]
               </span>
-              <div style={{ display: "flex", gap: "4px" }}>
+              <div className="font-oxanium" style={{ display: "flex", gap: "4px" }}>
                 <button
                   onClick={() => setCenterTab("RADAR")}
                   style={{
@@ -481,7 +525,6 @@ export default function BunkerPage() {
                     color: centerTab === "RADAR" ? "#ffffff" : "#ff003c",
                     border: "1px solid #ff003c",
                     fontSize: "11px",
-                    fontFamily: "Orbitron, sans-serif",
                     padding: "4px 12px",
                     cursor: "pointer",
                     fontWeight: 700
@@ -496,7 +539,6 @@ export default function BunkerPage() {
                     color: centerTab === "SHIELD" ? "#ffffff" : "#ff003c",
                     border: "1px solid #ff003c",
                     fontSize: "11px",
-                    fontFamily: "Orbitron, sans-serif",
                     padding: "4px 12px",
                     cursor: "pointer",
                     fontWeight: 700
@@ -520,7 +562,7 @@ export default function BunkerPage() {
                     <text x="66" y="76" fill="#ff003c" fontSize="9" fontFamily="monospace">TRG_01_BLADE</text>
                     <circle cx="160" cy="140" r="4" fill="#ff003c" opacity="0.8" />
                     <text x="166" y="136" fill="#8a8a8a" fontSize="9" fontFamily="monospace">TRG_02_COLL</text>
-                    <circle cx="130" cy="50" r="3" fill="#00ffcc" className="hud-blink-fast" />
+                    <circle cx="130" cy="50" r="3" fill="#ffffff" className="hud-blink-fast" />
                   </svg>
 
                   <div style={{
@@ -538,9 +580,9 @@ export default function BunkerPage() {
                     }
                   `}</style>
 
-                  <div style={{ zIndex: 10, background: "rgba(3,3,3,0.95)", border: "1px solid #ff003c", padding: "10px 16px", textAlign: "center", minWidth: "140px", boxShadow: "0 0 12px rgba(255, 0, 60, 0.3)" }}>
-                    <div style={{ fontSize: "10px", color: "#8a8a8a", fontFamily: "Orbitron, sans-serif" }}>HAZARD RATIO</div>
-                    <div style={{ fontSize: "22px", color: "#ff003c", fontWeight: "900", fontFamily: "Orbitron, sans-serif" }}>94.2%</div>
+                  <div className="font-orbitron" style={{ zIndex: 10, background: "rgba(3,3,3,0.95)", border: "1px solid #ff003c", padding: "10px 16px", textAlign: "center", minWidth: "140px", boxShadow: "0 0 12px rgba(255, 0, 60, 0.3)" }}>
+                    <div style={{ fontSize: "10px", color: "#8a8a8a" }}>HAZARD RATIO</div>
+                    <div style={{ fontSize: "22px", color: "#ff003c", fontWeight: "900" }}>94.2%</div>
                   </div>
                 </div>
               ) : (
@@ -555,18 +597,18 @@ export default function BunkerPage() {
                     <ellipse cx="120" cy="90" rx="90" ry="70" fill="none" stroke="#ff003c" strokeWidth="2.5" strokeDasharray="5 5" style={{ opacity: shieldIntegrity / 100, filter: "drop-shadow(0 0 8px #ff003c)" }} />
                   </svg>
                   
-                  <div style={{ position: "absolute", zIndex: 10, background: "rgba(3,3,3,0.95)", border: "1px solid #ff003c", padding: "10px 16px", textAlign: "center", minWidth: "140px" }}>
-                    <div style={{ fontSize: "10px", color: "#8a8a8a", fontFamily: "Orbitron, sans-serif" }}>SHIELD SECURITY</div>
-                    <div style={{ fontSize: "22px", color: "#ffffff", fontWeight: "900", fontFamily: "Orbitron, sans-serif" }}>{shieldIntegrity}%</div>
+                  <div className="font-orbitron" style={{ position: "absolute", zIndex: 10, background: "rgba(3,3,3,0.95)", border: "1px solid #ff003c", padding: "10px 16px", textAlign: "center", minWidth: "140px" }}>
+                    <div style={{ fontSize: "10px", color: "#8a8a8a" }}>SHIELD SECURITY</div>
+                    <div style={{ fontSize: "22px", color: "#ffffff", fontWeight: "900" }}>{shieldIntegrity}%</div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div style={{ background: "rgba(5, 5, 5, 0.8)", border: "1px solid rgba(255,0,60,0.18)", padding: "16px", borderRadius: "2px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <span style={{ fontSize: "13px", color: "#8a8a8a", fontWeight: "bold" }}>STAKED $THREAT LOCK:</span>
-                <span style={{ fontSize: "16px", color: "#ff003c", fontWeight: "bold", fontFamily: "Orbitron, sans-serif" }}>{stakedThreat} THREAT</span>
+            <div style={{ background: "rgba(5, 5, 5, 0.8)", border: "1px solid rgba(255,0,60,0.08)", padding: "16px", borderRadius: "2px" }}>
+              <div className="font-rajdhani" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", fontWeight: 700, letterSpacing: "0.08em" }}>
+                <span>STAKED $THREAT LOCK:</span>
+                <span className="font-orbitron" style={{ fontSize: "16px", color: "#ff003c", fontWeight: "bold" }}>{stakedThreat} THREAT</span>
               </div>
               <input
                 type="range"
@@ -582,7 +624,7 @@ export default function BunkerPage() {
                   background: "rgba(255, 255, 255, 0.15)"
                 }}
               />
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#8a8a8a", marginTop: "4px" }}>
+              <div className="font-oxanium" style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#8a8a8a", marginTop: "4px" }}>
                 <span>0 THREAT</span>
                 <span>1000 THREAT</span>
               </div>
@@ -590,31 +632,31 @@ export default function BunkerPage() {
           </div>
 
           {/* Interactive Hacking Terminal CLI */}
-          <div className="hud-panel" style={{ height: "230px", padding: "16px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.15)", paddingBottom: "6px", marginBottom: "8px" }}>
-              <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "13px", color: "#ff003c", fontWeight: "900", letterSpacing: "0.1em" }}>
+          <div className="hud-panel" style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(3, 3, 3, 0.35)", height: "230px", padding: "16px", display: "flex", flexDirection: "column", justifyContent: "space-between", backdropFilter: "blur(4px)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "6px", marginBottom: "8px" }}>
+              <span className="font-orbitron" style={{ fontSize: "13px", color: "#ff003c", fontWeight: "900", letterSpacing: "0.1em" }}>
                 [ 03. CLI DECRYPTION OVERRIDE ]
               </span>
-              <span style={{ fontSize: "12px", color: "#8a8a8a", fontFamily: "monospace" }}>
-                DECRYPTS: <span style={{ color: decryptionAttempts > 0 ? "#00ffcc" : "#ff003c", fontWeight: "bold" }}>{decryptionAttempts} / 5</span>
+              <span className="font-oxanium" style={{ fontSize: "12px", color: "#8a8a8a" }}>
+                DECRYPTS: <span style={{ color: decryptionAttempts > 0 ? "#ffffff" : "#ff003c", fontWeight: "bold" }}>{decryptionAttempts} / 5</span>
               </span>
             </div>
 
-            <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
-              <button onClick={() => runQuickCommand("help")} disabled={isDecrypting} style={{ flex: 1, fontSize: "11px", fontFamily: "Orbitron, sans-serif", border: "1px solid rgba(255,0,60,0.25)", background: "rgba(5,5,5,0.75)", color: "#ff003c", padding: "4px 0", cursor: "pointer" }} className="hover-glow">[ HELP ]</button>
-              <button onClick={() => runQuickCommand("status")} disabled={isDecrypting} style={{ flex: 1, fontSize: "11px", fontFamily: "Orbitron, sans-serif", border: "1px solid rgba(255,0,60,0.25)", background: "rgba(5,5,5,0.75)", color: "#ff003c", padding: "4px 0", cursor: "pointer" }} className="hover-glow">[ STATUS ]</button>
-              <button onClick={() => runQuickCommand("scan")} disabled={isDecrypting} style={{ flex: 1, fontSize: "11px", fontFamily: "Orbitron, sans-serif", border: "1px solid rgba(255,0,60,0.25)", background: "rgba(5,5,5,0.75)", color: "#ff003c", padding: "4px 0", cursor: "pointer" }} className="hover-glow">[ SCAN ]</button>
-              <button onClick={() => runQuickCommand("decrypt")} disabled={isDecrypting} style={{ flex: 1, fontSize: "11px", fontFamily: "Orbitron, sans-serif", border: "1px solid #ff003c", background: "rgba(255,0,60,0.2)", color: "#ffffff", padding: "4px 0", cursor: "pointer" }} className="hover-glow">[ DECRYPT ]</button>
+            <div className="font-orbitron" style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+              <button onClick={() => runQuickCommand("help")} disabled={isDecrypting} style={{ flex: 1, fontSize: "11px", border: "1px solid rgba(255,0,60,0.15)", background: "rgba(5,5,5,0.75)", color: "#ff003c", padding: "4px 0", cursor: "pointer" }}>[ HELP ]</button>
+              <button onClick={() => runQuickCommand("status")} disabled={isDecrypting} style={{ flex: 1, fontSize: "11px", border: "1px solid rgba(255,0,60,0.15)", background: "rgba(5,5,5,0.75)", color: "#ff003c", padding: "4px 0", cursor: "pointer" }}>[ STATUS ]</button>
+              <button onClick={() => runQuickCommand("scan")} disabled={isDecrypting} style={{ flex: 1, fontSize: "11px", border: "1px solid rgba(255,0,60,0.15)", background: "rgba(5,5,5,0.75)", color: "#ff003c", padding: "4px 0", cursor: "pointer" }}>[ SCAN ]</button>
+              <button onClick={() => runQuickCommand("decrypt")} disabled={isDecrypting} style={{ flex: 1, fontSize: "11px", border: "1px solid #ff003c", background: "rgba(255,0,60,0.2)", color: "#ffffff", padding: "4px 0", cursor: "pointer" }}>[ DECRYPT ]</button>
             </div>
 
-            <div className="hud-scrollbar" style={{ overflowY: "auto", flexGrow: 1, fontSize: "12px", fontFamily: "monospace", display: "flex", flexDirection: "column", gap: "2px", marginBottom: "6px", paddingRight: "4px", color: "#00ffcc" }}>
+            <div className="hud-scrollbar" style={{ overflowY: "auto", flexGrow: 1, fontSize: "12px", fontFamily: "monospace", display: "flex", flexDirection: "column", gap: "2px", marginBottom: "6px", paddingRight: "4px", color: "#ffffff" }}>
               {cliHistory.map((line, idx) => (
                 <div key={idx} style={{ wordBreak: "break-all", whiteSpace: "pre-wrap" }}>{line}</div>
               ))}
               <div ref={cliEndRef} />
             </div>
 
-            <form onSubmit={handleCliSubmit} style={{ display: "flex", border: "1px solid rgba(255, 0, 60, 0.25)", background: "#050505" }}>
+            <form onSubmit={handleCliSubmit} style={{ display: "flex", border: "1px solid rgba(255, 0, 60, 0.15)", background: "#050505" }}>
               <span style={{ color: "#ff003c", fontFamily: "monospace", padding: "6px 0 6px 8px", fontSize: "12px" }}>guest@redqueen:~$</span>
               <input
                 type="text"
@@ -622,7 +664,7 @@ export default function BunkerPage() {
                 onChange={(e) => setCliInput(e.target.value)}
                 disabled={isDecrypting}
                 placeholder="INPUT MATRIX DIRECTIVE..."
-                style={{ flexGrow: 1, background: "transparent", border: "none", color: "#00ffcc", fontFamily: "monospace", fontSize: "12px", padding: "6px 8px", outline: "none" }}
+                style={{ flexGrow: 1, background: "transparent", border: "none", color: "#ffffff", fontFamily: "monospace", fontSize: "12px", padding: "6px 8px", outline: "none" }}
               />
             </form>
           </div>
@@ -633,21 +675,21 @@ export default function BunkerPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           
           {/* Directives & Target Board */}
-          <div className="hud-panel" style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div className="hud-panel" style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(3, 3, 3, 0.35)", padding: "16px", display: "flex", flexDirection: "column", gap: "10px", backdropFilter: "blur(4px)" }}>
             <div>
-              <span className="hud-blink-fast" style={{ fontFamily: "Orbitron, sans-serif", fontSize: "13px", color: "#ff003c", fontWeight: "900", letterSpacing: "0.1em", display: "block" }}>
+              <span className="font-orbitron hud-blink-fast" style={{ fontSize: "13px", color: "#ff003c", fontWeight: "900", letterSpacing: "0.1em", display: "block" }}>
                 ⚠️ ACTIVE CORE DIRECTIVE
               </span>
-              <div style={{ background: "rgba(255,0,60,0.06)", border: "1px solid rgba(255,0,60,0.22)", padding: "10px", marginTop: "6px", fontSize: "13px", color: "#ffffff", lineHeight: "1.4" }}>
+              <div style={{ background: "rgba(255,0,60,0.06)", border: "1px solid rgba(255,0,60,0.12)", padding: "10px", marginTop: "6px", fontSize: "13px", color: "#ffffff", lineHeight: "1.4" }}>
                 &gt; DIRECTIVE: SECURE SATELLITE RELAY AT COORDINATES <span style={{ color: "#ff003c", fontWeight: "bold" }}>45.1092, -122.6801</span> WITHIN 12 HOURS. +10% BIO-SCORE RECOVERY.
               </div>
             </div>
 
-            <div style={{ borderTop: "1px dashed rgba(255,0,60,0.25)", paddingTop: "10px" }}>
-              <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "12px", color: "#8a8a8a", fontWeight: "900", letterSpacing: "0.15em", display: "block", marginBottom: "6px" }}>
+            <div style={{ borderTop: "1px dashed rgba(255,0,60,0.2)", paddingTop: "10px" }}>
+              <span className="font-orbitron" style={{ fontSize: "12px", color: "#8a8a8a", fontWeight: "900", letterSpacing: "0.15em", display: "block", marginBottom: "6px" }}>
                 ACTIVE RISK AUDITS (BOUNTIES)
               </span>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <div className="font-rajdhani" style={{ display: "flex", flexDirection: "column", gap: "6px", fontWeight: 700 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", background: "rgba(5,5,5,0.8)", padding: "6px 10px", border: "1px solid rgba(255,255,255,0.05)" }}>
                   <span>1. MARAUDER_BLADE [GRID_18.2]</span>
                   <span style={{ color: "#ff003c", fontWeight: "bold" }}>120 THREAT</span>
@@ -661,13 +703,13 @@ export default function BunkerPage() {
           </div>
 
           {/* Resources Monitor */}
-          <div className="hud-panel" style={{ padding: "16px" }}>
-            <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "13px", color: "#ff003c", fontWeight: "900", letterSpacing: "0.1em", display: "block", marginBottom: "12px" }}>
+          <div className="hud-panel" style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(3, 3, 3, 0.35)", padding: "16px", backdropFilter: "blur(4px)" }}>
+            <span className="font-orbitron" style={{ fontSize: "13px", color: "#ff003c", fontWeight: "900", letterSpacing: "0.1em", display: "block", marginBottom: "12px" }}>
               RESOURCE SYSTEM LEVELS
             </span>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div className="font-rajdhani" style={{ display: "flex", flexDirection: "column", gap: "10px", fontWeight: 700 }}>
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#8a8a8a", fontWeight: 700 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#8a8a8a" }}>
                   <span>WATER LEVELS SUPPLY</span>
                   <span style={{ color: "#ffffff" }}>{waterLevel}%</span>
                 </div>
@@ -677,7 +719,7 @@ export default function BunkerPage() {
               </div>
               
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#8a8a8a", fontWeight: 700 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#8a8a8a" }}>
                   <span>FOOD PROVISIONS</span>
                   <span style={{ color: "#ffffff" }}>{foodLevel}%</span>
                 </div>
@@ -687,7 +729,7 @@ export default function BunkerPage() {
               </div>
 
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#8a8a8a", fontWeight: 700 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#8a8a8a" }}>
                   <span>GRID ELECTROMAGNETIC INPUT</span>
                   <span style={{ color: "#ffffff" }}>{powerGrid}%</span>
                 </div>
@@ -699,8 +741,8 @@ export default function BunkerPage() {
           </div>
 
           {/* Persistent General Chat (Enlarged to 350px height) */}
-          <div className="hud-panel" style={{ height: "350px", padding: "16px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "13px", color: "#ff003c", fontWeight: "900", letterSpacing: "0.15em", borderBottom: "1px solid rgba(255,0,60,0.18)", paddingBottom: "6px", marginBottom: "10px", display: "block" }}>
+          <div className="hud-panel" style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(3, 3, 3, 0.35)", height: "350px", padding: "16px", display: "flex", flexDirection: "column", justifyContent: "space-between", backdropFilter: "blur(4px)" }}>
+            <span className="font-orbitron" style={{ fontSize: "13px", color: "#ff003c", fontWeight: "900", letterSpacing: "0.15em", borderBottom: "1px solid rgba(255,0,60,0.18)", paddingBottom: "6px", marginBottom: "10px", display: "block" }}>
               ● GENERAL SECURE CHANNEL (PERSISTENT LOG)
             </span>
 
@@ -721,19 +763,16 @@ export default function BunkerPage() {
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                placeholder="BROADCAST MATRIX DIR UPLINK..."
+                placeholder="BROADCAST UPLINK DIRECTION..."
                 style={{ flexGrow: 1, background: "transparent", border: "none", color: "#ffffff", fontFamily: "monospace", fontSize: "12px", padding: "8px 10px", outline: "none", textTransform: "uppercase" }}
               />
-              <button type="submit" style={{ background: "transparent", border: "none", color: "#ff003c", cursor: "pointer", padding: "0 12px" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-              </button>
             </form>
           </div>
 
           {/* Action Gateway Portal */}
           <Link
             href="/arena"
-            className="hud-btn"
+            className="hud-btn font-orbitron"
             style={{
               display: "block",
               textAlign: "center",
@@ -752,7 +791,7 @@ export default function BunkerPage() {
       </main>
 
       {/* TECHNICAL HUD FOOTER */}
-      <footer style={{ borderTop: "2px solid rgba(255, 0, 60, 0.25)", paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.2em", marginTop: "24px" }}>
+      <footer className="font-oxanium" style={{ borderTop: "1px solid rgba(255, 0, 60, 0.08)", paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.2em", marginTop: "24px" }}>
         <span>SEC_SYS: STABLE // SCANNER_LOCK: DEPIN_ON</span>
         <span>SYS_VER: 7.4.1 // APOCALYPSE_NODE_ONLINE</span>
       </footer>

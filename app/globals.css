@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Oxanium:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 /* ── Base Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1446,5 +1446,82 @@ body:has(#game-bunker-root) .page-content {
   30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
   40%, 60% { transform: translate3d(5px, 0, 0); }
 }
+
+/* ── AAA PvP Tactical HUD Additions ── */
+.font-orbitron {
+  font-family: 'Orbitron', sans-serif !important;
+}
+.font-rajdhani {
+  font-family: 'Rajdhani', sans-serif !important;
+}
+.font-oxanium {
+  font-family: 'Oxanium', sans-serif !important;
+}
+
+/* Character silhouettes hidden in darkness with red/white edge highlights */
+.hud-silhouette-left {
+  filter: brightness(0.01) contrast(2) drop-shadow(0 0 6px #ff003c) drop-shadow(0 0 25px rgba(255, 0, 60, 0.65)) drop-shadow(0 0 65px rgba(255, 0, 60, 0.35));
+  opacity: 0.85;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hud-silhouette-right {
+  filter: brightness(0.01) contrast(2) drop-shadow(0 0 6px #ffffff) drop-shadow(0 0 25px rgba(255, 255, 255, 0.55)) drop-shadow(0 0 65px rgba(255, 255, 255, 0.25));
+  opacity: 0.85;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Radar & Target Scanner Animations */
+@keyframes hud-rotate-clockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hud-rotate-counter {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes hud-radar-sweep {
+  0% { transform: rotate(0deg); opacity: 0.15; }
+  50% { opacity: 0.45; }
+  100% { transform: rotate(360deg); opacity: 0.15; }
+}
+
+.hud-spin-cw {
+  animation: hud-rotate-clockwise 25s linear infinite;
+}
+
+.hud-spin-ccw {
+  animation: hud-rotate-counter 15s linear infinite;
+}
+
+.hud-radar-scanner-sweep {
+  animation: hud-rotate-clockwise 4s linear infinite;
+}
+
+.hud-reticle-glow {
+  filter: drop-shadow(0 0 8px rgba(255, 0, 60, 0.6));
+}
+
+/* Ambient glows on edges */
+.hud-ambient-crimson-left {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 300px;
+  background: radial-gradient(circle at 0% 50%, rgba(255, 0, 60, 0.08) 0%, transparent 75%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hud-ambient-white-right {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 300px;
+  background: radial-gradient(circle at 100% 50%, rgba(255, 255, 255, 0.04) 0%, transparent 75%);
+  pointer-events: none;
+  z-index: 1;
+}
+
 
 

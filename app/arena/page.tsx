@@ -25,12 +25,12 @@ function StatBar({ label, value, max, color }: StatBarProps) {
   const percentage = Math.min(100, Math.round((value / max) * 100));
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "2px", width: "100%", position: "relative", zIndex: 3 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: color === "#ff003c" ? "#ff003c" : "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 700 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: color, fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 500 }}>
         <span>{label}</span>
         <span style={{ color: "#ffffff", fontWeight: 700 }}>{value}</span>
       </div>
-      <div style={{ height: "4px", background: "rgba(17,17,17,0.6)", border: "1px solid rgba(255,255,255,0.05)", position: "relative" }}>
-        <div style={{ height: "100%", width: `${percentage}%`, background: color, boxShadow: color === "#ff003c" ? "0 0 10px rgba(255, 0, 60, 0.6)" : "0 0 10px rgba(255, 255, 255, 0.4)" }} />
+      <div style={{ height: "2px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)", position: "relative" }}>
+        <div style={{ height: "100%", width: `${percentage}%`, background: color, boxShadow: `0 0 8px ${color}` }} />
       </div>
     </div>
   );
@@ -45,21 +45,19 @@ function InventorySlot({ icon, color }: InventorySlotProps) {
   return (
     <div 
       style={{ 
-        width: "50px", 
-        height: "50px", 
-        border: `1px solid ${color === "#ff003c" ? "rgba(255, 0, 60, 0.25)" : "rgba(255, 255, 255, 0.15)"}`, 
-        background: "rgba(5, 5, 5, 0.88)", 
+        width: "46px", 
+        height: "46px", 
+        border: `1px solid ${color === "#ff003c" ? "rgba(255, 0, 60, 0.2)" : "rgba(255, 255, 255, 0.12)"}`, 
+        background: "rgba(3, 3, 3, 0.65)", 
         display: "flex", 
         justifyContent: "center", 
         alignItems: "center", 
         position: "relative",
-        borderRadius: "2px",
-        boxShadow: "inset 0 0 8px rgba(0,0,0,0.95)",
+        boxShadow: "inset 0 0 6px rgba(0,0,0,0.9)",
         zIndex: 3
-      }} 
-      className="inventory-slot"
+      }}
     >
-      <div style={{ color: color, opacity: 0.85 }}>{icon}</div>
+      <div style={{ color: color, opacity: 0.8 }}>{icon}</div>
     </div>
   );
 }
@@ -74,95 +72,70 @@ interface MannequinProps {
 function TargetingMannequin({ type, selectedLimb, onSelectLimb, accentColor }: MannequinProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 5, position: "relative", width: "100%" }}>
-      <span style={{ fontSize: "11px", color: accentColor, fontWeight: "bold", letterSpacing: "0.15em", fontFamily: "Orbitron, sans-serif" }}>
+      <span className="font-orbitron" style={{ fontSize: "11px", color: accentColor, fontWeight: "700", letterSpacing: "0.15em" }}>
         {type === "ATTACK" ? "STRIKE TARGET" : "SHIELD SECTOR"}
       </span>
-      <div style={{ width: "90px", height: "130px", background: "rgba(5,5,5,0.75)", border: `1px solid ${accentColor}33`, padding: "8px", position: "relative" }}>
-        <svg width="80" height="110" viewBox="0 0 80 120" style={{ display: "block", margin: "auto" }}>
-          {/* Head block */}
-          <circle
-            cx="40"
-            cy="20"
-            r="10"
+      <div style={{ width: "95px", height: "120px", position: "relative" }}>
+        <svg width="85" height="115" viewBox="0 0 80 120" style={{ display: "block", margin: "auto" }}>
+          {/* Head block - hexagonal wireframe */}
+          <polygon
+            points="40,10 49,15 49,25 40,30 31,25 31,15"
             fill={selectedLimb === "HEAD" ? accentColor : "transparent"}
             stroke={accentColor}
-            strokeWidth="2"
+            strokeWidth="1.5"
             style={{ cursor: "pointer", transition: "all 0.15s" }}
             onClick={() => onSelectLimb("HEAD")}
           />
           {/* Neck line */}
-          <line x1="40" y1="30" x2="40" y2="36" stroke={accentColor} strokeWidth="2" />
+          <line x1="40" y1="30" x2="40" y2="36" stroke={accentColor} strokeWidth="1.5" />
           
-          {/* Torso block */}
-          <rect
-            x="25"
-            y="36"
-            width="30"
-            height="40"
-            rx="1"
+          {/* Torso block - tapered tactical harness polygon */}
+          <polygon
+            points="25,36 55,36 50,76 30,76"
             fill={selectedLimb === "TORSO" ? accentColor : "transparent"}
             stroke={accentColor}
-            strokeWidth="2"
+            strokeWidth="1.5"
             style={{ cursor: "pointer", transition: "all 0.15s" }}
             onClick={() => onSelectLimb("TORSO")}
           />
-          {/* Left Arm block */}
-          <rect
-            x="11"
-            y="38"
-            width="10"
-            height="34"
-            rx="1"
+          {/* Left Arm block - tapered polygon */}
+          <polygon
+            points="10,38 22,38 18,72 10,72"
             fill={selectedLimb === "ARMS" ? accentColor : "transparent"}
             stroke={accentColor}
-            strokeWidth="2"
+            strokeWidth="1.5"
             style={{ cursor: "pointer", transition: "all 0.15s" }}
             onClick={() => onSelectLimb("ARMS")}
           />
-          {/* Right Arm block */}
-          <rect
-            x="59"
-            y="38"
-            width="10"
-            height="34"
-            rx="1"
+          {/* Right Arm block - tapered polygon */}
+          <polygon
+            points="58,38 70,38 70,72 62,72"
             fill={selectedLimb === "ARMS" ? accentColor : "transparent"}
             stroke={accentColor}
-            strokeWidth="2"
+            strokeWidth="1.5"
             style={{ cursor: "pointer", transition: "all 0.15s" }}
             onClick={() => onSelectLimb("ARMS")}
           />
-          {/* Left Leg block */}
-          <rect
-            x="26"
-            y="80"
-            width="12"
-            height="36"
-            rx="1"
+          {/* Left Leg block - tapered polygon */}
+          <polygon
+            points="25,80 37,80 34,116 26,116"
             fill={selectedLimb === "LEGS" ? accentColor : "transparent"}
             stroke={accentColor}
-            strokeWidth="2"
+            strokeWidth="1.5"
             style={{ cursor: "pointer", transition: "all 0.15s" }}
             onClick={() => onSelectLimb("LEGS")}
           />
-          {/* Right Leg block */}
-          <rect
-            x="42"
-            y="80"
-            width="12"
-            height="36"
-            rx="1"
+          {/* Right Leg block - tapered polygon */}
+          <polygon
+            points="43,80 55,80 54,116 46,116"
             fill={selectedLimb === "LEGS" ? accentColor : "transparent"}
             stroke={accentColor}
-            strokeWidth="2"
+            strokeWidth="1.5"
             style={{ cursor: "pointer", transition: "all 0.15s" }}
             onClick={() => onSelectLimb("LEGS")}
           />
         </svg>
       </div>
-      <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#ffffff", fontWeight: "bold" }}>
-        {selectedLimb || "NOT LOCKED"}
-      </span>
     </div>
   );
 }
@@ -180,7 +153,6 @@ export default function ArenaPage() {
   const { publicKey } = useWallet();
   const wallet = authIdentifier || (publicKey ? publicKey.toString() : null);
 
-  // Profile metadata loading
   const [profileName, setProfileName] = useState<string>("RED QUEEN ADMIN");
 
   // Combat States
@@ -212,14 +184,10 @@ export default function ArenaPage() {
   const [selectedAttack, setSelectedAttack] = useState<Limb | null>(null);
   const [selectedDefense, setSelectedDefense] = useState<Limb | null>(null);
 
-  // Screen shake impact animation trigger
   const [shakeTrigger, setShakeTrigger] = useState<boolean>(false);
-
-  // Chat States
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState<string>("");
 
-  // Battle Log States
   const [battleLogs, setBattleLogs] = useState<Message[]>([
     { time: "22:48", sender: "SYSTEM", text: "DESGECEAN JOINED THE ARENA" },
     { time: "22:48", sender: "SYSTEM", text: "REDQUEEN_X JOINED THE ARENA" },
@@ -234,7 +202,6 @@ export default function ArenaPage() {
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const logEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Load profile name on mount
   useEffect(() => {
     if (!wallet) {
       setProfileName("RED QUEEN ADMIN");
@@ -257,7 +224,6 @@ export default function ArenaPage() {
     fetchProfile();
   }, [wallet]);
 
-  // Load persistent chat from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const cachedChat = localStorage.getItem("redqueen_arena_fighter_chat");
@@ -274,7 +240,6 @@ export default function ArenaPage() {
     }
   }, []);
 
-  // Auto scroll chat and logs
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
@@ -283,7 +248,6 @@ export default function ArenaPage() {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [battleLogs]);
 
-  // Countdown timer simulation
   useEffect(() => {
     if (countdown > 0 && !matchActive) {
       const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
@@ -327,14 +291,12 @@ export default function ArenaPage() {
     setChatInput("");
     localStorage.setItem("redqueen_arena_fighter_chat", JSON.stringify(updatedChat));
 
-    // Simulated opponent replies
     setTimeout(() => {
       const replies = [
         "YOUR SHIELD CALIBRATION FREQUENCY IS TOO LOW.",
         "USDC ESCROWS ARE SECURED. PREPARE COGNITIVE DISSOLUTION.",
         "MY TACTICAL HUD DETECTED YOUR SHIELD SHIFT ON TORSO.",
-        "CHECK YOUR LIMB INTEGRITY RATINGS. EXPOSURE IMMINENT.",
-        "THE RED QUEEN AI PREDICTS A 94% CHANCE OF MY VICTORY."
+        "CHECK YOUR LIMB INTEGRITY RATINGS. EXPOSURE IMMINENT."
       ];
       const oppMsg: Message = {
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -350,27 +312,23 @@ export default function ArenaPage() {
   const submitTacticalMoves = () => {
     if (!selectedAttack || !selectedDefense || combatOutcome) return;
 
-    // Trigger screen shake hit animation
     setShakeTrigger(true);
     setTimeout(() => setShakeTrigger(false), 300);
 
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     let newLogs: Message[] = [];
 
-    // Opponent makes concurrent moves
     const limbs: Limb[] = ["HEAD", "TORSO", "ARMS", "LEGS"];
     const opponentAttack = limbs[Math.floor(Math.random() * limbs.length)];
     const opponentDefense = limbs[Math.floor(Math.random() * limbs.length)];
 
     newLogs.push({ time: timeStr, sender: "SYSTEM", text: `RESOLVING ROUND: YOU STRIKE [${selectedAttack}], BLOCK [${selectedDefense}]. OPPONENT STRIKES [${opponentAttack}], BLOCKS [${opponentDefense}].` });
 
-    // Apply Mutators and status modifiers
     let dmgMultiplier = 1.0;
     if (scarceAmmoActive) {
-      dmgMultiplier *= 0.85; // -15% Damage mutator
+      dmgMultiplier *= 0.85;
     }
 
-    // 1. Player Attack resolution (modified by stats)
     let playerHitChance = 0.8;
     let playerBaseDamage = 22;
     switch (selectedAttack) {
@@ -392,11 +350,9 @@ export default function ArenaPage() {
         break;
     }
 
-    // Adjust hit chance based on stats
     const agilityRatio = (playerStats.agility * (electroSurgeActive ? 1.1 : 1.0)) / opponentStats.agility;
     playerHitChance *= agilityRatio;
 
-    // If opponent blocked, reduce damage by 85%
     let oppBlocked = false;
     if (opponentDefense === selectedAttack) {
       playerHitChance *= 0.25;
@@ -416,21 +372,17 @@ export default function ArenaPage() {
       } else {
         if (isCrit) {
           dmg = Math.round(dmg * 1.5);
-          newLogs.push({ time: timeStr, sender: profileName, text: `💥 CRITICAL STRIKE! Dealt ${dmg} damage to Opponent's [${selectedAttack}].`, color: "#00ffcc" });
+          newLogs.push({ time: timeStr, sender: profileName, text: `💥 CRITICAL STRIKE! Dealt ${dmg} damage to Opponent's [${selectedAttack}].`, color: "#ff003c" });
         } else {
           newLogs.push({ time: timeStr, sender: profileName, text: `Direct Hit! Dealt ${dmg} damage to Opponent's [${selectedAttack}].` });
         }
 
-        // Apply dynamic debuffs to opponent
         if (selectedAttack === "HEAD" && Math.random() > 0.4) {
           setOpponentStatus(prev => [...prev, "GLITCHED"]);
-          newLogs.push({ time: timeStr, sender: "SYSTEM", text: "Target core GLITCHED. Intellect output reduced by 50% for 1 turn." });
         } else if (selectedAttack === "TORSO" && Math.random() > 0.4) {
           setOpponentStatus(prev => [...prev, "BLEEDING"]);
-          newLogs.push({ time: timeStr, sender: "SYSTEM", text: "Target chassis ruptured. Bleeding status applied." });
         } else if (selectedAttack === "LEGS" && Math.random() > 0.4) {
           setOpponentStatus(prev => [...prev, "SLOWED"]);
-          newLogs.push({ time: timeStr, sender: "SYSTEM", text: "Target stabilizers damaged. Slowed status applied." });
         }
       }
       oppHp = Math.max(0, opponentHp - dmg);
@@ -439,7 +391,6 @@ export default function ArenaPage() {
       newLogs.push({ time: timeStr, sender: "SYSTEM", text: `Your strike on Opponent's [${selectedAttack}] was evaded.` });
     }
 
-    // 2. Opponent Attack resolution
     let oppHitChance = 0.8;
     let oppBaseDamage = 22;
     switch (opponentAttack) {
@@ -461,7 +412,6 @@ export default function ArenaPage() {
         break;
     }
 
-    // Adjust hit chance
     const oppAgilityRatio = opponentStats.agility / (playerStats.agility * (electroSurgeActive ? 1.1 : 1.0));
     oppHitChance *= oppAgilityRatio;
 
@@ -480,7 +430,7 @@ export default function ArenaPage() {
       
       if (playerBlocked) {
         oppDmg = Math.round(oppDmg * 0.15);
-        newLogs.push({ time: timeStr, sender: "SYSTEM", text: `DEFLECTED! You blocked incoming strike on [${opponentAttack}]. Absorbed 85% damage (took ${oppDmg} HP).`, color: "#00ffcc" });
+        newLogs.push({ time: timeStr, sender: "SYSTEM", text: `DEFLECTED! You blocked incoming strike on [${opponentAttack}]. Absorbed 85% damage (took ${oppDmg} HP).`, color: "#ffffff" });
       } else {
         if (oppIsCrit) {
           oppDmg = Math.round(oppDmg * 1.5);
@@ -489,16 +439,12 @@ export default function ArenaPage() {
           newLogs.push({ time: timeStr, sender: "DESGECEAN", text: `Hit! Took ${oppDmg} damage to your [${opponentAttack}].` });
         }
 
-        // Apply dynamic debuffs to player
         if (opponentAttack === "HEAD" && Math.random() > 0.4) {
           setPlayerStatus(prev => [...prev, "GLITCHED"]);
-          newLogs.push({ time: timeStr, sender: "SYSTEM", text: "Mainframe GLITCHED. Decryption/intellect outputs degraded." });
         } else if (opponentAttack === "TORSO" && Math.random() > 0.4) {
           setPlayerStatus(prev => [...prev, "BLEEDING"]);
-          newLogs.push({ time: timeStr, sender: "SYSTEM", text: "Internal core leak detected. Bleeding applied." });
         } else if (opponentAttack === "LEGS" && Math.random() > 0.4) {
           setPlayerStatus(prev => [...prev, "SLOWED"]);
-          newLogs.push({ time: timeStr, sender: "SYSTEM", text: "Actuators damaged. Speed rating lowered." });
         }
       }
       plyHp = Math.max(0, playerHp - oppDmg);
@@ -507,7 +453,6 @@ export default function ArenaPage() {
       newLogs.push({ time: timeStr, sender: "SYSTEM", text: `Hostile strike on your [${opponentAttack}] evaded.` });
     }
 
-    // Apply toxic fog mutator damage
     if (toxicFogActive) {
       plyHp = Math.max(0, plyHp - 5);
       oppHp = Math.max(0, oppHp - 5);
@@ -516,19 +461,15 @@ export default function ArenaPage() {
       newLogs.push({ time: timeStr, sender: "SYSTEM", text: "💀 Toxic Fog Active: Both operatives took 5 decay damage.", color: "#ff003c" });
     }
 
-    // Apply bleeding debuffs
     if (playerStatus.includes("BLEEDING")) {
       plyHp = Math.max(0, plyHp - 5);
       setPlayerHp(plyHp);
-      newLogs.push({ time: timeStr, sender: "SYSTEM", text: "🩸 You take 5 damage from Bleeding status." });
     }
     if (opponentStatus.includes("BLEEDING")) {
       oppHp = Math.max(0, oppHp - 5);
       setOpponentHp(oppHp);
-      newLogs.push({ time: timeStr, sender: "SYSTEM", text: "🩸 Opponent takes 5 damage from Bleeding status." });
     }
 
-    // Check game outcome
     if (oppHp <= 0 && plyHp <= 0) {
       setCombatOutcome("lose");
       setMatchActive(false);
@@ -536,7 +477,7 @@ export default function ArenaPage() {
     } else if (oppHp <= 0) {
       setCombatOutcome("win");
       setMatchActive(false);
-      newLogs.push({ time: timeStr, sender: "SYSTEM", text: `🏆 VICTORY! Opponent eliminated. Recouped +${threatWager} $THREAT.`, color: "#00ffcc" });
+      newLogs.push({ time: timeStr, sender: "SYSTEM", text: `🏆 VICTORY! Opponent eliminated. Recouped +${threatWager} $THREAT.`, color: "#ffffff" });
     } else if (plyHp <= 0) {
       setCombatOutcome("lose");
       setMatchActive(false);
@@ -563,7 +504,6 @@ export default function ArenaPage() {
     ]);
   };
 
-  // SVGs for equipment slots
   const HelmetIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M12 2C6.5 2 2 6.5 2 12c0 3 .5 5.5 2.5 7.5L6 18c1.5-1.5 2.5-3.5 2.5-5.5V11h7v1.5c0 2 1 4 2.5 5.5l1.5 1.5c2-2 2.5-4.5 2.5-7.5 0-5.5-4.5-10-10-10z" />
@@ -595,68 +535,88 @@ export default function ArenaPage() {
   );
 
   return (
-    <div id="game-arena-root" className={shakeTrigger ? "hud-screen-shake" : ""} style={{ background: "#000000", minHeight: "100vh", height: "100vh", color: "#ffffff", fontFamily: "Rajdhani, sans-serif", padding: "20px 24px", position: "relative", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-      {/* HUD scanline */}
+    <div id="game-arena-root" className={shakeTrigger ? "hud-screen-shake" : ""} style={{ background: "#030303", minHeight: "100vh", height: "100vh", color: "#ffffff", fontFamily: "Rajdhani, sans-serif", padding: "20px 24px", position: "relative", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+      {/* Ambient Edge Blooms */}
+      <div className="hud-ambient-crimson-left" />
+      <div className="hud-ambient-white-right" />
+
+      {/* CRT Scanline */}
       <div className="hud-scanline" />
+      
+      {/* 40px HUD grid */}
       <div style={{
         position: "absolute",
         top: 0, left: 0, right: 0, bottom: 0,
-        backgroundImage: "linear-gradient(rgba(255, 0, 60, 0.012) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 0, 60, 0.012) 1px, transparent 1px)",
+        backgroundImage: "linear-gradient(rgba(255, 0, 60, 0.006) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 0, 60, 0.006) 1px, transparent 1px)",
         backgroundSize: "40px 40px",
         pointerEvents: "none",
         zIndex: 1
       }} />
 
-      {/* Screen perimeter frame */}
-      <div style={{ position: "absolute", top: "12px", left: "12px", right: "12px", bottom: "12px", border: "1px solid rgba(255, 0, 60, 0.15)", pointerEvents: "none", zIndex: 10 }} />
-      {/* Corner bracket indicators */}
-      <div style={{ position: "absolute", top: "10px", left: "10px", width: "16px", height: "16px", borderTop: "3px solid #ff003c", borderLeft: "3px solid #ff003c", zIndex: 11 }} />
-      <div style={{ position: "absolute", top: "10px", right: "10px", width: "16px", height: "16px", borderTop: "3px solid #ff003c", borderRight: "3px solid #ff003c", zIndex: 11 }} />
-      <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "16px", height: "16px", borderBottom: "3px solid #ff003c", borderLeft: "3px solid #ff003c", zIndex: 11 }} />
-      <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "16px", height: "16px", borderBottom: "3px solid #ff003c", borderRight: "3px solid #ff003c", zIndex: 11 }} />
+      {/* Symmetrical border frame */}
+      <div style={{ position: "absolute", top: "12px", left: "12px", right: "12px", bottom: "12px", border: "1px solid rgba(255, 0, 60, 0.06)", pointerEvents: "none", zIndex: 10 }} />
 
-      {/* Header Bar matching first image navigation links */}
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.18)", paddingBottom: "10px", position: "relative", zIndex: 20 }}>
+      {/* HEADER SECTION */}
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "10px", position: "relative", zIndex: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <span style={{ color: "#ff003c", fontWeight: "900", fontSize: "18px", fontFamily: "Orbitron, sans-serif", textShadow: "0 0 10px rgba(255, 0, 60, 0.6)", letterSpacing: "0.2em" }}>
-            &gt; P2P ARENA &nbsp; /// &nbsp; 1v1 DUEL &nbsp; ///
+          <span className="font-orbitron" style={{ color: "#ff003c", fontWeight: "900", fontSize: "16px", letterSpacing: "0.25em" }}>
+            &gt; P2P ARENA &nbsp; /// &nbsp; 1V1 DUEL &nbsp; ///
           </span>
-          <div style={{ display: "flex", gap: "12px", fontSize: "11px", fontFamily: "monospace", letterSpacing: "0.08em", fontWeight: "bold" }}>
+          <div className="font-oxanium" style={{ display: "flex", gap: "12px", fontSize: "11px", letterSpacing: "0.08em", fontWeight: "bold" }}>
             <Link href="/" style={{ color: "#8a8a8a", textDecoration: "none" }} className="hover-glow">[ LEAVE_HUB ]</Link>
             <Link href="/bunker" style={{ color: "#8a8a8a", textDecoration: "none" }} className="hover-glow">[ BASE_BUNKER ]</Link>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "20px", fontSize: "12px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 700 }}>
+        <div className="font-rajdhani" style={{ display: "flex", alignItems: "center", gap: "20px", fontSize: "12px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 700 }}>
           <span>SEASON 1</span>
           <span style={{ color: "#ff003c" }}>●</span>
           <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "#ffffff" }}>RANKED MATCH <span style={{ color: "#ff003c" }}>★</span></span>
         </div>
       </header>
 
-      {/* Symmetrical Combat Grid layout */}
-      <main style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr 1.15fr", gap: "20px", flexGrow: 1, alignItems: "center", position: "relative", zIndex: 10, minHeight: "0", margin: "12px 0" }}>
+      {/* Main Symmetrical HUD Layer with Large Characters (90% height) behind UI */}
+      <main style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr 1.1fr", gap: "20px", flexGrow: 1, alignItems: "center", position: "relative", zIndex: 10, minHeight: "0", margin: "12px 0" }}>
         
-        {/* PLAYER A (Left Panel - Red Queen vector style) */}
-        <div style={{ display: "flex", gap: "20px", alignItems: "center", height: "100%", position: "relative", padding: "12px 0" }}>
-          
-          {/* Symmetrical line art queen blueprint overlay behind stats */}
-          <div style={{
+        {/* CHARACTER A BLUEPRINT (LEFT BACKGROUND) */}
+        <div 
+          className="hud-silhouette-left"
+          style={{
             position: "absolute",
-            top: "5%",
-            left: "40%",
-            width: "180px",
-            height: "280px",
+            bottom: "0px",
+            left: "-2vw",
+            width: "48vw",
+            height: "92vh",
             backgroundImage: "url(/images/redqueen_silhouette.png)",
             backgroundSize: "contain",
+            backgroundPosition: "left bottom",
             backgroundRepeat: "no-repeat",
-            opacity: 0.22,
-            filter: "brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(3) drop-shadow(0 0 20px #ff003c)",
-            zIndex: 1,
+            zIndex: 2,
             pointerEvents: "none"
-          }} />
+          }} 
+        />
 
-          {/* Far Left Inventory Slots */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", zIndex: 3 }}>
+        {/* CHARACTER B BLUEPRINT (RIGHT BACKGROUND) */}
+        <div 
+          className="hud-silhouette-right"
+          style={{
+            position: "absolute",
+            bottom: "0px",
+            right: "-2vw",
+            width: "48vw",
+            height: "92vh",
+            backgroundImage: "url(/images/soldier_silhouette.png)",
+            backgroundSize: "contain",
+            backgroundPosition: "right bottom",
+            backgroundRepeat: "no-repeat",
+            zIndex: 2,
+            pointerEvents: "none"
+          }} 
+        />
+
+        {/* PLAYER A CONTROLS (LEFT HUD) */}
+        <div style={{ display: "flex", gap: "16px", alignItems: "center", height: "100%", position: "relative", zIndex: 3 }}>
+          {/* Inventory stacked on far left */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <InventorySlot icon={<HelmetIcon />} color="#ff003c" />
             <InventorySlot icon={<ArmorIcon />} color="#ff003c" />
             <InventorySlot icon={<WeaponIcon />} color="#ff003c" />
@@ -664,31 +624,31 @@ export default function ArenaPage() {
             <InventorySlot icon={<BootsIcon />} color="#ff003c" />
           </div>
 
-          {/* Player stats overlaid */}
-          <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", maxWidth: "260px", zIndex: 3, background: "rgba(5, 5, 5, 0.85)", padding: "16px", border: "1px solid rgba(255,0,60,0.15)", borderRadius: "2px", backdropFilter: "blur(8px)" }}>
+          {/* Symmetrical Stats Panel */}
+          <div className="hud-panel" style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", maxWidth: "260px", padding: "16px", background: "rgba(3, 3, 3, 0.28)", border: "1px solid rgba(255, 0, 60, 0.08)", backdropFilter: "blur(3px)" }}>
             <div>
               <div style={{ color: "#ff003c" }}>
-                <div style={{ fontSize: "22px", fontWeight: "900", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.08em", textShadow: "0 0 10px rgba(255, 0, 60, 0.6)" }}>
+                <div className="font-orbitron" style={{ fontSize: "20px", fontWeight: "900", letterSpacing: "0.08em" }}>
                   RED QUEEN
                 </div>
-                <div style={{ fontSize: "22px", fontWeight: "900", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.08em", textShadow: "0 0 10px rgba(255, 0, 60, 0.6)", marginTop: "-4px" }}>
-                  ADMIN <span style={{ fontSize: "14px", verticalAlign: "middle" }}>★</span>
+                <div className="font-orbitron" style={{ fontSize: "20px", fontWeight: "900", letterSpacing: "0.08em", marginTop: "-4px" }}>
+                  ADMIN <span style={{ fontSize: "14px" }}>★</span>
                 </div>
               </div>
               
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#8a8a8a", marginTop: "8px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.12em", fontWeight: 700 }}>
+              <div className="font-rajdhani" style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#8a8a8a", marginTop: "8px", letterSpacing: "0.12em", fontWeight: 700 }}>
                 <span>RANK: <span style={{ color: "#ff003c" }}>RED QUEEN</span></span>
                 <span>RATING: 1847</span>
               </div>
             </div>
 
-            {/* Segmented HP block bar */}
+            {/* Segmented HP Block */}
             <div style={{ margin: "14px 0" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "6px", color: "#ff003c", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 700 }}>
+              <div className="font-rajdhani" style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "6px", color: "#ff003c", letterSpacing: "0.12em", fontWeight: 700 }}>
                 <span>HP CAPACITY</span>
                 <span style={{ color: "#ffffff" }}>{playerHp} / {playerMaxHp}</span>
               </div>
-              <div style={{ display: "flex", gap: "3px" }}>
+              <div style={{ display: "flex", gap: "2.5px" }}>
                 {Array.from({ length: 18 }).map((_, i) => {
                   const blockVal = (playerMaxHp / 18) * (i + 1);
                   const isActive = playerHp >= blockVal;
@@ -696,11 +656,11 @@ export default function ArenaPage() {
                     <div
                       key={i}
                       style={{
-                        height: "10px",
+                        height: "9px",
                         flexGrow: 1,
-                        background: isActive ? "#ff003c" : "rgba(17,17,17,0.7)",
-                        border: "1px solid rgba(0,0,0,0.6)",
-                        boxShadow: isActive ? "0 0 6px rgba(255, 0, 60, 0.7)" : "none"
+                        background: isActive ? "#ff003c" : "rgba(255,255,255,0.04)",
+                        border: "1px solid #000000",
+                        boxShadow: isActive ? "0 0 5px rgba(255, 0, 60, 0.6)" : "none"
                       }}
                     />
                   );
@@ -709,16 +669,16 @@ export default function ArenaPage() {
               {playerStatus.length > 0 && (
                 <div style={{ display: "flex", gap: "4px", marginTop: "6px" }}>
                   {playerStatus.map((s, idx) => (
-                    <span key={idx} style={{ background: "#ff003c", color: "#ffffff", fontSize: "9px", fontFamily: "monospace", padding: "1px 4px", fontWeight: "bold" }}>
-                      [{s}]
+                    <span key={idx} style={{ border: "1px solid #ff003c", color: "#ff003c", fontSize: "9px", fontFamily: "monospace", padding: "0px 4px", fontWeight: "bold" }}>
+                      {s}
                     </span>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Faction attribute stats */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {/* Faction attributes */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <StatBar label="ATTACK" value={playerStats.attack} max={100} color="#ff003c" />
               <StatBar label="DEFENSE" value={playerStats.defense} max={100} color="#ff003c" />
               <StatBar label="AGILITY" value={playerStats.agility} max={100} color="#ff003c" />
@@ -726,61 +686,109 @@ export default function ArenaPage() {
               <StatBar label="LUCK" value={playerStats.luck} max={100} color="#ff003c" />
             </div>
 
-            {/* Defensive block mannequin */}
-            <div style={{ marginTop: "14px", display: "flex", justifyContent: "center" }}>
+            {/* Shield block mannequin */}
+            <div style={{ marginTop: "12px" }}>
               <TargetingMannequin
                 type="DEFENSE"
                 selectedLimb={selectedDefense}
                 onSelectLimb={setSelectedDefense}
-                accentColor="#00ffcc"
+                accentColor="#ffffff"
               />
             </div>
           </div>
         </div>
 
-        {/* CENTER CONTROL PANEL: RETICLES, TIMERS & PLAY BUTTON */}
+        {/* MILITARY TARGETING RETICLE HUB (CENTERPIECE) */}
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", padding: "10px 0", height: "100%", zIndex: 5 }}>
           
-          {/* Target Acquisition Timer */}
           <div style={{ textAlign: "center" }}>
-            <span style={{ fontSize: "11px", color: "#8a8a8a", letterSpacing: "0.15em", fontFamily: "Rajdhani, sans-serif", fontWeight: 700 }}>
+            <span className="font-rajdhani" style={{ fontSize: "11px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 700 }}>
               MATCH STATUS TIMING
             </span>
-            <div style={{ fontFamily: "Orbitron, sans-serif", fontSize: "36px", color: "#ff003c", fontWeight: "900", textShadow: "0 0 12px rgba(255, 0, 60, 0.8)", marginTop: "2px" }}>
+            <div className="font-orbitron" style={{ fontSize: "36px", color: "#ff003c", fontWeight: "900", textShadow: "0 0 12px rgba(255, 0, 60, 0.8)", marginTop: "2px" }}>
               {matchActive ? "ROUND ACTIVE" : `00:${countdown.toString().padStart(2, "0")}`}
             </div>
           </div>
 
-          {/* SVGs targeting computer sweep */}
-          <div style={{ position: "relative", width: "190px", height: "190px", display: "flex", justifyContent: "center", alignItems: "center", margin: "14px 0" }}>
-            <div style={{ position: "absolute", width: "100%", height: "100%", borderRadius: "50%", border: "1px dashed rgba(255, 0, 60, 0.3)", animation: "spin 40s linear infinite" }} />
-            <div style={{ position: "absolute", width: "86%", height: "86%", borderRadius: "50%", border: "1.5px dashed rgba(255, 255, 255, 0.08)", animation: "spin-reverse 20s linear infinite" }} />
-            <div style={{ position: "absolute", width: "72%", height: "72%", borderRadius: "50%", border: "1px solid rgba(255, 0, 60, 0.15)" }} />
-            
-            <div style={{ position: "absolute", width: "120%", height: "1px", background: "linear-gradient(90deg, rgba(255,0,60,0) 0%, rgba(255,0,60,0.2) 50%, rgba(255,0,60,0) 100%)" }} />
-            <div style={{ position: "absolute", height: "120%", width: "1px", background: "linear-gradient(180deg, rgba(255,0,60,0) 0%, rgba(255,0,60,0.2) 50%, rgba(255,0,60,0) 100%)" }} />
+          {/* Scanner/Target rings centerpiece - Futuristic Combat Computer */}
+          <div style={{ position: "relative", width: "260px", height: "260px", display: "flex", justifyContent: "center", alignItems: "center", margin: "14px 0" }}>
+            <svg width="260" height="260" viewBox="0 0 260 260" className="hud-reticle-glow" style={{ position: "absolute", zIndex: 4, overflow: "visible" }}>
+              {/* Outer compass ring */}
+              <circle cx="130" cy="130" r="120" fill="none" stroke="rgba(255, 0, 60, 0.15)" strokeWidth="1" strokeDasharray="6 4" className="hud-spin-cw" />
+              {/* Thin second ring with degree marks */}
+              <circle cx="130" cy="130" r="105" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="1" />
+              {/* Degree mark ticks */}
+              {Array.from({ length: 12 }).map((_, idx) => {
+                const angle = (idx * 30 * Math.PI) / 180;
+                const x1 = 130 + 100 * Math.cos(angle);
+                const y1 = 130 + 100 * Math.sin(angle);
+                const x2 = 130 + 106 * Math.cos(angle);
+                const y2 = 130 + 106 * Math.sin(angle);
+                return (
+                  <line key={idx} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255, 0, 60, 0.45)" strokeWidth="1.5" />
+                );
+              })}
+              
+              {/* Rotating tactical bracket sectors */}
+              <circle cx="130" cy="130" r="90" fill="none" stroke="#ff003c" strokeWidth="1.5" strokeDasharray="30 150" className="hud-spin-ccw" />
+              <circle cx="130" cy="130" r="85" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="3 3" />
+              
+              {/* Core acquisition crosshairs */}
+              <line x1="130" y1="15" x2="130" y2="85" stroke="rgba(255, 0, 60, 0.35)" strokeWidth="1" />
+              <line x1="130" y1="175" x2="130" y2="245" stroke="rgba(255, 0, 60, 0.35)" strokeWidth="1" />
+              <line x1="15" y1="130" x2="85" y2="130" stroke="rgba(255, 0, 60, 0.35)" strokeWidth="1" />
+              <line x1="175" y1="130" x2="245" y2="130" stroke="rgba(255, 0, 60, 0.35)" strokeWidth="1" />
+              
+              {/* Corner Lock brackets */}
+              <path d="M 85,95 L 85,85 L 95,85" fill="none" stroke="#ff003c" strokeWidth="2" />
+              <path d="M 175,95 L 175,85 L 165,85" fill="none" stroke="#ff003c" strokeWidth="2" />
+              <path d="M 85,165 L 85,175 L 95,175" fill="none" stroke="#ff003c" strokeWidth="2" />
+              <path d="M 175,165 L 175,175 L 165,175" fill="none" stroke="#ff003c" strokeWidth="2" />
+              
+              {/* Radar Sweep Line */}
+              <line x1="130" y1="130" x2="221" y2="78" stroke="rgba(255,0,60,0.4)" strokeWidth="1.5" className="hud-radar-scanner-sweep" style={{ transformOrigin: "130px 130px" }} />
+              
+              {/* Blinking signal tags */}
+              <circle cx="210" cy="60" r="3" fill="#ff003c" className="hud-blink-fast" />
+              <text x="218" y="57" fill="#ff003c" fontSize="8" fontFamily="monospace" fontWeight="bold" letterSpacing="0.05em">ACQ_LOCK</text>
+              <text x="218" y="67" fill="rgba(255,255,255,0.4)" fontSize="8" fontFamily="monospace" letterSpacing="0.05em">RNG: 12.4M</text>
+              
+              <text x="35" y="210" fill="rgba(255,255,255,0.3)" fontSize="8" fontFamily="monospace" letterSpacing="0.05em">AZIMUTH: 184.22</text>
+              <text x="35" y="220" fill="rgba(255,255,255,0.3)" fontSize="8" fontFamily="monospace" letterSpacing="0.05em">ELEV: -12.40</text>
+            </svg>
 
-            <div style={{ width: "90px", height: "90px", borderRadius: "50%", background: "#030303", border: "2px solid #ff003c", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 5, boxShadow: "0 0 20px rgba(255, 0, 60, 0.6)" }}>
-              <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "32px", color: "#ff003c", fontWeight: "900", textShadow: "0 0 8px #ff003c", letterSpacing: "-0.05em" }}>VS</span>
+            {/* Central Octagon container holding the VS label */}
+            <div 
+              className="font-orbitron"
+              style={{
+                width: "84px",
+                height: "84px",
+                background: "rgba(3, 3, 3, 0.95)",
+                border: "2px solid #ff003c",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 6,
+                boxShadow: "0 0 30px rgba(255, 0, 60, 0.65)",
+                clipPath: "polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%)",
+                position: "relative"
+              }}
+            >
+              {/* Subtle inner grid outline */}
+              <div style={{ position: "absolute", inset: "3px", border: "1px dashed rgba(255, 0, 60, 0.25)", clipPath: "polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%)", pointerEvents: "none" }} />
+              <span style={{ fontSize: "30px", color: "#ff003c", fontWeight: "900", textShadow: "0 0 10px #ff003c", letterSpacing: "-0.02em" }}>VS</span>
             </div>
-            
-            <style jsx>{`
-              @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-              @keyframes spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
-            `}</style>
           </div>
 
-          {/* Combat Details */}
           <div style={{ textAlign: "center", width: "100%", display: "flex", flexDirection: "column", gap: "8px", fontFamily: "Rajdhani, sans-serif" }}>
             <div>
-              <span style={{ fontSize: "11px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 700 }}>TACTICAL ARENA</span>
-              <div style={{ fontSize: "15px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.08em" }}>WASTELAND COLISEUM</div>
+              <span className="font-orbitron" style={{ fontSize: "11px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 700 }}>TACTICAL ARENA</span>
+              <div className="font-oxanium" style={{ fontSize: "14px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.08em" }}>WASTELAND COLISEUM</div>
             </div>
             
             <div>
-              <span style={{ fontSize: "11px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 700 }}>ESCROW RISK WAGER</span>
+              <span className="font-orbitron" style={{ fontSize: "11px", color: "#8a8a8a", letterSpacing: "0.15em", fontWeight: 700 }}>ESCROW RISK WAGER</span>
               
-              {/* Customizable Wager Selection */}
               {!matchActive ? (
                 <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginTop: "4px" }}>
                   {[10, 50, 100, 250].map(val => (
@@ -788,14 +796,13 @@ export default function ArenaPage() {
                       key={val}
                       onClick={() => setThreatWager(val)}
                       style={{
-                        background: threatWager === val ? "#ff003c" : "rgba(5,5,5,0.8)",
-                        border: `1px solid ${threatWager === val ? "#ff003c" : "rgba(255,255,255,0.1)"}`,
+                        background: threatWager === val ? "#ff003c" : "transparent",
+                        border: `1px solid ${threatWager === val ? "#ff003c" : "rgba(255,255,255,0.15)"}`,
                         color: "#ffffff",
                         fontFamily: "monospace",
                         fontSize: "11px",
                         padding: "2px 8px",
-                        cursor: "pointer",
-                        borderRadius: "1px"
+                        cursor: "pointer"
                       }}
                     >
                       {val}T
@@ -803,27 +810,22 @@ export default function ArenaPage() {
                   ))}
                 </div>
               ) : (
-                <div style={{ fontSize: "18px", fontWeight: "bold", color: "#ff003c", textShadow: "0 0 8px rgba(255, 0, 60, 0.5)" }}>{threatWager} $THREAT</div>
+                <div className="font-oxanium" style={{ fontSize: "16px", fontWeight: "bold", color: "#ff003c", textShadow: "0 0 8px rgba(255, 0, 60, 0.5)" }}>{threatWager} $THREAT</div>
               )}
             </div>
           </div>
 
-          {/* Combat play actions */}
+          {/* Action Portal */}
           <div style={{ width: "100%", padding: "0 16px", zIndex: 12 }}>
             {combatOutcome ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <div style={{ fontSize: "16px", fontFamily: "Orbitron, sans-serif", color: combatOutcome === "win" ? "#00ffcc" : "#ff003c", fontWeight: "900", textAlign: "center", textShadow: "0 0 10px currentColor" }}>
-                  {combatOutcome === "win" ? "🏆 ENCOUNTER VICTORY" : "💀 MAINFLOW SHUTDOWN"}
+                <div className="font-orbitron" style={{ fontSize: "14px", color: combatOutcome === "win" ? "#ffffff" : "#ff003c", fontWeight: "900", textAlign: "center", textShadow: "0 0 8px currentColor" }}>
+                  {combatOutcome === "win" ? "🏆 ENCOUNTER VICTORY" : "💀 MAINFLOW DEACTIVATED"}
                 </div>
                 <button
                   onClick={resetEncounter}
                   className="hud-btn"
-                  style={{
-                    width: "100%",
-                    fontSize: "12px",
-                    padding: "12px",
-                    boxShadow: "0 0 15px rgba(255, 0, 60, 0.45)"
-                  }}
+                  style={{ width: "100%", fontSize: "12px", padding: "12px" }}
                 >
                   [ RETRY DUEL ]
                 </button>
@@ -832,26 +834,12 @@ export default function ArenaPage() {
               <button
                 onClick={triggerStartMatch}
                 className="hud-btn"
-                style={{
-                  width: "100%",
-                  fontSize: "13px",
-                  padding: "14px",
-                  boxShadow: "0 0 15px rgba(255, 0, 60, 0.45)"
-                }}
+                style={{ width: "100%", fontSize: "13px", padding: "14px" }}
               >
                 [ INITIATE 1v1 ENCOUNTER ]
               </button>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <div style={{ display: "flex", gap: "6px" }}>
-                  <div style={{ flex: 1, border: "1px solid rgba(255, 0, 60, 0.2)", background: "rgba(5, 5, 5, 0.9)", padding: "6px", fontSize: "11px", textAlign: "center", fontFamily: "Rajdhani, sans-serif", fontWeight: 700, color: "#ff003c" }}>
-                    ATTACK: {selectedAttack || "NOT SET"}
-                  </div>
-                  <div style={{ flex: 1, border: "1px solid rgba(0, 255, 204, 0.2)", background: "rgba(5, 5, 5, 0.9)", padding: "6px", fontSize: "11px", textAlign: "center", fontFamily: "Rajdhani, sans-serif", fontWeight: 700, color: "#00ffcc" }}>
-                    SHIELD: {selectedDefense || "NOT SET"}
-                  </div>
-                </div>
-                
                 <button
                   onClick={submitTacticalMoves}
                   disabled={!selectedAttack || !selectedDefense}
@@ -871,48 +859,30 @@ export default function ArenaPage() {
           </div>
         </div>
 
-        {/* PLAYER B (Right Panel - Soldier vector style) */}
-        <div style={{ display: "flex", gap: "20px", alignItems: "center", height: "100%", justifyContent: "flex-end", position: "relative", padding: "12px 0" }}>
-          
-          {/* Symmetrical line art soldier blueprint overlay behind stats */}
-          <div style={{
-            position: "absolute",
-            top: "5%",
-            right: "40%",
-            width: "180px",
-            height: "280px",
-            backgroundImage: "url(/images/soldier_silhouette.png)",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            opacity: 0.22,
-            filter: "brightness(0.7) sepia(1) hue-rotate(140deg) saturate(1.5) drop-shadow(0 0 20px #00ffcc)",
-            zIndex: 1,
-            pointerEvents: "none"
-          }} />
-
-          {/* Player stats overlaid */}
-          <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", maxWidth: "260px", zIndex: 3, background: "rgba(5, 5, 5, 0.85)", padding: "16px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "2px", backdropFilter: "blur(8px)" }}>
+        {/* PLAYER B CONTROLS (RIGHT HUD) */}
+        <div style={{ display: "flex", gap: "16px", alignItems: "center", height: "100%", justifyContent: "flex-end", position: "relative", zIndex: 3 }}>
+          {/* Symmetrical Stats Panel */}
+          <div className="hud-panel" style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "260px", padding: "16px", background: "rgba(3, 3, 3, 0.28)", border: "1px solid rgba(255, 255, 255, 0.04)", backdropFilter: "blur(3px)" }}>
             <div style={{ textAlign: "right" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px" }}>
-                <span style={{ fontSize: "22px", fontWeight: "900", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.08em", color: "#ffffff", textShadow: "0 0 10px rgba(255, 255, 255, 0.2)" }}>
+              <div>
+                <div className="font-orbitron" style={{ fontSize: "20px", fontWeight: "900", color: "#ffffff" }}>
                   DESGECEAN
-                </span>
-                <span style={{ fontSize: "14px", color: "#8a8a8a" }}>★</span>
+                </div>
               </div>
               
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#8a8a8a", marginTop: "8px", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.12em", fontWeight: 700 }}>
+              <div className="font-rajdhani" style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#8a8a8a", marginTop: "8px", letterSpacing: "0.12em", fontWeight: 700 }}>
                 <span>RANK: SURVIVOR</span>
                 <span>RATING: 1732</span>
               </div>
             </div>
 
-            {/* Segmented HP block bar */}
+            {/* Segmented HP Block */}
             <div style={{ margin: "14px 0" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "6px", color: "#8a8a8a", fontFamily: "Rajdhani, sans-serif", letterSpacing: "0.15em", fontWeight: 700 }}>
+              <div className="font-rajdhani" style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "6px", color: "#8a8a8a", letterSpacing: "0.12em", fontWeight: 700 }}>
                 <span>HP CAPACITY</span>
                 <span style={{ color: "#ffffff" }}>{opponentHp} / {opponentMaxHp}</span>
               </div>
-              <div style={{ display: "flex", gap: "3px" }}>
+              <div style={{ display: "flex", gap: "2.5px" }}>
                 {Array.from({ length: 18 }).map((_, i) => {
                   const blockVal = (opponentMaxHp / 18) * (i + 1);
                   const isActive = opponentHp >= blockVal;
@@ -920,11 +890,11 @@ export default function ArenaPage() {
                     <div
                       key={i}
                       style={{
-                        height: "10px",
+                        height: "9px",
                         flexGrow: 1,
-                        background: isActive ? "#ffffff" : "rgba(17,17,17,0.7)",
-                        border: "1px solid rgba(0,0,0,0.6)",
-                        boxShadow: isActive ? "0 0 6px rgba(255, 255, 255, 0.4)" : "none"
+                        background: isActive ? "#ffffff" : "rgba(255,255,255,0.04)",
+                        border: "1px solid #000000",
+                        boxShadow: isActive ? "0 0 5px rgba(255, 255, 255, 0.4)" : "none"
                       }}
                     />
                   );
@@ -933,16 +903,16 @@ export default function ArenaPage() {
               {opponentStatus.length > 0 && (
                 <div style={{ display: "flex", gap: "4px", marginTop: "6px", justifyContent: "flex-end" }}>
                   {opponentStatus.map((s, idx) => (
-                    <span key={idx} style={{ background: "#ffffff", color: "#000000", fontSize: "9px", fontFamily: "monospace", padding: "1px 4px", fontWeight: "bold" }}>
-                      [{s}]
+                    <span key={idx} style={{ border: "1px solid #ffffff", color: "#ffffff", fontSize: "9px", fontFamily: "monospace", padding: "0px 4px", fontWeight: "bold" }}>
+                      {s}
                     </span>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Faction attribute stats */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {/* Faction attributes */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <StatBar label="ATTACK" value={opponentStats.attack} max={100} color="#8a8a8a" />
               <StatBar label="DEFENSE" value={opponentStats.defense} max={100} color="#8a8a8a" />
               <StatBar label="AGILITY" value={opponentStats.agility} max={100} color="#8a8a8a" />
@@ -950,8 +920,8 @@ export default function ArenaPage() {
               <StatBar label="LUCK" value={opponentStats.luck} max={100} color="#8a8a8a" />
             </div>
 
-            {/* Attack targeting mannequin selector */}
-            <div style={{ marginTop: "14px", display: "flex", justifyContent: "center" }}>
+            {/* Attack targeting mannequin */}
+            <div style={{ marginTop: "12px" }}>
               <TargetingMannequin
                 type="ATTACK"
                 selectedLimb={selectedAttack}
@@ -961,8 +931,8 @@ export default function ArenaPage() {
             </div>
           </div>
 
-          {/* Far Right Inventory Slots */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", zIndex: 3 }}>
+          {/* Inventory stacked on far right */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <InventorySlot icon={<HelmetIcon />} color="#8a8a8a" />
             <InventorySlot icon={<ArmorIcon />} color="#8a8a8a" />
             <InventorySlot icon={<WeaponIcon />} color="#8a8a8a" />
@@ -973,13 +943,13 @@ export default function ArenaPage() {
 
       </main>
 
-      {/* BOTTOM FLOATING PANEL ROW */}
+      {/* BOTTOM FLOATING PANELS */}
       <footer style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr 1.15fr", gap: "16px", minHeight: "190px", maxHeight: "210px", position: "relative", zIndex: 20 }}>
         
-        {/* Arena Chat Box */}
-        <div className="hud-panel" style={{ padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.15)", paddingBottom: "4px", marginBottom: "8px" }}>
-            <span style={{ fontSize: "11px", color: "#ff003c", fontWeight: "bold", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.15em" }}>
+        {/* Chat Card (transparent) */}
+        <div className="hud-panel" style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(3, 3, 3, 0.35)", padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between", backdropFilter: "blur(4px)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "4px", marginBottom: "8px" }}>
+            <span className="font-orbitron" style={{ fontSize: "11px", color: "#ff003c", fontWeight: "bold", letterSpacing: "0.15em" }}>
               ● ARENA CHAT CHANNEL
             </span>
           </div>
@@ -995,7 +965,7 @@ export default function ArenaPage() {
             <div ref={chatEndRef} />
           </div>
 
-          <form onSubmit={handleSendChat} style={{ display: "flex", border: "1px solid rgba(255,0,60,0.25)", background: "#050505" }}>
+          <form onSubmit={handleSendChat} style={{ display: "flex", border: "1px solid rgba(255,0,60,0.2)", background: "#050505" }}>
             <input
               type="text"
               value={chatInput}
@@ -1003,20 +973,16 @@ export default function ArenaPage() {
               placeholder="TYPE TRANSMISSION..."
               style={{ flexGrow: 1, background: "transparent", border: "none", color: "#ffffff", fontFamily: "monospace", fontSize: "11px", padding: "6px 8px", outline: "none", textTransform: "uppercase" }}
             />
-            <button type="submit" style={{ background: "transparent", border: "none", color: "#ff003c", cursor: "pointer", padding: "0 8px", display: "flex", alignItems: "center" }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-            </button>
           </form>
         </div>
 
-        {/* Environmental Mutators Box */}
-        <div className="hud-panel" style={{ padding: "12px", display: "flex", flexDirection: "column", gap: "6px" }}>
-          <span style={{ fontSize: "11px", color: "#8a8a8a", fontWeight: "bold", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.1em", borderBottom: "1px solid rgba(255, 0, 60, 0.15)", paddingBottom: "4px" }}>
-            ENVIRONMENT MUTATORS (CLICK TO TOGGLE)
+        {/* Mutators Card (transparent) */}
+        <div className="hud-panel" style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(3, 3, 3, 0.35)", padding: "12px", display: "flex", flexDirection: "column", gap: "6px", backdropFilter: "blur(4px)" }}>
+          <span className="font-orbitron" style={{ fontSize: "11px", color: "#8a8a8a", fontWeight: "bold", letterSpacing: "0.1em", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "4px" }}>
+            ENVIRONMENT MUTATORS
           </span>
           
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", flexGrow: 1, minHeight: "0" }}>
-            {/* Mutator 1: TOXIC FOG */}
             <div 
               onClick={() => !matchActive && setToxicFogActive(!toxicFogActive)}
               style={{ 
@@ -1026,18 +992,16 @@ export default function ArenaPage() {
                 display: "flex", 
                 flexDirection: "column", 
                 justifyContent: "space-between", 
-                borderRadius: "1px",
                 cursor: matchActive ? "not-allowed" : "pointer"
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                 <span style={{ color: "#ff003c", fontSize: "11px" }}>💀</span>
-                <div style={{ fontSize: "10px", fontWeight: "bold", color: "#ffffff" }}>TOXIC FOG</div>
+                <div className="font-rajdhani" style={{ fontSize: "10px", fontWeight: "bold", color: "#ffffff" }}>TOXIC FOG</div>
               </div>
-              <span style={{ fontSize: "11px", color: "#ff003c", fontWeight: "bold" }}>-10% HP REGEN</span>
+              <span className="font-oxanium" style={{ fontSize: "11px", color: "#ff003c", fontWeight: "bold" }}>-10% HP REGEN</span>
             </div>
 
-            {/* Mutator 2: SCARCE AMMO */}
             <div 
               onClick={() => !matchActive && setScarceAmmoActive(!scarceAmmoActive)}
               style={{ 
@@ -1047,18 +1011,16 @@ export default function ArenaPage() {
                 display: "flex", 
                 flexDirection: "column", 
                 justifyContent: "space-between", 
-                borderRadius: "1px",
                 cursor: matchActive ? "not-allowed" : "pointer"
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                 <span style={{ color: "#ff003c", fontSize: "11px" }}>🛡️</span>
-                <div style={{ fontSize: "10px", fontWeight: "bold", color: "#ffffff" }}>SCARCE AMMO</div>
+                <div className="font-rajdhani" style={{ fontSize: "10px", fontWeight: "bold", color: "#ffffff" }}>SCARCE AMMO</div>
               </div>
-              <span style={{ fontSize: "11px", color: "#ff003c", fontWeight: "bold" }}>-15% DAMAGE</span>
+              <span className="font-oxanium" style={{ fontSize: "11px", color: "#ff003c", fontWeight: "bold" }}>-15% DAMAGE</span>
             </div>
 
-            {/* Mutator 3: ELECTRO SURGE */}
             <div 
               onClick={() => !matchActive && setElectroSurgeActive(!electroSurgeActive)}
               style={{ 
@@ -1068,18 +1030,16 @@ export default function ArenaPage() {
                 display: "flex", 
                 flexDirection: "column", 
                 justifyContent: "space-between", 
-                borderRadius: "1px",
                 cursor: matchActive ? "not-allowed" : "pointer"
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                 <span style={{ color: "#ff003c", fontSize: "11px" }}>⚡</span>
-                <div style={{ fontSize: "10px", fontWeight: "bold", color: "#ffffff" }}>ELECTRO SURGE</div>
+                <div className="font-rajdhani" style={{ fontSize: "10px", fontWeight: "bold", color: "#ffffff" }}>ELECTRO SURGE</div>
               </div>
-              <span style={{ fontSize: "11px", color: "#ff003c", fontWeight: "bold" }}>+10% AGILITY</span>
+              <span className="font-oxanium" style={{ fontSize: "11px", color: "#ff003c", fontWeight: "bold" }}>+10% AGILITY</span>
             </div>
 
-            {/* Mutator 4: DATA BREACH */}
             <div 
               onClick={() => !matchActive && setDataBreachActive(!dataBreachActive)}
               style={{ 
@@ -1089,23 +1049,22 @@ export default function ArenaPage() {
                 display: "flex", 
                 flexDirection: "column", 
                 justifyContent: "space-between", 
-                borderRadius: "1px",
                 cursor: matchActive ? "not-allowed" : "pointer"
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                 <span style={{ color: "#ff003c", fontSize: "11px" }}>🔒</span>
-                <div style={{ fontSize: "10px", fontWeight: "bold", color: "#ffffff" }}>DATA BREACH</div>
+                <div className="font-rajdhani" style={{ fontSize: "10px", fontWeight: "bold", color: "#ffffff" }}>DATA BREACH</div>
               </div>
-              <span style={{ fontSize: "11px", color: "#ff003c", fontWeight: "bold" }}>-5% INTELLECT</span>
+              <span className="font-oxanium" style={{ fontSize: "11px", color: "#ff003c", fontWeight: "bold" }}>-5% INTELLECT</span>
             </div>
           </div>
         </div>
 
-        {/* Combat Log Box */}
-        <div className="hud-panel" style={{ padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.15)", paddingBottom: "4px", marginBottom: "8px" }}>
-            <span style={{ fontSize: "11px", color: "#8a8a8a", fontWeight: "bold", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.1em" }}>
+        {/* Combat Log Card (transparent) */}
+        <div className="hud-panel" style={{ border: "1px solid rgba(255, 0, 60, 0.08)", background: "rgba(3, 3, 3, 0.35)", padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between", backdropFilter: "blur(4px)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 0, 60, 0.08)", paddingBottom: "4px", marginBottom: "8px" }}>
+            <span className="font-orbitron" style={{ fontSize: "11px", color: "#8a8a8a", fontWeight: "bold", letterSpacing: "0.1em" }}>
               TACTICAL BATTLE LOGS
             </span>
           </div>
@@ -1116,7 +1075,7 @@ export default function ArenaPage() {
                 <span style={{ color: "rgba(255,255,255,0.25)", marginRight: "6px" }}>[{log.time}]</span>
                 <span style={{
                   color: log.color ? log.color :
-                         log.sender === profileName ? "#00ffcc" : 
+                         log.sender === profileName ? "#ffffff" : 
                          log.sender === "DESGECEAN" ? "#ff003c" : "rgba(255,255,255,0.55)"
                 }}>
                   {log.text}
