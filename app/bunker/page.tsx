@@ -19,7 +19,7 @@ const FACTIONS: Faction[] = [
     id: "nomads",
     name: "NOMADS",
     trait: "+15% Scavenging Yield",
-    description: "Wasteland scouts who excel at uncovering hidden resources in highly toxic sectors.",
+    description: "Wasteland scouts who excel at recovering items in highly toxic sectors.",
     borderColor: "#f0c929",
     glowColor: "rgba(240, 201, 41, 0.25)"
   },
@@ -35,7 +35,7 @@ const FACTIONS: Faction[] = [
     id: "marauders",
     name: "MARAUDERS",
     trait: "+10% Limb Strike Damage",
-    description: "Aggressive front-line combatants specialized in targeting vulnerability points.",
+    description: "Aggressive combatants specialized in targeting vulnerability points.",
     borderColor: "#ff0033",
     glowColor: "rgba(255, 0, 51, 0.25)"
   },
@@ -65,171 +65,281 @@ const FACTIONS: Faction[] = [
   }
 ];
 
+interface Opponent {
+  name: string;
+  faction: string;
+  level: number;
+  hp: number;
+  trait: string;
+  avatarSeed: number;
+  statusEffects: string[];
+}
+
+const OPPONENT_NAMES = [
+  "operative_x99", "marauder_warlord", "synth_hunter", "grid_runner", 
+  "terminal_ghost", "bunker_boss", "decay_vector", "depin_operator",
+  "xenomorph_host", "kaiju_watcher", "status_sync_locked", "waifu_hijacker"
+];
+
+type TargetLimb = "HEAD" | "TORSO" | "ARMS" | "LEGS";
+
 export default function BunkerPage() {
   const { session, authIdentifier } = useAuth();
   const { publicKey, connected } = useWallet();
 
-  // Faction pledge state
+  // Faction state
   const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
 
-  // Staking and shield state
+  // Staking & Shield
   const [stakedThreat, setStakedThreat] = useState<number>(100);
   const [shieldIntegrity, setShieldIntegrity] = useState<number>(65);
 
-  // Scavenging resource levels (simulated dynamic levels)
+  // Resource parameters
   const [waterLevel, setWaterLevel] = useState<number>(45);
   const [foodLevel, setFoodLevel] = useState<number>(62);
   const [powerGrid, setPowerGrid] = useState<number>(78);
 
-  // Turn-based Combat State
+  // PvP State
+  const [matchmaking, setMatchmaking] = useState<boolean>(false);
+  const [activeMatch, setActiveMatch] = useState<boolean>(false);
+  const [opponent, setOpponent] = useState<Opponent | null>(null);
   const [playerHp, setPlayerHp] = useState<number>(100);
-  const [droneHp, setDroneHp] = useState<number>(100);
-  const [combatActive, setCombatActive] = useState<boolean>(false);
-  const [combatLogs, setCombatLogs] = useState<string[]>([]);
-  const [activeStatusEffects, setActiveStatusEffects] = useState<string[]>([]);
-  const [combatOutcome, setCombatOutcome] = useState<"win" | "lose" | null>(null);
+  const [playerStatusEffects, setPlayerStatusEffects] = useState<string[]>([]);
   
+  // Concurrency Turn Choices
+  const [selectedAttack, setSelectedAttack] = useState<TargetLimb | null>(null);
+  const [selectedDefense, setSelectedDefense] = useState<TargetLimb | null>(null);
+  
+  // Logs & Outcome
+  const [combatLogs, setCombatLogs] = useState<string[]>([]);
+  const [combatOutcome, setCombatOutcome] = useState<"win" | "lose" | null>(null);
+
   const combatLogEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Trigger shield calculations when staked threat changes
+  // Auto-calculating shield integrity based on staked $THREAT
   useEffect(() => {
-    // Basic logarithmic shield projection formula
-    const calculatedShield = Math.min(99.9, Math.round(30 + Math.log2(stakedThreat + 1) * 8));
+    const baseShield = selectedFaction?.id === "syndicates" ? 45 : 30;
+    const calculatedShield = Math.min(99.9, Math.round(baseShield + Math.log2(stakedThreat + 1) * 8));
     setShieldIntegrity(calculatedShield);
-  }, [stakedThreat]);
+  }, [stakedThreat, selectedFaction]);
 
-  // Scroll to bottom of combat logs
+  // Scroll logs to bottom
   useEffect(() => {
     if (combatLogEndRef.current) {
       combatLogEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [combatLogs]);
 
-  // Initialize combat
-  const startCombatSimulation = () => {
-    setPlayerHp(100);
-    setDroneHp(100);
-    setCombatActive(true);
+  // Simulate PvP matchmaking
+  const startMatchmaking = () => {
+    setMatchmaking(true);
+    setActiveMatch(false);
+    setOpponent(null);
     setCombatOutcome(null);
-    setActiveStatusEffects([]);
-    setCombatLogs([
-      "SECURE CORE: Initiating defense grid simulation...",
-      "WARNING: Red Queen Containment Drone detected in Sector 4.",
-      "SYSTEM CHECK: Operative limb-targeting targeting active."
-    ]);
+    setSelectedAttack(null);
+    setSelectedDefense(null);
+    
+    setTimeout(() => {
+      const randomName = OPPONENT_NAMES[Math.floor(Math.random() * OPPONENT_NAMES.length)];
+      const randomFaction = FACTIONS[Math.floor(Math.random() * FACTIONS.length)];
+      
+      const newOpponent: Opponent = {
+        name: randomName.toUpperCase(),
+        faction: randomFaction.name,
+        level: Math.floor(Math.random() * 8) + 3,
+        hp: 100,
+        trait: randomFaction.trait,
+        avatarSeed: Math.floor(Math.random() * 100),
+        statusEffects: []
+      };
+
+      setPlayerHp(100);
+      setPlayerStatusEffects([]);
+      setOpponent(newOpponent);
+      setMatchmaking(false);
+      setActiveMatch(true);
+      setCombatLogs([
+        `MATCH CONFIGURED: Opponent located in Grid Sector Alpha.`,
+        `HOSTILE: ${newOpponent.name} // Level ${newOpponent.level} // ${newOpponent.faction}`,
+        `ALLIANCE TRAIT IN EFFECT: Hostile has ${newOpponent.trait}.`,
+        `BATTLE ENGAGEMENT: Select your concurrent Attack Target and Defensive Shield zones...`
+      ]);
+    }, 2500);
   };
 
-  // Perform combat turns
-  const executeCombatTurn = (target: "HEAD" | "TORSO" | "ARMS" | "LEGS") => {
-    if (!combatActive || combatOutcome) return;
+  // Turn resolution: Concurrent Attack and Defense
+  const resolvePvPTurn = () => {
+    if (!selectedAttack || !selectedDefense || !opponent || combatOutcome) return;
 
-    let hitChance = 0.8;
-    let baseDamage = 15;
-    let targetMsg = "";
     let logs: string[] = [];
 
-    // Faction modifiers
+    // Faction modifiers for player
     const isMarauder = selectedFaction?.id === "marauders";
-    const damageMultiplier = isMarauder ? 1.1 : 1.0;
+    const damageMultiplier = isMarauder ? 1.15 : 1.0;
 
-    switch (target) {
+    // Faction modifiers for opponent
+    const opponentIsMarauder = opponent.faction === "MARAUDERS";
+    const opponentDamageMultiplier = opponentIsMarauder ? 1.15 : 1.0;
+
+    // Simulated Opponent turn choices (concurrent)
+    const limbs: TargetLimb[] = ["HEAD", "TORSO", "ARMS", "LEGS"];
+    const opponentAttack = limbs[Math.floor(Math.random() * limbs.length)];
+    const opponentDefense = limbs[Math.floor(Math.random() * limbs.length)];
+
+    logs.push(`----------------- RESOLVING ACTION -----------------`);
+    logs.push(`> You targeted opponent's [${selectedAttack}] and defended your [${selectedDefense}].`);
+    logs.push(`> Hostile targeted your [${opponentAttack}] and defended their [${opponentDefense}].`);
+
+    // 1. Resolve Player's attack on Opponent
+    let playerHitChance = 0.8;
+    let playerBaseDamage = 18;
+    switch (selectedAttack) {
       case "HEAD":
-        hitChance = 0.35;
-        baseDamage = 40;
-        targetMsg = "Targeting security drone optics processor [HEAD]...";
+        playerHitChance = 0.35;
+        playerBaseDamage = 45;
         break;
       case "TORSO":
-        hitChance = 0.85;
-        baseDamage = 18;
-        targetMsg = "Targeting main fusion core block [TORSO]...";
+        playerHitChance = 0.85;
+        playerBaseDamage = 20;
         break;
       case "ARMS":
-        hitChance = 0.55;
-        baseDamage = 22;
-        targetMsg = "Targeting defense micro-laser arrays [ARMS]...";
+        playerHitChance = 0.55;
+        playerBaseDamage = 24;
         break;
       case "LEGS":
-        hitChance = 1.0;
-        baseDamage = 12;
-        targetMsg = "Targeting kinetic stabilizing thrusters [LEGS]...";
+        playerHitChance = 1.0;
+        playerBaseDamage = 12;
         break;
     }
 
-    logs.push(`> OPERATIVE: ${targetMsg}`);
-
-    // Roll for player hit
-    const rollPlayer = Math.random();
-    let hitSucceeded = rollPlayer <= hitChance;
-    let actualDamage = 0;
-
-    if (hitSucceeded) {
-      actualDamage = Math.round(baseDamage * damageMultiplier * (0.9 + Math.random() * 0.2));
-      const targetHp = Math.max(0, droneHp - actualDamage);
-      logs.push(`> IMPACT: Direct strike! Inflicted ${actualDamage} damage to drone ${target}.`);
-      setDroneHp(targetHp);
-
-      if (targetHp <= 0) {
-        setDroneHp(0);
-        logs.push("SYSTEM ALERT: Red Queen Security Drone neutralized.");
-        setCombatOutcome("win");
-        setCombatActive(false);
-        setCombatLogs(prev => [...prev, ...logs]);
-        return;
-      }
-    } else {
-      logs.push("> MISS: Targeting lock lost. Strike deflected.");
+    // Apply active status effects on player (e.g. Confusion)
+    if (playerStatusEffects.includes("CONFUSION")) {
+      playerHitChance -= 0.25;
+      logs.push(`> WARNING: Your [CONFUSION] debuff reduced your hit probability by 25%.`);
     }
 
-    // Drone retaliation strike
-    const droneTargets = ["Optics", "Chassis", "Actuators"];
-    const randomTarget = droneTargets[Math.floor(Math.random() * droneTargets.length)];
-    const rollDrone = Math.random();
-    
-    // Higher drone hit rate if player targeted slow head lock-on
-    const droneHitChance = target === "HEAD" ? 0.75 : 0.6;
-    
-    logs.push(`> ENEMY: Red Queen Drone counter-attacking...`);
-
-    if (rollDrone <= droneHitChance) {
-      const droneBaseDamage = 16;
-      const droneActualDamage = Math.round(droneBaseDamage * (0.85 + Math.random() * 0.3));
-      const newPlayerHp = Math.max(0, playerHp - droneActualDamage);
-      
-      logs.push(`> INTRUSION: Drone struck your ${randomTarget}! Took ${droneActualDamage} physical damage.`);
-      setPlayerHp(newPlayerHp);
-
-      // Status effect rolls (e.g., Radiation or Bleeding)
-      if (Math.random() < 0.25 && !activeStatusEffects.includes("SYSTEM BLEED")) {
-        setActiveStatusEffects(prev => [...prev, "SYSTEM BLEED"]);
-        logs.push("> WARNING: Structural damage detected. [SYSTEM BLEED] effect active.");
-      }
-
-      if (newPlayerHp <= 0) {
-        setPlayerHp(0);
-        logs.push("CRITICAL FAILURE: Operative mainframe flatlined.");
-        setCombatOutcome("lose");
-        setCombatActive(false);
-      }
-    } else {
-      logs.push("> EVADE: Defensive protocols active. Counter-strike evaded.");
+    // Check if opponent defended player's target limb
+    const opponentDefended = opponentDefense === selectedAttack;
+    if (opponentDefended) {
+      playerHitChance *= 0.2; // 80% reduction in hit chance if defended
+      logs.push(`> DEFLECT: Opponent projected a shield on their [${selectedAttack}] zone.`);
     }
 
-    // Apply active status effects at end of turn
-    if (activeStatusEffects.includes("SYSTEM BLEED") && playerHp > 0) {
-      const bleedDamage = 5;
-      const finalHp = Math.max(0, playerHp - bleedDamage);
-      logs.push(`> DECAY: [SYSTEM BLEED] triggered. Took ${bleedDamage} structural damage.`);
-      setPlayerHp(finalHp);
+    // Roll player strike
+    const playerRoll = Math.random();
+    let opponentNewHp = opponent.hp;
+    if (playerRoll <= playerHitChance) {
+      const finalDmg = Math.round(playerBaseDamage * damageMultiplier * (0.85 + Math.random() * 0.3));
+      opponentNewHp = Math.max(0, opponent.hp - finalDmg);
+      logs.push(`> IMPACT: You struck ${opponent.name}'s [${selectedAttack}]! Dealt ${finalDmg} damage.`);
       
-      if (finalHp <= 0) {
-        setPlayerHp(0);
-        logs.push("CRITICAL FAILURE: Bleedout complete. Mainframe flatlined.");
-        setCombatOutcome("lose");
-        setCombatActive(false);
+      // Apply status effects based on limb
+      if (selectedAttack === "HEAD" && Math.random() < 0.5 && !opponent.statusEffects.includes("CONFUSION")) {
+        opponent.statusEffects.push("CONFUSION");
+        logs.push(`> CRITICAL: ${opponent.name} is confused! Optics processing disrupted.`);
       }
+      if (selectedAttack === "ARMS" && Math.random() < 0.4 && !opponent.statusEffects.includes("DISARMED")) {
+        opponent.statusEffects.push("DISARMED");
+        logs.push(`> DISARM: Struck weapon arrays. ${opponent.name} has been disarmed.`);
+      }
+      if (selectedAttack === "LEGS" && Math.random() < 0.6 && !opponent.statusEffects.includes("SLOWED")) {
+        opponent.statusEffects.push("SLOWED");
+        logs.push(`> CRIPPLE: Struck stabilizers. ${opponent.name} turn recovery is slowed.`);
+      }
+    } else {
+      logs.push(`> MISS: Your attack on [${selectedAttack}] missed or was completely absorbed.`);
+    }
+
+    // 2. Resolve Opponent's attack on Player
+    let opponentHitChance = 0.8;
+    let opponentBaseDamage = 18;
+    switch (opponentAttack) {
+      case "HEAD":
+        opponentHitChance = 0.35;
+        opponentBaseDamage = 45;
+        break;
+      case "TORSO":
+        opponentHitChance = 0.85;
+        opponentBaseDamage = 20;
+        break;
+      case "ARMS":
+        opponentHitChance = 0.55;
+        opponentBaseDamage = 24;
+        break;
+      case "LEGS":
+        opponentHitChance = 1.0;
+        opponentBaseDamage = 12;
+        break;
+    }
+
+    // Apply active status effects on opponent
+    if (opponent.statusEffects.includes("CONFUSION")) {
+      opponentHitChance -= 0.25;
+      logs.push(`> DEBUFF: Hostile [CONFUSION] reduced their hit probability.`);
+    }
+
+    // Check if player defended opponent's target limb
+    const playerDefended = selectedDefense === opponentAttack;
+    if (playerDefended) {
+      opponentHitChance *= 0.2;
+      logs.push(`> DEFLECT: Your energy shield blocked the incoming strike on your [${opponentAttack}].`);
+    }
+
+    // Roll opponent strike
+    const opponentRoll = Math.random();
+    let playerNewHp = playerHp;
+    if (opponentRoll <= opponentHitChance) {
+      let finalOpponentDmg = Math.round(opponentBaseDamage * opponentDamageMultiplier * (0.85 + Math.random() * 0.3));
+      
+      // $THREAT Staking defensive shield absorption
+      if (opponentAttack === "TORSO" && shieldIntegrity > 0) {
+        const absorption = Math.round(finalOpponentDmg * (shieldIntegrity / 100));
+        finalOpponentDmg -= absorption;
+        logs.push(`> SHIELD SHIELDING: Your staked $THREAT shield absorbed ${absorption} damage.`);
+      }
+
+      playerNewHp = Math.max(0, playerHp - finalOpponentDmg);
+      logs.push(`> INTRUSION: ${opponent.name} struck your [${opponentAttack}]! Took ${finalOpponentDmg} damage.`);
+      
+      // Apply status effects to player
+      if (opponentAttack === "HEAD" && Math.random() < 0.5 && !playerStatusEffects.includes("CONFUSION")) {
+        setPlayerStatusEffects(prev => [...prev, "CONFUSION"]);
+        logs.push(`> CRITICAL WARNING: Mainframe optics hit! [CONFUSION] status active.`);
+      }
+      if (opponentAttack === "ARMS" && Math.random() < 0.4 && !playerStatusEffects.includes("DISARMED")) {
+        setPlayerStatusEffects(prev => [...prev, "DISARMED"]);
+        logs.push(`> WEAPON ERROR: Micro-laser arrays offline! [DISARMED] status active.`);
+      }
+      if (opponentAttack === "LEGS" && Math.random() < 0.6 && !playerStatusEffects.includes("SLOWED")) {
+        setPlayerStatusEffects(prev => [...prev, "SLOWED"]);
+        logs.push(`> KINETIC ERROR: Stabilizer fluid leak! [SLOWED] status active.`);
+      }
+    } else {
+      logs.push(`> EVADE: Hostile strike on [${opponentAttack}] missed or was absorbed.`);
+    }
+
+    // Update HP states
+    setPlayerHp(playerNewHp);
+    setOpponent(prev => prev ? { ...prev, hp: opponentNewHp } : null);
+
+    // Check Match Outcomes
+    if (opponentNewHp <= 0 && playerNewHp <= 0) {
+      logs.push(`MUTUAL DESTRUCTION: Both operatives flatlined in Sector Alpha.`);
+      setCombatOutcome("lose");
+      setActiveMatch(false);
+    } else if (opponentNewHp <= 0) {
+      logs.push(`VICTORY: ${opponent.name} flatlined. XP +50 and Faction Standing increased.`);
+      setCombatOutcome("win");
+      setActiveMatch(false);
+    } else if (playerNewHp <= 0) {
+      logs.push(`DEFEAT: You flatlined. BIO-SCORE decay warning triggered.`);
+      setCombatOutcome("lose");
+      setActiveMatch(false);
     }
 
     setCombatLogs(prev => [...prev, ...logs]);
+    setSelectedAttack(null);
+    setSelectedDefense(null);
   };
 
   const currentWallet = authIdentifier || (publicKey ? publicKey.toString() : null);
@@ -269,7 +379,7 @@ export default function BunkerPage() {
                 BUNKER DIRECTIVE: SURVIVE THE MATRIX
               </h1>
               <p style={{ margin: 0, color: "var(--text-dim)", fontSize: "13.5px", lineHeight: "1.6" }}>
-                Establish your faction alliance, fortify your shield mechanics using tokenized defensive models, and verify target-locking algorithms on the terminal drone grids. 
+                Pledge your faction, adjust your $THREAT Staking defensive shields, and enter the turn-based 1v1 tactical PvP combat grid to verify your operative survivability.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", background: "#080808", padding: "12px", border: "1px solid #1f1f1f", minWidth: "220px" }}>
@@ -280,7 +390,7 @@ export default function BunkerPage() {
           </div>
         </section>
 
-        {/* Triple Row Dashboard widgets */}
+        {/* Double Column Dashboard layout */}
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "32px" }} className="responsive-grid-2">
           
           {/* Left Column widgets */}
@@ -293,7 +403,7 @@ export default function BunkerPage() {
                 1. SELECT FACTION ALLIANCE
               </h2>
               <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: 0, marginBottom: "20px" }}>
-                Your faction pledge updates passive modifiers, defensive capabilities, and tactical indexes.
+                Pledge your alliance to modify your active parameters, stats scaling multipliers, and combat abilities.
               </p>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }} className="responsive-grid-2">
@@ -331,56 +441,74 @@ export default function BunkerPage() {
               )}
             </div>
 
-            {/* Widget 2: Tactical Combat Simulator */}
+            {/* Widget 2: Tactical 1v1 PvP Combat Simulator */}
             <div style={{ border: "1px solid #1f1f1f", background: "#080808", padding: "24px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                 <h2 style={{ fontFamily: "Orbitron, sans-serif", fontSize: "16px", color: "#ffffff", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ display: "inline-block", width: "8px", height: "8px", background: "#ff0033" }} />
-                  2. TACTICAL COMBAT SIMULATOR
+                  2. TACTICAL 1v1 PvP COMBAT ENGINE
                 </h2>
-                {!combatActive ? (
+                {!activeMatch && !matchmaking ? (
                   <button
-                    onClick={startCombatSimulation}
+                    onClick={startMatchmaking}
                     style={{ background: "#ff0033", border: "none", color: "#ffffff", padding: "6px 16px", fontSize: "12px", fontFamily: "var(--mono)", fontWeight: "bold", cursor: "pointer", borderRadius: "1px", textShadow: "0 0 4px rgba(255,255,255,0.6)" }}
                   >
-                    [ INITIATE SIMULATION ]
+                    [ DEPLOY TO COMBAT GRID ]
                   </button>
                 ) : (
                   <button
-                    onClick={() => setCombatActive(false)}
+                    onClick={() => {
+                      setActiveMatch(false);
+                      setMatchmaking(false);
+                    }}
                     style={{ background: "transparent", border: "1px solid #ff0033", color: "#ff0033", padding: "4px 12px", fontSize: "11px", fontFamily: "var(--mono)", cursor: "pointer" }}
                   >
-                    [ SYSTEM SHUTDOWN ]
+                    [ ESCAPE FIGHT ]
                   </button>
                 )}
               </div>
 
-              {!combatActive ? (
-                <div style={{ border: "1px dashed #1f1f1f", height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "#050505", gap: "12px" }}>
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff0033" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6, filter: "drop-shadow(0 0 8px rgba(255,0,51,0.25))" }}>
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                  </svg>
-                  <span style={{ fontSize: "14px", color: "var(--text-dim)" }}>Grid Combat Engine Idle</span>
-                  <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Click initiate above to run target-locking sequence</span>
+              {matchmaking && (
+                <div style={{ border: "1px dashed #ff0033", height: "320px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "#050505", gap: "16px" }}>
+                  <div style={{ width: "40px", height: "40px", border: "4px solid rgba(255,0,51,0.2)", borderTopColor: "#ff0033", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+                  <span style={{ fontSize: "14px", color: "#ff0033", letterSpacing: "2px", fontWeight: "bold", animation: "pulse 1.5s infinite" }}>SCANNING COMBAT GRID SECORS...</span>
+                  <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Finding active hostile players for 1v1 match...</span>
+                  <style jsx global>{`
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+                  `}</style>
                 </div>
-              ) : (
+              )}
+
+              {!activeMatch && !matchmaking && (
+                <div style={{ border: "1px dashed #1f1f1f", height: "320px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "#050505", gap: "12px" }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff0033" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6, filter: "drop-shadow(0 0 8px rgba(255,0,51,0.25))" }}>
+                    <path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z" />
+                    <path d="M12 6v6l4 2" />
+                  </svg>
+                  <span style={{ fontSize: "14px", color: "var(--text-dim)" }}>Simulation Lobby Idle</span>
+                  <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Deploy to match with random faction hostiles on the grid</span>
+                </div>
+              )}
+
+              {activeMatch && opponent && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   
-                  {/* Combat Stats Header */}
+                  {/* PvP Combat Stats header */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                    {/* Operative HP Bar */}
+                    {/* Player statistics */}
                     <div style={{ background: "#050505", border: "1px solid #1a1a1a", padding: "12px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "6px" }}>
-                        <span>OPERATIVE SYS STATUS:</span>
+                        <span>YOU // {selectedFaction ? selectedFaction.name : "ALLIANCELESS"}:</span>
                         <span style={{ color: playerHp > 30 ? "#00ffcc" : "#ff0033", fontWeight: "bold" }}>{playerHp}% HP</span>
                       </div>
                       <div style={{ height: "10px", background: "#1f1f1f", borderRadius: "1px", overflow: "hidden" }}>
                         <div style={{ width: `${playerHp}%`, height: "100%", background: playerHp > 30 ? "#00ffcc" : "#ff0033", transition: "width 0.3s ease-out" }} />
                       </div>
-                      {activeStatusEffects.length > 0 && (
-                        <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
-                          {activeStatusEffects.map(effect => (
-                            <span key={effect} style={{ fontSize: "10px", background: "rgba(255,0,51,0.15)", border: "1px solid #ff0033", padding: "1px 6px", color: "#ff0033", fontWeight: "bold" }}>
+                      {playerStatusEffects.length > 0 && (
+                        <div style={{ display: "flex", gap: "6px", marginTop: "8px", flexWrap: "wrap" }}>
+                          {playerStatusEffects.map(effect => (
+                            <span key={effect} style={{ fontSize: "9px", background: "rgba(255,0,51,0.15)", border: "1px solid #ff0033", padding: "1px 5px", color: "#ff0033", fontWeight: "bold" }}>
                               {effect}
                             </span>
                           ))}
@@ -388,26 +516,41 @@ export default function BunkerPage() {
                       )}
                     </div>
 
-                    {/* Security Drone HP Bar */}
+                    {/* Opponent statistics */}
                     <div style={{ background: "#050505", border: "1px solid #1a1a1a", padding: "12px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "6px" }}>
-                        <span>CONTAINMENT SECURITY DRONE:</span>
-                        <span style={{ color: "#ff0033", fontWeight: "bold" }}>{droneHp}% HP</span>
+                        <span>OPPONENT: {opponent.name} [Lvl {opponent.level}]:</span>
+                        <span style={{ color: "#ff0033", fontWeight: "bold" }}>{opponent.hp}% HP</span>
                       </div>
                       <div style={{ height: "10px", background: "#1f1f1f", borderRadius: "1px", overflow: "hidden" }}>
-                        <div style={{ width: `${droneHp}%`, height: "100%", background: "#ff0033", transition: "width 0.3s ease-out" }} />
+                        <div style={{ width: `${opponent.hp}%`, height: "100%", background: "#ff0033", transition: "width 0.3s ease-out" }} />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", fontSize: "10px", color: "var(--text-muted)" }}>
+                        <span>Faction: {opponent.faction}</span>
+                        {opponent.statusEffects.length > 0 && (
+                          <div style={{ display: "flex", gap: "4px" }}>
+                            {opponent.statusEffects.map(e => (
+                              <span key={e} style={{ color: "#f0c929", border: "1px solid rgba(240,201,41,0.3)", padding: "0 3px", fontSize: "8.5px" }}>{e}</span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Active logs and action pad */}
+                  {/* Turn Selection matrix */}
                   <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "20px" }} className="responsive-grid-2">
                     
                     {/* Combat Log Console */}
-                    <div style={{ background: "#050505", border: "1px solid #1a1a1a", padding: "12px", height: "220px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                      <div style={{ overflowY: "auto", flexGrow: 1, fontSize: "11px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <div style={{ background: "#050505", border: "1px solid #1a1a1a", padding: "12px", height: "260px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                      <div style={{ overflowY: "auto", flexGrow: 1, fontSize: "10.5px", display: "flex", flexDirection: "column", gap: "6px" }}>
                         {combatLogs.map((log, i) => (
-                          <div key={i} style={{ color: log.startsWith("> IMPACT") ? "#00ffcc" : log.startsWith("> INTRUSION") || log.startsWith("CRITICAL") ? "#ff0033" : "var(--text-dim)" }}>
+                          <div key={i} style={{
+                            color: log.startsWith("> IMPACT") ? "#00ffcc" : 
+                                   log.startsWith("> INTRUSION") || log.startsWith("CRITICAL") || log.startsWith("DEFEAT") ? "#ff0033" : 
+                                   log.startsWith("VICTORY") ? "#00ffcc" : 
+                                   log.startsWith("-----") ? "#7f7f7f" : "var(--text-dim)"
+                          }}>
                             {log}
                           </div>
                         ))}
@@ -415,109 +558,94 @@ export default function BunkerPage() {
                       </div>
                       
                       {combatOutcome && (
-                        <div style={{ borderTop: "1px solid #1f1f1f", paddingTop: "8px", marginTop: "8px", textAlign: "center", fontWeight: "bold", fontSize: "13px", color: combatOutcome === "win" ? "#00ffcc" : "#ff0033" }}>
-                          {combatOutcome === "win" ? "✓ SIMULATION COMPLETE: DRONE NEUTRALIZED" : "✗ MAINSTAT FLUID DECAY: OPERATIVE DESTROYED"}
+                        <div style={{ borderTop: "1px solid #1f1f1f", paddingTop: "8px", marginTop: "8px", textAlign: "center", fontWeight: "bold", fontSize: "12.5px", color: combatOutcome === "win" ? "#00ffcc" : "#ff0033" }}>
+                          {combatOutcome === "win" ? "✓ VICTORY: HOSTILE ELIMINATED" : "✗ DEFEAT: YOUR MAINSTAT FLUID DECAYED"}
                           <button
-                            onClick={startCombatSimulation}
+                            onClick={startMatchmaking}
                             style={{ display: "block", margin: "6px auto 0", background: "transparent", border: "1px solid currentColor", color: "inherit", padding: "2px 10px", fontSize: "10px", cursor: "pointer", fontFamily: "var(--mono)" }}
                           >
-                            [ RUN AGAIN ]
+                            [ MATCH AGAIN ]
                           </button>
                         </div>
                       )}
                     </div>
 
-                    {/* Limb-targeting input panel */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                      <span style={{ fontSize: "12px", fontWeight: "bold", color: "var(--text-muted)" }}>SELECT TARGET VECTOR:</span>
+                    {/* Action selectors */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                       
+                      {/* Attack Limb Selection */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <span style={{ fontSize: "11px", fontWeight: "bold", color: "var(--text-muted)" }}>[A] SELECT ATTACK TARGET:</span>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
+                          {(["HEAD", "TORSO", "ARMS", "LEGS"] as TargetLimb[]).map(limb => (
+                            <button
+                              key={limb}
+                              onClick={() => setSelectedAttack(limb)}
+                              disabled={!!combatOutcome}
+                              style={{
+                                background: selectedAttack === limb ? "rgba(255, 0, 51, 0.15)" : "transparent",
+                                border: `1px solid ${selectedAttack === limb ? "#ff0033" : "#1f1f1f"}`,
+                                color: "#ffffff",
+                                padding: "6px 2px",
+                                fontSize: "11px",
+                                fontFamily: "var(--mono)",
+                                cursor: combatOutcome ? "not-allowed" : "pointer",
+                                opacity: combatOutcome ? 0.4 : 1
+                              }}
+                              className="hover-glow"
+                            >
+                              {limb}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Defense Limb Selection */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
+                        <span style={{ fontSize: "11px", fontWeight: "bold", color: "var(--text-muted)" }}>[B] SELECT DEFENSIVE SHIELD:</span>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
+                          {(["HEAD", "TORSO", "ARMS", "LEGS"] as TargetLimb[]).map(limb => (
+                            <button
+                              key={limb}
+                              onClick={() => setSelectedDefense(limb)}
+                              disabled={!!combatOutcome}
+                              style={{
+                                background: selectedDefense === limb ? "rgba(0, 255, 204, 0.15)" : "transparent",
+                                border: `1px solid ${selectedDefense === limb ? "#00ffcc" : "#1f1f1f"}`,
+                                color: "#ffffff",
+                                padding: "6px 2px",
+                                fontSize: "11px",
+                                fontFamily: "var(--mono)",
+                                cursor: combatOutcome ? "not-allowed" : "pointer",
+                                opacity: combatOutcome ? 0.4 : 1
+                              }}
+                              className="hover-glow"
+                            >
+                              {limb}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Submit Turn */}
                       <button
-                        onClick={() => executeCombatTurn("HEAD")}
-                        disabled={!!combatOutcome}
+                        onClick={resolvePvPTurn}
+                        disabled={!selectedAttack || !selectedDefense || !!combatOutcome}
                         style={{
-                          background: "transparent",
-                          border: "1px solid #ff0033",
-                          color: "#ffffff",
+                          marginTop: "10px",
+                          background: (selectedAttack && selectedDefense && !combatOutcome) ? "#ff0033" : "transparent",
+                          border: `1px solid ${(selectedAttack && selectedDefense && !combatOutcome) ? "#ff0033" : "#1f1f1f"}`,
+                          color: (selectedAttack && selectedDefense && !combatOutcome) ? "#ffffff" : "var(--text-muted)",
                           padding: "10px",
+                          fontWeight: "bold",
                           fontFamily: "var(--mono)",
                           fontSize: "12px",
-                          textAlign: "left",
-                          cursor: combatOutcome ? "not-allowed" : "pointer",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          opacity: combatOutcome ? 0.4 : 1
+                          cursor: (selectedAttack && selectedDefense && !combatOutcome) ? "pointer" : "not-allowed"
                         }}
-                        className="hover-glow"
                       >
-                        <span>[HEAD] OPTICAL BLOCK</span>
-                        <span style={{ color: "#ff0033" }}>35% HIT // 40 DMG</span>
+                        [ SUBMIT TACTICAL ACTIONS ]
                       </button>
 
-                      <button
-                        onClick={() => executeCombatTurn("TORSO")}
-                        disabled={!!combatOutcome}
-                        style={{
-                          background: "transparent",
-                          border: "1px solid #1f1f1f",
-                          color: "#ffffff",
-                          padding: "10px",
-                          fontFamily: "var(--mono)",
-                          fontSize: "12px",
-                          textAlign: "left",
-                          cursor: combatOutcome ? "not-allowed" : "pointer",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          opacity: combatOutcome ? 0.4 : 1
-                        }}
-                        className="hover-glow"
-                      >
-                        <span>[TORSO] FUSION CORE</span>
-                        <span style={{ color: "#00ffcc" }}>85% HIT // 18 DMG</span>
-                      </button>
-
-                      <button
-                        onClick={() => executeCombatTurn("ARMS")}
-                        disabled={!!combatOutcome}
-                        style={{
-                          background: "transparent",
-                          border: "1px solid #1f1f1f",
-                          color: "#ffffff",
-                          padding: "10px",
-                          fontFamily: "var(--mono)",
-                          fontSize: "12px",
-                          textAlign: "left",
-                          cursor: combatOutcome ? "not-allowed" : "pointer",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          opacity: combatOutcome ? 0.4 : 1
-                        }}
-                        className="hover-glow"
-                      >
-                        <span>[ARMS] LASER SENSOR</span>
-                        <span style={{ color: "#f0c929" }}>55% HIT // 22 DMG</span>
-                      </button>
-
-                      <button
-                        onClick={() => executeCombatTurn("LEGS")}
-                        disabled={!!combatOutcome}
-                        style={{
-                          background: "transparent",
-                          border: "1px solid #1f1f1f",
-                          color: "#ffffff",
-                          padding: "10px",
-                          fontFamily: "var(--mono)",
-                          fontSize: "12px",
-                          textAlign: "left",
-                          cursor: combatOutcome ? "not-allowed" : "pointer",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          opacity: combatOutcome ? 0.4 : 1
-                        }}
-                        className="hover-glow"
-                      >
-                        <span>[LEGS] STABILIZERS</span>
-                        <span style={{ color: "#3b82f6" }}>100% HIT // 12 DMG</span>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -607,7 +735,7 @@ export default function BunkerPage() {
               </div>
 
               <div style={{ border: "1px solid #ff0033", background: "rgba(255, 0, 51, 0.05)", padding: "10px", marginTop: "20px", fontSize: "11px", color: "#ff0033", lineHeight: "1.4" }}>
-                <strong>LIVE ANOMALY ADVISORY:</strong> Real-world wildfire vectors registered in Sector Alpha. Water levels are decreasing dynamically. Scarcity multipliers activated.
+                <strong>LIVE ANOMALY ADVISORY:</strong> Real-world wildfire vectors registered in Sector Alpha. Water supply is decreasing dynamically. Scarcity multipliers activated.
               </div>
             </div>
 
