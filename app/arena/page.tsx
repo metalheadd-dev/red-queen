@@ -355,7 +355,7 @@ export default function ArenaPage() {
   );
 
   return (
-    <div id="game-arena-root" style={{ background: "#050505", minHeight: "100vh", color: "#ffffff", fontFamily: "Exo 2, Rajdhani, sans-serif", padding: "16px 24px", position: "relative", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+    <div id="game-arena-root" style={{ background: "#030303", minHeight: "100vh", color: "#ffffff", fontFamily: "Exo 2, Rajdhani, sans-serif", padding: "16px 24px", position: "relative", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
       {/* Global CSS Style tag for typography, scanning sweeps and targeting effects */}
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700&family=Orbitron:wght@500;800;900&family=Oxanium:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&display=swap');
@@ -439,10 +439,10 @@ export default function ArenaPage() {
         </div>
       </header>
 
-      {/* Main 1v1 Arena HUD Layer */}
+      {/* Main 1v1 Arena HUD Layer with characters behind overlay */}
       <main style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr 1fr", gap: "24px", flexGrow: 1, alignItems: "center", position: "relative", zIndex: 10, minHeight: "0", margin: "12px 0" }}>
         
-        {/* PLAYER A (Left Panel) */}
+        {/* PLAYER A (Left Panel) - Completely Transparent and Float */}
         <div style={{ display: "flex", gap: "16px", alignItems: "center", height: "100%", position: "relative", padding: "12px" }}>
           
           {/* Crimson Red Glow Queen Silhouette standing in the background */}
@@ -452,11 +452,11 @@ export default function ArenaPage() {
             style={{
               position: "absolute",
               top: "10%",
-              left: "50%",
-              transform: "translateX(-40%)",
-              height: "75%",
+              left: "40%",
+              transform: "translateX(-30%)",
+              height: "80%",
               width: "auto",
-              opacity: 0.65,
+              opacity: 0.7,
               filter: "drop-shadow(0 0 25px rgba(255, 0, 60, 0.65))",
               zIndex: 1,
               pointerEvents: "none"
@@ -472,7 +472,7 @@ export default function ArenaPage() {
             <InventorySlot icon={<BootsIcon />} color="#ff003c" />
           </div>
 
-          {/* Symmetrical stats layout overlaid on B */}
+          {/* Symmetrical stats layout overlaid on A */}
           <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", maxWidth: "220px", zIndex: 3 }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#ff003c" }}>
@@ -632,7 +632,7 @@ export default function ArenaPage() {
 
         </div>
 
-        {/* PLAYER B (Right Panel) */}
+        {/* PLAYER B (Right Panel) - Completely Transparent and Float */}
         <div style={{ display: "flex", gap: "16px", alignItems: "center", height: "100%", justifyContent: "flex-end", position: "relative", padding: "12px" }}>
           
           {/* White Rim Glow Soldier Silhouette standing in the background */}
@@ -642,11 +642,11 @@ export default function ArenaPage() {
             style={{
               position: "absolute",
               top: "10%",
-              left: "50%",
-              transform: "translateX(-60%)",
-              height: "75%",
+              right: "40%",
+              transform: "translateX(30%)",
+              height: "80%",
               width: "auto",
-              opacity: 0.65,
+              opacity: 0.7,
               filter: "drop-shadow(0 0 25px rgba(255, 255, 255, 0.25))",
               zIndex: 1,
               pointerEvents: "none"
