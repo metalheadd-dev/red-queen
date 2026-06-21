@@ -74,17 +74,34 @@ function StatBar({label,value,color}:{label:string;value:number;color:string}) {
 }
 
 // ── GEAR SLOT BUTTON ──────────────────────────────────────────────────────────
-function GearSlot({g,active,onClick}:{g:typeof GEAR[0];active:boolean;onClick:()=>void}) {
+function GearSlot({
+  g,
+  active,
+  onClick,
+  onMouseEnter,
+  onMouseLeave,
+}: {
+  g: typeof GEAR[0];
+  active: boolean;
+  onClick: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+}) {
   const tc = TIER_COLOR[g.tier];
   return (
-    <button onClick={onClick} style={{
-      border:`1px solid ${active?"#ff003c":tc+"44"}`,
-      background:active?"rgba(255,0,60,0.1)":"rgba(8,8,8,0.85)",
-      padding:"10px 8px",cursor:"pointer",transition:"all 0.12s",
-      display:"flex",flexDirection:"column",alignItems:"center",gap:"5px",
-      boxShadow:active?`0 0 20px rgba(255,0,60,0.3), inset 0 0 20px rgba(255,0,60,0.05)`:`inset 0 0 0 1px ${tc}22`,
-      position:"relative",backdropFilter:"blur(8px)",textAlign:"center",
-    }}>
+    <button 
+      onClick={onClick} 
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      style={{
+        border:`1px solid ${active?"#ff003c":tc+"44"}`,
+        background:active?"rgba(255,0,60,0.1)":"rgba(8,8,8,0.85)",
+        padding:"10px 8px",cursor:"pointer",transition:"all 0.12s",
+        display:"flex",flexDirection:"column",alignItems:"center",gap:"5px",
+        boxShadow:active?`0 0 20px rgba(255,0,60,0.3), inset 0 0 20px rgba(255,0,60,0.05)`:`inset 0 0 0 1px ${tc}22`,
+        position:"relative",backdropFilter:"blur(8px)",textAlign:"center",
+      }}
+    >
       <div style={{position:"absolute",top:3,right:3,width:5,height:5,background:tc}}/>
       <g.Icon c={active?"#ff003c":tc} s={24}/>
       <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:active?"#ff003c":"rgba(255,255,255,0.3)",letterSpacing:"0.1em",fontWeight:700,textTransform:"uppercase"}}>{g.slot}</div>
@@ -102,6 +119,7 @@ export default function PlayerPage() {
 
   const [selectedId, setSelectedId] = useState("w1");
   const [activeTab,  setActiveTab]  = useState<Tab>("LOADOUT");
+  const [hoveredSlot, setHoveredSlot] = useState<string | null>(null);
 
   const profileName  = "RED QUEEN ADMIN";
   const faction      = "MARAUDERS";
@@ -123,7 +141,50 @@ export default function PlayerPage() {
   return (
     <div id="game-player-root" style={{background:"#030303",height:"100vh",color:"#fff",fontFamily:"Rajdhani,sans-serif",position:"relative",overflow:"hidden",display:"flex",flexDirection:"column"}}>
 
-      {/* ── Ambient glows — IDENTICAL to arena */}
+      {/* ── Distinct Player Backdrop Hangar image ── */}
+      <div style={{
+        position:"absolute",
+        inset:0,
+        backgroundImage:"url(/images/player_backdrop.png)",
+        backgroundSize:"cover",
+        backgroundPosition:"center",
+        opacity:0.18,
+        mixBlendMode:"lighten",
+        pointerEvents:"none",
+        zIndex:0
+      }}/>
+
+      {/* ── Holographic Circular Pedestal at character feet ── */}
+      <div style={{
+        position:"absolute",
+        bottom:"-30px",
+        left:"2vw",
+        width:"36vw",
+        height:"120px",
+        background:"radial-gradient(ellipse at 50% 50%, rgba(255,0,60,0.25) 0%, transparent 70%)",
+        borderTop:"2px solid rgba(255,0,60,0.4)",
+        boxShadow:"0 -10px 40px rgba(255,0,60,0.5)",
+        transform:"perspective(800px) rotateX(75deg)",
+        zIndex:1,
+        pointerEvents:"none"
+      }}>
+        <div style={{
+          position:"absolute",
+          inset:"10px",
+          border:"1.5px dashed rgba(255,255,255,0.4)",
+          borderRadius:"50%",
+          animation:"hud-rotate-clockwise 10s linear infinite"
+        }} />
+        <div style={{
+          position:"absolute",
+          inset:"20px",
+          border:"1px solid rgba(255,0,60,0.6)",
+          borderRadius:"50%",
+          animation:"hud-rotate-counter 6s linear infinite"
+        }} />
+      </div>
+
+      {/* ── Ambient glows */}
       <div style={{position:"absolute",top:0,left:0,width:"45%",height:"100%",background:"radial-gradient(ellipse at 20% 50%, rgba(255,0,60,0.09) 0%, transparent 65%)",pointerEvents:"none",zIndex:1}}/>
       <div style={{position:"absolute",top:0,right:0,width:"45%",height:"100%",background:"radial-gradient(ellipse at 80% 50%, rgba(200,220,255,0.06) 0%, transparent 65%)",pointerEvents:"none",zIndex:1}}/>
 
@@ -136,8 +197,7 @@ export default function PlayerPage() {
       {/* ── Frame */}
       <div style={{position:"absolute",top:"10px",left:"10px",right:"10px",bottom:"10px",border:"1px solid rgba(255,0,60,0.07)",pointerEvents:"none",zIndex:15}}/>
 
-      {/* ── CHARACTER SILHOUETTES — EXACT ARENA TREATMENT */}
-      {/* Left: Full-height Red Queen operative — this IS the character screen */}
+      {/* Left: Full-height Red Queen operative standing on the platform */}
       <div style={{
         position:"absolute",bottom:0,left:"-2vw",
         width:"44vw",height:"90vh",
@@ -146,6 +206,77 @@ export default function PlayerPage() {
         zIndex:2,pointerEvents:"none",
         filter:"brightness(0.9) drop-shadow(0 0 50px rgba(255,0,60,0.6))",
       }}/>
+
+      {/* ── Interactive Tactical Connection Diodes & Labels ── */}
+      {(() => {
+        const nodes: Record<string, { top: string; left: string; label: string }> = {
+          HEAD:      { top: "25%", left: "16.5vw", label: "NEURAL HELMET SYS" },
+          PRIMARY:   { top: "42%", left: "20.5vw", label: "PRIMARY TARGETER" },
+          SECONDARY: { top: "48%", left: "22.0vw", label: "SECONDARY LINK" },
+          SIDEARM:   { top: "54%", left: "19.5vw", label: "SIDEARM PROTOCOL" },
+          CHEST:     { top: "38%", left: "16.0vw", label: "NANO-CORE PLATES" },
+          BACKPACK:  { top: "45%", left: "13.0vw", label: "TACTICAL SYS PACK" },
+          GLOVES:    { top: "51%", left: "24.0vw", label: "STRIKE RECEPTORS" },
+          BOOTS:     { top: "75%", left: "15.0vw", label: "KINETIC THRUSTERS" },
+        };
+
+        return Object.entries(nodes).map(([slotKey, node]) => {
+          const matchingGearItem = GEAR.find(g => g.slot === slotKey || (g.id === "w1" && slotKey === "PRIMARY") || (g.id === "w2" && slotKey === "SECONDARY") || (g.id === "w3" && slotKey === "SIDEARM"));
+          const isActive = selectedId === matchingGearItem?.id || hoveredSlot === slotKey;
+          const glowColor = isActive ? "#ff003c" : "rgba(255,255,255,0.35)";
+          
+          return (
+            <div key={slotKey} style={{
+              position: "absolute",
+              top: node.top,
+              left: node.left,
+              zIndex: 10,
+              pointerEvents: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              fontFamily: "monospace",
+              fontSize: "8px"
+            }}>
+              <div style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                background: glowColor,
+                boxShadow: `0 0 10px ${glowColor}`,
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
+                {isActive && (
+                  <div style={{
+                    position: "absolute",
+                    inset: "-4px",
+                    border: `1px solid ${glowColor}`,
+                    borderRadius: "50%",
+                    animation: "hud-blink 1s infinite"
+                  }} />
+                )}
+              </div>
+              {isActive && (
+                <div style={{
+                  color: "#ff003c",
+                  textShadow: "0 0 5px #ff003c",
+                  fontWeight: "bold",
+                  background: "rgba(0,0,0,0.8)",
+                  border: "1px solid rgba(255,0,60,0.3)",
+                  padding: "2px 6px",
+                  letterSpacing: "0.1em",
+                  whiteSpace: "nowrap"
+                }}>
+                  {node.label} // ON
+                </div>
+              )}
+            </div>
+          );
+        });
+      })()}
 
       {/* ═══ HEADER ═══════════════════════════════════════════════════════════ */}
       <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 24px 12px",borderBottom:"1px solid rgba(255,0,60,0.07)",position:"relative",zIndex:20,flexShrink:0}}>
@@ -269,7 +400,14 @@ export default function PlayerPage() {
                   <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.25)",letterSpacing:"0.2em",marginBottom:"5px",textTransform:"uppercase"}}>WEAPONS</div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"5px"}}>
                     {GEAR.filter(g=>["w1","w2","w3"].includes(g.id)).map(g=>(
-                      <GearSlot key={g.id} g={g} active={selectedId===g.id} onClick={()=>setSelectedId(g.id)}/>
+                      <GearSlot 
+                        key={g.id} 
+                        g={g} 
+                        active={selectedId===g.id} 
+                        onClick={()=>setSelectedId(g.id)}
+                        onMouseEnter={()=>setHoveredSlot(g.slot)}
+                        onMouseLeave={()=>setHoveredSlot(null)}
+                      />
                     ))}
                   </div>
                 </div>
@@ -279,7 +417,14 @@ export default function PlayerPage() {
                   <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.25)",letterSpacing:"0.2em",marginBottom:"5px",textTransform:"uppercase"}}>GEAR</div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"5px"}}>
                     {GEAR.filter(g=>!["w1","w2","w3"].includes(g.id)).map(g=>(
-                      <GearSlot key={g.id} g={g} active={selectedId===g.id} onClick={()=>setSelectedId(g.id)}/>
+                      <GearSlot 
+                        key={g.id} 
+                        g={g} 
+                        active={selectedId===g.id} 
+                        onClick={()=>setSelectedId(g.id)}
+                        onMouseEnter={()=>setHoveredSlot(g.slot)}
+                        onMouseLeave={()=>setHoveredSlot(null)}
+                      />
                     ))}
                   </div>
                 </div>

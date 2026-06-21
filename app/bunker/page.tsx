@@ -182,7 +182,20 @@ export default function BunkerPage() {
   return (
     <div id="game-bunker-root" style={{background:"#030303",height:"100vh",color:"#fff",fontFamily:"Rajdhani,sans-serif",position:"relative",overflow:"hidden",display:"flex",flexDirection:"column"}}>
 
-      {/* ── Ambient glows — IDENTICAL to arena */}
+      {/* ── Distinct Bunker Backdrop room image ── */}
+      <div style={{
+        position:"absolute",
+        inset:0,
+        backgroundImage:"url(/images/bunker_backdrop.png)",
+        backgroundSize:"cover",
+        backgroundPosition:"center",
+        opacity:0.18,
+        mixBlendMode:"lighten",
+        pointerEvents:"none",
+        zIndex:0
+      }}/>
+
+      {/* ── Ambient glows */}
       <div style={{position:"absolute",top:0,left:0,width:"45%",height:"100%",background:"radial-gradient(ellipse at 20% 50%, rgba(255,0,60,0.09) 0%, transparent 65%)",pointerEvents:"none",zIndex:1}}/>
       <div style={{position:"absolute",top:0,right:0,width:"45%",height:"100%",background:"radial-gradient(ellipse at 80% 50%, rgba(200,220,255,0.06) 0%, transparent 65%)",pointerEvents:"none",zIndex:1}}/>
 
@@ -194,10 +207,6 @@ export default function BunkerPage() {
 
       {/* ── Frame border */}
       <div style={{position:"absolute",top:"10px",left:"10px",right:"10px",bottom:"10px",border:"1px solid rgba(255,0,60,0.07)",pointerEvents:"none",zIndex:15}}/>
-
-      {/* ── CHARACTER SILHOUETTES — EXACT ARENA TREATMENT */}
-      <div style={{position:"absolute",bottom:0,left:"-2vw",width:"44vw",height:"88vh",backgroundImage:"url(/images/redqueen_silhouette.png)",backgroundSize:"contain",backgroundPosition:"left bottom",backgroundRepeat:"no-repeat",zIndex:2,pointerEvents:"none",filter:"brightness(0.85) drop-shadow(0 0 40px rgba(255,0,60,0.5))"}}/>
-      <div style={{position:"absolute",bottom:0,right:"-2vw",width:"44vw",height:"88vh",backgroundImage:"url(/images/soldier_silhouette.png)",backgroundSize:"contain",backgroundPosition:"right bottom",backgroundRepeat:"no-repeat",zIndex:2,pointerEvents:"none",filter:"brightness(0.8) drop-shadow(0 0 40px rgba(200,230,255,0.3))"}}/>
 
       {/* ═══ HEADER ═══════════════════════════════════════════════════════════ */}
       <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 24px 12px",borderBottom:"1px solid rgba(255,0,60,0.07)",position:"relative",zIndex:20,flexShrink:0}}>
@@ -296,23 +305,64 @@ export default function BunkerPage() {
         {/* ─── CENTER HUD ──────────────────────────────────────────────────── */}
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"space-between",padding:"16px 8px",position:"relative"}}>
 
-          {/* Status display — like arena's match timer */}
-          <div style={{textAlign:"center"}}>
+          {/* Status display */}
+          <div style={{textAlign:"center", zIndex: 10}}>
             <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"11px",color:"rgba(255,255,255,0.35)",letterSpacing:"0.3em",fontWeight:700,marginBottom:"4px"}}>BUNKER STATUS</div>
-            <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"52px",fontWeight:900,color:"#ff003c",textShadow:"0 0 40px rgba(255,0,60,0.9), 0 0 80px rgba(255,0,60,0.4)",lineHeight:1,letterSpacing:"0.05em"}}>ACTIVE</div>
-            <div style={{display:"flex",justifyContent:"center",gap:"8px",marginTop:"8px"}}>
-              <div style={{height:"1px",width:"60px",background:"linear-gradient(to right, transparent, #ff003c)"}}/>
-              <div style={{height:"1px",width:"60px",background:"linear-gradient(to left, transparent, #ff003c)"}}/>
+            <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"32px",fontWeight:900,color:"#ff003c",textShadow:"0 0 25px rgba(255,0,60,0.8)",lineHeight:1,letterSpacing:"0.05em"}}>ONLINE // ACTIVE</div>
+          </div>
+
+          {/* Holographic Radar / Sweeper map grid */}
+          <div style={{position:"relative",width:"240px",height:"240px",display:"flex",justifyContent:"center",alignItems:"center",flexShrink:0}}>
+            <svg width="240" height="240" viewBox="0 0 240 240" style={{position:"absolute",zIndex:4,overflow:"visible"}}>
+              <circle cx="120" cy="120" r="110" fill="none" stroke="rgba(255,136,0,0.12)" strokeWidth="1" strokeDasharray="6 4" className="hud-spin-cw" />
+              <circle cx="120" cy="120" r="90" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+              <circle cx="120" cy="120" r="70" fill="none" stroke="rgba(0,170,255,0.1)" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="120" y1="120" x2="220" y2="70" stroke="rgba(255,0,60,0.45)" strokeWidth="2" className="hud-radar-scanner-sweep" style={{transformOrigin:"120px 120px"}} />
+              {Array.from({length:8}).map((_,i)=>{
+                const a = (i * 45 * Math.PI)/180;
+                return <line key={i} x1={120 + 85 * Math.cos(a)} y1={120 + 85 * Math.sin(a)} x2={120 + 95 * Math.cos(a)} y2={120 + 95 * Math.sin(a)} stroke="rgba(255,255,255,0.15)" strokeWidth="1" />;
+              })}
+              <line x1="120" y1="10" x2="120" y2="230" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+              <line x1="10" y1="120" x2="230" y2="120" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+              <g className="hud-blink-fast">
+                <circle cx="170" cy="80" r="4" fill="#ff003c" filter="drop-shadow(0 0 5px #ff003c)" />
+                <text x="180" y="83" fill="#ff003c" fontSize="8" fontFamily="Orbitron" fontWeight="bold">TGT_ALPHA</text>
+              </g>
+              <g style={{animation: "hud-blink 2.2s infinite"}}>
+                <circle cx="70" cy="150" r="3" fill="#ff8800" filter="drop-shadow(0 0 4px #ff8800)" />
+                <text x="45" y="162" fill="#ff8800" fontSize="8" fontFamily="Orbitron">SCAV_ZONE_4</text>
+              </g>
+              <g style={{animation: "hud-blink 1.7s infinite"}}>
+                <circle cx="140" cy="180" r="3" fill="#00aaff" filter="drop-shadow(0 0 4px #00aaff)" />
+                <text x="148" y="183" fill="#00aaff" fontSize="8" fontFamily="Orbitron">SIGNAL_LOCK</text>
+              </g>
+            </svg>
+            <div style={{
+              fontFamily:"Orbitron,sans-serif",
+              width:"90px",
+              height:"90px",
+              background:"rgba(2,2,2,0.9)",
+              border:`2px solid ${selectedFaction.color}`,
+              display:"flex",
+              flexDirection:"column",
+              justifyContent:"center",
+              alignItems:"center",
+              zIndex:6,
+              boxShadow:`0 0 25px ${selectedFaction.color}55`,
+              clipPath:"polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%)",
+              position:"relative",
+              textAlign:"center"
+            }}>
+              <span style={{fontSize:"9px",color:"rgba(255,255,255,0.4)",letterSpacing:"0.1em"}}>DEEP SCAN</span>
+              <span style={{fontSize:"13px",color:selectedFaction.color,fontWeight:900,textShadow:`0 0 8px ${selectedFaction.color}`}}>{selectedFaction.name.slice(0,6)}</span>
             </div>
           </div>
 
-          {/* Location + Faction */}
-          <div style={{textAlign:"center"}}>
-            <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"10px",color:"#444",letterSpacing:"0.2em",marginBottom:"2px"}}>LOCATION</div>
-            <div style={{fontFamily:"Oxanium,sans-serif",fontSize:"16px",color:"#ff003c",fontWeight:700,letterSpacing:"0.08em"}}>SECTOR 7 — DEEP GRID</div>
-            <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"10px",color:"#444",letterSpacing:"0.2em",marginTop:"10px",marginBottom:"2px"}}>FACTION</div>
-            <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"14px",color:selectedFaction.color,fontWeight:700,textShadow:`0 0 12px ${selectedFaction.color}66`}}>{selectedFaction.name}</div>
-            <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"11px",color:"rgba(255,255,255,0.3)",marginTop:"4px"}}>{selectedFaction.passive}</div>
+          {/* Location details */}
+          <div style={{textAlign:"center", zIndex: 10}}>
+            <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"10px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.2em",marginBottom:"2px"}}>GRID COORDINATES</div>
+            <div style={{fontFamily:"Oxanium,sans-serif",fontSize:"14px",color:"#ff8800",fontWeight:700,letterSpacing:"0.08em"}}>SECTOR 7 [45.1092, -122.6801]</div>
+            <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:"#555",marginTop:"4px"}}>STABILITY FACTOR: 98.4%</div>
           </div>
 
           {/* THREE BIG ACTION BUTTONS — EXACT ARENA FIGHT BUTTON STYLE */}
@@ -415,6 +465,28 @@ export default function BunkerPage() {
                 <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"12px",color:"#d4af37",fontWeight:900,alignSelf:"center"}}>{t.bounty}</span>
               </div>
             ))}
+          </div>
+
+          {/* Stasis Clone Chamber */}
+          <div style={panelStyle}>
+            <div style={panelLabel}>CLONE STASIS CHAMBER</div>
+            <div style={{display:"flex",alignItems:"center",gap:"12px",background:"rgba(0,255,136,0.03)",border:"1px solid rgba(0,255,136,0.12)",padding:"8px 10px",marginBottom:"5px"}}>
+              <div style={{width:"12px",height:"32px",border:"1.5px solid #00ff88",borderRadius:"3px",position:"relative",background:"rgba(0,255,136,0.05)",boxShadow:"0 0 8px rgba(0,255,136,0.3)",flexShrink:0}}>
+                <div style={{position:"absolute",bottom:"2px",left:"1px",right:"1px",height:"78%",background:"#00ff88",boxShadow:"0 0 6px #00ff88",animation:"hud-blink 3s infinite"}}/>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
+                  <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"10px",color:"#fff",fontWeight:900}}>CLONE_03</span>
+                  <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:"#00ff88"}}>ONLINE</span>
+                </div>
+                <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.4)",letterSpacing:"0.05em",marginTop:"2px"}}>
+                  VIABILITY: <span style={{color:"#fff"}}>98.2%</span> &nbsp;/&nbsp; LEVEL: 14
+                </div>
+              </div>
+            </div>
+            <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"8.5px",lineHeight:"1.3",color:"rgba(255,0,60,0.5)",letterSpacing:"0.05em",padding:"4px 8px",background:"rgba(255,0,60,0.05)",border:"1px solid rgba(255,0,60,0.1)"}}>
+              [WARNING] PERMADEATH ACTIVE. IF CLONE_03 DIES IN ARENA, 150T ESCROW AND CHARACTER INVENTORY WILL BE PERMANENTLY DELETED.
+            </div>
           </div>
         </div>
       </main>
