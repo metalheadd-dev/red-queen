@@ -41,3 +41,8 @@ local.properties
 # typescript build info
 *.tsbuildinfo
 
+# planning and design documents (local only)
+game_design_document.md
+ecosystem_roadmap.md
+
+
