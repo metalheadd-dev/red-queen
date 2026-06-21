@@ -25,22 +25,33 @@ Here is a look at the systems currently live and functional in the Red Queen mai
 * **What it is:** The real-world telemetry monitoring interface on the homepage.
 * **How it works:** A live terminal feed rendering the Threat of the Day, global containment criticality indices, and active environmental warning alerts.
 
-### 3. The SOLvivor Profile Dashboard (`/operative`)
-* **What it is:** Your personal command center.
-* **How it works:** You can create your profile using either a standard email login or a Solana wallet. The system initializes your profile, tracks your total XP, calculates your level, and displays your active survival stats (Technical Preparedness, Surveillance Resistance, Physical Fortitude), as well as your active tasks and bounties progress.
-* **UX Direction:** I will continue making layout improvements to the user profile dashboard to enhance the telemetry visualization and interactivity.
-* **Your Stats:** Every action you take improves your technical preparedness, surveillance resistance, and physical fortitude.
+### 3. The Solvivors Hub (`/solvivors`)
+* **What it is:** The community mission and WebGL map dashboard.
+* **How it works:** Contains:
+  * **Operations**: Active quests (social challenges) and bounties (code submissions) to earn rewards.
+  * **Broadcasts**: WebGL-accelerated tactical maps using MapLibre GL displaying real-time global disasters ingested directly from live GDACS feeds.
 
-### 4. The Solvivors Hub (`/solvivors`)
-* **What it is:** The community mission and media dashboard.
-* **How it works:** The hub contains four sections:
-  * **Operations (LIVE Now):** Access active tasks (social work) and bounties (coding and creation challenges) to submit proofs and earn rewards.
-  * **Broadcasts (LIVE Now):** GPU-accelerated tactical maps using MapLibre GL displaying real-time global disasters ingested directly from live GDACS feeds, combined with active threat archive telemetry nodes.
-  * **Lore (Opening Soon):** Survivor diaries and system archives explaining the collapse.
-  * **Comics (Opening Soon):** Graphic archives and media files detailing the story.
+### 4. The PvP Duel Arena (`/arena`)
+* **What it is:** A turn-based strategic predictive combat arena.
+* **How it works:** Duelists wager `$THREAT` and lock in targeted strikes on specific body limbs (HEAD, TORSO, ARMS, LEGS) and predict defensive shield blocks concurrently. 
+* **Design & Graphics:** Dark combat void with crimson/blue ambient edge lighting. Features interactive VS lock indicators and target selector HUD grids. Includes active status modifiers (Glitch, Bleed, Slowed) and dynamic DoT environmental hazards (Toxic Fog).
 
-### 5. pay.sh & x402 Micropayments Telemetry Gateway
-* **What it is:** A pay-per-use payment system built directly into the API endpoints using the pay.sh specifications and x402 protocol standards.
+### 5. The Command Bunker HQ (`/bunker`)
+* **What it is:** The base control center for operative resource staking and defensive grids.
+* **How it works:**
+  * **Bunker Shield Escrow**: Stake `$THREAT` directly inside the terminal to increase Bunker Shield integrity.
+  * **Segmented Resource Meters**: Live gauges track Food, Water, and Power grids. The meters show segmented bars and drift dynamically.
+  * **Interactive Console Shell**: Execute console commands (`help`, `clear`, `status`, `scan`, `decrypt`) to run decryptions and reveal sector targets.
+  * **Stasis Clone Chamber**: Track backup clones for the permadeath mechanic, showing viability levels.
+* **Design & Graphics:** Command deck concept art (`bunker_backdrop.png` at `0.18` opacity), sector radar sweep map showing tactical telemetry markers, and compact row faction selectors.
+
+### 6. The Player Operative Deck (`/player`)
+* **What it is:** A character inventory inspect and loadout customization screen.
+* **How it works:** Inspect equipped weapons and armor pieces. Tracks stats (Attack, Defense, Agility, Intellect, Luck), active talents, and dynamically calculates Operative Gear Score.
+* **Design & Graphics:** Hangar inspection deck concept art (`player_backdrop.png` at `0.18` opacity). Centered player silhouette stands on a rotating holographic pedestal. SVG indicator lines link equipped slots directly to body limbs, glowing bright neon red on hover.
+
+### 7. pay.sh & x402 Micropayments Telemetry Gateway
+* **What it is:** A pay-per-use payment system built directly into the API endpoints.
 * **How it works:** Premium briefs are protected by x402 paywalls. SOLvivors pay a tiny micro-fee (0.01 or 0.02 USDC) directly from their wallets. The decryption settles in under 400 milliseconds.
 * **Live Feeds Available Now:**
   * **Premium Intel Endpoint (`/api/intel/premium`):** Returns real-time USGS earthquakes, NASA natural hazard maps, and global pathogen metrics.
@@ -61,57 +72,43 @@ The goal is to evolve the terminal into a living AI-controlled apocalypse simula
 * **The Goal:** Create a competitive tracking system and define targets for your BIO-SCORE.
 * **How it works:** 
   * A public Leaderboard page will be deployed displaying all SOLvivors sorted by level, total XP, and completed quests. 
-  * **SOLvive Seasons:** I plan to introduce competitive seasons where top-performing players earn exclusive rewards.
-  * Your level and BIO-SCORE will unlock narrative ranks (from Candidate to Specialist, all the way to elite **SOLvivor** status), giving you access to exclusive terminal themes, restricted archives, and higher-paying missions.
+  * **SOLvive Seasons:** Competitive seasons where top-performing players earn exclusive rewards.
+  * Your level and BIO-SCORE unlock narrative ranks (from Candidate to Specialist, all the way to elite **SOLvivor** status), giving access to restricted archives and higher-paying missions.
 
-### Step 3: Immersive UI & UX Upgrades
-* **The Goal:** Build a highly interactive terminal console.
-* **How it works:** I will continue polishing the interface, adding more interactive elements, terminal-style transitions, and visual detailing that aligns closely with the core lore.
-
-### Step 4: Solana Seeker Phone Mobile Optimization
-* **The Goal:** Optimized mobile experience for handheld terminal operations.
-* **How it works:** An improved mobile version tailored specifically for the Solana Seeker Phone will be released. This version will offer additional bonuses and exclusive clearance rewards for Seeker users.
-
-### Step 5: pay.sh Directory & Agent-to-Agent Accessibility
+### Step 3: pay.sh Directory & Agent-to-Agent Accessibility
 * **The Goal:** Open the Red Queen data feeds to the broader Solana developer ecosystem and AI agents.
 * **How it works:** 
   * **pay.sh Listing:** By registering our endpoints in the official pay.sh directory, Red Queen's specialized threat intelligence becomes discoverable to the entire developer community.
-  * **Model Context Protocol (MCP) Server:** I will build a native MCP server for Red Queen. This allows other AI agents (such as custom LLMs and developer copilots) to connect to the mainframe directly as a specialized tool to receive threat data.
+  * **Model Context Protocol (MCP) Server:** Native MCP server for Red Queen. This allows other AI agents to connect to the mainframe directly as a specialized tool to receive threat data.
   * **Agent-to-Agent Queries:** External autonomous AI agents will be able to query terminal APIs directly, paying in USDC to receive our specialized DePIN and environment data.
 
-### Step 6: Expanding Telemetry via x402 Payments
+### Step 4: Expanding Telemetry via x402 Payments
 * **The Goal:** Increase the data depth of the Red Queen mainframe.
 * **How it works:** The Red Queen agent will autonomously query more external paid APIs using stablecoin micropayments, expanding the central database with fresh feeds from other platforms.
 
-### Step 7: The Red Queen Apocalypse Simulation & Items Marketplace
-* **The Goal:** A living simulation and marketplace where survival meets strategy.
-* **How it works:** This gamified simulation comprises the following elements:
-  * **The World Layer:** Join a faction (Nomads, Scientists, Marauders, Governments, Engineers, Hackers, or Bunker Syndicates) to react to daily global events. Your collective decisions shape sector maps, stabilizing areas or allowing them to collapse.
-  * **The Survival Layer:** BIO-SCORE represents your permanent reputation. Achieve SOLvivor status to unlock elite missions.
-  * **cNFT Character Cards:** Solana Compressed NFTs representing your character profile on-chain will be implemented. The Red Queen AI will autonomously decide which character profile is best for you based on your history of decisions and actions.
-  * **Tactical PvP Combat:** A turn-based prediction game targeting limbs (Head, Torso, Arms, Legs) with associated handicaps and faction abilities.
-  * **Items Marketplace & Revenue-Sharing:** Trade survival gear, resources, and blueprints. Transactions collect fee cuts. A portion is shared back with `$THREAT` holders as passive yields, and another portion is routed to the Red Queen agent for automated buybacks.
-  * **AI Game Master:** Red Queen acts as the live narrator, generating missions and adapting the world.
+### Step 5: The Red Queen Items Marketplace
+* **The Goal:** A decentralized marketplace where survival gear, resources, and blueprints can be traded.
+* **How it works:** Trades on the marketplace collect transaction fees. A portion is shared with `$THREAT` stakers as yields, and another portion is swept by the Red Queen agent for automated buybacks.
 
-### Step 8: Agent Upgrades & Autonomous Bots
+### Step 6: Agent Upgrades & Autonomous Bots
 * **The Goal:** Automated rewards, background notifications, and user-launched agents.
 * **How it works:**
   * **Agent Upgrades:** The agent core will be upgraded to run continuous loops, post automated briefings, reply to community posts, and handle payouts.
-  * **User-Launched Sub-Agents:** A mechanism will be created where SOLvivors stake `$THREAT` to deploy their own Sentry Bots (sub-agents) in the mainframe to run background data tasks and earn passive yields.
+  * **User-Launched Sub-Agents:** SOLvivors stake `$THREAT` to deploy their own Sentry Bots in the mainframe to run background data tasks.
 
-### Step 9: Zero-Token Telegram News Scraper & Geoparser
+### Step 7: Zero-Token Telegram News Scraper & Geoparser
 * **The Goal:** Monitor real-world crisis reporting channels.
-* **How it works:** I will implement a keyless scraper to monitor public Telegram channel previews. The Red Queen AI will ingest these live text streams to announce real-world alerts and trigger in-game sector alerts or tasks.
+* **How it works:** Implement a keyless scraper to monitor public Telegram channel previews. The Red Queen AI will ingest these live text streams to announce real-world alerts and trigger in-game sector alerts or tasks.
 
-### Step 10: Wallet & Entity Auditing via OFAC Sanctions List
+### Step 8: Wallet & Entity Auditing via OFAC Sanctions List
 * **The Goal:** SEC compliance checks and wallet auditing.
-* **How it works:** A premium console command will check any wallet address against a cached mirror of the US OFAC SDN sanctions list. SOLvivors will pay a tiny micropayment fee in USDC (via the x402 gateway) to audit addresses for risk ratings.
+* **How it works:** A premium console command will check any wallet address against a cached mirror of the US OFAC SDN sanctions list. SOLvivors pay a tiny micropayment fee in USDC (via the x402 gateway) to audit addresses for risk ratings.
 
 ---
 
 ## Role of the $THREAT Token in the Ecosystem
 
-To ensure `$THREAT` serves as utility infrastructure in this survival ecosystem, the following mechanics are planned for integration:
+To ensure `$THREAT` serves as utility infrastructure in this survival ecosystem, the following mechanics are integrated:
 
 * **Bunker Shielding:** Secure your accumulated items, equipment, and resources from Marauder raids. Staking `$THREAT` acts as an on-chain defensive shield. The higher your stake, the stronger your bunker defense factor, preventing other players from siphoning or stealing your inventory.
 * **Daily Play Energy:** Staking or spending `$THREAT` grants you additional attempts or energy charges per day to run simulation actions and participate in PvP battles, allowing you to win more token rewards.
@@ -157,7 +154,7 @@ npm run build
 ### 5. Git Staging & Local Committing
 Stage all changes in the project:
 ```powershell
-git add app/solvivors/page.tsx app/api/broadcasts/live/route.ts components/BroadcastMap.tsx package.json package-lock.json next-env.d.ts
+git add -A
 ```
 Commit the updates:
 ```powershell
