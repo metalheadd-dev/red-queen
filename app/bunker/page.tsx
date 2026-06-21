@@ -36,7 +36,7 @@ const SEED_CHAT = [
   { time:"01:14", sender:"NET_VIPER",    text:"NET SCAN DONE. LINES SECURE.",                  color: undefined },
 ];
 
-// ── RESOURCE BAR ──────────────────────────────────────────────────────────────
+// ── RESOURCE BAR (segmented) ──────────────────────────────────────────────────
 function ResBar({label,value,color,Icon}:{label:string;value:number;color:string;Icon:React.FC<{c:string;s?:number}>}) {
   const c = value < 30 ? "#ff003c" : color;
   return (
@@ -44,12 +44,22 @@ function ResBar({label,value,color,Icon}:{label:string;value:number;color:string
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
           <Icon c={c} s={10}/>
-          <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"10px",letterSpacing:"0.15em",color:"rgba(255,255,255,0.4)",fontWeight:700,textTransform:"uppercase"}}>{label}</span>
+          <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"10px",letterSpacing:"0.15em",color:"rgba(255,255,255,0.45)",fontWeight:700}}>{label}</span>
         </div>
-        <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"10px",color:c,fontWeight:900}}>{value.toFixed(1)}%</span>
+        <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:c,fontWeight:900}}>{value.toFixed(1)}%</span>
       </div>
-      <div style={{height:"3px",background:"rgba(255,255,255,0.05)"}}>
-        <div style={{height:"100%",width:`${value}%`,background:c,boxShadow:`0 0 6px ${c}`,transition:"width 0.8s ease"}}/>
+      <div style={{display:"flex",gap:"2px"}}>
+        {Array.from({length:15}).map((_,i)=>{
+          const active = value >= (100 / 15) * (i + 1);
+          return (
+            <div key={i} style={{
+              height:"6px",flexGrow:1,
+              background:active ? c : "rgba(255,255,255,0.05)",
+              boxShadow:active ? `0 0 4px ${c}88` : "none",
+              transition:"all 0.3s ease"
+            }} />
+          );
+        })}
       </div>
     </div>
   );
@@ -425,27 +435,41 @@ export default function BunkerPage() {
           {/* Faction selector */}
           <div style={panelStyle}>
             <div style={panelLabel}>PLEDGE FACTION</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4px",marginBottom:"8px"}}>
+            <div style={{display:"flex",gap:"3px",justifyContent:"space-between",marginBottom:"8px"}}>
               {FACTIONS.map(f=>{
                 const active = selectedFaction.id===f.id;
+                const codes: Record<string, string> = {
+                  survivors: "SRV", nomads: "NMD", marauders: "MRD", scientists: "SCI",
+                  governments: "GOV", engineers: "ENG", hackers: "HCK", syndicates: "SYN"
+                };
                 return (
                   <button key={f.id} onClick={()=>setSelectedFaction(f)} style={{
+                    width:"28px",height:"28px",
                     border:`1px solid ${active?f.color:"rgba(255,255,255,0.07)"}`,
-                    background:active?`${f.color}18`:"rgba(5,5,5,0.6)",
-                    padding:"8px 8px",cursor:"pointer",transition:"all 0.12s",
-                    boxShadow:active?`0 0 12px ${f.color}44`:"none",
-                    textAlign:"left",
+                    background:active?`${f.color}22`:"rgba(5,5,5,0.7)",
+                    cursor:"pointer",transition:"all 0.15s",
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    boxShadow:active?`0 0 10px ${f.color}55`:"none",
                   }}>
-                    <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:active?f.color:"#777",fontWeight:900,letterSpacing:"0.05em"}}>{f.name}</div>
-                    <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.25)",marginTop:"1px"}}>{f.item}</div>
+                    <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"8px",color:active?f.color:"rgba(255,255,255,0.4)",fontWeight:900}}>
+                      {codes[f.id]}
+                    </span>
                   </button>
                 );
               })}
             </div>
             {/* Active faction detail */}
-            <div style={{padding:"8px 10px",background:`${selectedFaction.color}0d`,border:`1px solid ${selectedFaction.color}33`}}>
-              <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.35)",letterSpacing:"0.1em",marginBottom:"2px"}}>PASSIVE</div>
-              <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"10px",color:selectedFaction.color,fontWeight:900}}>{selectedFaction.passive}</div>
+            <div style={{padding:"8px 10px",background:`rgba(2,2,2,0.6)`,border:`1px solid ${selectedFaction.color}33`,minHeight:"68px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
+                <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"10px",color:selectedFaction.color,fontWeight:900}}>{selectedFaction.name}</span>
+                <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"8px",color:"rgba(255,255,255,0.35)"}}>{selectedFaction.item}</span>
+              </div>
+              <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"10px",color:"#fff",lineHeight:1.2}}>
+                <span style={{color:"#00ff88",fontWeight:700}}>BUFF:</span> {selectedFaction.passive}
+              </div>
+              <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"10px",color:"#ff003c",lineHeight:1.2,marginTop:"3px"}}>
+                <span style={{fontWeight:700}}>DEBUFF:</span> {selectedFaction.weakness}
+              </div>
             </div>
           </div>
 

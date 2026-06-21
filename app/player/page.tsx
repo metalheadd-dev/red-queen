@@ -278,6 +278,51 @@ export default function PlayerPage() {
         });
       })()}
 
+      {/* ── SVG callout lines overlay ── */}
+      <svg style={{
+        position: "absolute", bottom: 0, left: "-2vw",
+        width: "44vw", height: "90vh",
+        zIndex: 3, pointerEvents: "none"
+      }}>
+        <defs>
+          <filter id="glow-lines" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+        {(() => {
+          const lines = [
+            { id: "HEAD",      x1: "37.5%", y1: "25%", x2: "75%", y2: "25%" },
+            { id: "CHEST",     x1: "36.3%", y1: "38%", x2: "75%", y2: "38%" },
+            { id: "BACKPACK",  x1: "29.5%", y1: "45%", x2: "75%", y2: "45%" },
+            { id: "PRIMARY",   x1: "46.6%", y1: "42%", x2: "75%", y2: "42%" },
+            { id: "SECONDARY", x1: "50%",   y1: "48%", x2: "75%", y2: "48%" },
+            { id: "SIDEARM",   x1: "44.3%", y1: "54%", x2: "75%", y2: "54%" },
+            { id: "GLOVES",    x1: "54.5%", y1: "51%", x2: "75%", y2: "51%" },
+            { id: "BOOTS",     x1: "34%",   y1: "75%", x2: "75%", y2: "75%" },
+          ];
+
+          return lines.map(l => {
+            const matchingGearItem = GEAR.find(g => g.slot === l.id || (g.id === "w1" && l.id === "PRIMARY") || (g.id === "w2" && l.id === "SECONDARY") || (g.id === "w3" && l.id === "SIDEARM"));
+            const isActive = selectedId === matchingGearItem?.id || hoveredSlot === l.id;
+            const stroke = isActive ? "#ff003c" : "rgba(255,255,255,0.06)";
+            
+            return (
+              <g key={l.id}>
+                <line x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} 
+                  stroke={stroke} strokeWidth={isActive ? "1.5" : "1"} 
+                  strokeDasharray={isActive ? "none" : "3 3"}
+                  style={{ transition: "stroke 0.2s ease, stroke-width 0.2s ease" }}
+                  filter={isActive ? "url(#glow-lines)" : undefined}
+                />
+                <circle cx={l.x1} cy={l.y1} r={isActive ? 3 : 1.5} fill={stroke} style={{ transition: "all 0.2s" }} />
+                <circle cx={l.x2} cy={l.y2} r={isActive ? 2 : 1} fill={stroke} style={{ transition: "all 0.2s" }} />
+              </g>
+            );
+          });
+        })()}
+      </svg>
+
       {/* ═══ HEADER ═══════════════════════════════════════════════════════════ */}
       <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 24px 12px",borderBottom:"1px solid rgba(255,0,60,0.07)",position:"relative",zIndex:20,flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:"20px"}}>
