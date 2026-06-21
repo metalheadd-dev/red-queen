@@ -1297,32 +1297,30 @@ h1:hover, h2:hover, h3:hover, .glow-text:hover, .navbar-logo-text:hover {
 }
 
 /* ── HUD Core Architecture overrides ── */
-body:has(#game-arena-root) {
+body:has(#game-arena-root),
+body:has(#game-bunker-root),
+body:has(#game-player-root) {
   overflow: hidden !important;
   height: 100vh !important;
   background: #000000 !important;
-}
-body:has(#game-bunker-root) {
-  background: #000000 !important;
-  overflow-y: auto !important;
 }
 
 body:has(#game-arena-root) .navbar, 
 body:has(#game-arena-root) .footer,
 body:has(#game-bunker-root) .navbar,
-body:has(#game-bunker-root) .footer {
+body:has(#game-bunker-root) .footer,
+body:has(#game-player-root) .navbar,
+body:has(#game-player-root) .footer {
   display: none !important;
 }
 
-body:has(#game-arena-root) .page-content {
+body:has(#game-arena-root) .page-content,
+body:has(#game-bunker-root) .page-content,
+body:has(#game-player-root) .page-content {
   padding-top: 0 !important;
   min-height: 100vh !important;
   height: 100vh !important;
   overflow: hidden !important;
-}
-body:has(#game-bunker-root) .page-content {
-  padding-top: 0 !important;
-  min-height: 100vh !important;
 }
 
 /* Tactical Panel with bracket corners */
