@@ -177,7 +177,22 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ paddingTop: "60px" }} className="page-bg">
+    <div style={{ paddingTop: "20px" }} className="page-bg">
+      {/* Game Launch Top Banner */}
+      <div style={{
+        background: "rgba(255, 77, 77, 0.12)",
+        borderBottom: "1px solid var(--accent)",
+        padding: "8px 16px",
+        textAlign: "center",
+        fontFamily: "var(--mono)",
+        fontSize: "11px",
+        color: "#ffffff",
+        letterSpacing: "0.1em",
+        position: "relative",
+        zIndex: 100
+      }}>
+        <span style={{ color: "var(--accent)", fontWeight: "bold" }}>[ APOCALYPSE SIMULATION ALERT ]</span> SOLvivors RPG simulator pre-alpha is online. Access the <Link href="/bunker" style={{ color: "#00ffcc", textDecoration: "underline", fontWeight: "bold" }}>Command Bunker HQ</Link> and the <Link href="/arena" style={{ color: "#00ffcc", textDecoration: "underline", fontWeight: "bold" }}>PvP Duel Arena</Link> today.
+      </div>
       {/* Ticker */}
       <div className="ticker-wrap">
         <div className="ticker-inner">
@@ -198,27 +213,22 @@ export default function HomePage() {
           SURVIVE THE<br /><span style={{ color: "var(--accent)" }}>NEXT INTERNET</span>
         </h1>
         <p className="hero-subtitle" style={{ maxWidth: "700px" }}>
-          Meet Red Queen, an autonomous AI survival agent that monitors emerging threats, assigns missions, and builds your survival profile. Prepare for the future before it arrives.
+          Meet Red Queen, an autonomous AI survival agent preparing you for the upcoming SOLvivors apocalypse game ecosystem. Complete daily missions, monitor emerging threats, and build your survival profile.
         </p>
         <div style={{
           display: "flex",
-          gap: "10px",
+          gap: "14px",
           justifyContent: "center",
           flexWrap: "wrap",
-          marginBottom: "24px",
+          marginBottom: "20px",
           fontFamily: "var(--mono)",
           fontSize: "11px",
-          letterSpacing: "0.08em"
+          letterSpacing: "0.08em",
+          color: "var(--accent)"
         }}>
-          <span style={{ padding: "4px 12px", border: "1px solid rgba(255, 77, 77, 0.3)", background: "rgba(255, 77, 77, 0.05)", color: "var(--accent)", borderRadius: "20px" }}>
-            [ Autonomous AI Agent ]
-          </span>
-          <span style={{ padding: "4px 12px", border: "1px solid rgba(168, 85, 247, 0.3)", background: "rgba(168, 85, 247, 0.05)", color: "#a855f7", borderRadius: "20px" }}>
-            [ Built on Solana by SOLvival Corp ]
-          </span>
-          <span style={{ padding: "4px 12px", border: "1px solid rgba(0, 255, 204, 0.3)", background: "rgba(0, 255, 204, 0.05)", color: "#00ffcc", borderRadius: "20px" }}>
-            [ Powered by Native x402 Payments ]
-          </span>
+          <span>[ Autonomous AI Agent ]</span>
+          <span>[ Built on Solana by SOLvival Corp ]</span>
+          <span>[ Powered by Native x402 Payments ]</span>
         </div>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center", zIndex: 10 }}>
           <Link href="/terminal" className="btn btn-primary">
@@ -482,7 +492,7 @@ export default function HomePage() {
                   HOW TO <span style={{ color: "var(--accent)" }}>START</span>
                 </h2>
                 <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
-                  Join the Red Queen network, complete missions, increase your BIO-SCORE, and unlock higher clearance levels.
+                  Join the Red Queen network to complete daily missions, increase your BIO-SCORE, and secure clearance for the upcoming SOLvivors apocalypse game ecosystem.
                 </p>
                 <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                   <Link href="/terminal" className="btn btn-primary" style={{ fontSize: "11px" }}>
@@ -1061,6 +1071,14 @@ export default function HomePage() {
               {
                 title: "MISSION SYSTEM",
                 text: "Complete assignments issued by Red Queen and improve your BIO-SCORE."
+              },
+              {
+                title: "X402 & PAY.SH SYSTEM",
+                text: "Enable on-chain stablecoin micro-payments and autonomous agent-to-agent lookup via x402 and pay.sh standards."
+              },
+              {
+                title: "LIVE TACTICAL MAPS",
+                text: "Render real-world hazard coordinates, fallout zones, and environmental telemetry on a high-fidelity WebGL map."
               }
             ].map((card, idx) => (
               <div key={idx} className="bento-card" style={{ borderColor: "rgba(255, 0, 51, 0.15)", background: "#050505", padding: "24px" }}>
