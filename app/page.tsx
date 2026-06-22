@@ -216,24 +216,6 @@ export default function HomePage() {
           <span>[ BUILT ON SOLANA BY SOLVIVAL CORP ]</span>
           <span>[ POWERED BY NATIVE X402 PAYMENTS ]</span>
         </div>
-
-        {/* Game Simulation Highlight Block */}
-        <div style={{
-          background: "rgba(255, 77, 77, 0.08)",
-          border: "1px solid rgba(255, 77, 77, 0.25)",
-          padding: "10px 20px",
-          borderRadius: "2px",
-          maxWidth: "600px",
-          margin: "0 auto 20px auto",
-          fontFamily: "var(--mono)",
-          fontSize: "12px",
-          letterSpacing: "0.05em",
-          color: "#ffffff",
-          textAlign: "center",
-          zIndex: 10
-        }}>
-          <span style={{ color: "var(--accent)", fontWeight: "bold" }}>[ APOCALYPSE RPG SIMULATOR ONLINE ]</span> Access the <Link href="/bunker" style={{ color: "#00ffcc", textDecoration: "underline", fontWeight: "bold" }}>Command Bunker HQ</Link> & <Link href="/arena" style={{ color: "#00ffcc", textDecoration: "underline", fontWeight: "bold" }}>PvP Duel Arena</Link> pre-alpha models.
-        </div>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center", zIndex: 10 }}>
           <Link href="/terminal" className="btn btn-primary">
             ▶ ENTER TERMINAL
@@ -1074,7 +1056,7 @@ export default function HomePage() {
               },
               {
                 title: "MISSION SYSTEM",
-                text: "Complete assignments issued by Red Queen and improve your BIO-SCORE."
+                text: "Complete assignments issued by Red Queen, improve your BIO-SCORE, and prepare for the upcoming SOLvivors apocalypse game."
               },
               {
                 title: "X402 & PAY.SH SYSTEM",
@@ -1176,7 +1158,7 @@ export default function HomePage() {
             THE COLLAPSE IS<br /><span style={{ color: "var(--accent)" }}>ALREADY HAPPENING</span>
           </h2>
           <p style={{ color: "var(--text-dim)", maxWidth: "500px", margin: "0 auto 36px", lineHeight: "1.9" }}>
-            Red Queen is watching. The question is whether you're prepared.
+            Red Queen is watching. The question is whether you're prepared for the upcoming SOLvivors apocalypse game.
           </p>
           <Link href="/terminal" className="btn btn-primary" style={{ fontSize: "14px", padding: "14px 36px" }}>
             ▶ BEGIN ASSESSMENT
