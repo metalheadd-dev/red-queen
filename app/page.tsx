@@ -937,6 +937,100 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Solvivors Hub Section */}
+      <section className="page-section" style={{ borderTop: "1px solid var(--border)", padding: "60px 0", background: "rgba(255, 77, 77, 0.02)" }}>
+        <div className="container">
+          <div className="section-header">
+            <span className="section-line" />
+            <span className="section-tag">SOLVIVORS HUB // BOUNTIES & TASKS</span>
+            <span className="section-line" />
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "24px", marginTop: "32px" }}>
+            <div className="panel" style={{ background: "rgba(10, 10, 10, 0.6)", padding: "32px", borderColor: "rgba(255, 255, 255, 0.05)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px", marginBottom: "24px" }}>
+                <div>
+                  <h3 style={{ fontSize: "20px", color: "#fff", margin: "0 0 8px 0", fontFamily: "var(--mono)", letterSpacing: "0.05em", fontWeight: "bold" }}>
+                    THE MISSION CONTROL & SURVIVOR HUB
+                  </h3>
+                  <p style={{ color: "var(--text-dim)", fontSize: "14px", lineHeight: "1.6", margin: 0, maxWidth: "700px" }}>
+                    Visit the Solvivors Hub to engage with the community, participate in development bounties, track real-time broadcasts, and unlock rewards. Earn XP to climb the ranks and build your survival credentials.
+                  </p>
+                </div>
+                <Link 
+                  href="/solvivors" 
+                  className="btn" 
+                  style={{ 
+                    padding: "12px 24px", 
+                    fontSize: "12px", 
+                    background: "var(--accent)", 
+                    color: "#000", 
+                    borderColor: "var(--accent)", 
+                    fontWeight: "bold",
+                    letterSpacing: "0.1em"
+                  }}
+                >
+                  ENTER SOLVIVORS HUB ↗
+                </Link>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginTop: "16px" }}>
+                {[
+                  {
+                    title: "01 // LIVE OPERATIONS",
+                    status: "ACTIVE NOW",
+                    statusColor: "#00ffcc",
+                    desc: "Complete community missions and technical bounties. Submit proofs of work directly to claim XP and token rewards."
+                  },
+                  {
+                    title: "02 // BROADCASTS",
+                    status: "ONLINE",
+                    statusColor: "#00ffcc",
+                    desc: "Access real-time global telemetry feeds, hazard coordinate tracking, and natural disaster summaries."
+                  },
+                  {
+                    title: "03 // LEADERBOARD",
+                    status: "STANDINGS UP",
+                    statusColor: "#00ffcc",
+                    desc: "Compare user level status, check XP accumulations, monitor BIO-SCORE progression, and view active badges."
+                  },
+                  {
+                    title: "04 // SURVIVOR ARCHIVES",
+                    status: "ENCRYPTED",
+                    statusColor: "#f0c929",
+                    desc: "Locked lore dossiers, media channels, and tactical comics explaining the origins of the collapse."
+                  }
+                ].map((item, idx) => (
+                  <div key={idx} style={{ 
+                    background: "rgba(5, 5, 5, 0.4)", 
+                    border: "1px solid rgba(255, 255, 255, 0.04)", 
+                    padding: "20px", 
+                    borderRadius: "4px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between"
+                  }}>
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                        <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", fontWeight: "bold" }}>
+                          {item.title}
+                        </span>
+                        <span style={{ fontSize: "9px", fontFamily: "var(--mono)", color: item.statusColor, background: item.statusColor + "15", padding: "2px 6px", border: `1px solid ${item.statusColor}30`, borderRadius: "2px" }}>
+                          {item.status}
+                        </span>
+                      </div>
+                      <p style={{ color: "var(--text-dim)", fontSize: "12px", lineHeight: "1.6", margin: 0 }}>
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Compute Resource Allocations Panel */}
       <section className="page-section" style={{ borderTop: "1px solid var(--border)", padding: "60px 0" }}>
         <div className="container">
