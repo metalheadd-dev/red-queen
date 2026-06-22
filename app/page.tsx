@@ -177,22 +177,7 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ paddingTop: "20px" }} className="page-bg">
-      {/* Game Launch Top Banner */}
-      <div style={{
-        background: "rgba(255, 77, 77, 0.12)",
-        borderBottom: "1px solid var(--accent)",
-        padding: "8px 16px",
-        textAlign: "center",
-        fontFamily: "var(--mono)",
-        fontSize: "11px",
-        color: "#ffffff",
-        letterSpacing: "0.1em",
-        position: "relative",
-        zIndex: 100
-      }}>
-        <span style={{ color: "var(--accent)", fontWeight: "bold" }}>[ APOCALYPSE SIMULATION ALERT ]</span> SOLvivors RPG simulator pre-alpha is online. Access the <Link href="/bunker" style={{ color: "#00ffcc", textDecoration: "underline", fontWeight: "bold" }}>Command Bunker HQ</Link> and the <Link href="/arena" style={{ color: "#00ffcc", textDecoration: "underline", fontWeight: "bold" }}>PvP Duel Arena</Link> today.
-      </div>
+    <div style={{ paddingTop: "60px" }} className="page-bg">
       {/* Ticker */}
       <div className="ticker-wrap">
         <div className="ticker-inner">
@@ -213,7 +198,7 @@ export default function HomePage() {
           SURVIVE THE<br /><span style={{ color: "var(--accent)" }}>NEXT INTERNET</span>
         </h1>
         <p className="hero-subtitle" style={{ maxWidth: "700px" }}>
-          Meet Red Queen, an autonomous AI survival agent preparing you for the upcoming SOLvivors apocalypse game ecosystem. Complete daily missions, monitor emerging threats, and build your survival profile.
+          Meet Red Queen, an autonomous AI survival agent that monitors emerging threats, assigns missions, and builds your survival profile. Prepare for the future before it arrives.
         </p>
         <div style={{
           display: "flex",
@@ -230,6 +215,24 @@ export default function HomePage() {
           <span>[ AUTONOMOUS AI AGENT ]</span>
           <span>[ BUILT ON SOLANA BY SOLVIVAL CORP ]</span>
           <span>[ POWERED BY NATIVE X402 PAYMENTS ]</span>
+        </div>
+
+        {/* Game Simulation Highlight Block */}
+        <div style={{
+          background: "rgba(255, 77, 77, 0.08)",
+          border: "1px solid rgba(255, 77, 77, 0.25)",
+          padding: "10px 20px",
+          borderRadius: "2px",
+          maxWidth: "600px",
+          margin: "0 auto 20px auto",
+          fontFamily: "var(--mono)",
+          fontSize: "12px",
+          letterSpacing: "0.05em",
+          color: "#ffffff",
+          textAlign: "center",
+          zIndex: 10
+        }}>
+          <span style={{ color: "var(--accent)", fontWeight: "bold" }}>[ APOCALYPSE RPG SIMULATOR ONLINE ]</span> Access the <Link href="/bunker" style={{ color: "#00ffcc", textDecoration: "underline", fontWeight: "bold" }}>Command Bunker HQ</Link> & <Link href="/arena" style={{ color: "#00ffcc", textDecoration: "underline", fontWeight: "bold" }}>PvP Duel Arena</Link> pre-alpha models.
         </div>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center", zIndex: 10 }}>
           <Link href="/terminal" className="btn btn-primary">
@@ -493,7 +496,7 @@ export default function HomePage() {
                   HOW TO <span style={{ color: "var(--accent)" }}>START</span>
                 </h2>
                 <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "24px" }}>
-                  Join the Red Queen network to complete daily missions, increase your BIO-SCORE, and secure clearance for the upcoming SOLvivors apocalypse game ecosystem.
+                  Join the Red Queen network, complete missions, increase your BIO-SCORE, and unlock higher clearance levels.
                 </p>
                 <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                   <Link href="/terminal" className="btn btn-primary" style={{ fontSize: "11px" }}>
