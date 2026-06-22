@@ -222,13 +222,14 @@ export default function HomePage() {
           flexWrap: "wrap",
           marginBottom: "20px",
           fontFamily: "var(--mono)",
-          fontSize: "11px",
+          fontSize: "13px",
+          fontWeight: 600,
           letterSpacing: "0.08em",
           color: "var(--accent)"
         }}>
-          <span>[ Autonomous AI Agent ]</span>
-          <span>[ Built on Solana by SOLvival Corp ]</span>
-          <span>[ Powered by Native x402 Payments ]</span>
+          <span>[ AUTONOMOUS AI AGENT ]</span>
+          <span>[ BUILT ON SOLANA BY SOLVIVAL CORP ]</span>
+          <span>[ POWERED BY NATIVE X402 PAYMENTS ]</span>
         </div>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center", zIndex: 10 }}>
           <Link href="/terminal" className="btn btn-primary">
