@@ -23,7 +23,7 @@ const IcTarget = ({c,s=11}:{c:string;s?:number}) => <svg width={s} height={s} vi
 
 // ── TIER COLORS ───────────────────────────────────────────────────────────────
 const TIER_COLOR: Record<string,string> = {
-  COMMON:"#777777", UNCOMMON:"#00aa44", RARE:"#2288ff", EPIC:"#aa44ff", NAMED:"#d4af37",
+  COMMON:"#ffffff", UNCOMMON:"#ff8800", RARE:"#00aaff", EPIC:"#aa44ff", NAMED:"#d4af37",
 };
 
 // ── GEAR DATA ─────────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ export default function PlayerPage() {
   }, [wallet]);
 
   return (
-    <div id="game-player-root" style={{background:"#000000",height:"100vh",color:"#ffffff",fontFamily:"Rajdhani,sans-serif",position:"relative",overflow:"hidden",display:"flex",flexDirection:"column"}}>
+    <div id="game-player-root" style={{background:"#030303",height:"100vh",color:"#ffffff",fontFamily:"Rajdhani,sans-serif",position:"relative",overflow:"hidden",display:"flex",flexDirection:"column"}}>
 
       {/* Cinematic Hangar Backdrop */}
       <div style={{
@@ -143,7 +143,7 @@ export default function PlayerPage() {
         backgroundImage:"url(/images/player_backdrop.png)",
         backgroundSize:"cover",
         backgroundPosition:"center",
-        opacity:0.35,
+        opacity:0.18,
         mixBlendMode:"lighten",
         pointerEvents:"none",
         zIndex:0
@@ -172,14 +172,39 @@ export default function PlayerPage() {
         zIndex:1,
         pointerEvents:"none"
       }}>
+        {/* Holographic scan rays rising */}
+        <div style={{
+          position: "absolute",
+          top: "-180px",
+          left: "20%",
+          width: "60%",
+          height: "180px",
+          background: "linear-gradient(to top, rgba(255, 0, 60, 0.15), transparent)",
+          clipPath: "polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%)",
+          animation: "holo-glow-pulse 2s infinite alternate ease-in-out"
+        }} />
         <div style={{
           position:"absolute",
           inset:"8px",
-          border:"1px dashed rgba(255,255,255,0.2)",
+          border:"1.5px dashed rgba(255,0,60,0.35)",
           borderRadius:"50%",
-          animation:"hud-rotate-clockwise 15s linear infinite"
+          animation:"hud-rotate-clockwise 12s linear infinite"
+        }} />
+        <div style={{
+          position:"absolute",
+          inset:"20px",
+          border:"1px dotted rgba(255,255,255,0.15)",
+          borderRadius:"50%",
+          animation:"hud-rotate-counterclockwise 8s linear infinite"
         }} />
       </div>
+
+      <style>{`
+        @keyframes holo-glow-pulse {
+          0% { opacity: 0.3; height: 120px; top: -120px; }
+          100% { opacity: 0.9; height: 200px; top: -200px; }
+        }
+      `}</style>
 
       <div className="hud-scanline" style={{zIndex:3}}/>
 
@@ -198,7 +223,6 @@ export default function PlayerPage() {
           <div style={{display:"flex",gap:"16px",fontSize:"10px",fontFamily:"JetBrains Mono,monospace",letterSpacing:"0.05em"}}>
             <Link href="/"       style={{color:"rgba(255,255,255,0.45)",textDecoration:"none",transition:"color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.color="#ff003c"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.45)"}>[ DEPART_DECK ]</Link>
             <Link href="/bunker" style={{color:"rgba(255,255,255,0.45)",textDecoration:"none",transition:"color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.color="#ff003c"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.45)"}>[ COMMAND_HQ ]</Link>
-            <Link href="/arena"  style={{color:"rgba(255,255,255,0.45)",textDecoration:"none",transition:"color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.color="#ff003c"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.45)"}>[ DEPLOY_ARENA ]</Link>
           </div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:"12px",fontSize:"10px",color:"rgba(255,255,255,0.35)",fontFamily:"JetBrains Mono,monospace",letterSpacing:"0.15em"}}>
@@ -225,45 +249,35 @@ export default function PlayerPage() {
         filter:"brightness(0.9) drop-shadow(0 0 50px rgba(255,0,62,0.4))",
       }}/>
 
-      {/* ─── FLOATING EQUIPMENT HUD BUTTONS (Arranged around character) ───────── */}
-      <div style={{
-        position:"absolute",
-        inset:0,
-        zIndex:10,
-        pointerEvents:"none",
-        display:"flex",
-        justifyContent:"space-between",
-        padding:"12vh 60px 40px"
-      }}>
-        {/* Left Side Slots (Armor/Gear) */}
-        <div style={{display:"flex",flexDirection:"column",gap:"16px",pointerEvents:"auto"}}>
-          <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em"}}>DEFENSIVE ARMOR</span>
-          {GEAR.filter(g=>["HEAD","CHEST","BACKPACK","GLOVES"].includes(g.slot)).map(g=>(
-            <GearSlot 
-              key={g.id} 
-              g={g} 
-              active={selectedId===g.id} 
-              onClick={()=>setSelectedId(selectedId===g.id?null:g.id)}
-              onMouseEnter={()=>setHoveredSlot(g.slot)}
-              onMouseLeave={()=>setHoveredSlot(null)}
-            />
-          ))}
-        </div>
+      {/* ─── FLOATING EQUIPMENT HUD BUTTONS (Arranged around character in static columns) ─── */}
+      {/* Left Side Slots (Armor/Gear) */}
+      <div style={{ position: "absolute", left: "60px", top: "170px", display: "flex", flexDirection: "column", gap: "16px", pointerEvents: "auto", zIndex: 10 }}>
+        <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em"}}>DEFENSIVE ARMOR</span>
+        {GEAR.filter(g=>["HEAD","CHEST","BACKPACK","GLOVES"].includes(g.slot)).map(g=>(
+          <GearSlot 
+            key={g.id} 
+            g={g} 
+            active={selectedId===g.id} 
+            onClick={()=>setSelectedId(selectedId===g.id?null:g.id)}
+            onMouseEnter={()=>setHoveredSlot(g.slot)}
+            onMouseLeave={()=>setHoveredSlot(null)}
+          />
+        ))}
+      </div>
 
-        {/* Right Side Slots (Weapons/Utilities) */}
-        <div style={{display:"flex",flexDirection:"column",gap:"16px",pointerEvents:"auto",alignItems:"flex-end"}}>
-          <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em"}}>TACTICAL LOADOUT</span>
-          {GEAR.filter(g=>["PRIMARY","SECONDARY","SIDEARM","BOOTS"].includes(g.slot)).map(g=>(
-            <GearSlot 
-              key={g.id} 
-              g={g} 
-              active={selectedId===g.id} 
-              onClick={()=>setSelectedId(selectedId===g.id?null:g.id)}
-              onMouseEnter={()=>setHoveredSlot(g.slot)}
-              onMouseLeave={()=>setHoveredSlot(null)}
-            />
-          ))}
-        </div>
+      {/* Right Side Slots (Weapons/Utilities) */}
+      <div style={{ position: "absolute", right: "60px", top: "170px", display: "flex", flexDirection: "column", gap: "16px", pointerEvents: "auto", alignItems: "flex-end", zIndex: 10 }}>
+        <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em"}}>TACTICAL LOADOUT</span>
+        {GEAR.filter(g=>["PRIMARY","SECONDARY","SIDEARM","BOOTS"].includes(g.slot)).map(g=>(
+          <GearSlot 
+            key={g.id} 
+            g={g} 
+            active={selectedId===g.id} 
+            onClick={()=>setSelectedId(selectedId===g.id?null:g.id)}
+            onMouseEnter={()=>setHoveredSlot(g.slot)}
+            onMouseLeave={()=>setHoveredSlot(null)}
+          />
+        ))}
       </div>
 
       {/* ─── DYNAMIC SVG TACTICAL CALLOUT LINES (Glows on Hover/Select) ───────── */}
@@ -283,40 +297,41 @@ export default function PlayerPage() {
         </defs>
         {(() => {
           // Lines mapping side HUD items to physical silhouette locations (centered)
-          // HEAD: 41%, 30% | CHEST: 48%, 45% | BACKPACK: 44%, 52% | GLOVES: 39%, 60%
-          // PRIMARY: 55%, 52% | SECONDARY: 53%, 45% | SIDEARM: 56%, 60% | BOOTS: 48%, 80%
           const lines = [
             { id: "HEAD",      slot: "HEAD",      hudX: "150", hudY: "210", tgtX: "50%", tgtY: "33%" },
-            { id: "CHEST",     slot: "CHEST",     hudX: "150", hudY: "285", tgtX: "49%", tgtY: "44%" },
-            { id: "BACKPACK",  slot: "BACKPACK",  hudX: "150", hudY: "360", tgtX: "46%", tgtY: "48%" },
-            { id: "GLOVES",    slot: "GLOVES",    hudX: "150", hudY: "435", tgtX: "43%", tgtY: "58%" },
+            { id: "CHEST",     slot: "CHEST",     hudX: "150", hudY: "305", tgtX: "49%", tgtY: "44%" },
+            { id: "BACKPACK",  slot: "BACKPACK",  hudX: "150", hudY: "400", tgtX: "46%", tgtY: "48%" },
+            { id: "GLOVES",    slot: "GLOVES",    hudX: "150", hudY: "495", tgtX: "43%", tgtY: "58%" },
             { id: "PRIMARY",   slot: "PRIMARY",   hudX: "calc(100vw - 150px)", hudY: "210", tgtX: "54%", tgtY: "52%" },
-            { id: "SECONDARY", slot: "SECONDARY", hudX: "calc(100vw - 150px)", hudY: "285", tgtX: "53%", tgtY: "46%" },
-            { id: "SIDEARM",   slot: "SIDEARM",   hudX: "calc(100vw - 150px)", hudY: "360", tgtX: "55%", tgtY: "58%" },
-            { id: "BOOTS",     slot: "BOOTS",     hudX: "calc(100vw - 150px)", hudY: "435", tgtX: "49%", tgtY: "78%" },
+            { id: "SECONDARY", slot: "SECONDARY", hudX: "calc(100vw - 150px)", hudY: "305", tgtX: "53%", tgtY: "46%" },
+            { id: "SIDEARM",   slot: "SIDEARM",   hudX: "calc(100vw - 150px)", hudY: "400", tgtX: "55%", tgtY: "58%" },
+            { id: "BOOTS",     slot: "BOOTS",     hudX: "calc(100vw - 150px)", hudY: "495", tgtX: "49%", tgtY: "78%" },
           ];
 
           return lines.map(l => {
             const matchingGearItem = GEAR.find(g => g.slot === l.slot);
-            const isActive = selectedId === matchingGearItem?.id || hoveredSlot === l.slot;
-            const stroke = isActive ? "#ff003c" : "rgba(255,255,255,0.03)";
+            const active = selectedId === matchingGearItem?.id || hoveredSlot === l.slot;
+            const tc = matchingGearItem ? TIER_COLOR[matchingGearItem.tier] : "rgba(255,255,255,0.1)";
+            const stroke = active ? "#ff003c" : `${tc}33`; // 20% opacity rarity color for inactive, bright warning red for active
+            const strokeWidth = active ? "1.5" : "0.8";
+            const strokeDash = active ? "none" : "3 3";
             
             return (
               <g key={l.id}>
                 <line x1={l.hudX} y1={l.hudY} x2={l.tgtX} y2={l.tgtY} 
-                  stroke={stroke} strokeWidth={isActive ? "1.2" : "0.5"} 
-                  strokeDasharray={isActive ? "none" : "3 3"}
+                  stroke={stroke} strokeWidth={strokeWidth} 
+                  strokeDasharray={strokeDash}
                   style={{ transition: "stroke 0.2s ease, stroke-width 0.2s" }}
-                  filter={isActive ? "url(#glow-lines)" : undefined}
+                  filter={active ? "url(#glow-lines)" : undefined}
                 />
-                <circle cx={l.tgtX} cy={l.tgtY} r={isActive ? 3 : 1.2} fill={stroke} style={{ transition: "all 0.2s" }} />
+                <circle cx={l.tgtX} cy={l.tgtY} r={active ? 3 : 1.2} fill={stroke} style={{ transition: "all 0.2s" }} />
               </g>
             );
           });
         })()}
       </svg>
 
-      {/* ─── FLOATING TOP-CENTER HUD (General stats & Gear Score) ─────────────── */}
+      {/* ─── FLOATING TOP-CENTER HUD (General stats, Gear Score & System Dossier) ─── */}
       <div style={{
         position:"absolute",
         top:"80px",
@@ -324,19 +339,82 @@ export default function PlayerPage() {
         transform:"translateX(-50%)",
         zIndex:15,
         display:"flex",
+        flexDirection:"column",
         alignItems:"center",
-        gap:"24px",
-        pointerEvents:"none"
+        pointerEvents:"auto"
       }}>
-        {/* Gear Score (Tarkov/Division 2 Style focal number) */}
-        <div style={{display:"flex",alignItems:"baseline",gap:"8px"}}>
-          <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"38px",fontWeight:900,color:"#ffffff",lineHeight:1,textShadow:"0 0 20px rgba(255,255,255,0.1)"}}>{gearScore}</span>
-          <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.4)",letterSpacing:"0.15em",textTransform:"uppercase"}}>GEAR SCORE</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+          {/* Gear Score (Military styled focal number) */}
+          <div style={{display:"flex",alignItems:"baseline",gap:"8px"}}>
+            <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"38px",fontWeight:900,color:"#ffffff",lineHeight:1,textShadow:"0 0 20px rgba(255,255,255,0.1)"}}>{gearScore}</span>
+            <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.4)",letterSpacing:"0.15em",textTransform:"uppercase"}}>GEAR SCORE</span>
+          </div>
+          <div style={{width:"1px",height:"24px",background:"rgba(255,255,255,0.1)"}}/>
+          <div style={{display:"flex",flexDirection:"column"}}>
+            <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em"}}>BIO_LEVEL {level}</span>
+            <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"10px",color:"#ffffff",fontWeight:700}}>{xp.toLocaleString()} / {xpMax.toLocaleString()} XP</span>
+            
+            {/* Segmented XP progress bar */}
+            <div style={{ display: "flex", gap: "2px", width: "120px", marginTop: "4px" }}>
+              {Array.from({ length: 10 }).map((_, i) => {
+                const threshold = (xpMax / 10) * (i + 1);
+                const active = xp >= threshold;
+                return (
+                  <div key={i} style={{
+                    height: "3px",
+                    flexGrow: 1,
+                    background: active ? "#ff003c" : "rgba(255,255,255,0.05)",
+                    boxShadow: active ? "0 0 4px #ff003c" : "none"
+                  }} />
+                );
+              })}
+            </div>
+          </div>
         </div>
-        <div style={{width:"1px",height:"24px",background:"rgba(255,255,255,0.1)"}}/>
-        <div style={{display:"flex",flexDirection:"column"}}>
-          <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em"}}>BIO_LEVEL {level}</span>
-          <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"10px",color:"#ffffff",fontWeight:700}}>{xp.toLocaleString()} / {xpMax.toLocaleString()} XP</span>
+
+        {/* Red Queen System Dossier */}
+        <div style={{
+          marginTop: "18px",
+          border: "1px solid rgba(255, 0, 60, 0.25)",
+          background: "rgba(255, 0, 60, 0.02)",
+          padding: "8px 12px",
+          width: "240px",
+          position: "relative",
+          clipPath: "polygon(0% 0%, 92% 0%, 100% 12%, 100% 100%, 0% 100%)",
+        }}>
+          {/* Locked Overlay Warning header */}
+          <div style={{
+            fontFamily: "Orbitron, sans-serif",
+            fontSize: "7.5px",
+            color: "#ff003c",
+            fontWeight: 800,
+            letterSpacing: "0.08em",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+            textShadow: "0 0 3px #ff003c"
+          }}>
+            [ RED QUEEN AUTHORIZED TRAITS // UNDER DIRECTIVE CONTROL ]
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {[
+              { title: "SOLVIVORS", trait: "Mainframe Access Level 5" },
+              { title: "AI FOLLOWERS", trait: "Bounty Payout +10%" },
+              { title: "RADIO GHOSTS", trait: "EMP Comms Array Guard" }
+            ].map(t => (
+              <div key={t.title} style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                background: "rgba(0,0,0,0.4)",
+                border: "1px solid rgba(255, 0, 60, 0.12)",
+                padding: "4px 8px",
+                borderRadius: "2px"
+              }}>
+                <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "9px", color: "#ffffff", fontWeight: 800 }}>{t.title}</span>
+                <span style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "8px", color: "#ff8800" }}>{t.trait}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

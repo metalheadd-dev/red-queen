@@ -417,12 +417,22 @@ export default function ArenaPage() {
 
   const canFight = matchActive && selectedAttack && selectedDefense && !combatOutcome;
 
+  const getReticleRotation = () => {
+    switch (selectedAttack) {
+      case "HEAD": return 45;
+      case "TORSO": return 135;
+      case "ARMS": return 225;
+      case "LEGS": return 315;
+      default: return 0;
+    }
+  };
+
   return (
     <div
       id="game-arena-root"
       className={shakeTrigger ? "hud-screen-shake" : ""}
       style={{
-        background: "#000000",
+        background: "#030303",
         minHeight: "100vh",
         height: "100vh",
         color: "#ffffff",
@@ -435,20 +445,62 @@ export default function ArenaPage() {
       }}
     >
       
-      {/* Cinematic Ambient Vignettes */}
-      <div style={{ position: "absolute", top: 0, left: 0, width: "50%", height: "100%", background: "radial-gradient(ellipse at 15% 55%, rgba(255,0,62,0.18) 0%, transparent 65%)", pointerEvents: "none", zIndex: 1 }} />
-      <div style={{ position: "absolute", top: 0, right: 0, width: "50%", height: "100%", background: "radial-gradient(ellipse at 85% 55%, rgba(255,255,255,0.07) 0%, transparent 65%)", pointerEvents: "none", zIndex: 1 }} />
+      {/* Subtle Coordinate Dotted Grid Lattice Background */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
+        backgroundSize: "40px 40px",
+        pointerEvents: "none",
+        zIndex: 0
+      }} />
+
+      {/* Seamless Fog/Glow Blends (Left Crimson Warning Glow, Right Cold Tactical Blue) */}
+      <div style={{ position: "absolute", top: 0, left: 0, width: "60%", height: "100%", background: "radial-gradient(circle at 10% 60%, rgba(255,0,60,0.22) 0%, transparent 70%)", pointerEvents: "none", zIndex: 1 }} />
+      <div style={{ position: "absolute", top: 0, right: 0, width: "60%", height: "100%", background: "radial-gradient(circle at 90% 60%, rgba(0,170,255,0.12) 0%, transparent 70%)", pointerEvents: "none", zIndex: 1 }} />
+
+      {/* Animated Toxic Green particle fog layer */}
+      {toxicFogActive && (
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(ellipse at 50% 80%, rgba(0, 255, 136, 0.05) 0%, transparent 80%)",
+          mixBlendMode: "screen",
+          pointerEvents: "none",
+          zIndex: 3,
+        }}>
+          <svg style={{ position: "absolute", width: "100%", height: "100%" }}>
+            <filter id="fog-blur">
+              <feGaussianBlur stdDeviation="25" />
+            </filter>
+            <circle cx="-5%" cy="85%" r="200" fill="rgba(0, 255, 136, 0.07)" filter="url(#fog-blur)" style={{ animation: "drift-right 28s infinite linear" }} />
+            <circle cx="105%" cy="92%" r="240" fill="rgba(0, 255, 136, 0.05)" filter="url(#fog-blur)" style={{ animation: "drift-left 32s infinite linear" }} />
+          </svg>
+          <style>{`
+            @keyframes drift-right {
+              0% { transform: translateX(0px) translateY(0px); }
+              50% { transform: translateX(250px) translateY(-40px); }
+              100% { transform: translateX(500px) translateY(0px); }
+            }
+            @keyframes drift-left {
+              0% { transform: translateX(0px) translateY(0px); }
+              50% { transform: translateX(-250px) translateY(-70px); }
+              100% { transform: translateX(-500px) translateY(0px); }
+            }
+          `}</style>
+        </div>
+      )}
 
       <div className="hud-scanline" style={{zIndex:3}}/>
 
-      {/* ─── CHARACTER SILHOUETTES (Focal Point - Strong rim light glows & high contrast) ─── */}
+      {/* ─── CHARACTER SILHOUETTES (Strong glowing rim shadows) ─── */}
       <div style={{
         position: "absolute", bottom: 0, left: "-3vw",
         width: "44vw", height: "88vh",
         backgroundImage: "url(/images/redqueen_silhouette.png)",
         backgroundSize: "contain", backgroundPosition: "left bottom", backgroundRepeat: "no-repeat",
         zIndex: 2, pointerEvents: "none",
-        filter: "brightness(0.9) drop-shadow(0 0 50px rgba(255,0,62,0.65))", // Stronger red bloom
+        filter: "brightness(0.9) drop-shadow(0 0 50px rgba(255,0,62,0.65))",
       }} />
       <div style={{
         position: "absolute", bottom: 0, right: "-3vw",
@@ -456,7 +508,7 @@ export default function ArenaPage() {
         backgroundImage: "url(/images/soldier_silhouette.png)",
         backgroundSize: "contain", backgroundPosition: "right bottom", backgroundRepeat: "no-repeat",
         zIndex: 2, pointerEvents: "none",
-        filter: "brightness(0.7) drop-shadow(0 0 45px rgba(255,255,255,0.22))", // Cold white rim lighting
+        filter: "brightness(0.7) drop-shadow(0 0 45px rgba(0,170,255,0.3))", // Cold Blue Rim glow
       }} />
 
       {/* ─── FLOATING TOP HEADER ──────────────────────────────────────────────── */}
@@ -501,7 +553,7 @@ export default function ArenaPage() {
               label="COUNTERMEASURE SHIELD SECTOR"
               selected={selectedDefense}
               onSelect={setSelectedDefense}
-              accentColor="#ffffff"
+              accentColor="#00aaff"
               disabled={!matchActive || !!combatOutcome}
             />
           </div>
@@ -523,19 +575,62 @@ export default function ArenaPage() {
           {/* Advanced Target Reticle Grid */}
           <div style={{ position: "relative", width: "260px", height: "260px", display: "flex", justifyContent: "center", alignItems: "center", flexShrink: 0 }}>
             <svg width="260" height="260" viewBox="0 0 220 220" style={{ position: "absolute", zIndex: 4, overflow: "visible" }}>
-              <circle cx="110" cy="110" r="100" fill="none" stroke="rgba(255,0,62,0.06)" strokeWidth="1" strokeDasharray="6 8" className="hud-spin-cw" />
-              <circle cx="110" cy="110" r="92" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="1.2" />
-              <circle cx="110" cy="110" r="75" fill="none" stroke="#ff003c" strokeWidth="1" strokeDasharray="30 110" className="hud-spin-ccw" style={{filter:"drop-shadow(0 0 3px #ff003c)"}} />
+              {/* Spinning vectors inside reticle */}
+              <g style={{ transform: `rotate(${getReticleRotation()}deg)`, transformOrigin: "110px 110px", transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}>
+                <circle cx="110" cy="110" r="100" fill="none" stroke="rgba(255,0,62,0.06)" strokeWidth="1" strokeDasharray="6 8" />
+                <circle cx="110" cy="110" r="92" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="1.2" />
+                <circle cx="110" cy="110" r="75" fill="none" stroke="#ff003c" strokeWidth="1" strokeDasharray="30 110" style={{filter:"drop-shadow(0 0 3px #ff003c)"}} />
+                
+                {/* Lock-on frames */}
+                <path d="M 65,73 L 65,65 L 73,65" fill="none" stroke="#ff003c" strokeWidth="1.5" />
+                <path d="M 155,73 L 155,65 L 147,65" fill="none" stroke="#ff003c" strokeWidth="1.5" />
+                <path d="M 65,147 L 65,155 L 73,155" fill="none" stroke="#ff003c" strokeWidth="1.5" />
+                <path d="M 155,147 L 155,155 L 147,155" fill="none" stroke="#ff003c" strokeWidth="1.5" />
+              </g>
+
+              {/* Dynamic Laser Lock-on lines pointing from reticle center to target opponent limbs */}
+              {selectedAttack && (() => {
+                let tx = 110, ty = 110;
+                if (selectedAttack === "HEAD") { tx = 370; ty = 30; }
+                else if (selectedAttack === "TORSO") { tx = 380; ty = 130; }
+                else if (selectedAttack === "ARMS") { tx = 350; ty = 170; }
+                else if (selectedAttack === "LEGS") { tx = 360; ty = 240; }
+
+                return (
+                  <g>
+                    <line x1="110" y1="110" x2={tx} y2={ty} stroke="#ff003c" strokeWidth="1.8" strokeDasharray="4 4" style={{ filter: "drop-shadow(0 0 5px #ff003c)" }} />
+                    <circle cx={tx} cy={ty} r="5" fill="#ff003c" style={{ filter: "drop-shadow(0 0 6px #ff003c)" }} />
+                    <g transform={`translate(${tx}, ${ty})`}>
+                      <circle cx="0" cy="0" r="12" fill="none" stroke="#ff003c" strokeWidth="1.2" strokeDasharray="3 3" className="hud-spin-cw" />
+                      <text x="16" y="3" fill="#ff003c" fontSize="8" fontFamily="Orbitron" fontWeight="bold" style={{ textShadow: "0 0 3px #ff003c" }}>LOCK_ON</text>
+                    </g>
+                  </g>
+                );
+              })()}
+
+              {/* Dynamic Shield Projector line pointing to player limbs */}
+              {selectedDefense && (() => {
+                let tx = 110, ty = 110;
+                if (selectedDefense === "HEAD") { tx = -150; ty = 30; }
+                else if (selectedDefense === "TORSO") { tx = -160; ty = 130; }
+                else if (selectedDefense === "ARMS") { tx = -130; ty = 170; }
+                else if (selectedDefense === "LEGS") { tx = -140; ty = 240; }
+
+                return (
+                  <g>
+                    <line x1="110" y1="110" x2={tx} y2={ty} stroke="#00aaff" strokeWidth="1.5" strokeDasharray="4 4" style={{ filter: "drop-shadow(0 0 5px #00aaff)" }} />
+                    <circle cx={tx} cy={ty} r="4" fill="#00aaff" style={{ filter: "drop-shadow(0 0 5px #00aaff)" }} />
+                    <g transform={`translate(${tx}, ${ty})`}>
+                      <circle cx="0" cy="0" r="10" fill="none" stroke="#00aaff" strokeWidth="1.2" strokeDasharray="3 3" className="hud-spin-ccw" />
+                      <text x="-38" y="3" fill="#00aaff" fontSize="8" fontFamily="Orbitron" fontWeight="bold" style={{ textShadow: "0 0 3px #00aaff" }}>DEFEND</text>
+                    </g>
+                  </g>
+                );
+              })()}
               
-              {/* Radar target lock swept vector lines */}
+              {/* Radar scanner sweep line */}
               <line x1="110" y1="110" x2="186" y2="68" stroke="rgba(255,0,62,0.4)" strokeWidth="1.2" className="hud-radar-scanner-sweep" style={{ transformOrigin: "110px 110px" }} />
               <circle cx="186" cy="68" r="2" fill="#ff003c" className="hud-blink-fast" />
-              
-              {/* Lock-on frames */}
-              <path d="M 65,73 L 65,65 L 73,65" fill="none" stroke="#ff003c" strokeWidth="1.5" />
-              <path d="M 155,73 L 155,65 L 147,65" fill="none" stroke="#ff003c" strokeWidth="1.5" />
-              <path d="M 65,147 L 65,155 L 73,155" fill="none" stroke="#ff003c" strokeWidth="1.5" />
-              <path d="M 155,147 L 155,155 L 147,155" fill="none" stroke="#ff003c" strokeWidth="1.5" />
             </svg>
             
             <div style={{ 
@@ -559,7 +654,7 @@ export default function ArenaPage() {
           {/* Action Trigger Area (Cinematic buttons) */}
           <div style={{ width: "100%", maxWidth: "340px", display: "flex", flexDirection: "column", gap: "8px" }}>
             {!matchActive && !combatOutcome && (
-              <div style={{ display: "flex", justifyContent: "center", gap: "4px", marginBottom:"4px" }}>
+              <div style={{ display: "flex", gap: "4px", marginBottom:"4px", justifyContent: "center" }}>
                 {[10, 50, 100, 250].map(v => (
                   <button key={v} onClick={() => setThreatWager(v)} style={{ background: threatWager === v ? "#ff003c" : "rgba(255,255,255,0.02)", border: `1px solid ${threatWager === v ? "#ff003c" : "rgba(255,255,255,0.07)"}`, color: "#ffffff", fontFamily: "Orbitron, sans-serif", fontSize: "9px", padding: "3px 8px", cursor: "pointer" }}>
                     {v}T
@@ -708,25 +803,36 @@ export default function ArenaPage() {
             <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"8px",color:"rgba(255,255,255,0.4)",letterSpacing:"0.15em",marginBottom:"4px"}}>ATMOSPHERIC MUTATORS</span>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", flex: 1 }}>
               {[
-                { active: toxicFogActive, toggle: setToxicFogActive, Icon: IconSkull, name: "TOXIC FOG" },
-                { active: scarceAmmoActive, toggle: setScarceAmmoActive, Icon: IconAmmo, name: "SCARCE AMMO" },
-                { active: electroSurgeActive, toggle: setElectroSurgeActive, Icon: IconBolt, name: "ELECTRO SURGE" },
-                { active: dataBreachActive, toggle: setDataBreachActive, Icon: IconLock, name: "DATA BREACH" },
+                { active: toxicFogActive, toggle: setToxicFogActive, Icon: IconSkull, name: "TOXIC FOG", label: "PPM: 384 [DANGER]" },
+                { active: scarceAmmoActive, toggle: setScarceAmmoActive, Icon: IconAmmo, name: "SCARCE AMMO", label: "DEPLETED // -15% DMG" },
+                { active: electroSurgeActive, toggle: setElectroSurgeActive, Icon: IconBolt, name: "ELECTRO SURGE", label: "GRID STATIC // 120Hz" },
+                { active: dataBreachActive, toggle: setDataBreachActive, Icon: IconLock, name: "DATA BREACH", label: "LEAKING // JAM CORE" },
               ].map((m) => (
                 <div
                   key={m.name}
                   onClick={() => !matchActive && m.toggle(!m.active)}
                   style={{
                     border: `1px solid ${m.active ? "#ff003c" : "rgba(255,255,255,0.06)"}`,
-                    background: m.active ? "rgba(255,0,62,0.04)" : "rgba(0,0,0,0.5)",
-                    padding: "4px 6px",
+                    background: m.active ? "rgba(255,0,62,0.08)" : "rgba(10,10,10,0.6)",
+                    padding: "6px 10px",
                     cursor: matchActive ? "not-allowed" : "pointer",
-                    display: "flex", alignItems: "center", gap: "6px",
+                    display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px",
                     transition: "all 0.12s",
+                    position: "relative",
+                    borderRadius: "2px",
+                    boxShadow: m.active ? "0 0 10px rgba(255,0,60,0.15)" : "none"
                   }}
                 >
-                  <m.Icon color={m.active ? "#ff003c" : "rgba(255,255,255,0.3)"} size={11} />
-                  <span style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "9px", color: m.active ? "#fff" : "rgba(255,255,255,0.4)", fontWeight: 700 }}>{m.name}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", width: "100%" }}>
+                    <m.Icon color={m.active ? "#ff003c" : "rgba(255,255,255,0.3)"} size={11} />
+                    <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "9px", color: m.active ? "#fff" : "rgba(255,255,255,0.4)", fontWeight: 800, letterSpacing: "0.05em" }}>{m.name}</span>
+                    <span style={{ marginLeft: "auto", width: "5px", height: "5px", borderRadius: "50%", background: m.active ? "#ff003c" : "rgba(255,255,255,0.15)", boxShadow: m.active ? "0 0 5px #ff003c" : "none" }} />
+                  </div>
+                  {m.active && (
+                    <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "7px", color: "#ff8800", letterSpacing: "0.02em" }}>
+                      {m.label}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

@@ -36,26 +36,109 @@ const SEED_CHAT = [
   { time:"01:14", sender:"NET_VIPER",    text:"NET SCAN DONE. LINES SECURE.",                  color: undefined },
 ];
 
-// ── RESOURCE BAR (minimal floating) ───────────────────────────────────────────
-function ResBar({label,value,color,Icon}:{label:string;value:number;color:string;Icon:React.FC<{c:string;s?:number}>}) {
-  const c = value < 30 ? "#ff003c" : "#ffffff";
+// ── VOLUMETRIC VIAL (SVG with dynamic mouse tilting) ──────────────────────────
+function VolumetricVial({
+  label,
+  value,
+  color,
+  glowColor,
+  Icon,
+}: {
+  label: string;
+  value: number;
+  color: string;
+  glowColor: string;
+  Icon: React.FC<{ c: string; s?: number }>;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
+    setTilt({ x: x * 15, y: y * 15 }); // Max 15 degrees tilt
+  };
+
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0 });
+  };
+
+  const fillHeight = 100 - value; // percentage of empty space from top
+
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:"2px",width:"130px"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div style={{display:"flex",alignItems:"center",gap:"4px"}}>
-          <Icon c={value < 30 ? "#ff003c" : color} s={9}/>
-          <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"9px",letterSpacing:"0.1em",color:"rgba(255,255,255,0.4)"}}>{label}</span>
+    <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "rgba(10, 10, 10, 0.4)",
+        border: "1px solid rgba(255, 255, 255, 0.05)",
+        padding: "10px 14px",
+        borderRadius: "4px",
+        width: "100%",
+        transition: "all 0.3s ease",
+        cursor: "pointer",
+        backdropFilter: "blur(5px)",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.15)";
+        e.currentTarget.style.background = "rgba(20, 20, 20, 0.6)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.05)";
+        e.currentTarget.style.background = "rgba(10, 10, 10, 0.4)";
+        handleMouseLeave();
+      }}
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Icon c={value < 30 ? "#ff003c" : color} s={12} />
+          <span style={{ fontFamily: "Rajdhani,sans-serif", fontSize: "9px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
+            {label}
+          </span>
         </div>
-        <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:c,fontWeight:700}}>{value.toFixed(1)}%</span>
+        <span style={{ fontFamily: "Orbitron,sans-serif", fontSize: "12px", color: value < 30 ? "#ff003c" : "#ffffff", fontWeight: 800 }}>
+          {value.toFixed(1)}%
+        </span>
       </div>
-      <div style={{height:"2px",background:"rgba(255,255,255,0.04)",position:"relative"}}>
-        <div style={{
-          height:"100%",
-          width:`${value}%`,
-          background:value < 30 ? "#ff003c" : color,
-          boxShadow:value < 30 ? "0 0 8px #ff003c" : `0 0 6px ${color}aa`,
-          transition:"all 0.3s ease"
-        }} />
+
+      {/* Volumetric Test Tube / Vial */}
+      <div style={{ position: "relative", width: "24px", height: "54px", filter: `drop-shadow(0 0 6px ${value < 30 ? "#ff003c" : glowColor}aa)` }}>
+        <svg width="24" height="54" viewBox="0 0 24 54" fill="none" style={{ overflow: "hidden" }}>
+          {/* Glass Outer Contour */}
+          <rect x="1" y="1" width="22" height="52" rx="11" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" />
+          
+          {/* Inner Liquid Container */}
+          <mask id={`vial-mask-${label}`}>
+            <rect x="2" y="2" width="20" height="50" rx="10" fill="#ffffff" />
+          </mask>
+          
+          <g mask={`url(#vial-mask-${label})`}>
+            {/* Liquid Fill */}
+            <path
+              d={`M -6,${10 + fillHeight * 0.38} Q 6,${8 + fillHeight * 0.38 + tilt.y * 0.4} 12,${10 + fillHeight * 0.38 + tilt.x * 0.4} T 30,${10 + fillHeight * 0.38} L 30,54 L -6,54 Z`}
+              fill={value < 30 ? "#ff003c" : color}
+              style={{
+                transition: "d 0.1s ease, fill 0.3s ease",
+                transform: `rotate(${tilt.x}deg)`,
+                transformOrigin: "12px 27px",
+              }}
+            />
+            {/* Highlight/Specularity overlay */}
+            <rect x="3" y="3" width="4" height="48" rx="2" fill="rgba(255, 255, 255, 0.15)" />
+            {/* Shadow overlay for depth */}
+            <rect x="17" y="3" width="4" height="48" rx="2" fill="rgba(0, 0, 0, 0.25)" />
+          </g>
+          
+          {/* Measuring Grid Lines */}
+          <line x1="6" y1="12" x2="10" y2="12" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+          <line x1="6" y1="27" x2="12" y2="27" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+          <line x1="6" y1="40" x2="10" y2="40" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+        </svg>
       </div>
     </div>
   );
@@ -86,6 +169,7 @@ export default function BunkerPage() {
   const [chatInput, setChatInput] = useState("");
 
   const [terminalOpen, setTerminalOpen] = useState(false);
+  const [isDeployHovered, setIsDeployHovered] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const cliEndRef  = useRef<HTMLDivElement>(null);
@@ -192,6 +276,25 @@ export default function BunkerPage() {
   return (
     <div id="game-bunker-root" style={{background:"#000000",height:"100vh",color:"#ffffff",fontFamily:"Rajdhani,sans-serif",position:"relative",overflow:"hidden",display:"flex",flexDirection:"column"}}>
       
+      {/* Dynamic Screen-Wide Warning Red Ambient Flash on ARENA DEPLOY Hover */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        background: "rgba(255, 0, 60, 0.08)",
+        opacity: isDeployHovered ? 1 : 0,
+        pointerEvents: "none",
+        zIndex: 5,
+        transition: "opacity 0.25s ease-in-out",
+        animation: isDeployHovered ? "pulse-warn 1.2s infinite alternate ease-in-out" : "none"
+      }}/>
+
+      <style>{`
+        @keyframes pulse-warn {
+          0% { opacity: 0.02; }
+          100% { opacity: 0.16; }
+        }
+      `}</style>
+
       {/* Cinematic Ambient Background */}
       <div style={{
         position:"absolute",
@@ -199,7 +302,7 @@ export default function BunkerPage() {
         backgroundImage:"url(/images/bunker_backdrop.png)",
         backgroundSize:"cover",
         backgroundPosition:"center",
-        opacity:0.35,
+        opacity:0.18,
         mixBlendMode:"lighten",
         pointerEvents:"none",
         zIndex:0
@@ -305,10 +408,10 @@ export default function BunkerPage() {
           </div>
 
           {/* Minimal Floating Resource Monitors */}
-          <div style={{display:"flex",flexDirection:"column",gap:"10px",marginTop:"40px"}}>
-            <ResBar label="HQ_WATER_GRID" value={waterLevel} color="#00aaff" Icon={IcDrop}/>
-            <ResBar label="STABLE_FOOD_STORES"  value={foodLevel}  color="#00ff88" Icon={IcFood}/>
-            <ResBar label="POWER_CAPACITANCE" value={powerGrid}  color="#ff8800" Icon={IcPower}/>
+          <div style={{display:"flex",flexDirection:"column",gap:"10px",marginTop:"40px",width:"100%"}}>
+            <VolumetricVial label="HQ_WATER_GRID" value={waterLevel} color="#00aaff" glowColor="#00aaff" Icon={IcDrop}/>
+            <VolumetricVial label="STABLE_FOOD_STORES" value={foodLevel} color="#00ff88" glowColor="#00ff88" Icon={IcFood}/>
+            <VolumetricVial label="POWER_CAPACITANCE" value={powerGrid} color="#ff8800" glowColor="#ff8800" Icon={IcPower}/>
           </div>
         </div>
 
@@ -321,7 +424,18 @@ export default function BunkerPage() {
           </div>
 
           {/* Holographic Radar Sweeper Map */}
-          <div style={{position:"relative",width:"340px",height:"340px",display:"flex",justifyContent:"center",alignItems:"center",flexShrink:0}}>
+          <div style={{
+            position:"relative",
+            width:"340px",
+            height:"340px",
+            display:"flex",
+            justifyContent:"center",
+            alignItems:"center",
+            flexShrink:0,
+            transform: "perspective(900px) rotateX(32deg) rotateY(0deg) skewX(-2deg)",
+            transformStyle: "preserve-3d",
+            transition: "transform 0.5s ease-out"
+          }}>
             <svg width="340" height="340" viewBox="0 0 240 240" style={{position:"absolute",zIndex:4,overflow:"visible"}}>
               <circle cx="120" cy="120" r="114" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1.5" />
               <circle cx="120" cy="120" r="110" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="1" strokeDasharray="4 6" className="hud-spin-cw" />
@@ -376,42 +490,86 @@ export default function BunkerPage() {
             <span style={{fontFamily:"Oxanium,sans-serif",fontSize:"13px",color:"#00ff88",fontWeight:700,display:"block",letterSpacing:"0.05em"}}>GRID_7 // 98.4% STABLE</span>
           </div>
 
-          {/* Primary Operations Actions (Clean Floating Overlays) */}
+          {/* Primary Operations Actions (Chunky Console Key Overlays) */}
           <div style={{display:"flex",gap:"16px",marginTop:"30px",width:"100%",maxWidth:"440px"}}>
             <Link href="/arena" style={{textDecoration:"none",flex:1}}>
-              <button style={{
-                width:"100%",padding:"12px",
-                background:"rgba(255,0,60,0.06)",
-                border:"1.5px solid #ff003c",color:"#ffffff",
-                fontFamily:"Orbitron,sans-serif",fontSize:"11px",fontWeight:900,letterSpacing:"0.2em",
-                cursor:"pointer",textShadow:"0 0 8px #ff003c",
-                boxShadow:"0 0 20px rgba(255,0,60,0.25)",
-                display:"flex",alignItems:"center",justifyContent:"center",gap:"8px"
-              }}>
+              <button 
+                onMouseEnter={() => setIsDeployHovered(true)}
+                onMouseLeave={() => setIsDeployHovered(false)}
+                style={{
+                  width:"100%",padding:"12px",
+                  background:"rgba(255,0,60,0.18)",
+                  border:"2px solid #ff003c",color:"#ffffff",
+                  fontFamily:"Orbitron,sans-serif",fontSize:"11px",fontWeight:900,letterSpacing:"0.2em",
+                  cursor:"pointer",textShadow:"0 0 8px #ff003c",
+                  boxShadow:"0 4px 0px #990024, 0 0 15px rgba(255,0,60,0.4)",
+                  display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",
+                  transition: "all 0.1s ease",
+                  transform: "translateY(0px)"
+                }}
+                onMouseDown={e => {
+                  e.currentTarget.style.transform = "translateY(2px)";
+                  e.currentTarget.style.boxShadow = "0 2px 0px #990024, 0 0 10px rgba(255,0,60,0.4)";
+                }}
+                onMouseUp={e => {
+                  e.currentTarget.style.transform = "translateY(0px)";
+                  e.currentTarget.style.boxShadow = "0 4px 0px #990024, 0 0 15px rgba(255,0,60,0.4)";
+                }}
+              >
                 <IcSword c="#ff003c" s={12}/> ARENA DEPLOY
               </button>
             </Link>
 
-            <button style={{
-              flex:1,padding:"12px",
-              background:"rgba(255,136,0,0.03)",
-              border:"1px solid rgba(255,136,0,0.4)",color:"#ff8800",
-              fontFamily:"Orbitron,sans-serif",fontSize:"11px",fontWeight:900,letterSpacing:"0.15em",
-              cursor:"pointer",
-              display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",
-            }}>
+            <button 
+              style={{
+                flex:1,padding:"12px",
+                background:"rgba(255,136,0,0.12)",
+                border:"2px solid #ff8800",color:"#ffffff",
+                fontFamily:"Orbitron,sans-serif",fontSize:"11px",fontWeight:900,letterSpacing:"0.15em",
+                cursor:"pointer",
+                boxShadow:"0 4px 0px #995500, 0 0 15px rgba(255,136,0,0.3)",
+                display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",
+                transition: "all 0.1s ease",
+                transform: "translateY(0px)"
+              }}
+              onMouseDown={e => {
+                e.currentTarget.style.transform = "translateY(2px)";
+                e.currentTarget.style.boxShadow = "0 2px 0px #995500, 0 0 10px rgba(255,136,0,0.3)";
+              }}
+              onMouseUp={e => {
+                e.currentTarget.style.transform = "translateY(0px)";
+                e.currentTarget.style.boxShadow = "0 4px 0px #995500, 0 0 15px rgba(255,136,0,0.3)";
+              }}
+            >
               <IcTarget c="#ff8800" s={12}/> SCAVENGE RUN <span style={{fontSize:"9px",opacity:.6}}>[2/3]</span>
             </button>
 
-            <button onClick={runDecrypt} disabled={isDecrypting||decryptionAttempts<=0} style={{
-              flex:1,padding:"12px",
-              background:decryptionAttempts>0?"rgba(255,255,255,0.02)":"rgba(255,255,255,0.01)",
-              border:`1px solid ${decryptionAttempts>0?"rgba(255,255,255,0.25)":"rgba(255,255,255,0.07)"}`,
-              color:decryptionAttempts>0?"#ffffff":"rgba(255,255,255,0.2)",
-              fontFamily:"Orbitron,sans-serif",fontSize:"11px",fontWeight:900,letterSpacing:"0.15em",
-              cursor:(isDecrypting||decryptionAttempts<=0)?"not-allowed":"pointer",
-              display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",
-            }}>
+            <button 
+              onClick={runDecrypt} 
+              disabled={isDecrypting||decryptionAttempts<=0} 
+              style={{
+                flex:1,padding:"12px",
+                background:decryptionAttempts>0?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.01)",
+                border:`2px solid ${decryptionAttempts>0?"#ffffff":"rgba(255,255,255,0.15)"}`,
+                color:decryptionAttempts>0?"#ffffff":"rgba(255,255,255,0.2)",
+                fontFamily:"Orbitron,sans-serif",fontSize:"11px",fontWeight:900,letterSpacing:"0.15em",
+                cursor:(isDecrypting||decryptionAttempts<=0)?"not-allowed":"pointer",
+                boxShadow:decryptionAttempts>0?"0 4px 0px #555555, 0 0 15px rgba(255,255,255,0.15)":"none",
+                display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",
+                transition: "all 0.1s ease",
+                transform: "translateY(0px)"
+              }}
+              onMouseDown={e => {
+                if (decryptionAttempts <= 0) return;
+                e.currentTarget.style.transform = "translateY(2px)";
+                e.currentTarget.style.boxShadow = "0 2px 0px #555555, 0 0 10px rgba(255,255,255,0.15)";
+              }}
+              onMouseUp={e => {
+                if (decryptionAttempts <= 0) return;
+                e.currentTarget.style.transform = "translateY(0px)";
+                e.currentTarget.style.boxShadow = "0 4px 0px #555555, 0 0 15px rgba(255,255,255,0.15)";
+              }}
+            >
               <IcLock c={decryptionAttempts>0?"#ffffff":"rgba(255,255,255,0.2)"} s={12}/>
               {isDecrypting?"BYPASSING...":`DECRYPT [${decryptionAttempts}/5]`}
             </button>
@@ -549,13 +707,19 @@ export default function BunkerPage() {
             </div>
             <div className="hud-scrollbar" style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:"1px",marginBottom:"4px"}}>
               {cliHistory.map((line,i)=>(
-                <div key={i} style={{fontFamily:"JetBrains Mono,monospace",fontSize:"9px",lineHeight:1.3,color:line.startsWith(">>")?"#ff003c":line.startsWith("guest@")?"#00ff88":line.startsWith("[")?"#ff8800":"rgba(255,255,255,0.35)"}}>{line}</div>
+                <div key={i} style={{
+                  fontFamily:"JetBrains Mono,monospace",
+                  fontSize:"9.5px",
+                  lineHeight:1.3,
+                  color:line.startsWith(">>")?"#ff003c":line.startsWith("guest@")?"#00ff88":line.startsWith("[")?"#ff8800":"#00ff88",
+                  textShadow:line.startsWith(">>")?"0 0 4px rgba(255,0,60,0.6)":line.startsWith("guest@")?"0 0 4px rgba(0,255,136,0.6)":"0 0 4px rgba(0,255,136,0.3)"
+                }}>{line}</div>
               ))}
               <div ref={cliEndRef}/>
             </div>
             <form onSubmit={handleCli} style={{display:"flex",border:"1px solid rgba(255,0,62,0.2)",background:"#000000"}}>
-              <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:"9px",color:"#00ff88",padding:"4px 2px 4px 6px"}}>$</span>
-              <input value={cliInput} onChange={e=>setCliInput(e.target.value)} placeholder="command..." disabled={isDecrypting} style={{flex:1,background:"transparent",border:"none",color:"#fff",fontFamily:"JetBrains Mono,monospace",fontSize:"9px",padding:"4px 2px",outline:"none"}}/>
+              <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:"9.5px",color:"#00ff88",padding:"4px 2px 4px 6px",textShadow:"0 0 4px rgba(0,255,136,0.6)"}}>$</span>
+              <input value={cliInput} onChange={e=>setCliInput(e.target.value)} placeholder="command..." disabled={isDecrypting} style={{flex:1,background:"transparent",border:"none",color:"#00ff88",fontFamily:"JetBrains Mono,monospace",fontSize:"9.5px",padding:"4px 2px",outline:"none",textShadow:"0 0 4px rgba(0,255,136,0.6)"}}/>
               <button type="submit" style={{background:"transparent",border:"none",color:"#ff003c",padding:"0 6px",cursor:"pointer",display:"flex",alignItems:"center"}}><IcSend c="#ff003c"/></button>
             </form>
           </div>
