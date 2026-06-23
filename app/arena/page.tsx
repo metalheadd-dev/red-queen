@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
+import OnboardingBriefing from "@/components/OnboardingBriefing";
 
 type Limb = "HEAD" | "TORSO" | "ARMS" | "LEGS";
 
@@ -31,6 +32,7 @@ function HpBar({ hp, maxHp, color }: { hp: number; maxHp: number; color: string 
               height: "4px", flexGrow: 1,
               background: active ? color : "rgba(255,255,255,0.03)",
               boxShadow: active ? `0 0 6px ${color}88` : "none",
+              transition: "background 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1)"
             }} />
           );
         })}
@@ -202,6 +204,125 @@ const SEED_CHAT: Message[] = [
   { time: "22:52", sender: "SYSTEM", text: "MATCH FOUND. PREPARING ARENA...", color: "#ff8800" },
 ];
 
+const getLimbStyle = (limb: Limb, side: "left" | "right") => {
+  const positions: Record<Limb, { x: string; bottom: string }> = {
+    HEAD:  { x: "18vw", bottom: "72vh" },
+    TORSO: { x: "20vw", bottom: "48vh" },
+    ARMS:  { x: "15vw", bottom: "46vh" },
+    LEGS:  { x: "20vw", bottom: "20vh" },
+  };
+  const pos = positions[limb];
+  return {
+    position: "absolute" as const,
+    bottom: pos.bottom,
+    [side]: pos.x,
+    zIndex: 25,
+    transform: "translate(-50%, 50%)",
+    pointerEvents: "none" as const,
+  };
+};
+
+function CombatNode({
+  limb,
+  side,
+  flash,
+  popup,
+}: {
+  limb: Limb;
+  side: "left" | "right";
+  flash: { limb: Limb; type: "hit" | "block" | "miss" } | null;
+  popup: { text: string; limb: Limb } | null;
+}) {
+  const isFlashActive = flash?.limb === limb;
+  const isPopupActive = popup?.limb === limb;
+
+  const style = getLimbStyle(limb, side);
+  
+  let flashColor = "transparent";
+  let shadowColor = "transparent";
+  if (isFlashActive) {
+    if (flash.type === "hit") {
+      flashColor = "rgba(255, 0, 60, 0.95)";
+      shadowColor = "rgba(255, 0, 60, 0.8)";
+    } else if (flash.type === "block") {
+      flashColor = "rgba(0, 170, 255, 0.95)";
+      shadowColor = "rgba(0, 170, 255, 0.8)";
+    } else {
+      flashColor = "rgba(150, 150, 150, 0.8)";
+      shadowColor = "rgba(150, 150, 150, 0.5)";
+    }
+  }
+
+  return (
+    <div style={style}>
+      <div style={{
+        width: "16px",
+        height: "16px",
+        border: "1px solid rgba(255, 255, 255, 0.25)",
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative"
+      }}>
+        <div style={{
+          width: "4px",
+          height: "4px",
+          borderRadius: "50%",
+          background: side === "left" ? "#ff003c" : "#00aaff"
+        }} />
+        
+        <span style={{
+          position: "absolute",
+          left: side === "left" ? "20px" : "auto",
+          right: side === "right" ? "20px" : "auto",
+          fontFamily: "JetBrains Mono, monospace",
+          fontSize: "8px",
+          color: "rgba(255,255,255,0.45)",
+          whiteSpace: "nowrap",
+          fontWeight: 700
+        }}>
+          {limb[0]}_{side === "left" ? "PL" : "OP"}
+        </span>
+
+        {isFlashActive && (
+          <div style={{
+            position: "absolute",
+            width: "60px",
+            height: "60px",
+            borderRadius: "50%",
+            background: "transparent",
+            border: `3px solid ${flashColor}`,
+            boxShadow: `0 0 25px ${shadowColor}`,
+            animation: "combat-node-flash 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+          }} />
+        )}
+      </div>
+
+      {isPopupActive && (
+        <div style={{
+          position: "absolute",
+          top: "-35px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          fontFamily: "Orbitron, sans-serif",
+          fontSize: popup.text.includes("CRIT") ? "12px" : "10px",
+          fontWeight: 900,
+          color: popup.text.startsWith("-") 
+            ? (popup.text.includes("CRIT") ? "#ff003c" : "#ff8800") 
+            : (popup.text.includes("BLOCK") ? "#00aaff" : "rgba(255,255,255,0.5)"),
+          textShadow: popup.text.startsWith("-") ? "0 0 10px rgba(255, 0, 60, 0.6)" : "none",
+          whiteSpace: "nowrap",
+          animation: "combat-damage-rise 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+          zIndex: 100
+        }}>
+          {popup.text}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── MAIN ARENA PAGE ─────────────────────────────────────────────────────────
 export default function ArenaPage() {
   const { authIdentifier } = useAuth();
@@ -224,6 +345,12 @@ export default function ArenaPage() {
   const [selectedDefense, setSelectedDefense] = useState<Limb | null>(null);
   const [shakeTrigger, setShakeTrigger] = useState(false);
   const [combatOutcome, setCombatOutcome] = useState<"win" | "lose" | null>(null);
+
+  // Gamification state hooks
+  const [playerFlash, setPlayerFlash] = useState<{ limb: Limb; type: "hit" | "block" | "miss" } | null>(null);
+  const [opponentFlash, setOpponentFlash] = useState<{ limb: Limb; type: "hit" | "block" | "miss" } | null>(null);
+  const [playerPopup, setPlayerPopup] = useState<{ text: string; limb: Limb } | null>(null);
+  const [opponentPopup, setOpponentPopup] = useState<{ text: string; limb: Limb } | null>(null);
 
   const [toxicFogActive, setToxicFogActive] = useState(true);
   const [scarceAmmoActive, setScarceAmmoActive] = useState(true);
@@ -340,14 +467,28 @@ export default function ArenaPage() {
     const oppBlocked = oppDef === selectedAttack;
     if (oppBlocked) pHitChance *= 0.25;
 
+    let pFlashType: "hit" | "block" | "miss" = "miss";
+    let pPopupText = "MISS";
+
     let oppHpNext = opponentHp;
     if (Math.random() <= pHitChance) {
       let dmg = Math.round(atkConfig[selectedAttack].base * (playerStats.attack / opponentStats.defense) * (0.9 + Math.random() * 0.2) * dmgMult);
-      if (oppBlocked) { dmg = Math.round(dmg * 0.15); logs.push({ time: t, sender: "SYSTEM", text: `BLOCKED! Opponent deflected 85% on [${selectedAttack}]. Dealt ${dmg} dmg.` }); }
-      else {
+      if (oppBlocked) {
+        dmg = Math.round(dmg * 0.15);
+        logs.push({ time: t, sender: "SYSTEM", text: `BLOCKED! Opponent deflected 85% on [${selectedAttack}]. Dealt ${dmg} dmg.` });
+        pFlashType = "block";
+        pPopupText = `BLOCK (${dmg})`;
+      } else {
         const isCrit = Math.random() <= playerStats.luck / 100;
-        if (isCrit) { dmg = Math.round(dmg * 1.5); logs.push({ time: t, sender: profileName, text: `[CRIT] Struck [${selectedAttack}] for ${dmg} dmg.`, color: "#ff003c" }); }
-        else { logs.push({ time: t, sender: profileName, text: `Hit [${selectedAttack}] for ${dmg} dmg.` }); }
+        if (isCrit) {
+          dmg = Math.round(dmg * 1.5);
+          logs.push({ time: t, sender: profileName, text: `[CRIT] Struck [${selectedAttack}] for ${dmg} dmg.`, color: "#ff003c" });
+          pPopupText = `-${dmg} CRIT`;
+        } else {
+          logs.push({ time: t, sender: profileName, text: `Hit [${selectedAttack}] for ${dmg} dmg.` });
+          pPopupText = `-${dmg}`;
+        }
+        pFlashType = "hit";
         if (selectedAttack === "HEAD" && Math.random() > 0.4) setOpponentStatus(p => [...p, "GLITCHED"]);
         if (selectedAttack === "TORSO" && Math.random() > 0.4) setOpponentStatus(p => [...p, "BLEEDING"]);
         if (selectedAttack === "LEGS" && Math.random() > 0.4) setOpponentStatus(p => [...p, "SLOWED"]);
@@ -356,21 +497,40 @@ export default function ArenaPage() {
       setOpponentHp(oppHpNext);
     } else {
       logs.push({ time: t, sender: "SYSTEM", text: `Strike on [${selectedAttack}] evaded.` });
+      pFlashType = "miss";
+      pPopupText = "EVADED";
     }
+
+    setOpponentFlash({ limb: selectedAttack, type: pFlashType });
+    setOpponentPopup({ text: pPopupText, limb: selectedAttack });
 
     // Opponent attacks
     let oHitChance = atkConfig[oppAtk].chance * (opponentStats.agility / (playerStats.agility * (electroSurgeActive ? 1.1 : 1.0)));
     const playerBlocked = selectedDefense === oppAtk;
     if (playerBlocked) oHitChance *= 0.25;
 
+    let oFlashType: "hit" | "block" | "miss" = "miss";
+    let oPopupText = "MISS";
+
     let plyHpNext = playerHp;
     if (Math.random() <= oHitChance) {
       let dmg = Math.round(atkConfig[oppAtk].base * (opponentStats.attack / playerStats.defense) * (0.9 + Math.random() * 0.2) * dmgMult);
-      if (playerBlocked) { dmg = Math.round(dmg * 0.15); logs.push({ time: t, sender: "SYSTEM", text: `DEFLECTED! Blocked [${oppAtk}]. Absorbed 85% (took ${dmg}).`, color: "#ffffff" }); }
-      else {
+      if (playerBlocked) {
+        dmg = Math.round(dmg * 0.15);
+        logs.push({ time: t, sender: "SYSTEM", text: `DEFLECTED! Blocked [${oppAtk}]. Absorbed 85% (took ${dmg}).`, color: "#ffffff" });
+        oFlashType = "block";
+        oPopupText = `BLOCKED (${dmg})`;
+      } else {
         const isCrit = Math.random() <= opponentStats.luck / 100;
-        if (isCrit) { dmg = Math.round(dmg * 1.5); logs.push({ time: t, sender: "DESGECEAN", text: `[CRIT] Struck your [${oppAtk}] for ${dmg} dmg.`, color: "#ff003c" }); }
-        else { logs.push({ time: t, sender: "DESGECEAN", text: `Hit your [${oppAtk}] for ${dmg} dmg.` }); }
+        if (isCrit) {
+          dmg = Math.round(dmg * 1.5);
+          logs.push({ time: t, sender: "DESGECEAN", text: `[CRIT] Struck your [${oppAtk}] for ${dmg} dmg.`, color: "#ff003c" });
+          oPopupText = `-${dmg} CRIT`;
+        } else {
+          logs.push({ time: t, sender: "DESGECEAN", text: `Hit your [${oppAtk}] for ${dmg} dmg.` });
+          oPopupText = `-${dmg}`;
+        }
+        oFlashType = "hit";
         if (oppAtk === "HEAD" && Math.random() > 0.4) setPlayerStatus(p => [...p, "GLITCHED"]);
         if (oppAtk === "TORSO" && Math.random() > 0.4) setPlayerStatus(p => [...p, "BLEEDING"]);
         if (oppAtk === "LEGS" && Math.random() > 0.4) setPlayerStatus(p => [...p, "SLOWED"]);
@@ -379,7 +539,20 @@ export default function ArenaPage() {
       setPlayerHp(plyHpNext);
     } else {
       logs.push({ time: t, sender: "SYSTEM", text: `Enemy strike on [${oppAtk}] missed.` });
+      oFlashType = "miss";
+      oPopupText = "EVADED";
     }
+
+    setPlayerFlash({ limb: oppAtk, type: oFlashType });
+    setPlayerPopup({ text: oPopupText, limb: oppAtk });
+
+    // Reset animations after 1.2s
+    setTimeout(() => {
+      setPlayerFlash(null);
+      setOpponentFlash(null);
+      setPlayerPopup(null);
+      setOpponentPopup(null);
+    }, 1200);
 
     // Toxic fog DoT
     if (toxicFogActive) {
@@ -510,6 +683,14 @@ export default function ArenaPage() {
         zIndex: 2, pointerEvents: "none",
         filter: "brightness(0.7) drop-shadow(0 0 45px rgba(0,170,255,0.3))", // Cold Blue Rim glow
       }} />
+
+      {/* Visual Limb Telemetry Nodes & Flashes */}
+      {(["HEAD", "TORSO", "ARMS", "LEGS"] as Limb[]).map(limb => (
+        <CombatNode key={`left-${limb}`} limb={limb} side="left" flash={playerFlash} popup={playerPopup} />
+      ))}
+      {(["HEAD", "TORSO", "ARMS", "LEGS"] as Limb[]).map(limb => (
+        <CombatNode key={`right-${limb}`} limb={limb} side="right" flash={opponentFlash} popup={opponentPopup} />
+      ))}
 
       {/* ─── FLOATING TOP HEADER ──────────────────────────────────────────────── */}
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 40px 12px", position: "relative", zIndex: 20, flexShrink: 0 }}>
@@ -855,6 +1036,20 @@ export default function ArenaPage() {
           </div>
         </div>
       </div>
+
+      <OnboardingBriefing page="arena" />
+
+      <style>{`
+        @keyframes combat-node-flash {
+          0% { transform: scale(0.35); opacity: 1; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        @keyframes combat-damage-rise {
+          0% { transform: translate(-50%, 0px); opacity: 1; }
+          40% { transform: translate(-50%, -25px); opacity: 1; }
+          100% { transform: translate(-50%, -50px); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }

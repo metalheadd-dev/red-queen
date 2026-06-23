@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
+import OnboardingBriefing from "@/components/OnboardingBriefing";
 
 // ── SVG ICONS (Minimal HUD Style) ─────────────────────────────────────────────
 const IcSword  = ({c,s=14}:{c:string;s?:number}) => <svg width={s} height={s} viewBox="0 0 16 16" fill="none"><line x1="2" y1="14" x2="12" y2="4" stroke={c} strokeWidth="1.2"/><polyline points="10,2 14,2 14,6" stroke={c} strokeWidth="1.2" fill="none"/><line x1="2" y1="10" x2="4" y2="12" stroke={c} strokeWidth="1"/></svg>;
@@ -171,8 +172,96 @@ export default function BunkerPage() {
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [isDeployHovered, setIsDeployHovered] = useState(false);
 
+  // Gamification & Simulation States
+  const [decryptActive, setDecryptActive] = useState(false);
+  const [decryptTarget, setDecryptTarget] = useState("");
+  const [decryptGrid, setDecryptGrid] = useState<string[]>([]);
+  const [decryptSeconds, setDecryptSeconds] = useState(6);
+  
+  const [scavengeActive, setScavengeActive] = useState(false);
+  const [scavengeLogs, setScavengeLogs] = useState<string[]>([]);
+  const [scavengeProgress, setScavengeProgress] = useState(0);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const cliEndRef  = useRef<HTMLDivElement>(null);
+
+  // Decrypt Countdown Timer Effect
+  useEffect(() => {
+    if (!decryptActive) return;
+    if (decryptSeconds <= 0) {
+      setDecryptActive(false);
+      setCliHistory(p => [...p, ">> BYPASS TIMEOUT: Access matrix static.", ">> DECRYPTION FAILED."]);
+      return;
+    }
+    const t = setTimeout(() => {
+      setDecryptSeconds(s => s - 1);
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [decryptActive, decryptSeconds]);
+
+  const startDecryptGame = () => {
+    if (decryptionAttempts <= 0) {
+      setCliHistory(p => [...p, ">> ERROR: ATTEMPTS EXHAUSTED."]);
+      return;
+    }
+    const next = decryptionAttempts - 1;
+    setDecryptionAttempts(next);
+    localStorage.setItem("redqueen_bunker_decryption_attempts", String(next));
+
+    const hexPool = ["A1", "3B", "C2", "D4", "9B", "E7", "F5", "8A", "6D", "0C", "7B", "1E"];
+    const shuffled = [...hexPool].sort(() => Math.random() - 0.5);
+    const target = shuffled[0];
+    const grid = shuffled.slice(0, 9);
+    
+    setDecryptTarget(target);
+    setDecryptGrid(grid);
+    setDecryptSeconds(6);
+    setDecryptActive(true);
+    setTerminalOpen(true);
+    setCliHistory(p => [...p, ">> MATRIX SECURITY ENGAGED.", `>> TARGET SEQUENCE: [ ${target} ]`]);
+  };
+
+  const handleHexClick = (code: string) => {
+    if (!decryptActive) return;
+    if (code === decryptTarget) {
+      setDecryptActive(false);
+      setCliHistory(p => [
+        ...p,
+        `>> ACCESS GRANTED: Bypass code ${code} validated.`,
+        ">> SUCCESS: Decoded sector target (45.1092,-122.6801)."
+      ]);
+    } else {
+      setDecryptActive(false);
+      setCliHistory(p => [
+        ...p,
+        `>> DETECTED INTRUSION: Code ${code} invalid.`,
+        ">> DECRYPTION FAILED."
+      ]);
+    }
+  };
+
+  const startScavengeRun = () => {
+    setScavengeActive(true);
+    setScavengeProgress(0);
+    setScavengeLogs(["[SYS] Drone link active. Calibrating coordinate mesh..."]);
+    
+    let currentProgress = 0;
+    const iv = setInterval(() => {
+      currentProgress += 4;
+      setScavengeProgress(currentProgress);
+      
+      if (currentProgress === 20) {
+        setScavengeLogs(p => [...p, "[SYS] Drone deployed. Scanning coordinate sector 4..."]);
+      } else if (currentProgress === 48) {
+        setScavengeLogs(p => [...p, "[SYS] Biological indicators identified at [COORD: 18.2, 4.5]."]);
+      } else if (currentProgress === 80) {
+        setScavengeLogs(p => [...p, "[SYS] Salvaging scrap components from hazard ruins..."]);
+      } else if (currentProgress >= 100) {
+        clearInterval(iv);
+        setScavengeLogs(p => [...p, "[SYS] SUCCESS: Plated vest blueprint retrieved.", "[SYS] Mission complete. Returning to HQ."]);
+      }
+    }, 80);
+  };
 
   // Profile
   useEffect(() => {
@@ -265,7 +354,7 @@ export default function BunkerPage() {
       else if (cmd === "clear")   setCliHistory([]);
       else if (cmd === "status")  setCliHistory(p => [...p, `STABLE. FACTION:${selectedFaction.name}. ESCROW:${stakedThreat}T. SHIELD:${shieldIntegrity}%.`]);
       else if (cmd === "scan")    setCliHistory(p => [...p, "SWEEPING DEPIN NETWORKS...", "  TARGET: MARAUDER_BLADE [GRID_18.2] (120T)", "  TARGET: COLLECTIVE_U04 [GRID_4.5] (250T)"]);
-      else if (cmd === "decrypt") runDecrypt();
+      else if (cmd === "decrypt") startDecryptGame();
       else setCliHistory(p => [...p, `>> UNKNOWN COMMAND: '${cmd}'`]);
     }, 150);
   };
@@ -521,6 +610,7 @@ export default function BunkerPage() {
             </Link>
 
             <button 
+              onClick={startScavengeRun}
               style={{
                 flex:1,padding:"12px",
                 background:"rgba(255,136,0,0.12)",
@@ -545,15 +635,15 @@ export default function BunkerPage() {
             </button>
 
             <button 
-              onClick={runDecrypt} 
-              disabled={isDecrypting||decryptionAttempts<=0} 
+              onClick={startDecryptGame} 
+              disabled={decryptActive||decryptionAttempts<=0} 
               style={{
                 flex:1,padding:"12px",
                 background:decryptionAttempts>0?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.01)",
                 border:`2px solid ${decryptionAttempts>0?"#ffffff":"rgba(255,255,255,0.15)"}`,
                 color:decryptionAttempts>0?"#ffffff":"rgba(255,255,255,0.2)",
                 fontFamily:"Orbitron,sans-serif",fontSize:"11px",fontWeight:900,letterSpacing:"0.15em",
-                cursor:(isDecrypting||decryptionAttempts<=0)?"not-allowed":"pointer",
+                cursor:(decryptActive||decryptionAttempts<=0)?"not-allowed":"pointer",
                 boxShadow:decryptionAttempts>0?"0 4px 0px #555555, 0 0 15px rgba(255,255,255,0.15)":"none",
                 display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",
                 transition: "all 0.1s ease",
@@ -571,7 +661,7 @@ export default function BunkerPage() {
               }}
             >
               <IcLock c={decryptionAttempts>0?"#ffffff":"rgba(255,255,255,0.2)"} s={12}/>
-              {isDecrypting?"BYPASSING...":`DECRYPT [${decryptionAttempts}/5]`}
+              {decryptActive?"BYPASSING...":`DECRYPT [${decryptionAttempts}/5]`}
             </button>
           </div>
         </div>
@@ -700,28 +790,95 @@ export default function BunkerPage() {
           </div>
 
           {/* DECRYPT TERMINAL */}
-          <div style={{display:"flex",flexDirection:"column",minHeight:0}}>
+          <div style={{display:"flex",flexDirection:"column",minHeight:0,position:"relative",height:"100%"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
               <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"8px",color:"rgba(255,255,255,0.4)",letterSpacing:"0.1em"}}>BYPASS_CLI</span>
               <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"8px",color:"#00aaff"}}>{decryptionAttempts}/5 LFT</span>
             </div>
-            <div className="hud-scrollbar" style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:"1px",marginBottom:"4px"}}>
-              {cliHistory.map((line,i)=>(
-                <div key={i} style={{
-                  fontFamily:"JetBrains Mono,monospace",
-                  fontSize:"9.5px",
-                  lineHeight:1.3,
-                  color:line.startsWith(">>")?"#ff003c":line.startsWith("guest@")?"#00ff88":line.startsWith("[")?"#ff8800":"#00ff88",
-                  textShadow:line.startsWith(">>")?"0 0 4px rgba(255,0,60,0.6)":line.startsWith("guest@")?"0 0 4px rgba(0,255,136,0.6)":"0 0 4px rgba(0,255,136,0.3)"
-                }}>{line}</div>
-              ))}
-              <div ref={cliEndRef}/>
-            </div>
-            <form onSubmit={handleCli} style={{display:"flex",border:"1px solid rgba(255,0,62,0.2)",background:"#000000"}}>
-              <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:"9.5px",color:"#00ff88",padding:"4px 2px 4px 6px",textShadow:"0 0 4px rgba(0,255,136,0.6)"}}>$</span>
-              <input value={cliInput} onChange={e=>setCliInput(e.target.value)} placeholder="command..." disabled={isDecrypting} style={{flex:1,background:"transparent",border:"none",color:"#00ff88",fontFamily:"JetBrains Mono,monospace",fontSize:"9.5px",padding:"4px 2px",outline:"none",textShadow:"0 0 4px rgba(0,255,136,0.6)"}}/>
-              <button type="submit" style={{background:"transparent",border:"none",color:"#ff003c",padding:"0 6px",cursor:"pointer",display:"flex",alignItems:"center"}}><IcSend c="#ff003c"/></button>
-            </form>
+            {decryptActive ? (
+              <div style={{
+                flex:1,
+                display:"flex",
+                flexDirection:"column",
+                background:"rgba(5, 5, 5, 0.95)",
+                border:"1px solid rgba(255, 0, 60, 0.3)",
+                padding:"6px",
+                borderRadius:"2px",
+                position:"relative",
+                justifyContent:"space-between"
+              }}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"Orbitron,sans-serif",fontSize:"8px",marginBottom:"4px"}}>
+                  <span style={{color:"#ff003c",fontWeight:900,letterSpacing:"0.05em"}}>TARGET: [ {decryptTarget} ]</span>
+                  <span style={{color:decryptSeconds<=2?"#ff003c":"#ff8800",fontWeight:700}}>
+                    TIME LEFT: {decryptSeconds}S
+                  </span>
+                </div>
+                <div style={{
+                  display:"grid",
+                  gridTemplateColumns:"repeat(3, 1fr)",
+                  gap:"4px",
+                  flexGrow:1,
+                  alignContent:"center"
+                }}>
+                  {decryptGrid.map((code,idx)=>(
+                    <button
+                      key={idx}
+                      onClick={() => handleHexClick(code)}
+                      style={{
+                        background:"rgba(255,0,60,0.05)",
+                        border:"1px solid rgba(255,255,255,0.1)",
+                        color:"#ffffff",
+                        fontFamily:"JetBrains Mono,monospace",
+                        fontSize:"11px",
+                        fontWeight:700,
+                        padding:"3px 0",
+                        cursor:"pointer",
+                        borderRadius:"2px",
+                        transition:"all 0.15s",
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = "#ff003c";
+                        e.currentTarget.style.background = "rgba(255,0,60,0.15)";
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+                        e.currentTarget.style.background = "rgba(255,0,60,0.05)";
+                      }}
+                    >
+                      {code}
+                    </button>
+                  ))}
+                </div>
+                <div style={{height:"2px",background:"rgba(255,255,255,0.05)",marginTop:"4px",position:"relative"}}>
+                  <div style={{
+                    height:"100%",
+                    width:`${(decryptSeconds/6)*100}%`,
+                    background:decryptSeconds<=2?"#ff003c":"#ff8800",
+                    transition:"width 1s linear"
+                  }}/>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="hud-scrollbar" style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:"1px",marginBottom:"4px"}}>
+                  {cliHistory.map((line,i)=>(
+                    <div key={i} style={{
+                      fontFamily:"JetBrains Mono,monospace",
+                      fontSize:"9.5px",
+                      lineHeight:1.3,
+                      color:line.startsWith(">>")?"#ff003c":line.startsWith("guest@")?"#00ff88":line.startsWith("[")?"#ff8800":"#00ff88",
+                      textShadow:line.startsWith(">>")?"0 0 4px rgba(255,0,60,0.6)":line.startsWith("guest@")?"0 0 4px rgba(0,255,136,0.6)":"0 0 4px rgba(0,255,136,0.3)"
+                    }}>{line}</div>
+                  ))}
+                  <div ref={cliEndRef}/>
+                </div>
+                <form onSubmit={handleCli} style={{display:"flex",border:"1px solid rgba(255,0,62,0.2)",background:"#000000"}}>
+                  <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:"9.5px",color:"#00ff88",padding:"4px 2px 4px 6px",textShadow:"0 0 4px rgba(0,255,136,0.6)"}}>$</span>
+                  <input value={cliInput} onChange={e=>setCliInput(e.target.value)} placeholder="command..." disabled={isDecrypting} style={{flex:1,background:"transparent",border:"none",color:"#00ff88",fontFamily:"JetBrains Mono,monospace",fontSize:"9.5px",padding:"4px 2px",outline:"none",textShadow:"0 0 4px rgba(0,255,136,0.6)"}}/>
+                  <button type="submit" style={{background:"transparent",border:"none",color:"#ff003c",padding:"0 6px",cursor:"pointer",display:"flex",alignItems:"center"}}><IcSend c="#ff003c"/></button>
+                </form>
+              </>
+            )}
           </div>
 
           {/* SYSTEM LOG */}
@@ -744,6 +901,150 @@ export default function BunkerPage() {
           </div>
         </div>
       </div>
+
+      <OnboardingBriefing page="bunker" />
+
+      {/* ─── SCAVENGE PROGRESS OVERLAY MODAL ──────────────────────────────────── */}
+      {scavengeActive && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0, 0, 0, 0.85)",
+          backdropFilter: "blur(6px)",
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: "Rajdhani, sans-serif"
+        }}>
+          <div style={{
+            background: "rgba(10, 10, 10, 0.98)",
+            border: "2px solid #ff8800",
+            boxShadow: "0 0 35px rgba(255, 136, 0, 0.3)",
+            width: "480px",
+            padding: "24px",
+            clipPath: "polygon(0% 0%, 90% 0%, 100% 10%, 100% 100%, 0% 100%)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "12px", color: "#ff8800", fontWeight: 900, letterSpacing: "0.2em" }}>
+                &gt; SCAVENGER DRONE TELEMETRY
+              </span>
+              <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "10px", color: scavengeProgress >= 100 ? "#00ff88" : "#ff8800" }}>
+                {scavengeProgress >= 100 ? "MISSION_COMPLETE" : "TRANSMITTING..."}
+              </span>
+            </div>
+
+            <div style={{
+              height: "120px",
+              border: "1px solid rgba(255, 136, 0, 0.2)",
+              background: "rgba(0, 0, 0, 0.5)",
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: "2px"
+            }}>
+              <div style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "2px",
+                background: "rgba(255, 136, 0, 0.5)",
+                boxShadow: "0 0 8px #ff8800",
+                animation: "scanline-move 2s linear infinite"
+              }} />
+              <style>{`
+                @keyframes scanline-move {
+                  0% { top: 0%; }
+                  100% { top: 100%; }
+                }
+              `}</style>
+              
+              <div style={{ position: "absolute", inset: "12px", fontFamily: "JetBrains Mono, monospace", fontSize: "9px", color: "rgba(255, 136, 0, 0.4)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                <div>LOC_SCAN: GRID_18.2 [45.1092, -122.6801]</div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>ELEV: 248m</span>
+                  <span>SIG: {scavengeProgress}% STABLE</span>
+                </div>
+              </div>
+              
+              <div style={{
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "80px",
+                height: "80px",
+                border: "1px dashed rgba(255, 136, 0, 0.15)",
+                borderRadius: "50%"
+              }} />
+            </div>
+
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "rgba(255,255,255,0.6)", marginBottom: "4px" }}>
+                <span>SCAN_PROGRESS</span>
+                <span style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 700 }}>{scavengeProgress}%</span>
+              </div>
+              <div style={{ display: "flex", gap: "2px" }}>
+                {Array.from({ length: 25 }).map((_, i) => {
+                  const val = (100 / 25) * (i + 1);
+                  const active = scavengeProgress >= val;
+                  return (
+                    <div key={i} style={{
+                      height: "6px",
+                      flexGrow: 1,
+                      background: active ? "#ff8800" : "rgba(255, 255, 255, 0.03)",
+                      boxShadow: active ? "0 0 6px rgba(255, 136, 0, 0.6)" : "none",
+                      transition: "all 0.1s ease"
+                    }} />
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{
+              height: "100px",
+              background: "rgba(0,0,0,0.8)",
+              border: "1px solid rgba(255,255,255,0.05)",
+              padding: "8px 12px",
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "2px",
+              fontFamily: "JetBrains Mono, monospace",
+              fontSize: "9px"
+            }} className="hud-scrollbar">
+              {scavengeLogs.map((log, i) => (
+                <div key={i} style={{ color: log.startsWith("[SYS] SUCCESS") ? "#00ff88" : "rgba(255,255,255,0.7)" }}>
+                  {log}
+                </div>
+              ))}
+            </div>
+
+            {scavengeProgress >= 100 && (
+              <button
+                onClick={() => setScavengeActive(false)}
+                style={{
+                  background: "#ff8800",
+                  border: "none",
+                  color: "#ffffff",
+                  fontFamily: "Orbitron, sans-serif",
+                  fontSize: "10px",
+                  fontWeight: 900,
+                  padding: "10px 0",
+                  cursor: "pointer",
+                  letterSpacing: "0.15em",
+                  boxShadow: "0 0 15px rgba(255,136,0,0.4)"
+                }}
+              >
+                DISMISS TELEMETRY GRID
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

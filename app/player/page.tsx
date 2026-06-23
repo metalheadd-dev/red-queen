@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
+import OnboardingBriefing from "@/components/OnboardingBriefing";
 
 // ── SVG ICONS (Minimal HUD Style) ─────────────────────────────────────────────
 const IcSword  = ({c,s=14}:{c:string;s?:number}) => <svg width={s} height={s} viewBox="0 0 16 16" fill="none"><line x1="2" y1="14" x2="12" y2="4" stroke={c} strokeWidth="1.2"/><polyline points="10,2 14,2 14,6" stroke={c} strokeWidth="1.2" fill="none"/><line x1="2" y1="10" x2="4" y2="12" stroke={c} strokeWidth="1"/></svg>;
@@ -108,6 +109,17 @@ function GearSlot({
   );
 }
 
+const STAT_DIFFS: Record<string, Array<{ stat: string; val: number }>> = {
+  w1: [ { stat: "ATTACK", val: 18 }, { stat: "AGILITY", val: -5 } ],
+  w2: [ { stat: "ATTACK", val: 10 }, { stat: "LUCK", val: 4 } ],
+  w3: [ { stat: "ATTACK", val: 8 }, { stat: "AGILITY", val: 6 } ],
+  hd: [ { stat: "DEFENSE", val: 8 }, { stat: "INTELLECT", val: 5 } ],
+  ch: [ { stat: "DEFENSE", val: 18 }, { stat: "AGILITY", val: -5 } ],
+  gl: [ { stat: "AGILITY", val: 6 }, { stat: "DEFENSE", val: -2 } ],
+  bt: [ { stat: "AGILITY", val: 10 }, { stat: "DEFENSE", val: 2 } ],
+  pk: [ { stat: "INTELLECT", val: 5 }, { stat: "DEFENSE", val: -1 } ],
+};
+
 // ── MAIN ──────────────────────────────────────────────────────────────────────
 export default function PlayerPage() {
   const {authIdentifier} = useAuth();
@@ -117,6 +129,41 @@ export default function PlayerPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeTab,  setActiveTab]  = useState<Tab | null>(null);
   const [hoveredSlot, setHoveredSlot] = useState<string | null>(null);
+
+  // Genetic mutation state
+  const [mutations, setMutations] = useState<Record<string, string>>({});
+  const [isMutating, setIsMutating] = useState(false);
+  const [mutationSequence, setMutationSequence] = useState("");
+
+  const runMutation = (itemId: string) => {
+    setIsMutating(true);
+    let ticks = 0;
+    const sequences = [
+      "AGCT-CGTA-TTA-GGC",
+      "CGAT-TAAG-CCG-ATT",
+      "GGCT-AATA-CGT-GGA",
+      "TTAG-CCAT-AAG-CCT",
+      "ATGC-GGTA-CCT-AAG",
+    ];
+    const iv = setInterval(() => {
+      setMutationSequence(sequences[ticks % sequences.length]);
+      ticks++;
+      if (ticks >= 10) {
+        clearInterval(iv);
+        setIsMutating(false);
+        const bonuses = [
+          "MUTATION: Crit Damage +15%",
+          "MUTATION: Reload Speed +12%",
+          "MUTATION: Bio-Shield +10%",
+          "MUTATION: Hazard Resist +20%",
+          "MUTATION: Movement Speed +8%",
+          "MUTATION: Energy Capacity +15%",
+        ];
+        const newBonus = bonuses[Math.floor(Math.random() * bonuses.length)];
+        setMutations(prev => ({ ...prev, [itemId]: newBonus }));
+      }
+    }, 180);
+  };
 
   const profileName  = "RED QUEEN ADMIN";
   const faction      = "MARAUDERS";
@@ -254,14 +301,46 @@ export default function PlayerPage() {
       <div style={{ position: "absolute", left: "60px", top: "170px", display: "flex", flexDirection: "column", gap: "16px", pointerEvents: "auto", zIndex: 10 }}>
         <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em"}}>DEFENSIVE ARMOR</span>
         {GEAR.filter(g=>["HEAD","CHEST","BACKPACK","GLOVES"].includes(g.slot)).map(g=>(
-          <GearSlot 
-            key={g.id} 
-            g={g} 
-            active={selectedId===g.id} 
-            onClick={()=>setSelectedId(selectedId===g.id?null:g.id)}
-            onMouseEnter={()=>setHoveredSlot(g.slot)}
-            onMouseLeave={()=>setHoveredSlot(null)}
-          />
+          <div key={g.id} style={{ position: "relative" }}>
+            <GearSlot 
+              g={g} 
+              active={selectedId===g.id} 
+              onClick={()=>setSelectedId(selectedId===g.id?null:g.id)}
+              onMouseEnter={()=>setHoveredSlot(g.slot)}
+              onMouseLeave={()=>setHoveredSlot(null)}
+            />
+            {hoveredSlot === g.slot && STAT_DIFFS[g.id] && (
+              <div style={{
+                position: "absolute",
+                left: "98px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "rgba(10,10,10,0.96)",
+                border: "1.5px solid #ff003c",
+                boxShadow: "0 0 15px rgba(255,0,60,0.3)",
+                padding: "6px 10px",
+                width: "94px",
+                zIndex: 99,
+                display: "flex",
+                flexDirection: "column",
+                gap: "3px",
+                clipPath: "polygon(0% 0%, 90% 0%, 100% 15%, 100% 100%, 0% 100%)",
+                pointerEvents: "none"
+              }}>
+                <div style={{ fontFamily: "Orbitron, sans-serif", fontSize: "7px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em", fontWeight: 700 }}>
+                  STAT_DIFFS
+                </div>
+                {STAT_DIFFS[g.id].map(d => (
+                  <div key={d.stat} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "JetBrains Mono, monospace", fontSize: "8.5px" }}>
+                    <span style={{ color: "rgba(255,255,255,0.7)" }}>{d.stat[0] + d.stat.slice(1,3).toLowerCase()}</span>
+                    <span style={{ color: d.val > 0 ? "#00ff88" : "#ff003c", fontWeight: "bold" }}>
+                      {d.val > 0 ? `+${d.val}` : d.val}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
@@ -269,14 +348,46 @@ export default function PlayerPage() {
       <div style={{ position: "absolute", right: "60px", top: "170px", display: "flex", flexDirection: "column", gap: "16px", pointerEvents: "auto", alignItems: "flex-end", zIndex: 10 }}>
         <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em"}}>TACTICAL LOADOUT</span>
         {GEAR.filter(g=>["PRIMARY","SECONDARY","SIDEARM","BOOTS"].includes(g.slot)).map(g=>(
-          <GearSlot 
-            key={g.id} 
-            g={g} 
-            active={selectedId===g.id} 
-            onClick={()=>setSelectedId(selectedId===g.id?null:g.id)}
-            onMouseEnter={()=>setHoveredSlot(g.slot)}
-            onMouseLeave={()=>setHoveredSlot(null)}
-          />
+          <div key={g.id} style={{ position: "relative" }}>
+            <GearSlot 
+              g={g} 
+              active={selectedId===g.id} 
+              onClick={()=>setSelectedId(selectedId===g.id?null:g.id)}
+              onMouseEnter={()=>setHoveredSlot(g.slot)}
+              onMouseLeave={()=>setHoveredSlot(null)}
+            />
+            {hoveredSlot === g.slot && STAT_DIFFS[g.id] && (
+              <div style={{
+                position: "absolute",
+                right: "98px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "rgba(10,10,10,0.96)",
+                border: "1.5px solid #ff003c",
+                boxShadow: "0 0 15px rgba(255,0,60,0.3)",
+                padding: "6px 10px",
+                width: "94px",
+                zIndex: 99,
+                display: "flex",
+                flexDirection: "column",
+                gap: "3px",
+                clipPath: "polygon(0% 0%, 90% 0%, 100% 15%, 100% 100%, 0% 100%)",
+                pointerEvents: "none"
+              }}>
+                <div style={{ fontFamily: "Orbitron, sans-serif", fontSize: "7px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em", fontWeight: 700 }}>
+                  STAT_DIFFS
+                </div>
+                {STAT_DIFFS[g.id].map(d => (
+                  <div key={d.stat} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "JetBrains Mono, monospace", fontSize: "8.5px" }}>
+                    <span style={{ color: "rgba(255,255,255,0.7)" }}>{d.stat[0] + d.stat.slice(1,3).toLowerCase()}</span>
+                    <span style={{ color: d.val > 0 ? "#00ff88" : "#ff003c", fontWeight: "bold" }}>
+                      {d.val > 0 ? `+${d.val}` : d.val}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
@@ -583,9 +694,104 @@ export default function PlayerPage() {
               <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:TIER_COLOR[sel.tier],letterSpacing:"0.15em",fontWeight:700,display:"block",marginBottom:"4px"}}>PERK_TALENT</span>
               <p style={{fontFamily:"Rajdhani,sans-serif",fontSize:"12px",color:"rgba(255,255,255,0.75)",lineHeight:1.3}}>{sel.talent}</p>
             </div>
+
+            {/* Genetic Mutation Chamber */}
+            <div style={{
+              marginTop: "10px",
+              border: "1px dashed rgba(255, 0, 60, 0.35)",
+              background: "rgba(255, 0, 60, 0.02)",
+              padding: "10px",
+              position: "relative"
+            }}>
+              <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"9px",color:"#ff003c",letterSpacing:"0.15em",fontWeight:700,display:"block",marginBottom:"6px"}}>GENETIC_MUTATION_CHAMBER</span>
+              
+              {isMutating ? (
+                <div style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "70px",
+                  gap: "6px"
+                }}>
+                  <div style={{ position: "relative", width: "30px", height: "30px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="30" height="30" viewBox="0 0 40 40">
+                      <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255, 0, 60, 0.15)" strokeWidth="3" />
+                      <circle cx="20" cy="20" r="16" fill="none" stroke="#ff003c" strokeWidth="3"
+                        strokeDasharray="25 75"
+                        style={{
+                          transformOrigin: "20px 20px",
+                          animation: "hud-rotate-clockwise 1s linear infinite",
+                          filter: "drop-shadow(0 0 4px #ff003c)"
+                        }}
+                      />
+                    </svg>
+                  </div>
+                  <div style={{
+                    fontFamily: "JetBrains Mono, monospace",
+                    fontSize: "9px",
+                    color: "#ff003c",
+                    letterSpacing: "0.05em",
+                    animation: "hud-blink-fast 0.3s infinite"
+                  }}>
+                    DNA_SEQ: {mutationSequence}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {mutations[sel.id] ? (
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "4px 8px",
+                      background: "rgba(255, 0, 60, 0.08)",
+                      border: "1px solid rgba(255, 0, 60, 0.25)"
+                    }}>
+                      <IcStar c="#ff003c" s={10}/>
+                      <span style={{ fontFamily: "Orbitron, sans-serif", fontSize: "10px", color: "#ffffff", fontWeight: 700 }}>
+                        {mutations[sel.id]}
+                      </span>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.45)", fontFamily: "Rajdhani, sans-serif", lineHeight: 1.2 }}>
+                      No active mutations applied. Splice gene structure to insert custom combat secondary traits.
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => runMutation(sel.id)}
+                    style={{
+                      background: "rgba(255, 0, 60, 0.15)",
+                      border: "1.5px solid #ff003c",
+                      color: "#ffffff",
+                      fontFamily: "Orbitron, sans-serif",
+                      fontSize: "9px",
+                      fontWeight: 900,
+                      padding: "6px 0",
+                      cursor: "pointer",
+                      letterSpacing: "0.15em",
+                      marginTop: "4px",
+                      boxShadow: "0 0 10px rgba(255, 0, 60, 0.15)"
+                    }}
+                  >
+                    INITIATE GENETIC SPLICING
+                  </button>
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
+
+      <OnboardingBriefing page="player" />
+
+      <style>{`
+        @keyframes loader-slide {
+          0% { left: -40px; }
+          100% { left: 120px; }
+        }
+      `}</style>
     </div>
   );
 }
