@@ -8,7 +8,7 @@ import { DEFAULT_STATS, UserStats, calculateBioScore, getClearanceLevel } from "
 
 // Game Types & Data imports
 import { Sector, Mission, InventoryItem, OperativeProfile } from "@/lib/game/types";
-import { INITIAL_SECTORS, INITIAL_MISSIONS, INITIAL_INVENTORY, SECTOR_CONNECTIONS } from "@/lib/game/data";
+import { INITIAL_SECTORS, INITIAL_MISSIONS, INITIAL_INVENTORY, SECTOR_CONNECTIONS, CRAFTING_RECIPES, UPGRADE_RECIPES } from "@/lib/game/data";
 import {
   loadProfile,
   saveProfile,
@@ -19,7 +19,9 @@ import {
   saveEquippedGear,
   DEFAULT_WORLD_STATE,
   DEFAULT_CAMPAIGN_STATS,
-  generateAICommentary
+  generateAICommentary,
+  craftItem,
+  upgradeEquipment
 } from "@/lib/game/service";
 
 // Factions details list
@@ -472,7 +474,7 @@ export default function OperationsPage() {
 
     const eventsCompleted = Math.min(currentEventIndex + 1, activeMission.events?.length || 1);
     const eventsTotal = activeMission.events?.length || 1;
-    const { updatedProfile, levelUpMessage: lvlMsg, worldEventsMessage: wldMsg } = claimMissionRewards(
+    const { updatedProfile, levelUpMessage: lvlMsg, worldEventsMessage: wldMsg, lootedItems } = claimMissionRewards(
       profile,
       activeMission,
       missionOutcome || "SUCCESS",
@@ -484,6 +486,30 @@ export default function OperationsPage() {
 
     saveProfile(identifier, updatedProfile);
     setProfile(updatedProfile);
+
+    // Save dynamic loot to inventory
+    if (lootedItems && lootedItems.length > 0) {
+      setInventory(prev => {
+        const nextInv = [...prev];
+        lootedItems.forEach(loot => {
+          if (loot.type === "material" || loot.type === "consumable") {
+            const existing = nextInv.find(item => item.id === loot.id);
+            if (existing) {
+              existing.qty += loot.qty;
+              return;
+            }
+          }
+          // Unique item ID mapping for equipment
+          const newInst = {
+            ...loot,
+            id: (loot.type === "weapon" || loot.type === "armor") ? `${loot.id}-${Date.now()}-${Math.floor(Math.random() * 1000)}` : loot.id
+          };
+          nextInv.push(newInst);
+        });
+        saveInventory(identifier, nextInv);
+        return nextInv;
+      });
+    }
     
     setLevelUpMessage(lvlMsg);
     setWorldEventsMessage(wldMsg);
@@ -620,10 +646,37 @@ export default function OperationsPage() {
     return FACTIONS.find(f => f.id === facId)?.color || "var(--accent)";
   };
 
-  const profileStats = {
-    ...DEFAULT_STATS,
-    ...(profile?.stats || {})
+  const getEffectiveStats = () => {
+    const base = {
+      ...DEFAULT_STATS,
+      ...(profile?.stats || {})
+    };
+    if (equippedGear) {
+      Object.values(equippedGear).forEach(item => {
+        if (item && item.stats) {
+          Object.entries(item.stats).forEach(([statName, val]) => {
+            const key = statName.toLowerCase().replace(/_/g, "");
+            let targetKey: keyof UserStats | null = null;
+            if (key === "threatawareness" || key === "threatdetection" || key === "threat") targetKey = "threat_awareness";
+            else if (key === "operationaldiscipline" || key === "discipline") targetKey = "operational_discipline";
+            else if (key === "psychologicalstability" || key === "stability") targetKey = "psychological_stability";
+            else if (key === "technicalpreparedness" || key === "preparedness") targetKey = "technical_preparedness";
+            else if (key === "adaptability") targetKey = "adaptability";
+            else if (key === "resourcefulness") targetKey = "resourcefulness";
+            else if (key === "surveillanceresistance" || key === "stealth" || key === "obfuscate") targetKey = "surveillance_resistance";
+            
+            if (targetKey && base[targetKey] !== undefined) {
+              const numericVal = typeof val === "number" ? val : parseFloat(String(val)) || 0;
+              base[targetKey] = Math.min(100, Math.max(0, base[targetKey] + numericVal));
+            }
+          });
+        }
+      });
+    }
+    return base;
   };
+
+  const profileStats = getEffectiveStats();
   const currentBioScore = calculateBioScore(profileStats);
   const clearanceTier = getClearanceLevel(currentBioScore);
 
@@ -1746,17 +1799,41 @@ export default function OperationsPage() {
                             {selectedSector.description}
                           </p>
 
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "9.5px", fontFamily: "var(--mono)", background: "#0c0c0c", padding: "8px", border: "1px solid rgba(255,255,255,0.03)" }}>
-                            <div>
-                              <span style={{ color: "var(--text-muted)" }}>THREAT RATIO:</span>
-                              <div style={{ color: selectedSector.threatLevel === "Severe" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
-                                {selectedSector.threatLevel.toUpperCase()}
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px", background: "#0c0c0c", padding: "10px", border: "1px solid rgba(255,255,255,0.03)" }}>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "9.5px", fontFamily: "var(--mono)" }}>
+                              <div>
+                                <span style={{ color: "var(--text-muted)" }}>THREAT LEVEL:</span>
+                                <div style={{ color: selectedSector.threatLevel === "Severe" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
+                                  {selectedSector.threatLevel.toUpperCase()}
+                                </div>
+                              </div>
+                              <div>
+                                <span style={{ color: "var(--text-muted)" }}>ANOMALIES:</span>
+                                <div style={{ color: "#fff", fontWeight: "bold", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                  {profile?.worldState.activeAnomalies[selectedSector.id]?.join(", ") || "None"}
+                                </div>
                               </div>
                             </div>
-                            <div>
-                              <span style={{ color: "var(--text-muted)" }}>ANOMALIES:</span>
-                              <div style={{ color: "#fff", fontWeight: "bold", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                {profile?.worldState.activeAnomalies[selectedSector.id]?.join(", ") || "None"}
+                            
+                            {/* Contamination meter */}
+                            <div style={{ fontSize: "8.5px", fontFamily: "var(--mono)" }}>
+                              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", color: "#ff4d4d", marginBottom: "2px" }}>
+                                <span>CONTAMINATION INDEX:</span>
+                                <span>{sectorState?.contamination ?? 15}%</span>
+                              </div>
+                              <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.03)", borderRadius: "1px", overflow: "hidden" }}>
+                                <div style={{ width: `${sectorState?.contamination ?? 15}%`, height: "100%", background: "#ff4d4d" }} />
+                              </div>
+                            </div>
+                            
+                            {/* Stability meter */}
+                            <div style={{ fontSize: "8.5px", fontFamily: "var(--mono)" }}>
+                              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", color: "#00ffcc", marginBottom: "2px" }}>
+                                <span>GRID STABILITY:</span>
+                                <span>{sectorState?.stability ?? 0}%</span>
+                              </div>
+                              <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.03)", borderRadius: "1px", overflow: "hidden" }}>
+                                <div style={{ width: `${sectorState?.stability ?? 0}%`, height: "100%", background: "#00ffcc" }} />
                               </div>
                             </div>
                           </div>
@@ -1784,8 +1861,8 @@ export default function OperationsPage() {
                         </div>
 
                         <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "6px", display: "flex", justifyItems: "center", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>
-                            RESOURCES: {selectedSector.availableResources.join(", ")}
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", textTransform: "uppercase" }}>
+                            RESOURCES: {(sectorState?.availableResources || selectedSector.availableResources || []).join(", ")}
                           </span>
                         </div>
 
@@ -2158,11 +2235,24 @@ export default function OperationsPage() {
                             <div>
                               <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#fff", fontWeight: "bold" }}>{rec.missionTitle}</div>
                               <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", marginTop: "2px" }}>
-                                {rec.sectorId.replace("sec-", "SECTOR ").toUpperCase()} // {new Date(rec.timestamp).toLocaleDateString()} // Objectives: {rec.objectivesCompleted || 0}/{rec.objectivesTotal || 0}
+                                {rec.sectorId.replace("sec-", "SECTOR ").toUpperCase()} // {new Date(rec.timestamp).toLocaleDateString()} // Objectives: {rec.objectivesCompleted || 0}/{rec.objectivesTotal || 0} // Duration: {(() => {
+                                  const totalSecs = rec.durationSeconds || 240;
+                                  const m = Math.floor(totalSecs / 60);
+                                  const s = totalSecs % 60;
+                                  return `${m}m ${s}s`;
+                                })()}
                               </div>
                               {rec.resourcesEarned && Object.entries(rec.resourcesEarned).filter(([_, q]) => (q as number) > 0).length > 0 && (
                                 <div style={{ fontFamily: "var(--mono)", fontSize: "7.5px", color: "var(--accent)", marginTop: "2px" }}>
                                   LOOT EXTRACTED: {Object.entries(rec.resourcesEarned).filter(([_, q]) => (q as number) > 0).map(([r, qty]) => `+${qty} ${r}`).join(", ")}
+                                </div>
+                              )}
+                              {rec.reputationChanges && Object.entries(rec.reputationChanges).length > 0 && (
+                                <div style={{ fontFamily: "var(--mono)", fontSize: "7.5px", color: "rgba(255,255,255,0.4)", marginTop: "2px" }}>
+                                  REPUTATION IMPACT: {Object.entries(rec.reputationChanges).map(([fid, delta]) => {
+                                    const sign = (delta as number) > 0 ? "+" : "";
+                                    return `${fid.toUpperCase()} (${sign}${delta})`;
+                                  }).join(" // ")}
                                 </div>
                               )}
                             </div>
@@ -2189,6 +2279,105 @@ export default function OperationsPage() {
                       <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", fontWeight: "bold", animation: "blink 2.2s infinite" }}>
                         SKILL TREE CHANNELS ENCRYPTED // AWAITING CLEARED SIGNAL TIER 4
                       </span>
+                    </div>
+                  </div>
+
+                  {/* Crafting & Upgrades Database (Milestone 2 Backend Validation) */}
+                  <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px", marginTop: "10px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                      [ SYNTHESIS & UPGRADES SCHEMATICS DATABASE ]
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {/* Crafting Recipes */}
+                      <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.04)", padding: "10px" }}>
+                        <div style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--accent)", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "4px", marginBottom: "6px", fontWeight: "bold" }}>
+                          SYNTHESIS RECIPES
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {CRAFTING_RECIPES.map(recipe => (
+                            <div key={recipe.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontSize: "8.5px", fontFamily: "var(--mono)", borderBottom: "1px dotted rgba(255,255,255,0.03)", paddingBottom: "4px" }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ color: "#fff", fontWeight: "bold" }}>{recipe.name.toUpperCase()}</div>
+                                <div style={{ color: "var(--text-muted)", fontSize: "7.5px", marginTop: "2px" }}>{recipe.description}</div>
+                                <div style={{ color: "var(--accent)", fontSize: "7.5px", marginTop: "2px" }}>
+                                  INGREDIENTS: {recipe.ingredients.map(ing => {
+                                    const name = INITIAL_INVENTORY.find(i => i.id === ing.itemId)?.name || ing.itemId;
+                                    return `${ing.qty}x ${name}`;
+                                  }).join(", ")}
+                                </div>
+                              </div>
+                              <button 
+                                onClick={() => {
+                                  if (!profile) return;
+                                  const iden = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+                                  const res = craftItem(profile, inventory, recipe.id);
+                                  if (res.success) {
+                                    setInventory(res.updatedInventory);
+                                    saveInventory(iden, res.updatedInventory);
+                                    setAiLogs(prev => [...prev, `[CRAFT] ${res.message.toUpperCase()}`]);
+                                  } else {
+                                    setAiLogs(prev => [...prev, `[WARN] CRAFTING FAILED // ${res.message.toUpperCase()}`]);
+                                  }
+                                }}
+                                style={{
+                                  background: "transparent", border: "1px solid var(--accent)", color: "var(--accent)",
+                                  fontSize: "7px", padding: "1px 5px", cursor: "pointer", fontFamily: "var(--mono)", marginLeft: "8px"
+                                }}
+                              >
+                                [ SYNTHESIZE ]
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Upgrade Recipes */}
+                      <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.04)", padding: "10px" }}>
+                        <div style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "#f0c929", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "4px", marginBottom: "6px", fontWeight: "bold" }}>
+                          CALIBRATION & UPGRADE SCHEMATICS
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {UPGRADE_RECIPES.map(recipe => (
+                            <div key={recipe.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontSize: "8.5px", fontFamily: "var(--mono)", borderBottom: "1px dotted rgba(255,255,255,0.03)", paddingBottom: "4px" }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ color: "#fff", fontWeight: "bold" }}>{recipe.name.toUpperCase()}</div>
+                                <div style={{ color: "var(--text-muted)", fontSize: "7.5px", marginTop: "2px" }}>{recipe.description}</div>
+                                <div style={{ color: "#f0c929", fontSize: "7.5px", marginTop: "2px" }}>
+                                  INGREDIENTS: {recipe.ingredients.map(ing => {
+                                    const name = INITIAL_INVENTORY.find(i => i.id === ing.itemId)?.name || ing.itemId;
+                                    return `${ing.qty}x ${name}`;
+                                  }).join(", ")}
+                                </div>
+                              </div>
+                              <button 
+                                onClick={() => {
+                                  if (!profile) return;
+                                  const iden = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+                                  const target = inventory.find(i => i.id === recipe.targetItemId || i.id.startsWith(recipe.targetItemId));
+                                  if (!target) {
+                                    setAiLogs(prev => [...prev, `[WARN] UPGRADE FAILED // TARGET EQUIPMENT NOT FOUND IN INVENTORY`]);
+                                    return;
+                                  }
+                                  const res = upgradeEquipment(profile, inventory, recipe.id, target.id);
+                                  if (res.success) {
+                                    setInventory(res.updatedInventory);
+                                    saveInventory(iden, res.updatedInventory);
+                                    setAiLogs(prev => [...prev, `[UPGRADE] ${res.message.toUpperCase()}`]);
+                                  } else {
+                                    setAiLogs(prev => [...prev, `[WARN] UPGRADE FAILED // ${res.message.toUpperCase()}`]);
+                                  }
+                                }}
+                                style={{
+                                  background: "transparent", border: "1px solid #f0c929", color: "#f0c929",
+                                  fontSize: "7px", padding: "1px 5px", cursor: "pointer", fontFamily: "var(--mono)", marginLeft: "8px"
+                                }}
+                              >
+                                [ UPGRADE ]
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
 

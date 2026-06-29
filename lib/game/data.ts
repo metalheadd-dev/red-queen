@@ -1,4 +1,4 @@
-import { Sector, Mission, InventoryItem } from "./types";
+import { Sector, Mission, InventoryItem, CraftingRecipe, UpgradeRecipe } from "./types";
 
 export const SECTOR_CONNECTIONS = [
   { from: "sec-alpha", to: "sec-beta", x1: 150, y1: 150, x2: 400, y2: 110 },
@@ -745,15 +745,69 @@ export const INITIAL_MISSIONS: Mission[] = [
 ];
 
 export const INITIAL_INVENTORY: InventoryItem[] = [
-  { id: "inv-1", name: "Kinetic Carbine V3", rarity: "Rare", quality: 100, slot: "Weapon", classRequirement: "Assault", factionRequirement: "vanguard", factionStandingRequirement: 15, power: 45, desc: "Short-stroke piston rifle caliber tailored for anomaly breach parameters.", qty: 1, type: "weapon", itemLevel: 12, stats: { DPS: 48, Accuracy: "94%", Range: "45m" }, category: "Weapons" },
-  { id: "inv-2", name: "Stealth Recon Cloak", rarity: "Epic", quality: 92, slot: "Gadget", classRequirement: "Recon", factionRequirement: "eclipse", factionStandingRequirement: 25, power: 65, desc: "Bends electromagnetic spectra to match surrounding quadrant visual noise.", qty: 1, type: "weapon", itemLevel: 18, stats: { Stealth: "+30", Evade: "+12%" }, category: "Armor" },
-  { id: "inv-3", name: "Advanced Stim Injector", rarity: "Uncommon", quality: 100, slot: "Medkit", classRequirement: "Medic", power: 25, desc: "Rapidly neutralizes biological toxins and restores 30 HP.", qty: 5, type: "consumable", itemLevel: 5, stats: { Heal: "+30 HP", Speed: "+15%" }, category: "Medical" },
-  { id: "inv-4", name: "Volumetric Shield Core", rarity: "Legendary", quality: 100, slot: "Armor", classRequirement: "Scientist", factionRequirement: "citadel", factionStandingRequirement: 30, power: 90, desc: "Projects a gravity displacement barrier to deflect analog projectiles.", qty: 1, type: "armor", itemLevel: 25, stats: { Shield: "+150", Mitigation: "20%" }, category: "Armor" },
-  { id: "inv-5", name: "C-4 Anomaly Breach Charge", rarity: "Rare", quality: 100, slot: "Utility", classRequirement: "Assault", power: 50, desc: "Heavy thermite detonation device capable of punching through node shields.", qty: 3, type: "consumable", itemLevel: 10, stats: { BreachPower: 120, Radius: "4m" }, category: "Tools" },
-  { id: "inv-6", name: "Decoy Signature Key", rarity: "Common", quality: 100, slot: "Utility", classRequirement: "Specialist", power: 10, desc: "Injects synthetic user profiles to misdirect rogue Sybil trackers.", qty: 8, type: "consumable", itemLevel: 3, stats: { Obfuscate: "+15", Duration: "45s" }, category: "Tools" },
-  { id: "inv-7", name: "Quantum Decryptor Pad", rarity: "Uncommon", quality: 85, slot: "Gadget", classRequirement: "Scientist", power: 30, desc: "Processes localized sub-quantum key decryptions via custom WASM modules.", qty: 1, type: "weapon", itemLevel: 8, stats: { DecryptSpeed: "+25%", PowerCost: "-10%" }, category: "Tools" },
-  { id: "inv-8", name: "Helix Biosensor Helmet", rarity: "Epic", quality: 95, slot: "Helmet", classRequirement: "Medic", factionRequirement: "helix", factionStandingRequirement: 20, power: 75, desc: "Monitors oxygen filtration levels and identifies regional pathogen clusters.", qty: 1, type: "armor", itemLevel: 15, stats: { ThreatDetection: "+20", FilterEfficiency: "98%" }, category: "Armor" },
-  { id: "inv-9", name: "Modular Tactical Pack", rarity: "Common", quality: 100, slot: "Backpack", classRequirement: "Engineer", power: 15, desc: "Extra load-bearing compartments reinforced with composite materials.", qty: 1, type: "armor", itemLevel: 4, stats: { Slots: "+10", LoadCapacity: "+15kg" }, category: "Armor" },
-  { id: "inv-11", name: "Deuterium Power Cell", rarity: "Rare", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "High-density plasma power pack for calibrating transmitters.", qty: 12, type: "material", itemLevel: 1, stats: { EnergyCapacity: "500MW" }, category: "Materials" },
-  { id: "inv-12", name: "Raw Titanite Scrap", rarity: "Common", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Scraped bulkhead alloys for crafting primary shield plates.", qty: 25, type: "material", itemLevel: 1, stats: { Purity: "78%" }, category: "Materials" }
+  { id: "inv-1", name: "Kinetic Carbine V3", rarity: "Rare", quality: 100, slot: "Weapon", classRequirement: "Assault", factionRequirement: "vanguard", factionStandingRequirement: 15, power: 45, desc: "Short-stroke piston rifle caliber tailored for anomaly breach parameters.", qty: 1, type: "weapon", itemLevel: 12, stats: { DPS: 48, Accuracy: "94%", Range: "45m" }, category: "Weapons", weight: 3.8, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 3 },
+  { id: "inv-2", name: "Stealth Recon Cloak", rarity: "Epic", quality: 92, slot: "Gadget", classRequirement: "Recon", factionRequirement: "eclipse", factionStandingRequirement: 25, power: 65, desc: "Bends electromagnetic spectra to match surrounding quadrant visual noise.", qty: 1, type: "weapon", itemLevel: 18, stats: { Stealth: "+30", Evade: "+12%" }, category: "Armor", weight: 1.5, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 2 },
+  { id: "inv-3", name: "Advanced Stim Injector", rarity: "Uncommon", quality: 100, slot: "Medkit", classRequirement: "Medic", power: 25, desc: "Rapidly neutralizes biological toxins and restores 30 HP.", qty: 5, type: "consumable", itemLevel: 5, stats: { Heal: "+30 HP", Speed: "+15%" }, category: "Medical", weight: 0.2, durability: 100, maxDurability: 100 },
+  { id: "inv-4", name: "Volumetric Shield Core", rarity: "Legendary", quality: 100, slot: "Armor", classRequirement: "Scientist", factionRequirement: "citadel", factionStandingRequirement: 30, power: 90, desc: "Projects a gravity displacement barrier to deflect analog projectiles.", qty: 1, type: "armor", itemLevel: 25, stats: { Shield: "+150", Mitigation: "20%" }, category: "Armor", weight: 5.2, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 4 },
+  { id: "inv-5", name: "C-4 Anomaly Breach Charge", rarity: "Rare", quality: 100, slot: "Utility", classRequirement: "Assault", power: 50, desc: "Heavy thermite detonation device capable of punching through node shields.", qty: 3, type: "consumable", itemLevel: 10, stats: { BreachPower: 120, Radius: "4m" }, category: "Tools", weight: 2.0, durability: 100, maxDurability: 100 },
+  { id: "inv-6", name: "Decoy Signature Key", rarity: "Common", quality: 100, slot: "Utility", classRequirement: "Specialist", power: 10, desc: "Injects synthetic user profiles to misdirect rogue Sybil trackers.", qty: 8, type: "consumable", itemLevel: 3, stats: { Obfuscate: "+15", Duration: "45s" }, category: "Tools", weight: 0.1, durability: 100, maxDurability: 100 },
+  { id: "inv-7", name: "Quantum Decryptor Pad", rarity: "Uncommon", quality: 85, slot: "Gadget", classRequirement: "Scientist", power: 30, desc: "Processes localized sub-quantum key decryptions via custom WASM modules.", qty: 1, type: "weapon", itemLevel: 8, stats: { DecryptSpeed: "+25%", PowerCost: "-10%" }, category: "Tools", weight: 0.8, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 2 },
+  { id: "inv-8", name: "Helix Biosensor Helmet", rarity: "Epic", quality: 95, slot: "Helmet", classRequirement: "Medic", factionRequirement: "helix", factionStandingRequirement: 20, power: 75, desc: "Monitors oxygen filtration levels and identifies regional pathogen clusters.", qty: 1, type: "armor", itemLevel: 15, stats: { ThreatDetection: "+20", FilterEfficiency: "98%" }, category: "Armor", weight: 1.8, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 2 },
+  { id: "inv-9", name: "Modular Tactical Pack", rarity: "Common", quality: 100, slot: "Backpack", classRequirement: "Engineer", power: 15, desc: "Extra load-bearing compartments reinforced with composite materials.", qty: 1, type: "armor", itemLevel: 4, stats: { Slots: "+10", LoadCapacity: "+15kg" }, category: "Armor", weight: 1.2, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 1 },
+  { id: "inv-11", name: "Deuterium Power Cell", rarity: "Rare", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "High-density plasma power pack for calibrating transmitters.", qty: 12, type: "material", itemLevel: 1, stats: { EnergyCapacity: "500MW" }, category: "Materials", weight: 0.3 },
+  { id: "inv-12", name: "Raw Titanite Scrap", rarity: "Common", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Scraped bulkhead alloys for crafting primary shield plates.", qty: 25, type: "material", itemLevel: 1, stats: { Purity: "78%" }, category: "Materials", weight: 0.5 },
+  { id: "mat-bio-sample", name: "Pathogen Biostrain Sample", rarity: "Uncommon", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Localized bio-pathogen spores harvested from active containment zones.", qty: 4, type: "material", itemLevel: 1, stats: { HazardLevel: 3 }, category: "Materials", weight: 0.1 },
+  { id: "mat-encrypted-intel", name: "Encrypted Decryption Keyring", rarity: "Rare", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Decentralized trace registry telemetry captured from security exchanges.", qty: 2, type: "material", itemLevel: 1, stats: { DecryptTier: 2 }, category: "Materials", weight: 0.05 }
+];
+
+export const CRAFTING_RECIPES: CraftingRecipe[] = [
+  {
+    id: "rec-stim-injector",
+    name: "Advanced Stim Injector",
+    description: "Synthesize an advanced stim pack using localized biological samples and chemical filters.",
+    resultItemId: "inv-3",
+    resultQty: 1,
+    ingredients: [
+      { itemId: "mat-bio-sample", qty: 2 },
+      { itemId: "inv-12", qty: 1 }
+    ],
+    requiredLevel: 1
+  },
+  {
+    id: "rec-kinetic-carbine",
+    name: "Kinetic Carbine V3",
+    description: "Assemble a standard Kinetic Carbine from raw bulk alloy and electrical wiring components.",
+    resultItemId: "inv-1",
+    resultQty: 1,
+    ingredients: [
+      { itemId: "inv-12", qty: 15 },
+      { itemId: "inv-11", qty: 2 }
+    ],
+    requiredLevel: 2
+  }
+];
+
+export const UPGRADE_RECIPES: UpgradeRecipe[] = [
+  {
+    id: "upg-carbine-overcharge",
+    name: "Kinetic Carbine Overcharge",
+    description: "Upgrade Kinetic Carbine capacitor cells to increase rate of fire and kinetic velocity.",
+    targetItemId: "inv-1",
+    ingredients: [
+      { itemId: "inv-11", qty: 4 }
+    ],
+    statModifiers: { DPS: 62, Accuracy: "95%" },
+    powerIncrease: 15
+  },
+  {
+    id: "upg-shield-calibration",
+    name: "Shield Integrity Calibration",
+    description: "Calibrate volumetric core capacitors to absorb 25% more physical kinetic energy.",
+    targetItemId: "inv-4",
+    ingredients: [
+      { itemId: "inv-11", qty: 6 }
+    ],
+    statModifiers: { Shield: "+200", Mitigation: "25%" },
+    powerIncrease: 20
+  }
 ];

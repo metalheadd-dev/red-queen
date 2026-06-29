@@ -23,6 +23,9 @@ export interface ArchiveMissionRecord {
   resourcesEarned: Record<string, number>;
   objectivesCompleted: number;
   objectivesTotal: number;
+  difficulty: string;
+  durationSeconds: number;
+  reputationChanges?: Record<string, number>;
 }
 
 // ─── Sector State (Dynamic, Persisted) ───────────────────────────────────────
@@ -44,6 +47,8 @@ export interface SectorState {
   completedMissions: string[];          // list of completed mission IDs in this sector
   availableMissions: string[];          // list of currently available mission IDs in this sector
   worldEvents: string[];                // list of active event IDs in this sector
+  contamination: number;                // 0-100 contamination level
+  availableResources: string[];         // resources scavengable in this sector
 }
 
 // ─── Dynamic Campaign Event ───────────────────────────────────────────────────
@@ -172,6 +177,35 @@ export interface InventoryItem {
   itemLevel: number;
   stats: Record<string, string | number>;
   category: "Weapons" | "Armor" | "Medical" | "Tools" | "Materials" | "Mission Items";
+  // ─── Milestone 2 Survival Parameters ───
+  weight?: number;                      // weight in kg
+  durability?: number;                  // current durability (0-100)
+  maxDurability?: number;               // max durability
+  upgradeSlots?: number;                // current upgrades applied
+  maxUpgradeSlots?: number;             // max upgrade sockets
+}
+
+// ─── Crafting Recipe Definition ────────────────────────────────────────────────
+export interface CraftingRecipe {
+  id: string;
+  name: string;
+  description: string;
+  resultItemId: string;
+  resultQty: number;
+  ingredients: { itemId: string; qty: number }[];
+  requiredLevel?: number;
+  requiredFactionRep?: { factionId: string; standing: number };
+}
+
+// ─── Equipment Upgrade Recipe ──────────────────────────────────────────────────
+export interface UpgradeRecipe {
+  id: string;
+  name: string;
+  description: string;
+  targetItemId: string;                 // target item template ID
+  ingredients: { itemId: string; qty: number }[];
+  statModifiers: Record<string, number | string>; // stats added on upgrade
+  powerIncrease: number;
 }
 
 // ─── Operative Profile (Persistent Player State) ─────────────────────────────

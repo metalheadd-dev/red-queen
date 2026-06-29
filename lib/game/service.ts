@@ -3,7 +3,7 @@ import {
   OperativeProfile, Mission, InventoryItem, WorldState, SectorState,
   DynamicCampaignEvent, Sector, CampaignStats, ArchiveMissionRecord
 } from "./types";
-import { INITIAL_SECTORS, INITIAL_MISSIONS } from "./data";
+import { INITIAL_SECTORS, INITIAL_MISSIONS, INITIAL_INVENTORY, CRAFTING_RECIPES, UPGRADE_RECIPES } from "./data";
 
 // ─── Faction Rival Map ─────────────────────────────────────────────────────────
 // When you gain standing with faction A, its rival faction B loses standing.
@@ -69,6 +69,8 @@ export const DEFAULT_WORLD_STATE: WorldState = {
       completedMissions: [],
       availableMissions: ["op-1-sanctuary-search", "op-6-outpost-breach"],
       worldEvents: ["evt-initial-1"],
+      contamination: 25,
+      availableResources: ["Medical Supplies", "Credits"],
     },
     "sec-beta": {
       id: "sec-beta", status: "ACTIVE", dangerLevel: "Medium",
@@ -78,6 +80,8 @@ export const DEFAULT_WORLD_STATE: WorldState = {
       completedMissions: [],
       availableMissions: ["op-2-signal-recovery"],
       worldEvents: [],
+      contamination: 15,
+      availableResources: ["Electronics", "Credits"],
     },
     "sec-delta": {
       id: "sec-delta", status: "ACTIVE", dangerLevel: "High",
@@ -87,6 +91,8 @@ export const DEFAULT_WORLD_STATE: WorldState = {
       completedMissions: [],
       availableMissions: ["op-3-sybil-breach"],
       worldEvents: [],
+      contamination: 40,
+      availableResources: ["Research Data", "Credits"],
     },
     "sec-epsilon": {
       id: "sec-epsilon", status: "LOCKED", dangerLevel: "Severe",
@@ -98,6 +104,8 @@ export const DEFAULT_WORLD_STATE: WorldState = {
       completedMissions: [],
       availableMissions: ["op-4-server-raid"],
       worldEvents: [],
+      contamination: 60,
+      availableResources: ["Research Data", "Metal"],
     },
     "sec-zeta": {
       id: "sec-zeta", status: "LOCKED", dangerLevel: "Severe",
@@ -109,6 +117,8 @@ export const DEFAULT_WORLD_STATE: WorldState = {
       completedMissions: [],
       availableMissions: ["op-8-core-venting"],
       worldEvents: [],
+      contamination: 85,
+      availableResources: ["Deuterium Cells", "Research Data"],
     },
     "sec-gamma": {
       id: "sec-gamma", status: "LOCKED", dangerLevel: "Medium",
@@ -120,6 +130,8 @@ export const DEFAULT_WORLD_STATE: WorldState = {
       completedMissions: [],
       availableMissions: ["op-5-satellite-hijack"],
       worldEvents: [],
+      contamination: 50,
+      availableResources: ["Titanite Scrap", "Credits"],
     },
     "sec-omega": {
       id: "sec-omega", status: "LOCKED", dangerLevel: "Severe",
@@ -132,6 +144,8 @@ export const DEFAULT_WORLD_STATE: WorldState = {
       completedMissions: [],
       availableMissions: ["op-7-omega-nexus"],
       worldEvents: [],
+      contamination: 90,
+      availableResources: ["Energy Cells", "Credits"],
     },
   },
   activeEvents: [
@@ -482,6 +496,9 @@ export function loadProfile(identifier: string): OperativeProfile {
         completedMissions:     Array.isArray(existing.completedMissions) ? existing.completedMissions : [],
         availableMissions:     Array.isArray(existing.availableMissions) ? existing.availableMissions : [...(defaults.availableMissions || [])],
         worldEvents:           Array.isArray(existing.worldEvents) ? existing.worldEvents : [...(defaults.worldEvents || [])],
+        // Add Milestone 2 campaign state fields
+        contamination:         typeof existing.contamination === "number" ? existing.contamination : (defaults.contamination !== undefined ? defaults.contamination : 15),
+        availableResources:    Array.isArray(existing.availableResources) ? existing.availableResources : [...(defaults.availableResources || [])],
       };
     });
     // Also preserve any extra sector states that aren't in defaults
@@ -565,6 +582,77 @@ export function saveProfile(identifier: string, profile: OperativeProfile): void
   localStorage.setItem(`rq_ops_profile:${identifier}`, JSON.stringify(profile));
 }
 
+// ─── Reusable Loot Drop Templates & Tables ──────────────────────────────────────
+const LOOT_TEMPLATES = {
+  Common: [
+    { id: "inv-6", name: "Decoy Signature Key", slot: "Utility", power: 10, type: "consumable", category: "Tools", desc: "Injects synthetic user profiles to misdirect rogue Sybil trackers.", weight: 0.1, durability: 100, maxDurability: 100 },
+    { id: "inv-9", name: "Modular Tactical Pack", slot: "Backpack", power: 15, type: "armor", category: "Armor", desc: "Extra load-bearing compartments reinforced with composite materials.", weight: 1.2, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 1 },
+    { id: "inv-12", name: "Raw Titanite Scrap", slot: "None", power: 0, type: "material", category: "Materials", desc: "Scraped bulkhead alloys for crafting primary shield plates.", weight: 0.5 }
+  ] as any[],
+  Uncommon: [
+    { id: "inv-3", name: "Advanced Stim Injector", slot: "Medkit", power: 25, type: "consumable", category: "Medical", desc: "Rapidly restores 30 HP and neutralizes bio-toxins.", weight: 0.2, durability: 100, maxDurability: 100 },
+    { id: "inv-7", name: "Quantum Decryptor Pad", slot: "Gadget", power: 30, type: "weapon", category: "Tools", desc: "Processes localized sub-quantum key decryptions.", weight: 0.8, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 2 },
+    { id: "mat-bio-sample", name: "Pathogen Biostrain Sample", slot: "None", power: 0, type: "material", category: "Materials", desc: "Biological sample containing pathogenetic material.", weight: 0.1 }
+  ] as any[],
+  Rare: [
+    { id: "inv-1", name: "Kinetic Carbine V3", slot: "Weapon", power: 45, type: "weapon", category: "Weapons", desc: "Standard-issue kinetic assault carbine.", weight: 3.8, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 3, stats: { DPS: 48, Accuracy: "94%" } },
+    { id: "inv-5", name: "C-4 Anomaly Breach Charge", slot: "Utility", power: 50, type: "consumable", category: "Tools", desc: "Heavy breach charge.", weight: 2.0, durability: 100, maxDurability: 100 },
+    { id: "inv-11", name: "Deuterium Power Cell", slot: "None", power: 0, type: "material", category: "Materials", desc: "High-density plasma power cell.", weight: 0.3 },
+    { id: "mat-encrypted-intel", name: "Encrypted Decryption Keyring", slot: "None", power: 0, type: "material", category: "Materials", desc: "Decentralized telemetry keyring.", weight: 0.05 }
+  ] as any[],
+  Epic: [
+    { id: "inv-2", name: "Stealth Recon Cloak", slot: "Gadget", power: 65, type: "weapon", category: "Armor", desc: "Spectra bending camouflage cloak.", weight: 1.5, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 2, stats: { Stealth: "+30", Evade: "+12%" } },
+    { id: "inv-8", name: "Helix Biosensor Helmet", slot: "Helmet", power: 75, type: "armor", category: "Armor", desc: "Helps monitor vital biosensors.", weight: 1.8, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 2, stats: { ThreatDetection: "+20" } }
+  ] as any[],
+  Legendary: [
+    { id: "inv-4", name: "Volumetric Shield Core", slot: "Armor", power: 90, type: "armor", category: "Armor", desc: "Advanced shielding generator.", weight: 5.2, durability: 100, maxDurability: 100, upgradeSlots: 0, maxUpgradeSlots: 4, stats: { Shield: "+150", Mitigation: "20%" } }
+  ] as any[]
+};
+
+export function generateLootDrops(difficulty: string, dangerLevel: string): InventoryItem[] {
+  const rolls = Math.random();
+  let rarity: "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary" = "Common";
+  
+  if (difficulty === "Hard" || dangerLevel === "Severe" || dangerLevel === "High") {
+    if (rolls < 0.03) rarity = "Legendary";
+    else if (rolls < 0.12) rarity = "Epic";
+    else if (rolls < 0.40) rarity = "Rare";
+    else if (rolls < 0.80) rarity = "Uncommon";
+    else rarity = "Common";
+  } else if (difficulty === "Normal" || dangerLevel === "Medium") {
+    if (rolls < 0.01) rarity = "Epic";
+    else if (rolls < 0.15) rarity = "Rare";
+    else if (rolls < 0.55) rarity = "Uncommon";
+    else rarity = "Common";
+  } else {
+    if (rolls < 0.05) rarity = "Rare";
+    else if (rolls < 0.30) rarity = "Uncommon";
+    else rarity = "Common";
+  }
+
+  const templates = LOOT_TEMPLATES[rarity] || LOOT_TEMPLATES.Common;
+  const picked = templates[Math.floor(Math.random() * templates.length)];
+  
+  let qty = 1;
+  if (picked.type === "material") {
+    qty = Math.floor(Math.random() * 4) + 1;
+  } else if (picked.type === "consumable") {
+    qty = Math.floor(Math.random() * 2) + 1;
+  }
+
+  return [
+    {
+      ...picked,
+      qty,
+      rarity,
+      quality: Math.floor(Math.random() * 20) + 80,
+      itemLevel: difficulty === "Hard" ? 20 : difficulty === "Normal" ? 12 : 5,
+      classRequirement: picked.classRequirement || "None",
+      stats: picked.stats || {},
+    } as InventoryItem
+  ];
+}
+
 // ─── Mission Reward Claim (Sprint 7: Full Campaign Engine) ────────────────────
 /**
  * Claims mission outcome rewards. Applies:
@@ -584,7 +672,7 @@ export function claimMissionRewards(
   objectivesCompleted?: number,
   objectivesTotal?: number,
   missionDurationSeconds?: number,
-): { updatedProfile: OperativeProfile; levelUpMessage: string | null; worldEventsMessage: string | null } {
+): { updatedProfile: OperativeProfile; levelUpMessage: string | null; worldEventsMessage: string | null; lootedItems: InventoryItem[] } {
   const updated = { ...profile };
 
   const xpGain      = cumulativeRewards.xp      || 0;
@@ -615,6 +703,19 @@ export function claimMissionRewards(
   }
 
   // ── 3. Credits + Resources ─────────────────────────────────────────────────
+  const lootedItems: InventoryItem[] = [];
+  if (isSuccess) {
+    const sectorDanger = updated.worldState?.sectorStates?.[mission.region]?.dangerLevel || "Medium";
+    const loot = generateLootDrops(mission.difficulty, sectorDanger);
+    if (loot && loot.length > 0) {
+      lootedItems.push(...loot);
+      loot.forEach(item => {
+        const val = item.type === "material" ? item.qty : 1;
+        cumulativeRewards.resources[item.name] = (cumulativeRewards.resources[item.name] || 0) + val;
+      });
+    }
+  }
+
   updated.credits = (updated.credits || 0) + creditGain;
   const resources = { ...updated.resources };
   Object.entries(cumulativeRewards.resources || {}).forEach(([k, v]) => {
@@ -747,6 +848,9 @@ export function claimMissionRewards(
     resourcesEarned:     { ...(cumulativeRewards.resources || {}) },
     objectivesCompleted: objectivesCompleted ?? 0,
     objectivesTotal:     objectivesTotal ?? mission.objectives?.length ?? 0,
+    difficulty:          mission.difficulty,
+    durationSeconds:     missionDurationSeconds ?? (mission.duration * 60),
+    reputationChanges:   mission.factionReputationDelta ? { ...mission.factionReputationDelta } : {},
   };
   updated.operationsArchive = [archiveEntry, ...(updated.operationsArchive || [])].slice(0, 50);
 
@@ -782,16 +886,68 @@ export function claimMissionRewards(
         completedMissions: [],
         availableMissions: [],
         worldEvents: [],
+        contamination: 20,
+        availableResources: ["Credits", "Components"],
       };
     }
 
     const currentSectorState = { ...worldState.sectorStates[regionId] };
     const oldCompletion = currentSectorState.completion;
 
-    // Difficulty-scaled progress
-    const progressGain = mission.sectorProgressPoints ?? DIFFICULTY_PROGRESS[mission.difficulty] ?? 15;
-    currentSectorState.completion = Math.min(100, oldCompletion + progressGain);
-    currentSectorState.stability = Math.min(100, (currentSectorState.stability || 0) + progressGain);
+    // Identify category-specific modifiers
+    const titleLower = mission.title.toLowerCase();
+    const isStory = mission.category === "critical";
+    const isEmergency = titleLower.includes("emergency") || titleLower.includes("outbreak") || titleLower.includes("venting") || titleLower.includes("distress");
+    const isRecon = titleLower.includes("recon") || titleLower.includes("beacon") || titleLower.includes("satellite");
+    const isResearch = titleLower.includes("research") || titleLower.includes("sybil") || titleLower.includes("server") || titleLower.includes("data");
+    const isSupply = titleLower.includes("supply") || titleLower.includes("recovery") || titleLower.includes("salvage");
+
+    let compGain = mission.sectorProgressPoints ?? DIFFICULTY_PROGRESS[mission.difficulty] ?? 15;
+    let stabGain = compGain;
+    let contReduction = 5;
+
+    if (isStory) {
+      compGain = 25;
+      stabGain = 20;
+      contReduction = 15;
+    } else if (isEmergency) {
+      compGain = 15;
+      stabGain = 25;
+      contReduction = 35;
+    } else if (isRecon) {
+      compGain = 15;
+      stabGain = 10;
+      contReduction = 10;
+      // Recon unlocks adjacent sector instantly
+      const staticSector = INITIAL_SECTORS.find(s => s.id === regionId);
+      if (staticSector?.connectedSectors) {
+        staticSector.connectedSectors.forEach(connId => {
+          if (worldState.sectorStates[connId] && !worldState.sectorStates[connId].isUnlocked) {
+            worldState.sectorStates[connId].isUnlocked = true;
+            if (worldState.sectorStates[connId].status === "LOCKED") {
+              worldState.sectorStates[connId].status = "ACTIVE";
+            }
+            unlocked.add(connId);
+          }
+        });
+      }
+    } else if (isResearch) {
+      compGain = 15;
+      stabGain = 10;
+      contReduction = 5;
+    } else if (isSupply) {
+      compGain = 15;
+      stabGain = 15;
+      contReduction = 5;
+      // Supply improves available resources list
+      const existingResources = currentSectorState.availableResources || [];
+      const enriched = Array.from(new Set([...existingResources, "Energy Cells", "Components", "Biological Samples"]));
+      currentSectorState.availableResources = enriched;
+    }
+
+    currentSectorState.completion = Math.min(100, oldCompletion + compGain);
+    currentSectorState.stability = Math.min(100, (currentSectorState.stability || 0) + stabGain);
+    currentSectorState.contamination = Math.max(0, (currentSectorState.contamination || 0) - contReduction);
 
     // Track completed missions in sector
     const secComp = new Set(currentSectorState.completedMissions || []);
@@ -833,6 +989,8 @@ export function claimMissionRewards(
               completedMissions: [],
               availableMissions: staticConn ? INITIAL_MISSIONS.filter(m => m.region === connId).map(m => m.id) : [],
               worldEvents: [],
+              contamination: 20,
+              availableResources: staticConn?.availableResources || ["Credits", "Components"],
             };
           } else {
             const connState = { ...worldState.sectorStates[connId] };
@@ -1018,7 +1176,7 @@ export function claimMissionRewards(
   if (updated.factionStanding[factionId] >= 50)                                         achievements.add("ALLIED");
   updated.achievements = Array.from(achievements);
 
-  return { updatedProfile: updated, levelUpMessage, worldEventsMessage };
+  return { updatedProfile: updated, levelUpMessage, worldEventsMessage, lootedItems };
 }
 
 // ─── Inventory Loaders ────────────────────────────────────────────────────────
@@ -1045,4 +1203,128 @@ export function loadEquippedGear(identifier: string): Record<string, InventoryIt
 export function saveEquippedGear(identifier: string, equippedGear: Record<string, InventoryItem | null>): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(`rq_ops_equipped:${identifier}`, JSON.stringify(equippedGear));
+}
+
+// ─── Crafting & Upgrade Mechanics Backend Foundation ──────────────────────────
+export function craftItem(
+  profile: OperativeProfile,
+  inventory: InventoryItem[],
+  recipeId: string
+): { updatedProfile: OperativeProfile; updatedInventory: InventoryItem[]; success: boolean; message: string } {
+  const recipe = CRAFTING_RECIPES.find(r => r.id === recipeId);
+  if (!recipe) {
+    return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Recipe not found." };
+  }
+
+  if (recipe.requiredLevel && profile.level < recipe.requiredLevel) {
+    return { updatedProfile: profile, updatedInventory: inventory, success: false, message: `Requires Operative Level ${recipe.requiredLevel}.` };
+  }
+
+  // Verify ingredients
+  const nextInv = inventory.map(item => ({ ...item }));
+  for (const ing of recipe.ingredients) {
+    const invItem = nextInv.find(i => i.id === ing.itemId);
+    if (!invItem || invItem.qty < ing.qty) {
+      return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Insufficient ingredients." };
+    }
+  }
+
+  // Consume ingredients
+  recipe.ingredients.forEach(ing => {
+    const invItem = nextInv.find(i => i.id === ing.itemId)!;
+    invItem.qty -= ing.qty;
+  });
+
+  // Filter out exhausted materials/consumables
+  const filteredInv = nextInv.filter(i => i.qty > 0 || i.type === "weapon" || i.type === "armor");
+
+  // Get result template
+  const template = INITIAL_INVENTORY.find(i => i.id === recipe.resultItemId);
+  if (!template) {
+    return { updatedProfile: profile, updatedInventory: filteredInv, success: false, message: "Result item template missing." };
+  }
+
+  // Add crafted item
+  const isStackable = template.type === "material" || template.type === "consumable";
+  const existing = filteredInv.find(i => i.id === template.id);
+  if (isStackable && existing) {
+    existing.qty += recipe.resultQty;
+  } else {
+    const newId = `${template.id}-crafted-${Date.now()}`;
+    filteredInv.push({
+      ...template,
+      id: newId,
+      qty: recipe.resultQty,
+      quality: 100,
+      durability: 100,
+      maxDurability: 100,
+      upgradeSlots: 0,
+      maxUpgradeSlots: template.maxUpgradeSlots || 2
+    });
+  }
+
+  return {
+    updatedProfile: profile,
+    updatedInventory: filteredInv,
+    success: true,
+    message: `Synthesized ${recipe.name} successfully.`
+  };
+}
+
+export function upgradeEquipment(
+  profile: OperativeProfile,
+  inventory: InventoryItem[],
+  upgradeRecipeId: string,
+  targetItemInstanceId: string
+): { updatedProfile: OperativeProfile; updatedInventory: InventoryItem[]; success: boolean; message: string } {
+  const recipe = UPGRADE_RECIPES.find(r => r.id === upgradeRecipeId);
+  if (!recipe) {
+    return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Upgrade recipe not found." };
+  }
+
+  const nextInv = inventory.map(item => ({ ...item }));
+  const targetItem = nextInv.find(i => i.id === targetItemInstanceId);
+  if (!targetItem) {
+    return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Selected item instance not found." };
+  }
+
+  if (targetItem.id !== recipe.targetItemId && !targetItem.id.startsWith(recipe.targetItemId)) {
+    return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Recipe mismatch for this equipment." };
+  }
+
+  if ((targetItem.upgradeSlots || 0) >= (targetItem.maxUpgradeSlots || 3)) {
+    return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Equipment has reached max upgrade slots." };
+  }
+
+  // Verify ingredients
+  for (const ing of recipe.ingredients) {
+    const invItem = nextInv.find(i => i.id === ing.itemId);
+    if (!invItem || invItem.qty < ing.qty) {
+      return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Insufficient upgrade components." };
+    }
+  }
+
+  // Consume ingredients
+  recipe.ingredients.forEach(ing => {
+    const invItem = nextInv.find(i => i.id === ing.itemId)!;
+    invItem.qty -= ing.qty;
+  });
+
+  const filteredInv = nextInv.filter(i => i.qty > 0 || i.type === "weapon" || i.type === "armor");
+
+  // Apply stat changes
+  const upgraded = filteredInv.find(i => i.id === targetItemInstanceId)!;
+  upgraded.upgradeSlots = (upgraded.upgradeSlots || 0) + 1;
+  upgraded.power += recipe.powerIncrease;
+  upgraded.stats = {
+    ...upgraded.stats,
+    ...recipe.statModifiers
+  };
+
+  return {
+    updatedProfile: profile,
+    updatedInventory: filteredInv,
+    success: true,
+    message: `Upgraded ${upgraded.name} (Socket ${upgraded.upgradeSlots}/${upgraded.maxUpgradeSlots}).`
+  };
 }
