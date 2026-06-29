@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useAuth } from "@/components/AuthProvider";
@@ -37,6 +37,24 @@ const ROLES: Record<string, string[]> = {
   Scientist: ["Signal Decoder", "Gravity Analyst", "Data Cryptologist"],
   Specialist: ["Drone Operator", "Infiltrator", "Network Router"]
 };
+
+// Initial Mock Inventory Items
+const INITIAL_INVENTORY = [
+  { id: "inv-1", name: "Kinetic Carbine V3", type: "weapon", slot: "Weapon", rarity: "Rare", power: 45, class_requirement: "Assault", desc: "Short-stroke piston rifle caliber tailored for anomaly breach parameters.", qty: 1 },
+  { id: "inv-2", name: "Stealth Recon Cloak", type: "gadget", slot: "Gadget", rarity: "Epic", power: 65, class_requirement: "Recon", desc: "Bends electromagnetic spectra to match surrounding quadrant visual noise.", qty: 1 },
+  { id: "inv-3", name: "Advanced Stim Injector", type: "consumable", slot: "Medkit", rarity: "Uncommon", power: 25, class_requirement: "Medic", desc: "Rapidly neutralizes biological toxins and speeds metabolic repair.", qty: 5 },
+  { id: "inv-4", name: "Volumetric Shield Core", type: "armor", slot: "Armor", rarity: "Legendary", power: 90, class_requirement: "Scientist", desc: "Projects a gravity displacement barrier to deflect analog projectiles.", qty: 1 },
+  { id: "inv-5", name: "C-4 Anomaly Breach Charge", type: "consumable", slot: "Utility", rarity: "Rare", power: 50, class_requirement: "Assault", desc: "Heavy thermite detonation device capable of punching through node shields.", qty: 3 },
+  { id: "inv-6", name: "Decoy Signature Key", type: "consumable", slot: "Utility", rarity: "Common", power: 10, class_requirement: "Specialist", desc: "Injects synthetic user profiles to misdirect rogue Sybil trackers.", qty: 8 },
+  { id: "inv-7", name: "Quantum Decryptor Pad", type: "gadget", slot: "Gadget", rarity: "Uncommon", power: 30, class_requirement: "Scientist", desc: "Processes localized sub-quantum key decryptions via custom WASM modules.", qty: 1 },
+  { id: "inv-8", name: "Helix Biosensor Helmet", type: "helmet", slot: "Helmet", rarity: "Epic", power: 75, class_requirement: "Medic", desc: "Monitors oxygen filtration levels and identifies regional pathogen clusters.", qty: 1 },
+  { id: "inv-9", name: "Modular Tactical Pack", type: "backpack", slot: "Backpack", rarity: "Common", power: 15, class_requirement: "Engineer", desc: "Extra load-bearing compartments reinforced with composite materials.", qty: 1 },
+  { id: "inv-10", name: "Kevlar Node Mesh Jacket", type: "armor", slot: "Armor", rarity: "Common", power: 22, class_requirement: "Engineer", desc: "Reinforced under-armor offering basic protection against thermal loops.", qty: 1 },
+  { id: "inv-11", name: "Deuterium Power Cell", type: "material", slot: "None", rarity: "Rare", power: 0, class_requirement: "None", desc: "High-density plasma power pack for calibrating transmitters.", qty: 12 },
+  { id: "inv-12", name: "Raw Titanite Scrap", type: "material", slot: "None", rarity: "Common", power: 0, class_requirement: "None", desc: "Scraped bulkhead alloys for crafting primary shield plates.", qty: 25 },
+  { id: "inv-13", name: "Sybil Decoy Router", type: "gadget", slot: "Gadget", rarity: "Epic", power: 70, class_requirement: "Specialist", desc: "Establishes multi-hop non-custodial transaction relay connections.", qty: 1 },
+  { id: "inv-14", name: "Portable Gravity Analyzer", type: "utility", slot: "Utility", rarity: "Rare", power: 55, class_requirement: "Scientist", desc: "Measures localized gravity-well contractions and warns of grid implosions.", qty: 1 }
+];
 
 export default function OperationsPage() {
   const { publicKey } = useWallet();
@@ -76,6 +94,59 @@ export default function OperationsPage() {
 
   // Connection handshaking sequence logs
   const [connectionLogs, setConnectionLogs] = useState<string[]>([]);
+
+  // Immersive AI Console Diagnostic stream logs
+  const [aiLogs, setAiLogs] = useState<string[]>([
+    "[SYS] CORE SYNAPSE ENGAGED...",
+    "[SYS] UPLINK STATUS // ONLINE // SECURE"
+  ]);
+
+  // Inventory System States
+  const [inventory, setInventory] = useState<any[]>(INITIAL_INVENTORY);
+  const [equippedGear, setEquippedGear] = useState<Record<string, any>>({
+    Helmet: null,
+    Armor: null,
+    Weapon: null,
+    Utility: null,
+    Medkit: null,
+    Backpack: null,
+    Gadget: null
+  });
+  const [inventoryFilter, setInventoryFilter] = useState<string>("all");
+  const [inventorySort, setInventorySort] = useState<string>("power-desc");
+  const [inventorySearch, setInventorySearch] = useState<string>("");
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<any>(null);
+
+  const aiLogsEndRef = useRef<HTMLDivElement>(null);
+
+  // Continuous background diagnostic log updater to make the console feel alive
+  useEffect(() => {
+    const aiLogPool = [
+      "[DB] SCANNING ANOMALOUS ENCRYPT NODES...",
+      "[SYS] ADAPTABILITY INDEX STEADY AT 68%",
+      "[TACTICAL] SCANNING SECTOR ALPHA FIREWALLS...",
+      "[ORACLE] THREAT METRIC IN SECTOR DELTA STABILIZED...",
+      "[SYS] CLEANING TRANSACTIONS THROUGH DEC DECOYS...",
+      "[UPLINK] SIGNAL ENVELOPE SHIELDING SECURED AT 98%",
+      "[WARN] BEACON EMISSION ANOMALY DETECTED IN SECTOR BETA...",
+      "[SYS] DECRYPTING ENVELOPE ROUTING KEY...",
+      "[DB] RED QUEEN SYNAPSE CORE RE-CALIBRATING..."
+    ];
+
+    const interval = setInterval(() => {
+      const line = aiLogPool[Math.floor(Math.random() * aiLogPool.length)];
+      setAiLogs(prev => [...prev.slice(-30), line]); // Cap logs array at 30
+    }, 5500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Auto-scroll AI logs
+  useEffect(() => {
+    if (aiLogsEndRef.current) {
+      aiLogsEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [aiLogs]);
 
   // Load operative stats from client persistence with safety guards to prevent crashes
   const fetchOperationsProfile = () => {
@@ -134,7 +205,7 @@ export default function OperationsPage() {
       role: selectedRole,
       level: 1,
       xp: 0,
-      credits: 100,
+      credits: 150,
       resources: {
         Metal: 5,
         Electronics: 3,
@@ -159,7 +230,7 @@ export default function OperationsPage() {
     setProfile(initialProfile);
   };
 
-  // Deployment logs generator
+  // Deployment logs generator - Fixed closure variables
   const runDeployment = (op: any) => {
     setMissionFlow("deployment");
     setDeploymentProgress(0);
@@ -190,7 +261,7 @@ export default function OperationsPage() {
     }, 450);
   };
 
-  // Run the Connection Handshake step
+  // Run the Connection Handshake step - Fixed closure variables
   const runConnectionSequence = () => {
     setMissionFlow("connection");
     setConnectionLogs([]);
@@ -324,6 +395,46 @@ export default function OperationsPage() {
     setOutcomeRewards(null);
   };
 
+  // Interactive RPG Inventory actions
+  const handleEquipItem = (item: any) => {
+    if (!item || item.slot === "None") return;
+    
+    // Setup target slot
+    const slotName = item.slot;
+    const currentlyEquipped = equippedGear[slotName];
+    
+    // Update equipped state
+    setEquippedGear(prev => ({
+      ...prev,
+      [slotName]: item
+    }));
+    
+    // Remove equipped item from inventory list, and put unequipped item back
+    setInventory(prev => {
+      const filtered = prev.filter(i => i.id !== item.id);
+      if (currentlyEquipped) {
+        return [...filtered, currentlyEquipped];
+      }
+      return filtered;
+    });
+    
+    setSelectedInventoryItem(null);
+  };
+
+  const handleUnequipItem = (slotName: string) => {
+    const item = equippedGear[slotName];
+    if (!item) return;
+    
+    // Remove from slot
+    setEquippedGear(prev => ({
+      ...prev,
+      [slotName]: null
+    }));
+    
+    // Return to inventory
+    setInventory(prev => [...prev, item]);
+  };
+
   const getFactionColor = (facId: string) => {
     return FACTIONS.find(f => f.id === facId)?.color || "var(--accent)";
   };
@@ -338,6 +449,48 @@ export default function OperationsPage() {
 
   // Selected operation detail resolution
   const selectedOperation = operations.find(o => o.id === selectedMapSector);
+
+  // Filter and Sort inventory
+  const filteredInventory = inventory
+    .filter(item => {
+      // Tab category filter
+      if (inventoryFilter === "weapon") return item.type === "weapon";
+      if (inventoryFilter === "armor") return item.type === "armor" || item.slot === "Helmet";
+      if (inventoryFilter === "consumable") return item.type === "consumable" || item.slot === "Utility" || item.slot === "Medkit";
+      if (inventoryFilter === "material") return item.type === "material";
+      return true;
+    })
+    .filter(item => {
+      // Search input text match
+      if (!inventorySearch) return true;
+      return item.name.toLowerCase().includes(inventorySearch.toLowerCase()) || item.desc.toLowerCase().includes(inventorySearch.toLowerCase());
+    })
+    .sort((a, b) => {
+      // Sort logic
+      if (inventorySort === "power-desc") return b.power - a.power;
+      if (inventorySort === "power-asc") return a.power - b.power;
+      if (inventorySort === "name-asc") return a.name.localeCompare(b.name);
+      
+      // Rarity weight sorting helper
+      const rarityWeight = (rarity: string) => {
+        if (rarity === "Legendary") return 5;
+        if (rarity === "Epic") return 4;
+        if (rarity === "Rare") return 3;
+        if (rarity === "Uncommon") return 2;
+        return 1;
+      };
+      if (inventorySort === "rarity-desc") return rarityWeight(b.rarity) - rarityWeight(a.rarity);
+      return 0;
+    });
+
+  // Get Rarity Tier CSS Styles
+  const getRarityStyle = (rarity: string) => {
+    if (rarity === "Legendary") return { border: "1px solid #eab308", color: "#eab308", bg: "rgba(234, 179, 8, 0.08)" };
+    if (rarity === "Epic") return { border: "1px solid #a855f7", color: "#a855f7", bg: "rgba(168, 85, 247, 0.08)" };
+    if (rarity === "Rare") return { border: "1px solid #3b82f6", color: "#3b82f6", bg: "rgba(59, 130, 246, 0.08)" };
+    if (rarity === "Uncommon") return { border: "1px solid #22c55e", color: "#22c55e", bg: "rgba(34, 197, 94, 0.08)" };
+    return { border: "1px solid #a8a8a8", color: "#a8a8a8", bg: "rgba(168, 168, 168, 0.05)" };
+  };
 
   if (loading) {
     return (
@@ -366,7 +519,6 @@ export default function OperationsPage() {
         background: "#030303", display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", overflowY: "auto", padding: "40px 24px"
       }}>
-        {/* Style block for responsive grids and game animations */}
         <style>{`
           .ops-grid-3 {
             display: grid;
@@ -386,7 +538,6 @@ export default function OperationsPage() {
             gap: 14px;
           }
           
-          /* Flicker and Pulse animations */
           .holo-noise {
             background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             background-size: 100% 4px, 6px 100%;
@@ -418,7 +569,6 @@ export default function OperationsPage() {
             50% { opacity: 0.45; border-color: rgba(255, 77, 77, 0.15); }
           }
           
-          /* Responsive overrides for smaller layouts */
           @media (max-width: 1366px) {
             .ops-grid-3 {
               grid-template-columns: repeat(2, 1fr) !important;
@@ -594,7 +744,7 @@ export default function OperationsPage() {
               )}
             </div>
 
-            {/* Right Interactive Preview Panel - Art Container Frame */}
+            {/* Right Interactive Preview Panel */}
             <div style={{
               background: "#080808", border: "1px solid rgba(255,255,255,0.05)",
               padding: "24px", display: "flex", flexDirection: "column", justifyItems: "center",
@@ -611,7 +761,6 @@ export default function OperationsPage() {
                 border: "1px dashed rgba(255, 77, 77, 0.25)", background: "rgba(0,0,0,0.3)",
                 position: "relative"
               }}>
-                {/* Visual Bounding Brackets for future artwork */}
                 <div style={{ position: "absolute", top: "10px", left: "10px", width: "12px", height: "12px", borderTop: "1.5px solid rgba(255,255,255,0.15)", borderLeft: "1.5px solid rgba(255,255,255,0.15)" }} />
                 <div style={{ position: "absolute", top: "10px", right: "10px", width: "12px", height: "12px", borderTop: "1.5px solid rgba(255,255,255,0.15)", borderRight: "1.5px solid rgba(255,255,255,0.15)" }} />
                 <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "12px", height: "12px", borderBottom: "1.5px solid rgba(255,255,255,0.15)", borderLeft: "1.5px solid rgba(255,255,255,0.15)" }} />
@@ -619,7 +768,6 @@ export default function OperationsPage() {
                 
                 {selectedFactionDetails ? (
                   <div style={{ textAlign: "center", padding: "16px", zIndex: 1 }} className="animate-flicker">
-                    {/* Faction emblem holder */}
                     <div style={{
                       width: "64px", height: "64px", border: `2px dashed ${selectedFactionDetails.color}`,
                       borderRadius: "50%", margin: "0 auto 16px auto", display: "flex", alignItems: "center",
@@ -671,37 +819,51 @@ export default function OperationsPage() {
   return (
     <div style={{
       position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
-      background: "#030303", display: "flex", flexDirection: "column", overflow: "hidden"
+      background: "#020202", display: "flex", flexDirection: "column", overflow: "hidden"
     }}>
-      {/* Inject style block for layout rendering */}
       <style>{`
         .ops-grid-3 {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 32px;
+          gap: 20px;
           width: 100%;
+          height: 100%;
         }
         .ops-grid-2 {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 24px;
+          gap: 20px;
         }
         .ops-grid-2-large {
           display: grid;
           grid-template-columns: 1.2fr 0.8fr;
-          gap: 32px;
+          gap: 24px;
           width: 100%;
         }
         .ops-grid-3-loadout {
           display: grid;
-          grid-template-columns: 0.85fr 1.3fr 0.85fr;
-          gap: 32px;
+          grid-template-columns: 1fr 1.1fr 1.9fr;
+          gap: 24px;
           width: 100%;
+          height: 100%;
+          overflow: hidden;
         }
         .holo-noise {
-          background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+          background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
           background-size: 100% 4px, 6px 100%;
         }
+        
+        /* CRT scanline effect */
+        .crt-scanlines {
+          position: fixed;
+          top: 0; left: 0; width: 100vw; height: 100vh;
+          background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+          background-size: 100% 3px;
+          z-index: 999999;
+          pointer-events: none;
+          opacity: 0.4;
+        }
+        
         .animate-flicker {
           animation: holo-flicker 4s infinite;
         }
@@ -729,12 +891,7 @@ export default function OperationsPage() {
           0%, 100% { opacity: 1; border-color: rgba(255, 77, 77, 0.4); }
           50% { opacity: 0.45; border-color: rgba(255, 77, 77, 0.15); }
         }
-        @keyframes scanlines-scrolling {
-          0% { background-position: 0 0; }
-          100% { background-position: 0 100%; }
-        }
-
-        /* Tactical Map scope animations */
+        
         @keyframes map-scope-spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
@@ -753,61 +910,58 @@ export default function OperationsPage() {
 
         /* Responsive overrides for smaller layouts */
         @media (max-width: 1440px) {
-          .ops-grid-3 {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
           .ops-grid-3-loadout {
-            grid-template-columns: 1fr 1fr !important;
+            grid-template-columns: 1fr 1.2fr 1.8fr !important;
           }
         }
         @media (max-width: 1200px) {
-          .ops-grid-2-large {
-            grid-template-columns: 1fr !important;
-          }
           .ops-grid-3-loadout {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: 1.2fr 1.8fr !important;
+          }
+          .loadout-center-silhouette {
+            display: none !important;
           }
         }
         @media (max-width: 1024px) {
-          .ops-grid-3 {
-            grid-template-columns: 1fr !important;
-          }
-          .ops-grid-2 {
+          .ops-grid-3-loadout {
             grid-template-columns: 1fr !important;
           }
         }
       `}</style>
 
+      {/* Global scanlines layer */}
+      <div className="crt-scanlines" />
+
       {/* Top Status Bar HUD */}
       <header style={{
-        height: "64px", borderBottom: "2px solid rgba(255, 77, 77, 0.25)", background: "#060606",
-        padding: "0 32px", display: "flex", alignItems: "center", justifyItems: "center",
-        justifyContent: "space-between", flexShrink: 0
+        height: "54px", borderBottom: "2px solid rgba(255, 77, 77, 0.25)", background: "#060606",
+        padding: "0 24px", display: "flex", alignItems: "center", justifyItems: "center",
+        justifyContent: "space-between", flexShrink: 0, zIndex: 1000
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ width: "12px", height: "12px", background: getFactionColor(profile?.faction), borderRadius: "50%", boxShadow: `0 0 12px ${getFactionColor(profile?.faction)}` }} />
-            <span style={{ fontFamily: "var(--title-font)", fontSize: "15px", fontWeight: "900", letterSpacing: "0.15em", color: "#fff" }}>
+            <span style={{ width: "10px", height: "10px", background: getFactionColor(profile?.faction), borderRadius: "50%", boxShadow: `0 0 12px ${getFactionColor(profile?.faction)}` }} />
+            <span style={{ fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "900", letterSpacing: "0.15em", color: "#fff" }}>
               {profile?.name} // {profile?.faction?.toUpperCase()}
             </span>
           </div>
           <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
-          <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)" }}>
+          <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>
             CLASS: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile?.class?.toUpperCase()}</span>
           </span>
           <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
-          <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)" }}>
-            OPERATIVE ROLE: <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{profile?.role?.toUpperCase()}</span>
+          <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>
+            ROLE: <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{profile?.role?.toUpperCase()}</span>
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(0, 255, 204, 0.08)", border: "1px solid rgba(0, 255, 204, 0.3)", padding: "6px 14px", borderRadius: "2px" }}>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", fontWeight: "bold", letterSpacing: "0.05em" }}>BIO-SCORE: {currentBioScore}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(0, 255, 204, 0.06)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "4px 10px", borderRadius: "2px" }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", fontWeight: "bold", letterSpacing: "0.05em" }}>BIO-SCORE: {currentBioScore}</span>
           </div>
           
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 77, 77, 0.08)", border: "1px solid rgba(255, 77, 77, 0.3)", padding: "6px 14px", borderRadius: "2px" }}>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.05em" }}>CLEARANCE: {clearanceTier.label}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255, 77, 77, 0.06)", border: "1px solid rgba(255, 77, 77, 0.2)", padding: "4px 10px", borderRadius: "2px" }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.05em" }}>CLEARANCE: {clearanceTier.label}</span>
           </div>
 
           <button
@@ -817,7 +971,7 @@ export default function OperationsPage() {
               setProfile(null);
             }}
             className="btn btn-ghost"
-            style={{ fontSize: "10px", padding: "6px 12px", borderColor: "rgba(255,0,0,0.3)", color: "#ff4d4d", cursor: "pointer", fontWeight: "bold" }}
+            style={{ fontSize: "9px", padding: "4px 10px", borderColor: "rgba(255,0,0,0.2)", color: "#ff4d4d", cursor: "pointer", fontWeight: "bold" }}
           >
             [ RE-INITIALIZE ]
           </button>
@@ -829,21 +983,21 @@ export default function OperationsPage() {
         
         {/* Navigation Sidebar */}
         <aside style={{
-          width: "220px", borderRight: "1px solid var(--border)", background: "#060606",
-          padding: "32px 20px", display: "flex", flexDirection: "column", gap: "16px", flexShrink: 0
+          width: "200px", borderRight: "1px solid var(--border)", background: "#060606",
+          padding: "24px 16px", display: "flex", flexDirection: "column", gap: "12px", flexShrink: 0
         }}>
-          <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.2em", marginBottom: "8px", fontWeight: "bold" }}>
+          <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.2em", marginBottom: "6px", fontWeight: "bold" }}>
             ▶ OPERATIONAL DECKS
           </div>
           
           <button
             onClick={() => setActiveTab("center")}
             style={{
-              width: "100%", padding: "14px 18px", border: "1px solid var(--border)",
-              background: activeTab === "center" ? "rgba(255, 77, 77, 0.08)" : "none",
+              width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
+              background: activeTab === "center" ? "rgba(255, 77, 77, 0.06)" : "none",
               color: activeTab === "center" ? "var(--accent)" : "var(--text-dim)",
-              borderColor: activeTab === "center" ? "rgba(255, 77, 77, 0.4)" : "var(--border)",
-              fontFamily: "var(--title-font)", fontSize: "12px", textAlign: "left", cursor: "pointer",
+              borderColor: activeTab === "center" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
+              fontFamily: "var(--title-font)", fontSize: "11px", textAlign: "left", cursor: "pointer",
               transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
             }}
           >
@@ -853,11 +1007,11 @@ export default function OperationsPage() {
           <button
             onClick={() => setActiveTab("profile")}
             style={{
-              width: "100%", padding: "14px 18px", border: "1px solid var(--border)",
-              background: activeTab === "profile" ? "rgba(255, 77, 77, 0.08)" : "none",
+              width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
+              background: activeTab === "profile" ? "rgba(255, 77, 77, 0.06)" : "none",
               color: activeTab === "profile" ? "var(--accent)" : "var(--text-dim)",
-              borderColor: activeTab === "profile" ? "rgba(255, 77, 77, 0.4)" : "var(--border)",
-              fontFamily: "var(--title-font)", fontSize: "12px", textAlign: "left", cursor: "pointer",
+              borderColor: activeTab === "profile" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
+              fontFamily: "var(--title-font)", fontSize: "11px", textAlign: "left", cursor: "pointer",
               transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
             }}
           >
@@ -867,23 +1021,23 @@ export default function OperationsPage() {
           <button
             onClick={() => setActiveTab("inventory")}
             style={{
-              width: "100%", padding: "14px 18px", border: "1px solid var(--border)",
-              background: activeTab === "inventory" ? "rgba(255, 77, 77, 0.08)" : "none",
+              width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
+              background: activeTab === "inventory" ? "rgba(255, 77, 77, 0.06)" : "none",
               color: activeTab === "inventory" ? "var(--accent)" : "var(--text-dim)",
-              borderColor: activeTab === "inventory" ? "rgba(255, 77, 77, 0.4)" : "var(--border)",
-              fontFamily: "var(--title-font)", fontSize: "12px", textAlign: "left", cursor: "pointer",
+              borderColor: activeTab === "inventory" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
+              fontFamily: "var(--title-font)", fontSize: "11px", textAlign: "left", cursor: "pointer",
               transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
             }}
           >
             📦 EQUIPMENT DECK
           </button>
 
-          <div style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "20px" }}>
+          <div style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "16px" }}>
             <Link
               href="/"
               style={{
-                display: "block", width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
-                background: "none", color: "var(--text-dim)", fontFamily: "var(--title-font)", fontSize: "11px",
+                display: "block", width: "100%", padding: "10px 12px", border: "1px solid var(--border)",
+                background: "none", color: "var(--text-dim)", fontFamily: "var(--title-font)", fontSize: "10px",
                 textDecoration: "none", textAlign: "center", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
               }}
             >
@@ -892,47 +1046,48 @@ export default function OperationsPage() {
           </div>
         </aside>
 
-        {/* Content Pane */}
-        <main style={{ flex: 1, padding: "40px", overflowY: "auto", background: "#030303" }}>
+        {/* Content Pane - Viewport bound game HUD structure */}
+        <main style={{ flex: 1, padding: "24px", background: "#030303", display: "flex", flexDirection: "column", height: "100%", boxSizing: "border-box", overflow: "hidden" }}>
           
           {/* TAB 1: COMMAND CENTER (HUD & OPERATIONS) */}
           {activeTab === "center" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "32px", width: "100%" }}>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
               
-              {/* TOP SECTION: MASSIVE GLOBAL TACTICAL MAP */}
+              {/* TOP SECTION: MASSIVE GLOBAL TACTICAL MAP (52% height) */}
               <div className="panel holo-noise animate-pulse-slow" style={{
-                position: "relative", padding: "24px", minHeight: "520px", background: "#060606",
-                border: "2px solid rgba(255, 77, 77, 0.35)", boxShadow: "0 0 40px rgba(0, 0, 0, 0.8)",
-                display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "space-between"
+                position: "relative", padding: "16px", height: "50%", minHeight: "280px", background: "#050505",
+                border: "2px solid rgba(255, 77, 77, 0.3)", boxShadow: "0 0 30px rgba(0, 0, 0, 0.9)",
+                display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "space-between",
+                marginBottom: "20px", flexShrink: 0
               }}>
                 {/* Visual Corner Brackets */}
-                <div style={{ position: "absolute", top: "12px", left: "12px", width: "16px", height: "16px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
-                <div style={{ position: "absolute", top: "12px", right: "12px", width: "16px", height: "16px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
-                <div style={{ position: "absolute", bottom: "12px", left: "12px", width: "16px", height: "16px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
-                <div style={{ position: "absolute", bottom: "12px", right: "12px", width: "16px", height: "16px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", top: "10px", left: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", top: "10px", right: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
 
                 {/* Map telemetry header */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "12px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <span style={{ width: "8px", height: "8px", background: "#ff4d4d", borderRadius: "50%" }} className="animate-pulse" />
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "10px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ width: "6px", height: "6px", background: "#ff4d4d", borderRadius: "50%" }} className="animate-pulse" />
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
                       RED QUEEN GLOBAL TACTICAL RADAR GRID
                     </span>
                   </div>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>
                     MAP_UPLINK_STATUS: SECURE // SCANNING...
                   </span>
                 </div>
 
-                {/* The Interactive Map SVG Canvas */}
-                <div style={{ flex: 1, position: "relative", margin: "20px 0", minHeight: "360px", background: "rgba(0,0,0,0.5)" }}>
+                {/* Interactive Map SVG Canvas */}
+                <div style={{ flex: 1, position: "relative", margin: "10px 0", background: "rgba(0,0,0,0.6)" }}>
                   
                   {/* Transient message banner if sector locked clicked */}
                   {mapAlert && (
                     <div style={{
-                      position: "absolute", top: "16px", left: "50%", transform: "translateX(-50%)",
-                      background: "rgba(255, 77, 77, 0.08)", border: "1px solid var(--accent)", padding: "10px 20px",
-                      zIndex: 10, fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)",
+                      position: "absolute", top: "12px", left: "50%", transform: "translateX(-50%)",
+                      background: "rgba(255, 77, 77, 0.08)", border: "1px solid var(--accent)", padding: "8px 16px",
+                      zIndex: 10, fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)",
                       boxShadow: "0 0 15px rgba(255,77,77,0.15)", borderRadius: "2px"
                     }}>
                       {mapAlert}
@@ -940,7 +1095,6 @@ export default function OperationsPage() {
                   )}
 
                   <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", top: 0, left: 0 }}>
-                    {/* Background grid lines */}
                     <defs>
                       <pattern id="map-grid" width="10" height="10" patternUnits="userSpaceOnUse">
                         <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.015)" strokeWidth="0.5"/>
@@ -962,7 +1116,7 @@ export default function OperationsPage() {
                     <line x1="25" y1="35" x2="75" y2="30" stroke="rgba(0, 255, 204, 0.05)" strokeWidth="0.5" strokeDasharray="1,1" />
                   </svg>
 
-                  {/* INTERACTIVE NODES (Absolute positioned elements over canvas) */}
+                  {/* INTERACTIVE NODES */}
                   
                   {/* Node 1: Sector Alpha */}
                   <div style={{ position: "absolute", left: "25%", top: "35%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
@@ -974,13 +1128,13 @@ export default function OperationsPage() {
                       }}
                     >
                       <span className="map-pulse-node" style={{
-                        width: "14px", height: "14px", background: "#00ffcc", borderRadius: "50%",
+                        width: "12px", height: "12px", background: "#00ffcc", borderRadius: "50%",
                         border: selectedMapSector === "op-1-sanctuary-search" ? "3px solid #fff" : "2px solid #00ffcc",
-                        boxShadow: "0 0 12px #00ffcc"
+                        boxShadow: "0 0 10px #00ffcc"
                       }} />
                       <span style={{
-                        fontFamily: "var(--mono)", fontSize: "9.5px", color: selectedMapSector === "op-1-sanctuary-search" ? "#fff" : "var(--text-dim)",
-                        marginTop: "6px", background: "rgba(0,0,0,0.8)", padding: "2px 6px", border: "1px solid rgba(255,255,255,0.06)"
+                        fontFamily: "var(--mono)", fontSize: "9px", color: selectedMapSector === "op-1-sanctuary-search" ? "#fff" : "var(--text-dim)",
+                        marginTop: "4px", background: "rgba(0,0,0,0.8)", padding: "1px 4px", border: "1px solid rgba(255,255,255,0.06)"
                       }}>
                         SECTOR ALPHA
                       </span>
@@ -997,13 +1151,13 @@ export default function OperationsPage() {
                       }}
                     >
                       <span className="map-pulse-node" style={{
-                        width: "14px", height: "14px", background: "#f0c929", borderRadius: "50%",
+                        width: "12px", height: "12px", background: "#f0c929", borderRadius: "50%",
                         border: selectedMapSector === "op-2-signal-recovery" ? "3px solid #fff" : "2px solid #f0c929",
-                        boxShadow: "0 0 12px #f0c929"
+                        boxShadow: "0 0 10px #f0c929"
                       }} />
                       <span style={{
-                        fontFamily: "var(--mono)", fontSize: "9.5px", color: selectedMapSector === "op-2-signal-recovery" ? "#fff" : "var(--text-dim)",
-                        marginTop: "6px", background: "rgba(0,0,0,0.8)", padding: "2px 6px", border: "1px solid rgba(255,255,255,0.06)"
+                        fontFamily: "var(--mono)", fontSize: "9px", color: selectedMapSector === "op-2-signal-recovery" ? "#fff" : "var(--text-dim)",
+                        marginTop: "4px", background: "rgba(0,0,0,0.8)", padding: "1px 4px", border: "1px solid rgba(255,255,255,0.06)"
                       }}>
                         SECTOR BETA
                       </span>
@@ -1020,13 +1174,13 @@ export default function OperationsPage() {
                       }}
                     >
                       <span className="map-pulse-node" style={{
-                        width: "14px", height: "14px", background: "#ff4d4d", borderRadius: "50%",
+                        width: "12px", height: "12px", background: "#ff4d4d", borderRadius: "50%",
                         border: selectedMapSector === "op-3-sybil-breach" ? "3px solid #fff" : "2px solid #ff4d4d",
-                        boxShadow: "0 0 12px #ff4d4d"
+                        boxShadow: "0 0 10px #ff4d4d"
                       }} />
                       <span style={{
-                        fontFamily: "var(--mono)", fontSize: "9.5px", color: selectedMapSector === "op-3-sybil-breach" ? "#fff" : "var(--text-dim)",
-                        marginTop: "6px", background: "rgba(0,0,0,0.8)", padding: "2px 6px", border: "1px solid rgba(255,255,255,0.06)"
+                        fontFamily: "var(--mono)", fontSize: "9px", color: selectedMapSector === "op-3-sybil-breach" ? "#fff" : "var(--text-dim)",
+                        marginTop: "4px", background: "rgba(0,0,0,0.8)", padding: "1px 4px", border: "1px solid rgba(255,255,255,0.06)"
                       }}>
                         SECTOR DELTA
                       </span>
@@ -1037,23 +1191,17 @@ export default function OperationsPage() {
                   <div style={{ position: "absolute", left: "20%", top: "75%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
                     <button
                       onClick={() => {
-                        setMapAlert("ACCESS DENIED // RECON SENSORS LOCKED // BIO-SCORE REQUIRED: 40");
+                        setMapAlert("ACCESS DENIED // RECON SENSORS OFFLINE // BIO-SCORE REQUIRED: 40");
                         setTimeout(() => setMapAlert(null), 3000);
                       }}
                       style={{
                         background: "none", border: "none", padding: 0, cursor: "pointer",
-                        display: "flex", flexDirection: "column", alignItems: "center", opacity: 0.4
+                        display: "flex", flexDirection: "column", alignItems: "center", opacity: 0.35
                       }}
                     >
-                      <span style={{
-                        width: "12px", height: "12px", background: "#555", borderRadius: "50%",
-                        border: "1.5px solid #222"
-                      }} />
-                      <span style={{
-                        fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)",
-                        marginTop: "6px", background: "rgba(0,0,0,0.8)", padding: "2px 6px"
-                      }}>
-                        LOCKED SECTOR
+                      <span style={{ width: "10px", height: "10px", background: "#555", borderRadius: "50%", border: "1.5px solid #222" }} />
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "4px" }}>
+                        LOCKED
                       </span>
                     </button>
                   </div>
@@ -1062,23 +1210,17 @@ export default function OperationsPage() {
                   <div style={{ position: "absolute", left: "85%", top: "70%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
                     <button
                       onClick={() => {
-                        setMapAlert("ACCESS DENIED // COMMUNICATIONS LINK TERMINATED // LEVEL REQUIRED: 5");
+                        setMapAlert("ACCESS DENIED // SIGNAL ENCRYPTION BLOCKED // LEVEL REQUIRED: 5");
                         setTimeout(() => setMapAlert(null), 3000);
                       }}
                       style={{
                         background: "none", border: "none", padding: 0, cursor: "pointer",
-                        display: "flex", flexDirection: "column", alignItems: "center", opacity: 0.4
+                        display: "flex", flexDirection: "column", alignItems: "center", opacity: 0.35
                       }}
                     >
-                      <span style={{
-                        width: "12px", height: "12px", background: "#555", borderRadius: "50%",
-                        border: "1.5px solid #222"
-                      }} />
-                      <span style={{
-                        fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)",
-                        marginTop: "6px", background: "rgba(0,0,0,0.8)", padding: "2px 6px"
-                      }}>
-                        LOCKED SECTOR
+                      <span style={{ width: "10px", height: "10px", background: "#555", borderRadius: "50%", border: "1.5px solid #222" }} />
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "4px" }}>
+                        LOCKED
                       </span>
                     </button>
                   </div>
@@ -1086,82 +1228,180 @@ export default function OperationsPage() {
                 </div>
 
                 {/* Map footer coordinates */}
-                <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "10px" }}>
                   <span>ACTIVE SECTORS: 3 ONLINE // 2 OFFLINE</span>
                   <span>DEC. GRID SYSTEM SWAP BUFFER [ONLINE]</span>
                 </div>
               </div>
 
-              {/* BOTTOM SECTION: RED QUEEN AI (LEFT) vs SELECTED MISSION / ALERTS (RIGHT) */}
-              <div className="ops-grid-2-large">
+              {/* BOTTOM SECTION: 3-COLUMN CONTROL DECK (50% height) */}
+              <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1.3fr 1.3fr", gap: "20px", overflow: "hidden", minHeight: "200px" }}>
                 
-                {/* Left Panel: Red Queen AI Hologram */}
+                {/* Col 1: Red Queen AI Console & Live Diagnostic log */}
                 <div className="panel" style={{
-                  background: "#080808", border: "1px solid rgba(255, 77, 77, 0.3)",
-                  position: "relative", padding: "24px", display: "flex", flexDirection: "column", gap: "16px"
+                  background: "#080808", border: "1px solid rgba(255, 77, 77, 0.25)",
+                  position: "relative", padding: "16px", display: "flex", flexDirection: "column", gap: "12px",
+                  overflow: "hidden"
                 }}>
-                  {/* Hologram Camera Brackets */}
-                  <div style={{ position: "absolute", top: "10px", left: "10px", width: "12px", height: "12px", borderTop: "1.5px solid rgba(255,77,77,0.3)", borderLeft: "1.5px solid rgba(255,77,77,0.3)" }} />
-                  <div style={{ position: "absolute", top: "10px", right: "10px", width: "12px", height: "12px", borderTop: "1.5px solid rgba(255,77,77,0.3)", borderRight: "1.5px solid rgba(255,77,77,0.3)" }} />
-                  
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
                     [ RED QUEEN HOLOGRAM CONSOLE ]
                   </span>
                   
-                  <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-                    {/* AI Portrait Container - Art Container Frame */}
-                    <div className="holo-noise" style={{
-                      height: "100px", width: "100px", background: "rgba(0,0,0,0.6)",
-                      border: "1px dashed rgba(255, 77, 77, 0.25)", display: "flex",
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                    <div className="holo-noise animate-flicker" style={{
+                      height: "80px", width: "80px", background: "rgba(0,0,0,0.6)",
+                      border: "1px dashed rgba(255, 77, 77, 0.2)", display: "flex",
                       alignItems: "center", justifyContent: "center", position: "relative",
                       overflow: "hidden", flexShrink: 0
                     }}>
-                      <div style={{ zIndex: 1, textAlign: "center" }} className="animate-flicker">
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", fontWeight: "bold" }}>
-                          [ AI CORE ]
-                        </span>
-                      </div>
+                      {/* Scanning sweeping bar */}
+                      <div style={{
+                        position: "absolute", top: 0, left: 0, width: "100%", height: "2px",
+                        background: "rgba(255,77,77,0.4)", animation: "scanlines-scrolling 2s linear infinite"
+                      }} />
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--accent)", fontWeight: "bold" }}>
+                        [ AI CORE ]
+                      </span>
                     </div>
 
                     <div style={{ flex: 1 }}>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>
-                        TACTICAL DISPATCH RECOMMENDATION
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block" }}>
+                        DISPATCH UPLINK RECOMMENDATION
                       </span>
-                      <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", lineHeight: "1.5", margin: "4px 0 0 0" }}>
-                        "Select any flashing sector on the Tactical Map above to synchronize coordinates. I will execute briefings and diagnostic evaluations upon deployment."
+                      <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", lineHeight: "1.4", margin: "2px 0 0 0" }}>
+                        "Select active sector coordinates from the scroll deck or map above to decrypt."
                       </p>
                     </div>
                   </div>
+
+                  {/* Scrollable diagnostic log terminal */}
+                  <div style={{
+                    flex: 1, background: "#040404", border: "1px solid #141414", padding: "10px",
+                    fontFamily: "var(--mono)", fontSize: "9px", color: "#666", overflowY: "auto",
+                    display: "flex", flexDirection: "column", gap: "4px"
+                  }}>
+                    {aiLogs.map((log, idx) => (
+                      <div key={idx} style={{ color: log.includes("[WARN]") ? "#ff4d4d" : log.includes("[SYS]") ? "#00ffcc" : "#666" }}>{log}</div>
+                    ))}
+                    <div ref={aiLogsEndRef} />
+                  </div>
                 </div>
 
-                {/* Right Panel: Selected Mission / Dossier details */}
-                <div className="panel" style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px" }}>
-                  {selectedOperation ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span className={`tag ${selectedOperation.difficulty === "Easy" ? "tag-green" : selectedOperation.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "9.5px", padding: "2px 8px" }}>
-                          {selectedOperation.difficulty.toUpperCase()}
-                        </span>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>
-                          {selectedOperation.category.toUpperCase()} MISSION
-                        </span>
-                      </div>
-                      
-                      <h3 style={{ fontSize: "18px", color: "#fff", margin: 0 }}>{selectedOperation.title}</h3>
-                      <p style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.5", margin: 0 }}>
-                        {selectedOperation.description}
-                      </p>
+                {/* Col 2: Mission Browser Scroll-deck */}
+                <div className="panel" style={{
+                  background: "#080808", border: "1px solid var(--border)",
+                  padding: "16px", display: "flex", flexDirection: "column", gap: "12px", overflow: "hidden"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "6px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                      [ AVAILABLE OPERATIONS BROWSER ]
+                    </span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)" }}>
+                      COUNT: {operations.length}
+                    </span>
+                  </div>
 
-                      <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px", marginTop: "4px" }}>
-                        <div style={{ display: "flex", gap: "16px", fontFamily: "var(--mono)", fontSize: "10.5px" }}>
-                          <span>EST. DURATION: <b style={{ color: "#fff" }}>{selectedOperation.estimated_duration}m</b></span>
+                  <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingRight: "4px" }}>
+                    {loadingOps ? (
+                      <div style={{ textAlign: "center", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)", marginTop: "24px" }}>
+                        DECRYPTING REGIONAL CONDUITS...
+                      </div>
+                    ) : (
+                      operations.map((op) => {
+                        const isSelected = selectedMapSector === op.id;
+                        return (
+                          <div
+                            key={op.id}
+                            onClick={() => setSelectedMapSector(op.id)}
+                            style={{
+                              background: isSelected ? "rgba(255, 77, 77, 0.04)" : "#0c0c0c",
+                              border: isSelected ? "1.5px solid var(--accent)" : "1px solid var(--border)",
+                              padding: "12px", borderRadius: "2px", cursor: "pointer", transition: "all 0.15s",
+                              display: "flex", gap: "12px", alignItems: "center"
+                            }}
+                          >
+                            {/* Mission Card Artwork placeholder */}
+                            <div className="holo-noise" style={{
+                              width: "50px", height: "50px", background: "rgba(0,0,0,0.5)",
+                              border: isSelected ? "1px dashed var(--accent)" : "1px dashed rgba(255,255,255,0.1)",
+                              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                            }}>
+                              <span style={{ fontSize: "14px" }}>🛰️</span>
+                            </div>
+
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "1px 5px" }}>
+                                  {op.difficulty.toUpperCase()}
+                                </span>
+                                <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>
+                                  {op.estimated_duration}m
+                                </span>
+                              </div>
+                              <h4 style={{ fontSize: "11.5px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {op.title}
+                              </h4>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", display: "block" }}>
+                                REGION: {op.category.toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* Col 3: Selected Mission Dossier detail card */}
+                <div className="panel" style={{
+                  background: "#080808", border: "1px solid var(--border)",
+                  padding: "16px", display: "flex", flexDirection: "column", gap: "10px", overflow: "hidden"
+                }}>
+                  {selectedOperation ? (
+                    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                      
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>
+                            [ TARGET ANOMALY PROFILE ]
+                          </span>
+                          <span className={`tag ${selectedOperation.difficulty === "Easy" ? "tag-green" : selectedOperation.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "2px 6px" }}>
+                            {selectedOperation.difficulty.toUpperCase()}
+                          </span>
                         </div>
+                        
+                        <h3 style={{ fontSize: "15px", color: "#fff", margin: 0, borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "6px" }}>
+                          {selectedOperation.title}
+                        </h3>
+                        
+                        <p style={{ fontSize: "11px", color: "var(--text-dim)", lineHeight: "1.4", margin: 0, height: "60px", overflowY: "auto" }}>
+                          {selectedOperation.description}
+                        </p>
+
+                        <div style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                          <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)" }}>
+                            <span style={{ color: "var(--text-muted)" }}>RECOMMENDED CLASS:</span>
+                            <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{selectedOperation.recommended_class_id.toUpperCase()}</span>
+                          </div>
+                          <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)" }}>
+                            <span style={{ color: "var(--text-muted)" }}>THREAT RATING:</span>
+                            <span style={{ color: selectedOperation.difficulty === "Hard" ? "#ff4d4d" : "#f0c929", fontWeight: "bold" }}>
+                              {selectedOperation.difficulty === "Easy" ? "LOW" : selectedOperation.difficulty === "Normal" ? "MEDIUM" : "CRITICAL"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "10px", display: "flex", justifyItems: "center", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
+                          EST. TIME: {selectedOperation.estimated_duration} MIN
+                        </span>
                         
                         <button
                           onClick={() => { setActiveMission(selectedOperation); setMissionFlow("briefing"); }}
                           className="btn btn-primary"
                           style={{
-                            fontSize: "11px", padding: "6px 16px",
+                            fontSize: "10px", padding: "6px 14px",
                             background: selectedOperation.recommended_class_id === profile?.class ? "#00ffcc" : "var(--accent)",
                             color: "#000"
                           }}
@@ -1171,12 +1411,12 @@ export default function OperationsPage() {
                       </div>
                     </div>
                   ) : (
-                    <div style={{ display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center", alignItems: "center", minHeight: "120px", textAlign: "center" }}>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-muted)" }}>
+                    <div style={{ display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center", alignItems: "center", height: "100%", textAlign: "center" }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
                         [ NO TACTICAL SECTOR SELECTED ]
                       </span>
-                      <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>
-                        Select Sector Alpha, Beta, or Delta on the radar grid above to inspect regional status.
+                      <p style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>
+                        Select coordinates from the Operations Browser or map above.
                       </p>
                     </div>
                   )}
@@ -1191,51 +1431,50 @@ export default function OperationsPage() {
           {activeTab === "profile" && (
             <div className="ops-grid-3">
               
-              {/* Profile Bounding Frame - Art Container Frame */}
+              {/* Profile Bounding Frame */}
               <div className="panel" style={{
                 background: "#080808", border: "1px solid rgba(255,255,255,0.08)",
-                padding: "32px", display: "flex", flexDirection: "column", justifyItems: "center",
-                justifyContent: "space-between", position: "relative"
+                padding: "24px", display: "flex", flexDirection: "column", justifyItems: "center",
+                justifyContent: "space-between", position: "relative", height: "100%"
               }}>
-                <div style={{ position: "absolute", top: "10px", left: "10px", width: "16px", height: "16px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
-                <div style={{ position: "absolute", top: "10px", right: "10px", width: "16px", height: "16px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
-                <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "16px", height: "16px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
-                <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "16px", height: "16px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", top: "10px", left: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", top: "10px", right: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
                 
-                <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.2em" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", letterSpacing: "0.2em" }}>
                   [ OPERATIVE PORTRAIT DOSSIER ]
                 </span>
 
                 {/* Portrait box */}
                 <div className="holo-noise" style={{
-                  flex: 1, border: "1px dashed rgba(255, 77, 77, 0.25)", background: "rgba(0,0,0,0.5)",
-                  margin: "24px 0", display: "flex", flexDirection: "column", alignItems: "center",
-                  justifyContent: "center", position: "relative", minHeight: "220px"
+                  flex: 1, border: "1px dashed rgba(255, 77, 77, 0.2)", background: "rgba(0,0,0,0.5)",
+                  margin: "16px 0", display: "flex", flexDirection: "column", alignItems: "center",
+                  justifyContent: "center", position: "relative", minHeight: "180px"
                 }}>
-                  {/* Telemetry targeting overlays */}
-                  <div style={{ position: "absolute", top: "40%", left: "40%", width: "20%", height: "20%", border: "1px dashed rgba(255,77,77,0.3)", borderRadius: "50%" }} />
+                  <div style={{ position: "absolute", top: "40%", left: "40%", width: "20%", height: "20%", border: "1px dashed rgba(255,77,77,0.25)", borderRadius: "50%" }} />
                   
                   <div style={{ zIndex: 1, textAlign: "center" }} className="animate-flicker">
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", fontWeight: "bold" }}>
                       [ BIOMETRIC ENVELOPE SECURED ]
                     </div>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", marginTop: "4px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "4px" }}>
                       RECONNAISSANCE IMAGERY PENDING
                     </div>
                   </div>
                 </div>
 
                 {/* Identity Stamps */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>DIVISION STAMP:</span>
-                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: getFactionColor(profile?.faction), fontWeight: "bold" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>DIVISION STAMP:</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: getFactionColor(profile?.faction), fontWeight: "bold" }}>
                       {profile?.faction?.toUpperCase()}
                     </span>
                   </div>
                   <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>CLEARANCE STATUS:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "#00ffcc", fontWeight: "bold" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>CLEARANCE STATUS:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc", fontWeight: "bold" }}>
                       ACTIVE // SECURE
                     </span>
                   </div>
@@ -1243,93 +1482,70 @@ export default function OperationsPage() {
               </div>
 
               {/* Sub-stats Diagnostic panel */}
-              <div className="panel" style={{ border: "1px solid var(--border)", padding: "32px", gridColumn: "span 2" }}>
-                <h2 style={{ fontSize: "18px", color: "#fff", marginBottom: "24px", borderBottom: "1px dashed var(--border)", paddingBottom: "12px" }}>
+              <div className="panel" style={{ border: "1px solid var(--border)", padding: "24px", gridColumn: "span 2", display: "flex", flexDirection: "column", overflow: "hidden", height: "100%" }}>
+                <h2 style={{ fontSize: "15px", color: "#fff", marginBottom: "16px", borderBottom: "1px dashed var(--border)", paddingBottom: "8px", flexShrink: 0 }}>
                   OPERATIVE READINESS EVALUATION
                 </h2>
                 
-                {/* Level and XP progress bar */}
-                <div style={{ marginBottom: "32px", background: "#080808", border: "1px solid var(--border)", padding: "20px" }}>
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "12.5px", marginBottom: "8px" }}>
-                    <span>OPERATIVE LEVEL: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile?.level || 1}</span></span>
-                    <span>{(profile?.xp || 0) % 100} / 100 XP TO UPGRADE</span>
-                  </div>
-                  <div style={{ width: "100%", height: "8px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
-                    <div style={{ width: `${(profile?.xp || 0) % 100}%`, height: "100%", background: "var(--accent)" }} />
-                  </div>
-                </div>
-
-                {/* Sub-stats telemetry checklist */}
-                <div className="ops-grid-2">
-                  {[
-                    { label: "THREAT AWARENESS", val: profileStats.threat_awareness, desc: "Early-warning detection of global anomalies." },
-                    { label: "OPERATIONAL DISCIPLINE", val: profileStats.operational_discipline, desc: "Consistency in executing countermeasure tasks." },
-                    { label: "PSYCHOLOGICAL STABILITY", val: profileStats.psychological_stability, desc: "Stress threshold during quarantine/nuclear alerts." },
-                    { label: "TECHNICAL PREPAREDNESS", val: profileStats.technical_preparedness, desc: "Calibrating systems and analog backup skills." },
-                    { label: "ADAPTABILITY", val: profileStats.adaptability, desc: "Survival capacity during rapid environmental shifts." },
-                    { label: "RESOURCEFULNESS", val: profileStats.resourcefulness, desc: "Farming efficiency and custom secondary bonuses." },
-                    { label: "SURVEILLANCE RESISTANCE", val: profileStats.surveillance_resistance, desc: "On-chain transaction privacy preservation." }
-                  ].map((s) => (
-                    <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                      <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "12px" }}>
-                        <span style={{ color: "#fff", fontWeight: "bold" }}>{s.label}</span>
-                        <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{s.val} %</span>
-                      </div>
-                      <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.02)", borderRadius: "2px", overflow: "hidden" }}>
-                        <div style={{ width: `${s.val}%`, height: "100%", background: "#00ffcc" }} />
-                      </div>
-                      <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>{s.desc}</span>
+                <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px" }}>
+                  {/* Level and XP progress bar */}
+                  <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "12px" }}>
+                    <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "11px", marginBottom: "6px" }}>
+                      <span>OPERATIVE LEVEL: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile?.level || 1}</span></span>
+                      <span>{(profile?.xp || 0) % 100} / 100 XP TO UPGRADE</span>
                     </div>
-                  ))}
-                </div>
-
-                {/* Resources display */}
-                <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "24px", marginTop: "24px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "16px" }}>
-                    [ OPERATIVE RESOURCE PROFILE ]
-                  </div>
-                  
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "16px" }}>
-                    {/* Credits */}
-                    <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "16px", borderRadius: "2px" }}>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>CREDITS</span>
-                      <span style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: "#00ffcc", fontWeight: "bold", display: "block", marginTop: "4px" }}>
-                        {profile?.credits || 0} CR
-                      </span>
+                    <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
+                      <div style={{ width: `${(profile?.xp || 0) % 100}%`, height: "100%", background: "var(--accent)" }} />
                     </div>
-                    {Object.keys(profile?.resources || {}).map((resName) => (
-                      <div key={resName} style={{ background: "#080808", border: "1px solid var(--border)", padding: "16px", borderRadius: "2px" }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>{resName.toUpperCase()}</span>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "#fff", fontWeight: "bold", display: "block", marginTop: "4px" }}>
-                          {profile?.resources?.[resName]} UNITS
+                  </div>
+
+                  {/* Sub-stats telemetry checklist */}
+                  <div className="ops-grid-2">
+                    {[
+                      { label: "THREAT AWARENESS", val: profileStats.threat_awareness, desc: "Early-warning detection of global anomalies." },
+                      { label: "OPERATIONAL DISCIPLINE", val: profileStats.operational_discipline, desc: "Consistency in executing countermeasure tasks." },
+                      { label: "PSYCHOLOGICAL STABILITY", val: profileStats.psychological_stability, desc: "Stress threshold during quarantine/nuclear alerts." },
+                      { label: "TECHNICAL PREPAREDNESS", val: profileStats.technical_preparedness, desc: "Calibrating systems and analog backup skills." },
+                      { label: "ADAPTABILITY", val: profileStats.adaptability, desc: "Survival capacity during rapid environmental shifts." },
+                      { label: "RESOURCEFULNESS", val: profileStats.resourcefulness, desc: "Farming efficiency and custom secondary bonuses." },
+                      { label: "SURVEILLANCE RESISTANCE", val: profileStats.surveillance_resistance, desc: "On-chain transaction privacy preservation." }
+                    ].map((s) => (
+                      <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "10.5px" }}>
+                          <span style={{ color: "#fff", fontWeight: "bold" }}>{s.label}</span>
+                          <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{s.val} %</span>
+                        </div>
+                        <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.02)", borderRadius: "2px", overflow: "hidden" }}>
+                          <div style={{ width: `${s.val}%`, height: "100%", background: "#00ffcc" }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Resources display */}
+                  <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "10px" }}>
+                      [ OPERATIVE RESOURCE PROFILE ]
+                    </div>
+                    
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px" }}>
+                      <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "10px", borderRadius: "2px" }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", display: "block" }}>CREDITS</span>
+                        <span style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#00ffcc", fontWeight: "bold", display: "block", marginTop: "2px" }}>
+                          {profile?.credits || 0} CR
                         </span>
                       </div>
-                    ))}
+                      {Object.keys(profile?.resources || {}).map((resName) => (
+                        <div key={resName} style={{ background: "#080808", border: "1px solid var(--border)", padding: "10px", borderRadius: "2px" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", display: "block" }}>{resName.toUpperCase()}</span>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#fff", fontWeight: "bold", display: "block", marginTop: "2px" }}>
+                            {profile?.resources?.[resName]} UNITS
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-
-                {/* Achievements Container - Art Container Frame */}
-                <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "24px", marginTop: "24px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "16px" }}>
-                    [ DECORATION ARCHIVE // AWAITING UNLOCKS ]
-                  </div>
-                  
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: "12px" }}>
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <div key={i} style={{
-                        aspectRatio: "1", border: "1px dashed rgba(255,255,255,0.06)",
-                        background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center",
-                        justifyContent: "center", position: "relative"
-                      }}>
-                        <div style={{
-                          width: "60%", height: "60%", border: "1.5px solid rgba(255,255,255,0.03)",
-                          transform: "rotate(45deg)", background: "rgba(255,255,255,0.01)"
-                        }} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
               </div>
 
             </div>
@@ -1339,66 +1555,77 @@ export default function OperationsPage() {
           {activeTab === "inventory" && (
             <div className="ops-grid-3-loadout">
               
-              {/* Left Column Gear Slots */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                  [ VITAL DEFENSE SLOTS ]
+              {/* Left Column: Equipped Gear Slots */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "4px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
+                  [ EQUIPPED GEAR ]
                 </div>
 
-                {/* Helmet Slot */}
-                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
-                  <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🪖</span>
-                  </div>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>HELMET SLOT</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>AWAITING HARDFEED</span>
-                  </div>
-                </div>
-
-                {/* Armor Slot */}
-                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
-                  <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🛡️</span>
-                  </div>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>VITAL SHIELD / CORE</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>AWAITING HARDFEED</span>
-                  </div>
-                </div>
-
-                {/* Primary Weapon Slot */}
-                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
-                  <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🔫</span>
-                  </div>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>PRIMARY WEAPON</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>AWAITING HARDFEED</span>
-                  </div>
-                </div>
-
-                {/* Secondary Weapon Slot */}
-                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
-                  <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🔫</span>
-                  </div>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>SECONDARY WEAPON</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>AWAITING HARDFEED</span>
-                  </div>
-                </div>
-
+                {[
+                  { slot: "Helmet", icon: "🪖", label: "HELMET CORE" },
+                  { slot: "Armor", icon: "🛡️", label: "VITAL SHIELD / CORE" },
+                  { slot: "Weapon", icon: "🔫", label: "PRIMARY WEAPON" },
+                  { slot: "Utility", icon: "🛠️", label: "TACTICAL UTILITY" },
+                  { slot: "Medkit", icon: "🧪", label: "MEDICAL LOAD" },
+                  { slot: "Backpack", icon: "🎒", label: "CARGO BAG" },
+                  { slot: "Gadget", icon: "📡", label: "TELEMETRY GADGET" }
+                ].map((s) => {
+                  const item = equippedGear[s.slot];
+                  const rarityStyle = item ? getRarityStyle(item.rarity) : null;
+                  
+                  return (
+                    <div
+                      key={s.slot}
+                      style={{
+                        background: "#080808", padding: "10px 14px",
+                        border: item ? rarityStyle?.border : "1px dashed rgba(255,255,255,0.1)",
+                        display: "flex", gap: "12px", alignItems: "center", borderRadius: "2px",
+                        position: "relative"
+                      }}
+                    >
+                      <div className="holo-noise" style={{
+                        width: "36px", height: "36px", border: "1px solid rgba(255,255,255,0.1)",
+                        background: item ? rarityStyle?.bg : "rgba(0,0,0,0.4)", display: "flex",
+                        alignItems: "center", justifyContent: "center", borderRadius: "2px", flexShrink: 0
+                      }}>
+                        <span style={{ fontSize: "16px", color: item ? rarityStyle?.color : "rgba(255,255,255,0.2)" }}>{s.icon}</span>
+                      </div>
+                      
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block" }}>{s.label}</span>
+                        {item ? (
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: "#fff", fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {item.name}
+                            </span>
+                            <button
+                              onClick={() => handleUnequipItem(s.slot)}
+                              style={{
+                                background: "none", border: "none", color: "#ff4d4d", cursor: "pointer",
+                                fontSize: "9px", fontFamily: "var(--mono)", padding: 0
+                              }}
+                            >
+                              [ REMOVE ]
+                            </button>
+                          </div>
+                        ) : (
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>
+                            SLOT EMPTY // UPLINK PENDING
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Central Column: Operative Vector Silhouette */}
-              <div className="panel holo-noise animate-pulse-slow" style={{
+              {/* Center Column: Operative Vector Silhouette */}
+              <div className="loadout-center-silhouette panel holo-noise animate-pulse-slow" style={{
                 background: "#050505", border: "1px dashed rgba(255,255,255,0.1)",
                 display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center",
-                alignItems: "center", minHeight: "440px", position: "relative"
+                alignItems: "center", position: "relative", height: "100%"
               }}>
-                {/* Crosshair target overlay */}
-                <svg width="240" height="240" viewBox="0 0 100 100" style={{ opacity: 0.15, position: "absolute" }}>
+                <svg width="180" height="180" viewBox="0 0 100 100" style={{ opacity: 0.15, position: "absolute" }}>
                   <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" />
                   <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" />
                   <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" strokeWidth="0.5" />
@@ -1406,63 +1633,181 @@ export default function OperationsPage() {
                 </svg>
                 
                 <div style={{ zIndex: 1, textAlign: "center" }} className="animate-flicker">
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.2em", display: "block" }}>
-                    [ OPERATIVE BIOMETRIC GRID ]
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.2em", display: "block" }}>
+                    [ BIOMETRIC RADAR GRID ]
                   </span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
-                    SIGNAL LOCK PENDING // HARDPOINT LINK DISCONNECTED
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
+                    SIGNAL BOUND SECURED // SLOT DRAG INJECTION READY
                   </span>
                 </div>
               </div>
 
-              {/* Right Column Gear Slots */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                  [ TACTICAL UTILITY SLOTS ]
+              {/* Right Column: Complete RPG Inventory grid */}
+              <div className="panel" style={{
+                background: "#080808", border: "1px solid var(--border)",
+                padding: "16px", display: "flex", flexDirection: "column", gap: "12px", overflow: "hidden", height: "100%"
+              }}>
+                {/* Inventory Filter Tabs */}
+                <div style={{ display: "flex", gap: "4px", flexShrink: 0, borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "8px" }}>
+                  {[
+                    { id: "all", label: "ALL" },
+                    { id: "weapon", label: "WEAPONS" },
+                    { id: "armor", label: "ARMOR" },
+                    { id: "consumable", label: "CONSUMABLES" },
+                    { id: "material", label: "MATERIALS" }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => { setInventoryFilter(tab.id); setSelectedInventoryItem(null); }}
+                      style={{
+                        background: inventoryFilter === tab.id ? "var(--accent)" : "none",
+                        color: inventoryFilter === tab.id ? "#000" : "var(--text-dim)",
+                        border: "1px solid",
+                        borderColor: inventoryFilter === tab.id ? "var(--accent)" : "var(--border)",
+                        padding: "6px 12px", fontFamily: "var(--mono)", fontSize: "9px", fontWeight: "bold",
+                        cursor: "pointer", transition: "all 0.15s", borderRadius: "2px"
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
 
-                {/* Utility Slot */}
-                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
-                  <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🛠️</span>
-                  </div>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>UTILITY CONFIG KIT</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>AWAITING HARDFEED</span>
-                  </div>
+                {/* Search & Sort utility controls */}
+                <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
+                  <input
+                    type="text"
+                    placeholder="Search inventory..."
+                    value={inventorySearch}
+                    onChange={(e) => { setInventorySearch(e.target.value); setSelectedInventoryItem(null); }}
+                    style={{
+                      flex: 1, background: "#0c0c0c", border: "1px solid var(--border)",
+                      padding: "6px 10px", fontFamily: "var(--mono)", fontSize: "10px", color: "#fff",
+                      outline: "none"
+                    }}
+                  />
+                  <select
+                    value={inventorySort}
+                    onChange={(e) => { setInventorySort(e.target.value); setSelectedInventoryItem(null); }}
+                    style={{
+                      background: "#0c0c0c", border: "1px solid var(--border)", color: "var(--text-dim)",
+                      padding: "6px 10px", fontFamily: "var(--mono)", fontSize: "10px", outline: "none", cursor: "pointer"
+                    }}
+                  >
+                    <option value="power-desc">POWER (HIGH-LOW)</option>
+                    <option value="power-asc">POWER (LOW-HIGH)</option>
+                    <option value="rarity-desc">RARITY (LEGENDARY-COMMON)</option>
+                    <option value="name-asc">NAME (A-Z)</option>
+                  </select>
                 </div>
 
-                {/* Medical Slot */}
-                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
-                  <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🧪</span>
-                  </div>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>MEDICAL KIT</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>AWAITING HARDFEED</span>
-                  </div>
+                {/* Scrollable grid representing RPG item slots */}
+                <div style={{ flex: 1, overflowY: "auto", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: "8px", alignContent: "start", paddingRight: "4px" }}>
+                  {filteredInventory.map((item) => {
+                    const rarityStyle = getRarityStyle(item.rarity);
+                    const isSelected = selectedInventoryItem?.id === item.id;
+                    
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setSelectedInventoryItem(item)}
+                        style={{
+                          aspectRatio: "1", background: rarityStyle.bg, border: isSelected ? "2px solid #fff" : rarityStyle.border,
+                          cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center",
+                          justifyContent: "center", position: "relative", padding: "4px", borderRadius: "2px"
+                        }}
+                      >
+                        {/* Rarity Color dot */}
+                        <span style={{ position: "absolute", top: "4px", right: "4px", width: "4px", height: "4px", borderRadius: "50%", background: rarityStyle.color }} />
+                        
+                        <span style={{ fontSize: "18px" }}>
+                          {item.type === "weapon" ? "🔫" : item.slot === "Helmet" ? "🪖" : item.type === "armor" ? "🛡️" : item.type === "material" ? "📦" : "🧪"}
+                        </span>
+                        
+                        <span style={{
+                          fontFamily: "var(--mono)", fontSize: "8.5px", color: "rgba(255,255,255,0.7)",
+                          marginTop: "4px", whiteSpace: "nowrap", overflow: "hidden", width: "100%", textOverflow: "ellipsis"
+                        }}>
+                          {item.name.split(" ")[0]}
+                        </span>
+
+                        {/* Quantity stack count */}
+                        {item.qty > 1 && (
+                          <span style={{
+                            position: "absolute", bottom: "2px", right: "4px", fontFamily: "var(--mono)",
+                            fontSize: "8.5px", color: "#fff", fontWeight: "bold", background: "rgba(0,0,0,0.7)",
+                            padding: "1px 3px", borderRadius: "2px"
+                          }}>
+                            {item.qty}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                  {/* Fill visual slots */}
+                  {Array.from({ length: Math.max(0, 16 - filteredInventory.length) }).map((_, i) => (
+                    <div key={`empty-${i}`} style={{
+                      aspectRatio: "1", border: "1px dashed rgba(255,255,255,0.04)",
+                      background: "rgba(0,0,0,0.1)", borderRadius: "2px"
+                    }} />
+                  ))}
                 </div>
 
-                {/* Backpack Slot */}
-                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
-                  <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🎒</span>
-                  </div>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>TACTICAL BACKPACK</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>AWAITING HARDFEED</span>
-                  </div>
-                </div>
+                {/* Selected Item Interactive Tooltip Panel */}
+                <div style={{
+                  height: "110px", background: "#0c0c0c", border: "1px solid var(--border)",
+                  padding: "10px 14px", flexShrink: 0, display: "flex", flexDirection: "column",
+                  justifyContent: "space-between", position: "relative"
+                }}>
+                  {selectedInventoryItem ? (
+                    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{
+                            fontFamily: "var(--title-font)", fontSize: "12px",
+                            color: getRarityStyle(selectedInventoryItem.rarity).color, fontWeight: "bold"
+                          }}>
+                            {selectedInventoryItem.name}
+                          </span>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "#00ffcc" }}>
+                            {selectedInventoryItem.power > 0 ? `POWER: ${selectedInventoryItem.power}` : "MATERIAL"}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "10px", color: "var(--text-muted)", margin: "4px 0 0 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {selectedInventoryItem.desc}
+                        </p>
+                      </div>
 
-                {/* Gadget Slot */}
-                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
-                  <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">📡</span>
-                  </div>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>TACTICAL GADGET</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>AWAITING HARDFEED</span>
-                  </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: "6px" }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)" }}>
+                          Class Req: {selectedInventoryItem.class_requirement}
+                        </span>
+                        
+                        {selectedInventoryItem.slot !== "None" ? (
+                          <button
+                            onClick={() => handleEquipItem(selectedInventoryItem)}
+                            style={{
+                              background: "var(--accent)", color: "#000", border: "none",
+                              padding: "4px 12px", fontFamily: "var(--mono)", fontSize: "9.5px",
+                              fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
+                            }}
+                          >
+                            [ EQUIP GEAR ]
+                          </button>
+                        ) : (
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", fontStyle: "italic" }}>
+                            NON-EQUIPPABLE
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", textAlign: "center" }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>
+                        [ SELECT AN ITEM TO INSPECT STATS ]
+                      </span>
+                    </div>
+                  )}
                 </div>
 
               </div>
@@ -1706,7 +2051,7 @@ export default function OperationsPage() {
         </div>
       )}
 
-      {/* 5. Debriefing & AI Evaluation Overlay */}
+      {/* 5. Debriefing Overlay */}
       {activeMission && missionFlow === "debriefing" && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
@@ -1731,7 +2076,6 @@ export default function OperationsPage() {
               {missionOutcome === "SUCCESS" ? selectedOption?.success_text : selectedOption?.failure_text}
             </p>
 
-            {/* Red Queen AI dynamic evaluation commentary */}
             <div style={{ background: "rgba(255, 255, 255, 0.02)", borderLeft: `4px solid ${missionOutcome === "SUCCESS" ? "#00ffcc" : "var(--accent)"}`, padding: "20px", borderRadius: "2px", marginBottom: "32px" }}>
               <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", fontStyle: "italic", whiteSpace: "pre-line", margin: 0, lineHeight: "1.6" }} className="animate-flicker">
                 {outcomeCommentary}
@@ -1782,7 +2126,6 @@ export default function OperationsPage() {
                 </span>
               </div>
               
-              {/* Reward Icon / Artwork slot - Reserved for Future Artwork */}
               <div style={{ background: "#000", border: "1px dashed rgba(255,255,255,0.06)", padding: "16px", gridColumn: "span 2", display: "flex", justifyItems: "center", justifyContent: "center", alignItems: "center" }}>
                 <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
                   [ REWARD_SHAPE_EMBLEM_LOCKED ]
