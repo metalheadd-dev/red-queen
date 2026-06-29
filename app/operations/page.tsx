@@ -6,7 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import { DEFAULT_STATS, UserStats, calculateBioScore, getClearanceLevel } from "@/lib/progression";
 
-// Hardcoded Factions list matching the Master Game Bible
+// Factions list with unique colors and philosophies
 const FACTIONS = [
   { id: "vanguard", name: "Vanguard", color: "#ff4d4d", desc: "Forward scouting, threat containment, and rapid kinetic response operations.", ideology: "Active neutralization of emerging anomalies before they spread." },
   { id: "eclipse", name: "Eclipse", color: "#a855f7", desc: "Operations in dark quadrants, sub-quantum stealth systems, and classified deep recon.", ideology: "Observing from the shadows, striking with precision when the threat manifests." },
@@ -18,7 +18,7 @@ const FACTIONS = [
   { id: "horizon", name: "Horizon", color: "#10b981", desc: "Long-range sensor arrays, space telemetry analysis, and future collapse mapping.", ideology: "Observe, forecast, and prepare long before the anomaly crosses the threshold." }
 ];
 
-// Hardcoded Classes list matching the Master Game Bible
+// Classes list with preferred loadouts
 const CLASSES = [
   { id: "Assault", name: "Assault", desc: "Tactical combat specialization, heavy breach charges, and kinetic energy weapons.", preferred_gear: "Heavy Armor, Breach charges, Kinetic rifles", ability: "Overcharge Shield Grid" },
   { id: "Recon", name: "Recon", desc: "Stealth operations, zone scanning, target acquisition, and mapping surveillance grids.", preferred_gear: "Sensor array, Thermal cloak, Sniper rifle", ability: "Scan Grid Weaknesses" },
@@ -28,7 +28,7 @@ const CLASSES = [
   { id: "Specialist", name: "Specialist", desc: "Algorithmic routing, network signature security, and Sybil counter-measures.", preferred_gear: "Decoy keys, Multi-hop routers, Wasm shields", ability: "Overload Sybil Trackers" }
 ];
 
-// Core roles matching classes
+// Core roles
 const ROLES: Record<string, string[]> = {
   Assault: ["Heavy Assault", "Vanguard Commando", "Breach Specialist"],
   Recon: ["Sniper", "Pathfinder", "Intel Scout"],
@@ -39,7 +39,7 @@ const ROLES: Record<string, string[]> = {
 };
 
 export default function OperationsPage() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey } = useWallet();
   const { setVisible } = useWalletModal();
   const { authIdentifier } = useAuth();
   
@@ -169,9 +169,9 @@ export default function OperationsPage() {
         clearInterval(interval);
         setTimeout(() => {
           setMissionFlow("decision");
-        }, 500);
+        }, 550);
       }
-    }, 600);
+    }, 550);
   };
 
   // Process Option Choice
@@ -283,208 +283,287 @@ export default function OperationsPage() {
       <div style={{
         position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
         background: "#050505", display: "flex", flexDirection: "column", gap: "16px",
-        alignItems: "center", justifyContent: "center", fontFamily: "var(--mono)"
+        alignItems: "center", justifyContent: "center", fontFamily: "var(--mono)",
+        border: "3px solid var(--accent-dim)"
       }}>
-        <div style={{ width: "40px", height: "40px", border: "2px solid rgba(255, 77, 77, 0.2)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
-        <span className="loading-dots">INITIALIZING RED QUEEN OPERATIONS COMPUTE ENGINE<span>.</span><span>.</span><span>.</span></span>
+        <div style={{ width: "50px", height: "50px", border: "3px solid rgba(255, 77, 77, 0.1)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+        <span className="loading-dots" style={{ fontSize: "14px", letterSpacing: "0.1em", fontWeight: "bold", color: "var(--accent)" }}>
+          INITIALIZING RED QUEEN COMMAND MAIN FRAME<span>.</span><span>.</span><span>.</span>
+        </span>
       </div>
     );
   }
 
   // --- ONBOARDING SELECTION SCREEN ---
   if (!profile) {
+    const selectedFactionDetails = FACTIONS.find(f => f.id === selectedFaction);
+    const selectedClassDetails = CLASSES.find(c => c.id === selectedClass);
+
     return (
       <div style={{
         position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
-        background: "#050505", display: "flex", flexDirection: "column",
+        background: "#030303", display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", overflowY: "auto", padding: "40px 24px"
       }}>
-        <div className="panel" style={{ maxWidth: "800px", width: "100%", position: "relative", border: "1px solid rgba(255, 77, 77, 0.35)", boxShadow: "0 0 30px rgba(255,77,77,0.06)" }}>
-          <div style={{ position: "absolute", top: "10px", left: "10px", width: "15px", height: "15px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
-          <div style={{ position: "absolute", top: "10px", right: "10px", width: "15px", height: "15px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
-          <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "15px", height: "15px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
-          <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "15px", height: "15px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
+        <div className="panel" style={{
+          maxWidth: "1100px", width: "100%", position: "relative",
+          background: "#060606", border: "2px solid rgba(255, 77, 77, 0.4)",
+          boxShadow: "0 0 50px rgba(255, 77, 77, 0.12)", padding: "40px"
+        }}>
+          {/* Corner brackets */}
+          <div style={{ position: "absolute", top: "12px", left: "12px", width: "24px", height: "24px", borderTop: "3px solid var(--accent)", borderLeft: "3px solid var(--accent)" }} />
+          <div style={{ position: "absolute", top: "12px", right: "12px", width: "24px", height: "24px", borderTop: "3px solid var(--accent)", borderRight: "3px solid var(--accent)" }} />
+          <div style={{ position: "absolute", bottom: "12px", left: "12px", width: "24px", height: "24px", borderBottom: "3px solid var(--accent)", borderLeft: "3px solid var(--accent)" }} />
+          <div style={{ position: "absolute", bottom: "12px", right: "12px", width: "24px", height: "24px", borderBottom: "3px solid var(--accent)", borderRight: "3px solid var(--accent)" }} />
 
-          <div style={{ textAlign: "center", borderBottom: "1px solid var(--border)", paddingBottom: "20px", marginBottom: "24px" }}>
-            <div className="tag tag-red" style={{ marginBottom: "8px" }}>SOLVIVOR INITIATIVE — NEW OPERATIVE DETECTED</div>
-            <h1 style={{ fontSize: "24px", color: "#fff" }}>INITIALIZE SOLVIVOR PROFILE</h1>
-            <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginTop: "4px" }}>
-              Configure your network coordinates to link with Red Queen's operations grid.
+          <div style={{ textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "24px", marginBottom: "32px" }}>
+            <div className="tag tag-red" style={{ marginBottom: "12px", fontSize: "11px", letterSpacing: "0.2em" }}>
+              CRITICAL NOTICE: SECURITY ACCESS VERIFICATION REQUESTED
+            </div>
+            <h1 style={{ fontSize: "36px", color: "#fff", letterSpacing: "0.1em" }}>INITIALIZE SOLVIVOR PROFILE</h1>
+            <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", marginTop: "8px" }}>
+              Configure your tactical profile to link with Red Queen's global defense operations network.
             </p>
           </div>
 
-          {/* Onboarding Step 1: Codename & Faction */}
-          {onboardingStep === 1 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              <div>
-                <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "6px" }}>
-                  ENTER OPERATIVE CODENAME:
-                </label>
-                <input
-                  type="text"
-                  maxLength={16}
-                  value={operativeName}
-                  onChange={(e) => setOperativeName(e.target.value.replace(/[^a-zA-Z0-9-]/g, ""))}
-                  placeholder="e.g. OPERATIVE-9"
-                  style={{
-                    width: "100%", background: "#0a0a0a", border: "1px solid var(--border)",
-                    padding: "10px 14px", fontFamily: "var(--mono)", fontSize: "14px", color: "#fff",
-                    outline: "none", borderLeft: "3px solid var(--accent)"
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "8px" }}>
-                  SELECT FACTION (OPERATIONAL IDEOLOGY):
-                </label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }} className="responsive-grid-2">
-                  {FACTIONS.map((f) => (
-                    <button
-                      key={f.id}
-                      onClick={() => setSelectedFaction(f.id)}
+          <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.7fr", gap: "40px" }} className="responsive-grid-2-large">
+            {/* Left Selection Controls */}
+            <div>
+              {/* Onboarding Step 1: Codename & Faction */}
+              {onboardingStep === 1 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                  <div>
+                    <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "8px", fontWeight: "bold" }}>
+                      [01] ENTER OPERATIVE CALLSIGN:
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={16}
+                      value={operativeName}
+                      onChange={(e) => setOperativeName(e.target.value.replace(/[^a-zA-Z0-9-]/g, ""))}
+                      placeholder="e.g. OPERATIVE-9"
                       style={{
-                        background: selectedFaction === f.id ? "rgba(255,255,255,0.02)" : "#0c0c0c",
-                        border: selectedFaction === f.id ? `1px solid ${f.color}` : "1px solid var(--border)",
-                        padding: "12px", borderRadius: "2px", cursor: "pointer", textAlign: "left",
-                        transition: "all 0.18s"
+                        width: "100%", background: "#0a0a0a", border: "1px solid var(--border)",
+                        padding: "14px 18px", fontFamily: "var(--mono)", fontSize: "16px", color: "#fff",
+                        outline: "none", borderLeft: "4px solid var(--accent)"
                       }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                        <span style={{ width: "8px", height: "8px", background: f.color, borderRadius: "50%" }} />
-                        <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "#fff", fontWeight: "bold" }}>{f.name}</span>
-                      </div>
-                      <p style={{ fontSize: "11.5px", color: "var(--text-dim)", lineHeight: "1.4" }}>{f.desc}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    />
+                  </div>
 
-              <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-                <button
-                  disabled={!operativeName || !selectedFaction}
-                  onClick={() => setOnboardingStep(2)}
-                  className="btn btn-primary"
-                  style={{ padding: "10px 24px", opacity: (!operativeName || !selectedFaction) ? 0.5 : 1 }}
-                >
-                  NEXT SELECTION →
-                </button>
-              </div>
-            </div>
-          )}
+                  <div>
+                    <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "12px", fontWeight: "bold" }}>
+                      [02] ASSIGN DIVISION FACTION (OPERATIONAL IDEOLOGY):
+                    </label>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }} className="responsive-grid-2">
+                      {FACTIONS.map((f) => (
+                        <button
+                          key={f.id}
+                          onClick={() => setSelectedFaction(f.id)}
+                          style={{
+                            background: selectedFaction === f.id ? "rgba(255,255,255,0.03)" : "#090909",
+                            border: selectedFaction === f.id ? `2px solid ${f.color}` : "1px solid var(--border)",
+                            padding: "16px", borderRadius: "2px", cursor: "pointer", textAlign: "left",
+                            transition: "all 0.18s"
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+                            <span style={{ width: "10px", height: "10px", background: f.color, borderRadius: "50%", boxShadow: `0 0 8px ${f.color}` }} />
+                            <span style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "#fff", fontWeight: "bold" }}>{f.name}</span>
+                          </div>
+                          <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.4" }}>{f.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-          {/* Onboarding Step 2: Class & Role */}
-          {onboardingStep === 2 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              <div>
-                <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "8px" }}>
-                  SELECT PROFESSIONAL EXPERTISE (CLASS):
-                </label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }} className="responsive-grid-2">
-                  {CLASSES.map((c) => (
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "24px", display: "flex", justifyContent: "flex-end" }}>
                     <button
-                      key={c.id}
-                      onClick={() => { setSelectedClass(c.id); setSelectedRole(""); }}
-                      style={{
-                        background: selectedClass === c.id ? "rgba(255,255,255,0.02)" : "#0c0c0c",
-                        border: selectedClass === c.id ? "1px solid var(--accent)" : "1px solid var(--border)",
-                        padding: "12px", borderRadius: "2px", cursor: "pointer", textAlign: "left",
-                        transition: "all 0.18s"
-                      }}
+                      disabled={!operativeName || !selectedFaction}
+                      onClick={() => setOnboardingStep(2)}
+                      className="btn btn-primary"
+                      style={{ padding: "14px 36px", fontSize: "13px", opacity: (!operativeName || !selectedFaction) ? 0.5 : 1 }}
                     >
-                      <div style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "#fff", fontWeight: "bold", marginBottom: "4px" }}>{c.name}</div>
-                      <p style={{ fontSize: "11px", color: "var(--text-dim)", lineHeight: "1.4", marginBottom: "6px" }}>{c.desc}</p>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#00ffcc" }}>Ability: {c.ability}</div>
+                      CHOOSE CLASS →
                     </button>
-                  ))}
-                </div>
-              </div>
-
-              {selectedClass && (
-                <div>
-                  <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "8px" }}>
-                    SELECT SPECIALIZATION ROLE:
-                  </label>
-                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                    {ROLES[selectedClass].map((role) => (
-                      <button
-                        key={role}
-                        onClick={() => setSelectedRole(role)}
-                        style={{
-                          background: selectedRole === role ? "var(--accent)" : "#0c0c0c",
-                          color: selectedRole === role ? "#000" : "var(--text-dim)",
-                          border: selectedRole === role ? "1px solid var(--accent)" : "1px solid var(--border)",
-                          padding: "8px 16px", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer",
-                          transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold"
-                        }}
-                      >
-                        {role.toUpperCase()}
-                      </button>
-                    ))}
                   </div>
                 </div>
               )}
 
-              <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", display: "flex", justifyContent: "space-between" }}>
-                <button
-                  onClick={() => setOnboardingStep(1)}
-                  className="btn btn-ghost"
-                  style={{ border: "1px solid var(--border)" }}
-                >
-                  ← BACK
-                </button>
-                <button
-                  disabled={!selectedClass || !selectedRole}
-                  onClick={handleOnboardingSubmit}
-                  className="btn btn-primary"
-                  style={{ padding: "10px 24px", opacity: (!selectedClass || !selectedRole) ? 0.5 : 1 }}
-                >
-                  INITIALIZE SOLVIVOR ◉
-                </button>
+              {/* Onboarding Step 2: Class & Role */}
+              {onboardingStep === 2 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                  <div>
+                    <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "12px", fontWeight: "bold" }}>
+                      [03] CHOOSE OPERATIVE DISCIPLINE (CLASS):
+                    </label>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }} className="responsive-grid-2">
+                      {CLASSES.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => { setSelectedClass(c.id); setSelectedRole(""); }}
+                          style={{
+                            background: selectedClass === c.id ? "rgba(255,255,255,0.03)" : "#090909",
+                            border: selectedClass === c.id ? "2px solid var(--accent)" : "1px solid var(--border)",
+                            padding: "16px", borderRadius: "2px", cursor: "pointer", textAlign: "left",
+                            transition: "all 0.18s"
+                          }}
+                        >
+                          <div style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "#fff", fontWeight: "bold", marginBottom: "6px" }}>{c.name}</div>
+                          <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.4", marginBottom: "8px" }}>{c.desc}</p>
+                          <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc" }}>Ability: {c.ability}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {selectedClass && (
+                    <div>
+                      <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginBottom: "12px", fontWeight: "bold" }}>
+                        [04] SPECIFY TACTICAL SPECIALIZATION ROLE:
+                      </label>
+                      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                        {ROLES[selectedClass].map((role) => (
+                          <button
+                            key={role}
+                            onClick={() => setSelectedRole(role)}
+                            style={{
+                              background: selectedRole === role ? "var(--accent)" : "#090909",
+                              color: selectedRole === role ? "#000" : "var(--text-dim)",
+                              border: selectedRole === role ? "2px solid var(--accent)" : "1px solid var(--border)",
+                              padding: "12px 24px", fontFamily: "var(--mono)", fontSize: "12px", cursor: "pointer",
+                              transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold"
+                            }}
+                          >
+                            {role.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "24px", display: "flex", justifyContent: "space-between" }}>
+                    <button
+                      onClick={() => setOnboardingStep(1)}
+                      className="btn btn-ghost"
+                      style={{ border: "1px solid var(--border)", padding: "12px 24px" }}
+                    >
+                      ← BACK
+                    </button>
+                    <button
+                      disabled={!selectedClass || !selectedRole}
+                      onClick={handleOnboardingSubmit}
+                      className="btn btn-primary"
+                      style={{ padding: "14px 36px", fontSize: "13px", opacity: (!selectedClass || !selectedRole) ? 0.5 : 1 }}
+                    >
+                      COMMISSION SOLVIVOR ◉
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Interactive Preview Panel - Reserved for Future Artwork */}
+            <div style={{
+              background: "#080808", border: "1px solid rgba(255,255,255,0.05)",
+              padding: "24px", display: "flex", flexDirection: "column", justifyItems: "center",
+              justifyContent: "space-between", position: "relative"
+            }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.2em" }}>
+                [ PREVIEW SYSTEM DOSSIER ]
+              </div>
+
+              {/* Faction / Class Artwork container */}
+              <div style={{
+                flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+                justifyContent: "center", margin: "24px 0", minHeight: "220px",
+                border: "1px dashed rgba(255, 77, 77, 0.2)", background: "rgba(0,0,0,0.3)",
+                position: "relative"
+              }}>
+                {/* Visual Bounding Brackets for future artwork */}
+                <div style={{ position: "absolute", top: "10px", left: "10px", width: "12px", height: "12px", borderTop: "1.5px solid rgba(255,255,255,0.15)", borderLeft: "1.5px solid rgba(255,255,255,0.15)" }} />
+                <div style={{ position: "absolute", top: "10px", right: "10px", width: "12px", height: "12px", borderTop: "1.5px solid rgba(255,255,255,0.15)", borderRight: "1.5px solid rgba(255,255,255,0.15)" }} />
+                
+                {selectedFactionDetails ? (
+                  <div style={{ textAlign: "center", padding: "16px" }}>
+                    {/* Faction emblem holder */}
+                    <div style={{
+                      width: "64px", height: "64px", border: `2px dashed ${selectedFactionDetails.color}`,
+                      borderRadius: "50%", margin: "0 auto 16px auto", display: "flex", alignItems: "center",
+                      justifyContent: "center", background: "rgba(255,255,255,0.01)"
+                    }}>
+                      <span style={{ color: selectedFactionDetails.color, fontSize: "28px" }}>🛡️</span>
+                    </div>
+                    <div style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
+                      {selectedFactionDetails.name.toUpperCase()} DIVISION
+                    </div>
+                    <p style={{ fontSize: "11.5px", color: "var(--text-dim)", marginTop: "8px", fontStyle: "italic" }}>
+                      "{selectedFactionDetails.ideology}"
+                    </p>
+                  </div>
+                ) : (
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
+                    [ AWAITING FACTION DATA ]
+                  </span>
+                )}
+              </div>
+
+              {/* Class indicator details */}
+              <div style={{ background: "#0c0c0c", border: "1px solid var(--border)", padding: "16px" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>
+                  SELECTED PROFESSIONAL DISCIPLINE
+                </span>
+                <div style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: selectedClassDetails ? "var(--accent)" : "#fff", fontWeight: "bold", marginTop: "4px" }}>
+                  {selectedClassDetails ? selectedClassDetails.name.toUpperCase() : "UNASSIGNED"}
+                </div>
+                {selectedClassDetails && (
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginTop: "6px" }}>
+                    Preferred gear: {selectedClassDetails.preferred_gear}
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     );
   }
 
-  // --- MAIN GAMEPLAY INTERFACE ---
+  // --- IMMERSIVE GAMEPLAY MAIN HUB ---
   return (
     <div style={{
       position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
-      background: "#050505", display: "flex", flexDirection: "column", overflow: "hidden"
+      background: "#030303", display: "flex", flexDirection: "column", overflow: "hidden"
     }}>
-      {/* Top Status Bar HUD */}
+      {/* Top Status Bar HUD - Upgraded size and glow */}
       <header style={{
-        height: "56px", borderBottom: "1px solid var(--border)", background: "#080808",
-        padding: "0 24px", display: "flex", alignItems: "center", justifyItems: "center",
+        height: "64px", borderBottom: "2px solid rgba(255, 77, 77, 0.25)", background: "#060606",
+        padding: "0 32px", display: "flex", alignItems: "center", justifyItems: "center",
         justifyContent: "space-between", flexShrink: 0
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ width: "8px", height: "8px", background: getFactionColor(profile.faction), borderRadius: "50%", boxShadow: `0 0 8px ${getFactionColor(profile.faction)}` }} />
-            <span style={{ fontFamily: "var(--title-font)", fontSize: "13px", fontWeight: "bold", letterSpacing: "0.1em", color: "#fff" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "12px", height: "12px", background: getFactionColor(profile.faction), borderRadius: "50%", boxShadow: `0 0 12px ${getFactionColor(profile.faction)}` }} />
+            <span style={{ fontFamily: "var(--title-font)", fontSize: "15px", fontWeight: "900", letterSpacing: "0.15em", color: "#fff" }}>
               {profile.name} // {profile.faction.toUpperCase()}
             </span>
           </div>
-          <span style={{ color: "var(--border)", fontFamily: "var(--mono)", fontSize: "12px" }}>|</span>
-          <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>
+          <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
+          <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)" }}>
             CLASS: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile.class.toUpperCase()}</span>
           </span>
-          <span style={{ color: "var(--border)", fontFamily: "var(--mono)", fontSize: "12px" }}>|</span>
-          <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>
-            ACTIVE ROLE: <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{profile.role.toUpperCase()}</span>
+          <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
+          <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)" }}>
+            OPERATIVE ROLE: <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{profile.role.toUpperCase()}</span>
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(0, 255, 204, 0.05)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "4px 10px", borderRadius: "2px" }}>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", fontWeight: "bold" }}>BIO-SCORE: {currentBioScore}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(0, 255, 204, 0.08)", border: "1px solid rgba(0, 255, 204, 0.3)", padding: "6px 14px", borderRadius: "2px" }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", fontWeight: "bold", letterSpacing: "0.05em" }}>BIO-SCORE: {currentBioScore}</span>
           </div>
           
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255, 77, 77, 0.05)", border: "1px solid rgba(255, 77, 77, 0.2)", padding: "4px 10px", borderRadius: "2px" }}>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", fontWeight: "bold" }}>CLEARANCE: {clearanceTier.label}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 77, 77, 0.08)", border: "1px solid rgba(255, 77, 77, 0.3)", padding: "6px 14px", borderRadius: "2px" }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.05em" }}>CLEARANCE: {clearanceTier.label}</span>
           </div>
 
           <button
@@ -494,9 +573,9 @@ export default function OperationsPage() {
               setProfile(null);
             }}
             className="btn btn-ghost"
-            style={{ fontSize: "9.5px", padding: "4px 8px", borderColor: "rgba(255,0,0,0.2)", color: "#ff4d4d", cursor: "pointer" }}
+            style={{ fontSize: "10px", padding: "6px 12px", borderColor: "rgba(255,0,0,0.3)", color: "#ff4d4d", cursor: "pointer", fontWeight: "bold" }}
           >
-            [ RE-INIT ]
+            [ RE-INITIALIZE ]
           </button>
         </div>
       </header>
@@ -504,24 +583,24 @@ export default function OperationsPage() {
       {/* Main Container Layout */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
         
-        {/* Left Hand Navigation Sidebar (tactical button look) */}
+        {/* Navigation Sidebar - Upgraded button styling */}
         <aside style={{
-          width: "200px", borderRight: "1px solid var(--border)", background: "#070707",
-          padding: "24px 16px", display: "flex", flexDirection: "column", gap: "12px", flexShrink: 0
+          width: "220px", borderRight: "1px solid var(--border)", background: "#060606",
+          padding: "32px 20px", display: "flex", flexDirection: "column", gap: "16px", flexShrink: 0
         }}>
-          <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "8px" }}>
-            ▶ CORE MATRIX
+          <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.2em", marginBottom: "8px", fontWeight: "bold" }}>
+            ▶ OPERATIONAL DECKS
           </div>
           
           <button
             onClick={() => setActiveTab("center")}
             style={{
-              width: "100%", padding: "10px 14px", border: "1px solid var(--border)",
-              background: activeTab === "center" ? "rgba(255, 77, 77, 0.05)" : "none",
+              width: "100%", padding: "14px 18px", border: "1px solid var(--border)",
+              background: activeTab === "center" ? "rgba(255, 77, 77, 0.08)" : "none",
               color: activeTab === "center" ? "var(--accent)" : "var(--text-dim)",
-              borderColor: activeTab === "center" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
-              fontFamily: "var(--title-font)", fontSize: "11px", textAlign: "left", cursor: "pointer",
-              transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.05em"
+              borderColor: activeTab === "center" ? "rgba(255, 77, 77, 0.4)" : "var(--border)",
+              fontFamily: "var(--title-font)", fontSize: "12px", textAlign: "left", cursor: "pointer",
+              transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
             }}
           >
             🛰️ COMMAND HUB
@@ -530,62 +609,62 @@ export default function OperationsPage() {
           <button
             onClick={() => setActiveTab("profile")}
             style={{
-              width: "100%", padding: "10px 14px", border: "1px solid var(--border)",
-              background: activeTab === "profile" ? "rgba(255, 77, 77, 0.05)" : "none",
+              width: "100%", padding: "14px 18px", border: "1px solid var(--border)",
+              background: activeTab === "profile" ? "rgba(255, 77, 77, 0.08)" : "none",
               color: activeTab === "profile" ? "var(--accent)" : "var(--text-dim)",
-              borderColor: activeTab === "profile" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
-              fontFamily: "var(--title-font)", fontSize: "11px", textAlign: "left", cursor: "pointer",
-              transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.05em"
+              borderColor: activeTab === "profile" ? "rgba(255, 77, 77, 0.4)" : "var(--border)",
+              fontFamily: "var(--title-font)", fontSize: "12px", textAlign: "left", cursor: "pointer",
+              transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
             }}
           >
-            👤 PROFILE DECK
+            👤 OPERATIVE DOSSIER
           </button>
 
           <button
             onClick={() => setActiveTab("inventory")}
             style={{
-              width: "100%", padding: "10px 14px", border: "1px solid var(--border)",
-              background: activeTab === "inventory" ? "rgba(255, 77, 77, 0.05)" : "none",
+              width: "100%", padding: "14px 18px", border: "1px solid var(--border)",
+              background: activeTab === "inventory" ? "rgba(255, 77, 77, 0.08)" : "none",
               color: activeTab === "inventory" ? "var(--accent)" : "var(--text-dim)",
-              borderColor: activeTab === "inventory" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
-              fontFamily: "var(--title-font)", fontSize: "11px", textAlign: "left", cursor: "pointer",
-              transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.05em"
+              borderColor: activeTab === "inventory" ? "rgba(255, 77, 77, 0.4)" : "var(--border)",
+              fontFamily: "var(--title-font)", fontSize: "12px", textAlign: "left", cursor: "pointer",
+              transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
             }}
           >
-            📦 LOADOUT DECK
+            📦 EQUIPMENT DECK
           </button>
 
-          <div style={{ marginTop: "auto", borderTop: "1px solid var(--border)", paddingTop: "16px" }}>
+          <div style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "20px" }}>
             <Link
               href="/"
               style={{
-                display: "block", width: "100%", padding: "10px 14px", border: "1px solid var(--border)",
+                display: "block", width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
                 background: "none", color: "var(--text-dim)", fontFamily: "var(--title-font)", fontSize: "11px",
-                textDecoration: "none", textAlign: "center", borderRadius: "2px", fontWeight: "bold"
+                textDecoration: "none", textAlign: "center", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
               }}
             >
-              ← RETURN HUB
+              ← DISCONNECT HUB
             </Link>
           </div>
         </aside>
 
         {/* Content Pane */}
-        <main style={{ flex: 1, padding: "32px", overflowY: "auto", background: "#050505" }}>
+        <main style={{ flex: 1, padding: "40px", overflowY: "auto", background: "#030303" }}>
           
           {/* LEVEL UP POPUP NOTIFICATION */}
           {levelUpMessage && (
             <div style={{
-              background: "rgba(0, 255, 204, 0.08)", border: "1px solid #00ffcc", padding: "16px 24px",
-              marginBottom: "24px", borderRadius: "2px", display: "flex", justifyContent: "space-between",
-              alignItems: "center", animation: "glitch 0.6s ease"
+              background: "rgba(0, 255, 204, 0.08)", border: "2px solid #00ffcc", padding: "20px 28px",
+              marginBottom: "32px", borderRadius: "2px", display: "flex", justifyContent: "space-between",
+              alignItems: "center", animation: "glitch 0.6s ease", boxShadow: "0 0 20px rgba(0,255,204,0.1)"
             }}>
               <div>
-                <h4 style={{ color: "#00ffcc", margin: 0, fontSize: "13px" }}>UPLINK UPGRADE</h4>
-                <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text)", margin: "4px 0 0" }}>{levelUpMessage}</p>
+                <h4 style={{ color: "#00ffcc", margin: 0, fontSize: "14px", letterSpacing: "0.1em" }}>UPLINK UPGRADE</h4>
+                <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text)", margin: "6px 0 0" }}>{levelUpMessage}</p>
               </div>
               <button
                 onClick={() => setLevelUpMessage(null)}
-                style={{ background: "none", border: "none", color: "#00ffcc", cursor: "pointer", fontFamily: "var(--mono)", fontSize: "12px" }}
+                style={{ background: "none", border: "none", color: "#00ffcc", cursor: "pointer", fontFamily: "var(--mono)", fontSize: "13px", fontWeight: "bold" }}
               >
                 [ ACKNOWLEDGE ]
               </button>
@@ -594,127 +673,220 @@ export default function OperationsPage() {
 
           {/* TAB 1: COMMAND CENTER (HUD & OPERATIONS) */}
           {activeTab === "center" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "32px" }} className="responsive-grid-3">
               
-              {/* Telemetry Dashboard Header */}
-              <div className="panel" style={{
-                background: "#090909", border: "1px dashed var(--border)", padding: "20px 24px",
-                display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "16px"
-              }}>
-                <div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", letterSpacing: "0.15em" }}>OPERATIONAL INTEGRITY STATUS</div>
-                  <div style={{ fontFamily: "var(--title-font)", fontSize: "18px", color: "#fff", fontWeight: "bold", marginTop: "4px" }}>
-                    MAIN FRAME UPLINK: <span style={{ color: "#00ffcc" }}>SECURE</span>
+              {/* Column 1: Red Queen AI Hologram & Telemetry Logs */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                <div className="panel" style={{
+                  background: "#080808", border: "1px solid rgba(255, 77, 77, 0.3)",
+                  position: "relative", padding: "24px", display: "flex", flexDirection: "column", gap: "16px"
+                }}>
+                  {/* Hologram Camera Brackets */}
+                  <div style={{ position: "absolute", top: "10px", left: "10px", width: "12px", height: "12px", borderTop: "1.5px solid rgba(255,77,77,0.3)", borderLeft: "1.5px solid rgba(255,77,77,0.3)" }} />
+                  <div style={{ position: "absolute", top: "10px", right: "10px", width: "12px", height: "12px", borderTop: "1.5px solid rgba(255,77,77,0.3)", borderRight: "1.5px solid rgba(255,77,77,0.3)" }} />
+
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                    [ RED QUEEN AI HOLOGRAM PROJECTION ]
+                  </span>
+                  
+                  {/* AI Portrait Container - Reserved for Future Artwork */}
+                  <div style={{
+                    height: "220px", width: "100%", background: "rgba(0,0,0,0.5)",
+                    border: "1px dashed rgba(255, 77, 77, 0.2)", display: "flex", alignItems: "center",
+                    justifyContent: "center", position: "relative", overflow: "hidden"
+                  }}>
+                    {/* Simulated scanning laser line */}
+                    <div style={{
+                      position: "absolute", top: 0, left: 0, right: 0, height: "2px",
+                      background: "rgba(255, 77, 77, 0.3)", boxShadow: "0 0 10px rgba(255,77,77,0.6)",
+                      animation: "scanlines 4s linear infinite"
+                    }} />
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+                      [ HOLO_TRANSMISSION_ACTIVE ]
+                    </span>
+                  </div>
+
+                  {/* AI recommendation brief */}
+                  <div style={{ borderTop: "1px dashed rgba(255,255,255,0.08)", paddingTop: "14px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "4px" }}>
+                      TACTICAL RECOMMENDATION:
+                    </div>
+                    <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", lineHeight: "1.5", margin: 0 }}>
+                      "Prioritize Operation Sanctuary Search in Sector Alpha to calibrate biological containment sensors before deploying to high-gravity quadrants."
+                    </p>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "24px" }}>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>COGNITIVE CODES</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#00ffcc", fontWeight: "bold", display: "block" }}>DECRYPTED</span>
-                  </div>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>ACTIVE SENSORS</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text)", fontWeight: "bold", display: "block" }}>104,281 NODES</span>
-                  </div>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>REVENUE REBUILT</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", fontWeight: "bold", display: "block" }}>65% FEE BURNT</span>
+
+                {/* Operations status feed */}
+                <div className="panel" style={{ background: "#050505", border: "1px solid var(--border)", padding: "20px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", display: "block", marginBottom: "12px" }}>
+                    ▶ LIVE MAINFRAME STATUS ALERTS
+                  </span>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", display: "flex", flexDirection: "column", gap: "8px", color: "var(--text-muted)" }}>
+                    <div>[INFO] Sensor nodes scanned: 104,281 anomalies monitored.</div>
+                    <div>[WARN] Gravitational distortion detected in Sector Beta.</div>
+                    <div>[SYS] Decryption pipeline verified; 65% fee swap buffer ready.</div>
                   </div>
                 </div>
               </div>
 
-              {/* Operations List section */}
-              <div>
-                <h2 style={{ fontSize: "16px", color: "#fff", marginBottom: "16px", letterSpacing: "0.08em" }}>AVAILABLE OPERATIONS</h2>
-                {loadingOps ? (
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>
-                    SCANNING OPERATIONAL SECTORS<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
-                  </div>
-                ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "24px" }}>
-                    {operations.map((op) => (
-                      <div
-                        key={op.id}
-                        className="panel"
-                        style={{
-                          background: "#0a0a0a", display: "flex", flexDirection: "column",
-                          justifyContent: "space-between", minHeight: "260px",
-                          borderColor: op.recommended_class_id === profile.class ? "rgba(0, 255, 204, 0.25)" : "var(--border)",
-                          boxShadow: op.recommended_class_id === profile.class ? "0 0 15px rgba(0, 255, 204, 0.03)" : "none",
-                          transition: "all 0.2s"
-                        }}
-                      >
-                        <div>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", letterSpacing: "0.15em" }}>
-                              {op.category.toUpperCase()} // LEVEL {op.minimum_level}
-                            </span>
-                            <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "9px" }}>
-                              {op.difficulty}
-                            </span>
+              {/* Column 2: Available Operations List (Cinematic Cards) */}
+              <div style={{ gridColumn: "span 2", display: "flex", flexDirection: "column", gap: "24px" }}>
+                
+                {/* Holographic Telemetry World Map Container - Reserved for Future Artwork */}
+                <div style={{
+                  height: "220px", border: "1px dashed rgba(255,255,255,0.15)", background: "#060606",
+                  position: "relative", display: "flex", alignItems: "center", justifyContent: "center"
+                }}>
+                  {/* Outer target brackets */}
+                  <div style={{ position: "absolute", top: "12px", left: "12px", width: "16px", height: "16px", borderTop: "2px solid rgba(255,255,255,0.2)", borderLeft: "2px solid rgba(255,255,255,0.2)" }} />
+                  <div style={{ position: "absolute", top: "12px", right: "12px", width: "16px", height: "16px", borderTop: "2px solid rgba(255,255,255,0.2)", borderRight: "2px solid rgba(255,255,255,0.2)" }} />
+                  
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.2em" }}>
+                    [ SECTOR_TELEMETRY_MAP_GRID ]
+                  </span>
+                </div>
+
+                <div>
+                  <h2 style={{ fontSize: "18px", color: "#fff", marginBottom: "16px", letterSpacing: "0.08em" }}>AVAILABLE MISSION REGIONS</h2>
+                  {loadingOps ? (
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)" }}>
+                      SCANNING OPERATIONAL SECTORS<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                      {operations.map((op) => (
+                        <div
+                          key={op.id}
+                          className="panel"
+                          style={{
+                            background: "#080808", border: op.recommended_class_id === profile.class ? "2px solid rgba(0, 255, 204, 0.3)" : "1px solid var(--border)",
+                            padding: "32px", display: "flex", flexDirection: "column", gap: "16px",
+                            boxShadow: op.recommended_class_id === profile.class ? "0 0 25px rgba(0, 255, 204, 0.05)" : "none"
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                              <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "10px", padding: "4px 10px" }}>
+                                {op.difficulty.toUpperCase()}
+                              </span>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em" }}>
+                                {op.category.toUpperCase()} SECTOR
+                              </span>
+                            </div>
+                            {op.recommended_class_id === profile.class && (
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", background: "rgba(0,255,204,0.05)", border: "1px solid rgba(0,255,204,0.3)", padding: "4px 10px", borderRadius: "2px" }}>
+                                RECOMMENDED TACTICAL CONFIGURATION
+                              </span>
+                            )}
                           </div>
 
-                          <h3 style={{ fontSize: "15px", color: "#fff", margin: "0 0 8px 0" }}>{op.title}</h3>
-                          <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.5", marginBottom: "16px" }}>{op.description}</p>
+                          {/* Massive mission title */}
+                          <h3 style={{ fontSize: "22px", color: "#fff", margin: 0, letterSpacing: "0.05em" }}>{op.title}</h3>
                           
-                          {op.recommended_class_id === profile.class && (
-                            <div style={{ background: "rgba(0, 255, 204, 0.06)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "6px 10px", borderRadius: "2px", marginBottom: "12px", display: "inline-block" }}>
-                              <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#00ffcc", fontWeight: "bold" }}>✔ RECOMMENDED FOR YOUR CLASS</span>
-                            </div>
-                          )}
-                        </div>
+                          <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
+                            {op.description}
+                          </p>
 
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border)", paddingTop: "12px", marginTop: "12px" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>
-                            EST. DURATION: {op.estimated_duration}m
-                          </span>
-                          <button
-                            onClick={() => { setActiveMission(op); setMissionFlow("briefing"); }}
-                            className="btn btn-ghost"
-                            style={{
-                              fontSize: "10px", padding: "6px 14px", border: "1px solid var(--border)",
-                              color: op.recommended_class_id === profile.class ? "#00ffcc" : "var(--text-dim)",
-                              borderColor: op.recommended_class_id === profile.class ? "rgba(0, 255, 204, 0.3)" : "var(--border)"
-                            }}
-                          >
-                            SELECT MISSION →
-                          </button>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "20px", marginTop: "8px" }}>
+                            <div style={{ display: "flex", gap: "24px" }}>
+                              <div>
+                                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>EST. DURATION</span>
+                                <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#fff", fontWeight: "bold" }}>{op.estimated_duration} MINUTES</span>
+                              </div>
+                              <div>
+                                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>ENERGY COST</span>
+                                <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#fff", fontWeight: "bold" }}>{op.energy_cost} EC</span>
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => { setActiveMission(op); setMissionFlow("briefing"); }}
+                              className="btn btn-primary"
+                              style={{
+                                fontSize: "11px", padding: "10px 24px",
+                                background: op.recommended_class_id === profile.class ? "#00ffcc" : "var(--accent)",
+                                color: "#000"
+                              }}
+                            >
+                              UPLINK DEPLOYMENT →
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
-          {/* TAB 2: SOLVIVOR PROFILE DECK */}
+          {/* TAB 2: SOLVIVOR PROFILE DECK (OPERATIVE DOSSIER) */}
           {activeTab === "profile" && (
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "32px" }} className="responsive-grid-2-large">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "32px" }} className="responsive-grid-3">
               
-              {/* Profile Details & Progression */}
-              <div className="panel" style={{ border: "1px solid var(--border)" }}>
-                <h2 style={{ fontSize: "16px", color: "#fff", marginBottom: "20px", borderBottom: "1px dashed var(--border)", paddingBottom: "12px" }}>
-                  OPERATIVE DIAGNOSTIC DECK
+              {/* Profile Bounding Frame - Reserved for Future Artwork */}
+              <div className="panel" style={{
+                background: "#080808", border: "1px solid rgba(255,255,255,0.08)",
+                padding: "32px", display: "flex", flexDirection: "column", justifyItems: "center",
+                justifyContent: "space-between", position: "relative"
+              }}>
+                <div style={{ position: "absolute", top: "10px", left: "10px", width: "16px", height: "16px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", top: "10px", right: "10px", width: "16px", height: "16px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
+                
+                <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.2em" }}>
+                  [ OPERATIVE PORTRAIT DOSSIER ]
+                </span>
+
+                {/* Portrait box */}
+                <div style={{
+                  flex: 1, border: "1px dashed rgba(255, 77, 77, 0.25)", background: "rgba(0,0,0,0.5)",
+                  margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "center",
+                  position: "relative"
+                }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
+                    [ UPLINK_BIOMETRIC_PREVIEW ]
+                  </div>
+                  {/* Telemetry targeting overlays */}
+                  <div style={{ position: "absolute", top: "40%", left: "40%", width: "20%", height: "20%", border: "1px dashed rgba(255,77,77,0.3)", borderRadius: "50%" }} />
+                </div>
+
+                {/* Identity Stamps */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>DIVISION STAMP:</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: getFactionColor(profile.faction), fontWeight: "bold" }}>
+                      {profile.faction.toUpperCase()}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>CLEARANCE STATUS:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "#00ffcc", fontWeight: "bold" }}>
+                      ACTIVE // SECURE
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sub-stats Diagnostic panel */}
+              <div className="panel" style={{ border: "1px solid var(--border)", padding: "32px", gridColumn: "span 2" }}>
+                <h2 style={{ fontSize: "18px", color: "#fff", marginBottom: "24px", borderBottom: "1px dashed var(--border)", paddingBottom: "12px" }}>
+                  OPERATIVE READINESS EVALUATION
                 </h2>
                 
-                {/* Level and XP progress */}
-                <div style={{ marginBottom: "24px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "11px", marginBottom: "6px" }}>
-                    <span>CLEARANCE XP LEVEL: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile.level}</span></span>
-                    <span>{profile.xp % 100} / 100 XP</span>
+                {/* Level and XP progress bar */}
+                <div style={{ marginBottom: "32px", background: "#080808", border: "1px solid var(--border)", padding: "20px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "12.5px", marginBottom: "8px" }}>
+                    <span>OPERATIVE LEVEL: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile.level}</span></span>
+                    <span>{profile.xp % 100} / 100 XP TO UPGRADE</span>
                   </div>
-                  <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.05)", borderRadius: "2px", overflow: "hidden" }}>
+                  <div style={{ width: "100%", height: "8px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
                     <div style={{ width: `${profile.xp % 100}%`, height: "100%", background: "var(--accent)" }} />
                   </div>
                 </div>
 
-                {/* Sub-stats checklist */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em" }}>
-                    [ RE-CALIBRATED SURVIVAL SUB-STATS ]
-                  </div>
-                  
+                {/* Sub-stats telemetry checklist */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2">
                   {[
                     { label: "THREAT AWARENESS", val: profile.stats.threat_awareness, desc: "Early-warning detection of global anomalies." },
                     { label: "OPERATIONAL DISCIPLINE", val: profile.stats.operational_discipline, desc: "Consistency in executing countermeasure tasks." },
@@ -724,60 +896,202 @@ export default function OperationsPage() {
                     { label: "RESOURCEFULNESS", val: profile.stats.resourcefulness, desc: "Farming efficiency and custom secondary bonuses." },
                     { label: "SURVEILLANCE RESISTANCE", val: profile.stats.surveillance_resistance, desc: "On-chain transaction privacy preservation." }
                   ].map((s) => (
-                    <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "11px" }}>
-                        <span style={{ color: "#fff" }}>{s.label}</span>
-                        <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{s.val} / 100</span>
+                    <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "12px" }}>
+                        <span style={{ color: "#fff", fontWeight: "bold" }}>{s.label}</span>
+                        <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{s.val} %</span>
                       </div>
-                      <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.02)", borderRadius: "2px", overflow: "hidden" }}>
+                      <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.02)", borderRadius: "2px", overflow: "hidden" }}>
                         <div style={{ width: `${s.val}%`, height: "100%", background: "#00ffcc" }} />
                       </div>
-                      <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>{s.desc}</span>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>{s.desc}</span>
                     </div>
                   ))}
                 </div>
-              </div>
 
-              {/* Resource Ledger */}
-              <div className="panel" style={{ background: "#080808", height: "fit-content" }}>
-                <h2 style={{ fontSize: "15px", color: "#fff", marginBottom: "16px" }}>CREDITS & RESOURCES</h2>
-                
-                {/* Credits */}
-                <div style={{ background: "#0c0c0c", border: "1px solid var(--border)", padding: "16px", borderRadius: "2px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                  <div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>OPERATIVE CREDITS</span>
-                    <div style={{ fontFamily: "var(--title-font)", fontSize: "20px", color: "#00ffcc", fontWeight: "bold", marginTop: "4px" }}>
-                      {profile.credits} CR
-                    </div>
+                {/* Resources display */}
+                <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "24px", marginTop: "24px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "16px" }}>
+                    [ OPERATIVE RESOURCE PROFILE ]
                   </div>
-                  <span style={{ fontSize: "24px" }}>🪙</span>
+                  
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "16px" }}>
+                    {/* Credits */}
+                    <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "16px", borderRadius: "2px" }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>CREDITS</span>
+                      <span style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: "#00ffcc", fontWeight: "bold", display: "block", marginTop: "4px" }}>
+                        {profile.credits} CR
+                      </span>
+                    </div>
+                    {Object.keys(profile.resources).map((resName) => (
+                      <div key={resName} style={{ background: "#080808", border: "1px solid var(--border)", padding: "16px", borderRadius: "2px" }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>{resName.toUpperCase()}</span>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "#fff", fontWeight: "bold", display: "block", marginTop: "4px" }}>
+                          {profile.resources[resName]} UNITS
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "12px" }}>
-                  [ RAW RECOVERED MATERIALS ]
+                {/* Achievements Container - Reserved for Future Artwork */}
+                <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "24px", marginTop: "24px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "16px" }}>
+                    [ RECON MEDALS & VALOR AWARDS ]
+                  </div>
+                  
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: "12px" }}>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} style={{
+                        aspectRatio: "1", border: "1px dashed rgba(255,255,255,0.06)",
+                        background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center",
+                        justifyContent: "center", position: "relative"
+                      }}>
+                        {/* Hexagon shape marker */}
+                        <div style={{
+                          width: "60%", height: "60%", border: "1.5px solid rgba(255,255,255,0.03)",
+                          transform: "rotate(45deg)", background: "rgba(255,255,255,0.01)"
+                        }} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {Object.keys(profile.resources).map((resName) => (
-                    <div key={resName} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.03)", paddingBottom: "6px" }}>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>{resName}</span>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#fff", fontWeight: "bold" }}>{profile.resources[resName]} units</span>
-                    </div>
-                  ))}
-                </div>
+
               </div>
+
             </div>
           )}
 
-          {/* TAB 3: LOADOUT / INVENTORY */}
+          {/* TAB 3: LOADOUT GRID (INVENTORY UPGRADE) */}
           {activeTab === "inventory" && (
-            <div className="panel" style={{ textAlign: "center", padding: "48px 32px" }}>
-              <span style={{ fontSize: "40px" }}>📦</span>
-              <h2 style={{ fontSize: "18px", color: "#fff", marginTop: "16px", marginBottom: "8px" }}>LOADOUT DECK LOCKED</h2>
-              <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", maxWidth: "480px", margin: "0 auto 24px auto", lineHeight: "1.6" }}>
-                Loadout editing, item equipping, weapon modifiers, and rarity upgrading systems are locked for Sprint 1. They will be integrated in Sprint 2.
-              </p>
-              <button disabled className="btn btn-primary" style={{ opacity: 0.5 }}>[ SYSTEM COMING SOON ]</button>
+            <div style={{ display: "grid", gridTemplateColumns: "0.8fr 1.4fr 0.8fr", gap: "32px" }} className="responsive-grid-3">
+              
+              {/* Left Column Gear Slots */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                  [ VITAL DEFENSE SLOTS ]
+                </div>
+
+                {/* Helmet Slot - Reserved for Future Artwork */}
+                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: "20px" }}>🪖</span>
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>HELMET SLOT</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--text-dim)", display: "block", fontWeight: "bold" }}>EMPTY</span>
+                  </div>
+                </div>
+
+                {/* Armor Slot - Reserved for Future Artwork */}
+                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: "20px" }}>🛡️</span>
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>VITAL SHIELD / ARMOR</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--text-dim)", display: "block", fontWeight: "bold" }}>EMPTY</span>
+                  </div>
+                </div>
+
+                {/* Primary Weapon Slot - Reserved for Future Artwork */}
+                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: "20px" }}>🔫</span>
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>PRIMARY WEAPON</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--text-dim)", display: "block", fontWeight: "bold" }}>EMPTY</span>
+                  </div>
+                </div>
+
+                {/* Secondary Weapon Slot - Reserved for Future Artwork */}
+                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: "20px" }}>🔫</span>
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>SECONDARY WEAPON</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--text-dim)", display: "block", fontWeight: "bold" }}>EMPTY</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Central Column: Operative Vector Silhouette - Reserved for Future Artwork */}
+              <div className="panel" style={{
+                background: "#050505", border: "1px dashed rgba(255,255,255,0.1)",
+                display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center",
+                alignItems: "center", minHeight: "440px", position: "relative"
+              }}>
+                {/* Crosshair target overlay */}
+                <svg width="240" height="240" viewBox="0 0 100 100" style={{ opacity: 0.15, position: "absolute" }}>
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" />
+                  <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" />
+                  <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" strokeWidth="0.5" />
+                  <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="0.5" />
+                </svg>
+                
+                <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-muted)", zIndex: 1, letterSpacing: "0.2em" }}>
+                  [ OPERATIVE SILHOUETTE HUD ]
+                </span>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", zIndex: 1, marginTop: "4px" }}>
+                  AWAITING GEOMETRY INJECTION
+                </span>
+              </div>
+
+              {/* Right Column Gear Slots */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                  [ TACTICAL UTILITY SLOTS ]
+                </div>
+
+                {/* Utility Slot - Reserved for Future Artwork */}
+                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: "20px" }}>🛠️</span>
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>UTILITY CONFIG KIT</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--text-dim)", display: "block", fontWeight: "bold" }}>EMPTY</span>
+                  </div>
+                </div>
+
+                {/* Medical Slot - Reserved for Future Artwork */}
+                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: "20px" }}>🧪</span>
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>MEDICAL KIT</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--text-dim)", display: "block", fontWeight: "bold" }}>EMPTY</span>
+                  </div>
+                </div>
+
+                {/* Backpack Slot - Reserved for Future Artwork */}
+                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: "20px" }}>🎒</span>
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>TACTICAL BACKPACK</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--text-dim)", display: "block", fontWeight: "bold" }}>EMPTY</span>
+                  </div>
+                </div>
+
+                {/* Gadget Slot - Reserved for Future Artwork */}
+                <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: "20px" }}>📡</span>
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>TACTICAL GADGET</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--text-dim)", display: "block", fontWeight: "bold" }}>EMPTY</span>
+                  </div>
+                </div>
+
+              </div>
+
             </div>
           )}
 
@@ -786,55 +1100,71 @@ export default function OperationsPage() {
 
       {/* --- IN-GAME GAMEPLAY OVERLAYS SYSTEM --- */}
       
-      {/* 1. Briefing Overlay */}
+      {/* 1. Briefing Overlay - Upgraded size and layout */}
       {activeMission && missionFlow === "briefing" && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
-          background: "rgba(0, 0, 0, 0.85)", display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0, 0, 0, 0.9)", display: "flex", alignItems: "center", justifyContent: "center",
           padding: "24px"
         }}>
-          <div className="panel" style={{ maxWidth: "600px", width: "100%", borderColor: "rgba(255, 77, 77, 0.3)" }}>
-            <h2 style={{ fontSize: "16px", color: "#fff", marginBottom: "16px", borderBottom: "1px dashed var(--border)", paddingBottom: "8px" }}>
-              MISSION BRIEFING // {activeMission.title}
-            </h2>
+          <div className="panel" style={{
+            maxWidth: "760px", width: "100%", borderColor: "rgba(255, 77, 77, 0.45)",
+            background: "#080808", padding: "40px"
+          }}>
+            <div style={{ borderBottom: "2px solid rgba(255,77,77,0.3)", paddingBottom: "16px", marginBottom: "24px" }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
+                CODENAME: RED QUEEN AI // MISSION DEPLOYMENT DIALOG
+              </span>
+              <h2 style={{ fontSize: "28px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em" }}>{activeMission.title}</h2>
+            </div>
             
-            <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "20px" }}>
+            {/* Mission Artwork container - Reserved for Future Artwork */}
+            <div style={{
+              height: "180px", width: "100%", background: "#030303", border: "1px dashed rgba(255,255,255,0.1)",
+              marginBottom: "24px", display: "flex", alignItems: "center", justifyContent: "center"
+            }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
+                [ MISSION_ENVIRONMENT_RECON_ILLUSTRATION ]
+              </span>
+            </div>
+
+            <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "28px" }}>
               {activeMission.description}
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px" }}>
-              <div style={{ background: "#0c0c0c", border: "1px solid var(--border)", padding: "12px", borderRadius: "2px" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>SECTOR</span>
-                <div style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: "#fff", fontWeight: "bold", marginTop: "2px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "16px", marginBottom: "28px" }}>
+              <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>SECTOR</span>
+                <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#fff", fontWeight: "bold", marginTop: "4px" }}>
                   {activeMission.category.toUpperCase()}
                 </div>
               </div>
-              <div style={{ background: "#0c0c0c", border: "1px solid var(--border)", padding: "12px", borderRadius: "2px" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>DIFFICULTY</span>
-                <div style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold", marginTop: "2px" }}>
+              <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>DIFFICULTY</span>
+                <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "var(--accent)", fontWeight: "bold", marginTop: "4px" }}>
                   {activeMission.difficulty.toUpperCase()}
                 </div>
               </div>
-              <div style={{ background: "#0c0c0c", border: "1px solid var(--border)", padding: "12px", borderRadius: "2px" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>EST. DURATION</span>
-                <div style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: "#fff", fontWeight: "bold", marginTop: "2px" }}>
-                  {activeMission.estimated_duration} MINUTES
+              <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>DURATION</span>
+                <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#fff", fontWeight: "bold", marginTop: "4px" }}>
+                  {activeMission.estimated_duration} MIN
                 </div>
               </div>
-              <div style={{ background: "#0c0c0c", border: "1px solid var(--border)", padding: "12px", borderRadius: "2px" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>REWARD VALUE</span>
-                <div style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: "#00ffcc", fontWeight: "bold", marginTop: "2px" }}>
-                  XP & RESOURCES
+              <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>RECOMMENDED</span>
+                <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#00ffcc", fontWeight: "bold", marginTop: "4px" }}>
+                  {activeMission.recommended_class_id.toUpperCase()}
                 </div>
               </div>
             </div>
 
             {/* Red Queen AI Briefing Commentary */}
-            <div style={{ background: "rgba(255, 0, 51, 0.03)", borderLeft: "3px solid var(--accent)", padding: "16px", borderRadius: "2px", marginBottom: "24px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.1em", marginBottom: "4px" }}>
-                [ RED QUEEN BRIEFING ]
+            <div style={{ background: "rgba(255, 0, 51, 0.04)", borderLeft: "4px solid var(--accent)", padding: "20px", marginBottom: "32px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "6px", fontWeight: "bold" }}>
+                [ SYSTEM UPLINK COMMENTARY ]
               </div>
-              <p style={{ fontFamily: "var(--mono)", fontSize: "11.5px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.5", margin: 0 }}>
+              <p style={{ fontFamily: "var(--mono)", fontSize: "13px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.6", margin: 0 }}>
                 {activeMission.recommended_class_id === profile.class
                   ? `"Operative configuration matches mission coordinates. Your medic/specialist capabilities yield +15% success probability check. Deploy immediately."`
                   : `"Warning: Active class [${profile.class.toUpperCase()}] deviates from recommended profile [${activeMission.recommended_class_id.toUpperCase()}]. Proceed with caution."`}
@@ -845,13 +1175,14 @@ export default function OperationsPage() {
               <button
                 onClick={() => { setActiveMission(null); setMissionFlow(null); }}
                 className="btn btn-ghost"
-                style={{ border: "1px solid var(--border)" }}
+                style={{ border: "1px solid var(--border)", padding: "12px 28px" }}
               >
-                ABORT
+                ABORT DEPLOYMENT
               </button>
               <button
                 onClick={() => runDeployment(activeMission)}
                 className="btn btn-primary"
+                style={{ padding: "12px 36px" }}
               >
                 DEPLOY OPERATIVE 🛰️
               </button>
@@ -860,40 +1191,40 @@ export default function OperationsPage() {
         </div>
       )}
 
-      {/* 2. Deployment Simulator Overlay */}
+      {/* 2. Deployment Simulator Overlay - Larger terminal view */}
       {activeMission && missionFlow === "deployment" && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
-          background: "#050505", display: "flex", alignItems: "center", justifyContent: "center",
+          background: "#030303", display: "flex", alignItems: "center", justifyContent: "center",
           padding: "24px"
         }}>
-          <div className="panel" style={{ maxWidth: "600px", width: "100%", borderColor: "rgba(255, 77, 77, 0.4)", background: "#000" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em" }}>
-                ▶ UPLINK UPLOAD SEQUENCER
+          <div className="panel" style={{ maxWidth: "760px", width: "100%", borderColor: "rgba(255, 77, 77, 0.55)", background: "#000", padding: "40px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.25em", fontWeight: "bold" }}>
+                ▶ CONDUIT UPLINK SEQUENCER
               </div>
               <span className="status-dot animate-pulse" />
             </div>
 
-            {/* Terminal console logger */}
+            {/* Terminal console */}
             <div style={{
-              background: "#050505", border: "1px solid #111", padding: "20px", borderRadius: "2px",
-              minHeight: "180px", fontFamily: "var(--mono)", fontSize: "12px", color: "#e8e8e8",
-              display: "flex", flexDirection: "column", gap: "8px", marginBottom: "20px"
+              background: "#040404", border: "1px solid #141414", padding: "24px", borderRadius: "2px",
+              minHeight: "240px", fontFamily: "var(--mono)", fontSize: "13px", color: "#e8e8e8",
+              display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px"
             }}>
               {deploymentLogs.map((log, idx) => (
-                <div key={idx}>{log}</div>
+                <div key={idx} style={{ color: log.includes("SUCCESS") ? "#00ffcc" : "#fff" }}>{log}</div>
               ))}
-              <div className="loading-dots" style={{ marginTop: "8px", opacity: 0.5 }}>CONNECTING</div>
+              <div className="loading-dots" style={{ marginTop: "12px", opacity: 0.5 }}>CONNECTING</div>
             </div>
 
             {/* Simulated progress bar */}
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "10px", marginBottom: "6px", color: "var(--text-dim)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "11px", marginBottom: "8px", color: "var(--text-dim)" }}>
                 <span>ENCRYPTING CORE COORDINATES...</span>
                 <span>{deploymentProgress}%</span>
               </div>
-              <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.05)", borderRadius: "2px", overflow: "hidden" }}>
+              <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.05)", borderRadius: "2px", overflow: "hidden" }}>
                 <div style={{ width: `${deploymentProgress}%`, height: "100%", background: "var(--accent)" }} />
               </div>
             </div>
@@ -901,27 +1232,27 @@ export default function OperationsPage() {
         </div>
       )}
 
-      {/* 3. Tactical Decision Overlay */}
+      {/* 3. Tactical Decision Overlay - Cinematic choices */}
       {activeMission && missionFlow === "decision" && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
-          background: "rgba(0, 0, 0, 0.85)", display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0, 0, 0, 0.9)", display: "flex", alignItems: "center", justifyContent: "center",
           padding: "24px"
         }}>
-          <div className="panel" style={{ maxWidth: "680px", width: "100%", borderColor: "rgba(0, 255, 204, 0.3)" }}>
+          <div className="panel" style={{ maxWidth: "800px", width: "100%", borderColor: "rgba(0, 255, 204, 0.45)", padding: "40px" }}>
             
-            <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "12px", marginBottom: "20px" }}>
-              <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.2em" }}>
-                TACTICAL DECISION PROTOCOL — CHOOSE TARGET ACTION
+            <div style={{ borderBottom: "2px solid rgba(0,255,204,0.3)", paddingBottom: "16px", marginBottom: "24px" }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", letterSpacing: "0.25em", fontWeight: "bold" }}>
+                TACTICAL DECISION PROTOCOL — INITIATE TARGET RESPONSE
               </span>
-              <h2 style={{ fontSize: "16px", color: "#fff", margin: "4px 0 0 0" }}>{activeMission.title}</h2>
+              <h2 style={{ fontSize: "24px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em" }}>{activeMission.title}</h2>
             </div>
 
-            <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
+            <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "32px" }}>
               {activeMission.scenarios[0].text}
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               {activeMission.scenarios[0].options.map((opt: any) => {
                 const isRecommended = opt.class_bonus.classId === profile.class;
                 return (
@@ -929,24 +1260,24 @@ export default function OperationsPage() {
                     key={opt.id}
                     onClick={() => handleSelectOption(opt)}
                     style={{
-                      width: "100%", padding: "16px", background: "#0c0c0c",
-                      border: isRecommended ? "1px dashed rgba(0,255,204,0.4)" : "1px solid var(--border)",
+                      width: "100%", padding: "20px 24px", background: "#080808",
+                      border: isRecommended ? "2px dashed rgba(0,255,204,0.5)" : "1px solid var(--border)",
                       borderRadius: "2px", cursor: "pointer", textAlign: "left", transition: "all 0.18s",
-                      display: "flex", flexDirection: "column", gap: "6px"
+                      display: "flex", flexDirection: "column", gap: "8px"
                     }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                      <span style={{ fontFamily: "var(--title-font)", fontSize: "12.5px", color: "#fff", fontWeight: "bold" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center" }}>
+                      <span style={{ fontFamily: "var(--title-font)", fontSize: "15px", color: "#fff", fontWeight: "bold", letterSpacing: "0.05em" }}>
                         {opt.text}
                       </span>
                       {isRecommended && (
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "#00ffcc", background: "rgba(0,255,204,0.05)", border: "1px solid rgba(0,255,204,0.2)", padding: "2px 6px", borderRadius: "2px" }}>
-                          CLASS MATCH (+15% SUCCESS)
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#00ffcc", background: "rgba(0,255,204,0.06)", border: "1px solid rgba(0,255,204,0.3)", padding: "4px 10px", borderRadius: "2px" }}>
+                          CLASS MATCH (+15% SUCCESS PROBABILITY)
                         </span>
                       )}
                     </div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-muted)" }}>
-                      Base success check: {opt.success_prob}% probability.
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
+                      Base success probability check: {opt.success_prob}% chance.
                     </span>
                   </button>
                 );
@@ -956,39 +1287,43 @@ export default function OperationsPage() {
         </div>
       )}
 
-      {/* 4. Debriefing & AI Evaluation Overlay */}
+      {/* 4. Debriefing & AI Evaluation Overlay - Large alert style */}
       {activeMission && missionFlow === "debriefing" && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
           background: "rgba(0, 0, 0, 0.9)", display: "flex", alignItems: "center", justifyContent: "center",
           padding: "24px"
         }}>
-          <div className="panel" style={{ maxWidth: "600px", width: "100%", borderColor: missionOutcome === "SUCCESS" ? "rgba(0, 255, 204, 0.3)" : "rgba(255, 77, 77, 0.3)" }}>
+          <div className="panel" style={{
+            maxWidth: "760px", width: "100%", padding: "40px",
+            borderColor: missionOutcome === "SUCCESS" ? "rgba(0, 255, 204, 0.45)" : "rgba(255, 77, 77, 0.45)"
+          }}>
             
-            <div style={{ textAlign: "center", marginBottom: "24px", borderBottom: "1px solid var(--border)", paddingBottom: "20px" }}>
-              <div className={`tag ${missionOutcome === "SUCCESS" ? "tag-green" : "tag-red"}`} style={{ fontSize: "11px", padding: "4px 14px", marginBottom: "8px" }}>
+            <div style={{ textAlign: "center", marginBottom: "32px", borderBottom: "1px solid var(--border)", paddingBottom: "24px" }}>
+              <div className={`tag ${missionOutcome === "SUCCESS" ? "tag-green" : "tag-red"}`} style={{ fontSize: "12px", padding: "6px 20px", marginBottom: "12px", letterSpacing: "0.1em" }}>
                 {missionOutcome === "SUCCESS" ? "OPERATION SUCCESSFUL" : "OPERATION FAILED"}
               </div>
-              <h2 style={{ fontSize: "20px", color: "#fff" }}>
-                {missionOutcome === "SUCCESS" ? "TACTICAL DATA ACQUIRED" : "GRID CONDUIT TRACE DETECTED"}
+              <h2 style={{ fontSize: "24px", color: "#fff", letterSpacing: "0.05em" }}>
+                {missionOutcome === "SUCCESS" ? "TACTICAL OBJECTIVE SECURED" : "GRID CONDUIT TRACE DETECTED"}
               </h2>
             </div>
 
-            <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "20px" }}>
+            <p style={{ fontSize: "14.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
               {missionOutcome === "SUCCESS" ? selectedOption.success_text : selectedOption.failure_text}
             </p>
 
-            {/* Red Queen dynamic commentary evaluation */}
-            <div style={{ background: "rgba(255, 255, 255, 0.01)", borderLeft: `3px solid ${missionOutcome === "SUCCESS" ? "#00ffcc" : "var(--accent)"}`, padding: "16px", borderRadius: "2px", marginBottom: "24px" }}>
-              <p style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", fontStyle: "italic", whiteSpace: "pre-line", margin: 0, lineHeight: "1.5" }}>
+            {/* Red Queen AI dynamic evaluation commentary */}
+            <div style={{ background: "rgba(255, 255, 255, 0.02)", borderLeft: `4px solid ${missionOutcome === "SUCCESS" ? "#00ffcc" : "var(--accent)"}`, padding: "20px", borderRadius: "2px", marginBottom: "32px" }}>
+              <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", fontStyle: "italic", whiteSpace: "pre-line", margin: 0, lineHeight: "1.6" }}>
                 {outcomeCommentary}
               </p>
             </div>
 
-            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "24px", display: "flex", justifyContent: "flex-end" }}>
               <button
                 onClick={() => setMissionFlow("rewards")}
                 className="btn btn-primary"
+                style={{ padding: "12px 32px" }}
               >
                 PROCEED TO DEBRIEFING →
               </button>
@@ -997,62 +1332,66 @@ export default function OperationsPage() {
         </div>
       )}
 
-      {/* 5. Reward Distribution Overlay */}
+      {/* 5. Reward Claim Overlay - Big grid cards */}
       {activeMission && missionFlow === "rewards" && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
-          background: "rgba(0, 0, 0, 0.9)", display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0, 0, 0, 0.95)", display: "flex", alignItems: "center", justifyContent: "center",
           padding: "24px"
         }}>
-          <div className="panel" style={{ maxWidth: "560px", width: "100%", borderColor: "rgba(0, 255, 204, 0.4)", background: "#080808" }}>
+          <div className="panel" style={{ maxWidth: "680px", width: "100%", borderColor: "rgba(0, 255, 204, 0.5)", background: "#080808", padding: "40px" }}>
             
-            <div style={{ textAlign: "center", marginBottom: "20px", borderBottom: "1px solid var(--border)", paddingBottom: "16px" }}>
-              <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#00ffcc", letterSpacing: "0.2em" }}>
-                DEBRIEFING MATRIX — CLAIM MISSION PAYLOAD
+            <div style={{ textAlign: "center", marginBottom: "28px", borderBottom: "1px solid var(--border)", paddingBottom: "20px" }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.25em", fontWeight: "bold" }}>
+                DEBRIEFING MATRIX — CLAIM RECOVERED TELEMETRY
               </span>
-              <h2 style={{ fontSize: "18px", color: "#fff", margin: "4px 0 0 0" }}>RECOVERED LOGISTICS</h2>
+              <h2 style={{ fontSize: "22px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em" }}>OPERATIONAL CONTRACT RESOLVED</h2>
             </div>
 
-            {/* Reward list */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", background: "#0c0c0c", padding: "10px 14px", border: "1px solid var(--border)" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>OPERATIVE XP:</span>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold" }}>+{outcomeRewards.xp} XP</span>
+            {/* Reward list - High visual scale */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "32px" }} className="responsive-grid-2">
+              <div style={{ background: "#000", padding: "20px", border: "1px solid var(--border)", textAlign: "center" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", display: "block" }}>OPERATIVE EXPERIENCE</span>
+                <span style={{ fontFamily: "var(--title-font)", fontSize: "20px", color: "#00ffcc", fontWeight: "bold", display: "block", marginTop: "6px" }}>
+                  +{outcomeRewards.xp} XP
+                </span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", background: "#0c0c0c", padding: "10px 14px", border: "1px solid var(--border)" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>CREDITS REVENUE:</span>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold" }}>+{outcomeRewards.credits} CR</span>
+              <div style={{ background: "#000", padding: "20px", border: "1px solid var(--border)", textAlign: "center" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", display: "block" }}>CREDITS VALUE</span>
+                <span style={{ fontFamily: "var(--title-font)", fontSize: "20px", color: "#00ffcc", fontWeight: "bold", display: "block", marginTop: "6px" }}>
+                  +{outcomeRewards.credits} CR
+                </span>
               </div>
               {outcomeRewards.resource_qty > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", background: "#0c0c0c", padding: "10px 14px", border: "1px solid var(--border)" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>RAW MATERIAL:</span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#fff", fontWeight: "bold" }}>
-                    +{outcomeRewards.resource_qty} UNIT [{outcomeRewards.resource.toUpperCase()}]
+                <div style={{ background: "#000", padding: "20px", border: "1px solid var(--border)", textAlign: "center", gridColumn: "span 2" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", display: "block" }}>RAW MATERIAL RECOVERED</span>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "#fff", fontWeight: "bold", display: "block", marginTop: "6px" }}>
+                    +{outcomeRewards.resource_qty} UNITS OF {outcomeRewards.resource.toUpperCase()}
                   </span>
                 </div>
               )}
               {outcomeRewards.sub_stats && Object.keys(outcomeRewards.sub_stats).length > 0 && (
-                <div style={{ border: "1px solid var(--border)", padding: "12px", background: "#0c0c0c" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", display: "block", marginBottom: "6px" }}>
-                    BIO-SCORE SUB-STATS GAINED:
+                <div style={{ border: "1px solid var(--border)", padding: "20px", background: "#000", gridColumn: "span 2" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", display: "block", marginBottom: "8px", fontWeight: "bold" }}>
+                    BIO-SCORE SUB-STATS RE-CALIBRATION:
                   </span>
                   {Object.keys(outcomeRewards.sub_stats).map((k) => (
-                    <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: "11.5px", fontFamily: "var(--mono)" }}>
+                    <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontFamily: "var(--mono)", borderBottom: "1px dashed rgba(255,255,255,0.03)", padding: "4px 0" }}>
                       <span style={{ color: "var(--text-dim)" }}>{k.replace("_", " ").toUpperCase()}</span>
-                      <span style={{ color: "#00ffcc" }}>+{outcomeRewards.sub_stats[k]}</span>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>+{outcomeRewards.sub_stats[k]}%</span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "16px", display: "flex", justifyContent: "center" }}>
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "24px", display: "flex", justifyContent: "center" }}>
               <button
                 onClick={handleClaimRewards}
                 className="btn btn-primary"
-                style={{ width: "100%", justifyContent: "center" }}
+                style={{ width: "100%", justifyContent: "center", padding: "14px", fontSize: "12.5px" }}
               >
-                CLAIM PAYLOAD & RETURN TO HUB
+                CLAIM RECOVERY CONTRACT & SHIELD UPLINK
               </button>
             </div>
           </div>
