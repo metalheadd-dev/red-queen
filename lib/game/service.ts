@@ -1,7 +1,7 @@
 import { DEFAULT_STATS, UserStats, calculateBioScore } from "../progression";
 import {
   OperativeProfile, Mission, InventoryItem, WorldState, SectorState,
-  DynamicCampaignEvent, Sector, CampaignStats, ArchiveMissionRecord
+  DynamicCampaignEvent, Sector, CampaignStats, ArchiveMissionRecord, MissionObjective
 } from "./types";
 import { INITIAL_SECTORS, INITIAL_MISSIONS, INITIAL_INVENTORY, CRAFTING_RECIPES, UPGRADE_RECIPES } from "./data";
 
@@ -177,6 +177,7 @@ export const DEFAULT_PROFILE: OperativeProfile = {
     "Medical Supplies": 2,
     "Energy Cells": 2,
     "Research Data": 1,
+    Components: 5,
   },
   stats: { ...DEFAULT_STATS },
   completedMissions: [],
@@ -321,12 +322,49 @@ export function evaluateSectorUnlock(profile: OperativeProfile, sectorState: Sec
  * Generates repeatable dynamic operations for a given sector based on its current state.
  */
 export function generateDynamicMission(sectorId: string, sectorState: SectorState, profileLevel: number): Mission {
-  const difficultyByDanger: Record<string, "Easy" | "Normal" | "Hard"> = {
-    Low: "Easy", Medium: "Normal", High: "Normal", Severe: "Hard",
+  const difficultyByDanger: Record<string, "Easy" | "Normal" | "Hard" | "Critical"> = {
+    Low: "Easy", Medium: "Normal", High: "Hard", Severe: "Critical",
   };
   const difficulty = difficultyByDanger[sectorState.dangerLevel] || "Normal";
-  const xpBase = difficulty === "Easy" ? 20 : difficulty === "Normal" ? 40 : 65;
-  const creditBase = difficulty === "Easy" ? 35 : difficulty === "Normal" ? 80 : 130;
+
+  const xpBase = 
+    difficulty === "Easy" ? 20 : 
+    difficulty === "Normal" ? 45 : 
+    difficulty === "Hard" ? 80 : 160;
+
+  const creditBase = 
+    difficulty === "Easy" ? 35 : 
+    difficulty === "Normal" ? 80 : 
+    difficulty === "Hard" ? 150 : 300;
+
+  const duration = 
+    difficulty === "Easy" ? 4 : 
+    difficulty === "Normal" ? 8 : 
+    difficulty === "Hard" ? 15 : 25;
+
+  const injuryOpt1 = 
+    difficulty === "Easy" ? 10 : 
+    difficulty === "Normal" ? 22 : 
+    difficulty === "Hard" ? 40 : 70;
+
+  const injuryOpt2 = 
+    difficulty === "Easy" ? 5 : 
+    difficulty === "Normal" ? 12 : 
+    difficulty === "Hard" ? 25 : 45;
+
+  // Reputation delta mapping
+  const repDelta: Record<string, number> = {};
+  if (difficulty === "Easy") {
+    repDelta.vanguard = 5;
+  } else if (difficulty === "Normal") {
+    repDelta.vanguard = 10;
+  } else if (difficulty === "Hard") {
+    repDelta.vanguard = 15;
+    repDelta.eclipse = -5;
+  } else if (difficulty === "Critical") {
+    repDelta.vanguard = 30;
+    repDelta.eclipse = -15;
+  }
 
   const resources = ["Metal", "Electronics", "Medical Supplies", "Energy Cells", "Components"];
   const resource = resources[Math.floor(Math.random() * resources.length)];
@@ -361,15 +399,26 @@ export function generateDynamicMission(sectorId: string, sectorState: SectorStat
   const template = templates[Math.floor(Math.random() * templates.length)];
   const now = Date.now();
 
+  const objectives: MissionObjective[] = [
+    { id: `dyn-obj-1-${now}`, description: template.primary, status: "PENDING", reward: `${xpBase} XP` },
+    { id: `dyn-obj-2-${now}`, description: "Recover any secondary intel discovered during sweep", status: "PENDING", reward: `${Math.round(creditBase * 0.3)} CR` },
+  ];
+  if (difficulty === "Hard" || difficulty === "Critical") {
+    objectives.push({ id: `dyn-obj-3-${now}`, description: "Decrypt sector telemetry node keychains", status: "PENDING", reward: "Components" });
+  }
+  if (difficulty === "Critical") {
+    objectives.push({ id: `dyn-obj-4-${now}`, description: "Exfiltrate database host anomalies securely", status: "PENDING", reward: "Energy Cells" });
+  }
+
   return {
     id: `dyn-${sectorId}-${template.suffix}-${now}`,
     title: `OPERATION ${template.titleWord} [${sectorId.replace("sec-", "").toUpperCase()}]`,
     description: template.desc,
     region: sectorId,
     difficulty,
-    duration: difficulty === "Easy" ? 4 : difficulty === "Normal" ? 8 : 12,
+    duration,
     recommendedClass: "Assault",
-    rewards: { xp: xpBase, credits: creditBase, resource, resourceQty: difficulty === "Hard" ? 3 : 2 },
+    rewards: { xp: xpBase, credits: creditBase, resource, resourceQty: difficulty === "Critical" ? 5 : difficulty === "Hard" ? 3 : 2 },
     unlockRequirements: { level: Math.max(1, profileLevel - 1) },
     category: "dynamic",
     story: template.story,
@@ -379,11 +428,8 @@ export function generateDynamicMission(sectorId: string, sectorState: SectorStat
     environmentalHazard: template.hazard,
     recommendedEquipment: "Standard tactical loadout",
     recommendedDivision: "Command Division",
-    objectives: [
-      { id: `dyn-obj-1-${now}`, description: template.primary, status: "PENDING", reward: `${xpBase} XP` },
-      { id: `dyn-obj-2-${now}`, description: "Recover any secondary intel discovered during sweep", status: "PENDING", reward: `${Math.round(creditBase * 0.3)} CR` },
-    ],
-    factionReputationDelta: {},
+    objectives,
+    factionReputationDelta: repDelta,
     isRepeatable: true,
     events: [
       {
@@ -394,20 +440,20 @@ export function generateDynamicMission(sectorId: string, sectorState: SectorStat
           {
             id: `dyn-ev-opt1-${now}`,
             text: "Engage hostiles directly.",
-            success_prob: 75,
+            success_prob: difficulty === "Critical" ? 60 : difficulty === "Hard" ? 68 : 75,
             class_bonus: { classId: "Assault", bonus: 15 },
             success_text: "Contacts neutralized. Zone cleared.",
             failure_text: "Hostile fire landed hits before you could suppress them.",
-            effects: { xp: Math.round(xpBase * 0.4), credits: Math.round(creditBase * 0.3), injury: 20 },
+            effects: { xp: Math.round(xpBase * 0.4), credits: Math.round(creditBase * 0.3), injury: injuryOpt1 },
           },
           {
             id: `dyn-ev-opt2-${now}`,
             text: "Evade and bypass using alternate route.",
-            success_prob: 80,
+            success_prob: difficulty === "Critical" ? 65 : difficulty === "Hard" ? 72 : 80,
             class_bonus: { classId: "Recon", bonus: 15 },
             success_text: "You bypassed the hostile patrol without incident.",
             failure_text: "The alternate route was also covered. Minor injury sustained.",
-            effects: { xp: Math.round(xpBase * 0.3), credits: Math.round(creditBase * 0.2), injury: 10 },
+            effects: { xp: Math.round(xpBase * 0.3), credits: Math.round(creditBase * 0.2), injury: injuryOpt2 },
           },
         ],
       },
@@ -419,10 +465,10 @@ export function generateDynamicMission(sectorId: string, sectorState: SectorStat
           {
             id: `dyn-ev-opt3-${now}`,
             text: "Execute primary objective.",
-            success_prob: 85,
+            success_prob: difficulty === "Critical" ? 70 : difficulty === "Hard" ? 78 : 85,
             success_text: "Objective completed successfully. Initiating extraction.",
             failure_text: "Unexpected complication. Partial success only.",
-            effects: { xp: Math.round(xpBase * 0.6), credits: Math.round(creditBase * 0.7), reputationBonus: 5 },
+            effects: { xp: Math.round(xpBase * 0.6), credits: Math.round(creditBase * 0.7), reputationBonus: difficulty === "Critical" ? 15 : 5 },
           },
         ],
       },
@@ -569,6 +615,20 @@ export function loadProfile(identifier: string): OperativeProfile {
       profile.worldState.unlockedSectors = Array.from(finalUnlocked);
     }
 
+    // Ensure active sectors have repeatable operations (no dead-ends)
+    Object.keys(profile.worldState.sectorStates).forEach(sid => {
+      const secState = profile.worldState.sectorStates[sid];
+      if (secState.isUnlocked) {
+        const staticMissions = INITIAL_MISSIONS.filter(m => m.region === sid && !profile.completedMissions.includes(m.id));
+        const dynamicMissions = profile.worldState.dynamicMissions.filter(m => m.region === sid);
+        
+        if (staticMissions.length === 0 && dynamicMissions.length === 0) {
+          const newDyn = generateDynamicMission(sid, secState, profile.level);
+          profile.worldState.dynamicMissions.push(newDyn);
+        }
+      }
+    });
+
     return profile;
   } catch (err) {
     console.error("Failed to load operations profile:", err);
@@ -609,48 +669,110 @@ const LOOT_TEMPLATES = {
   ] as any[]
 };
 
-export function generateLootDrops(difficulty: string, dangerLevel: string): InventoryItem[] {
-  const rolls = Math.random();
+export interface LootDropResult {
+  items: InventoryItem[];
+  resources: Record<string, number>;
+  credits: number;
+}
+
+export function generateLootDrops(difficulty: string, dangerLevel: string, sectorId: string): LootDropResult {
+  const diffMultiplier = 
+    difficulty === "Critical" ? 3.5 : 
+    difficulty === "Hard" ? 2.2 : 
+    difficulty === "Normal" ? 1.5 : 1.0;
+
+  // 1. Credits drop roll
+  const baseCredits = Math.floor(Math.random() * 20) + 15;
+  const credits = Math.round(baseCredits * diffMultiplier);
+
+  // 2. Thematic resource rolls
+  const resources: Record<string, number> = {};
+  let thematicResources: string[] = ["Metal", "Components"];
+  if (sectorId === "sec-alpha") thematicResources = ["Metal", "Components"];
+  else if (sectorId === "sec-beta") thematicResources = ["Electronics", "Energy Cells"];
+  else if (sectorId === "sec-gamma") thematicResources = ["Medical Supplies", "Research Data"];
+  else if (sectorId === "sec-delta") thematicResources = ["Metal", "Electronics"];
+  else if (sectorId === "sec-epsilon") thematicResources = ["Research Data", "Components"];
+  else if (sectorId === "sec-zeta") thematicResources = ["Metal", "Components"];
+  else if (sectorId === "sec-eta") thematicResources = ["Energy Cells", "Components"];
+
+  // Quantity bundles: Easy=1, Normal=2, Hard=3, Critical=4
+  const bundlesCount = difficulty === "Critical" ? 4 : difficulty === "Hard" ? 3 : difficulty === "Normal" ? 2 : 1;
+  for (let i = 0; i < bundlesCount; i++) {
+    const resName = thematicResources[Math.floor(Math.random() * thematicResources.length)];
+    const baseQty = Math.floor(Math.random() * 3) + 1;
+    resources[resName] = (resources[resName] || 0) + Math.round(baseQty * (diffMultiplier * 0.8 || 1));
+  }
+
+  // 3. Item drop roll
+  const items: InventoryItem[] = [];
+  const itemRoll = Math.random();
+  let shouldDrop = false;
   let rarity: "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary" = "Common";
-  
-  if (difficulty === "Hard" || dangerLevel === "Severe" || dangerLevel === "High") {
-    if (rolls < 0.03) rarity = "Legendary";
-    else if (rolls < 0.12) rarity = "Epic";
-    else if (rolls < 0.40) rarity = "Rare";
-    else if (rolls < 0.80) rarity = "Uncommon";
-    else rarity = "Common";
-  } else if (difficulty === "Normal" || dangerLevel === "Medium") {
-    if (rolls < 0.01) rarity = "Epic";
-    else if (rolls < 0.15) rarity = "Rare";
-    else if (rolls < 0.55) rarity = "Uncommon";
+
+  if (difficulty === "Critical") {
+    shouldDrop = true;
+    if (itemRoll < 0.15) rarity = "Legendary";
+    else if (itemRoll < 0.45) rarity = "Epic";
+    else rarity = "Rare";
+  } else if (difficulty === "Hard") {
+    shouldDrop = true;
+    if (itemRoll < 0.05) rarity = "Legendary";
+    else if (itemRoll < 0.20) rarity = "Epic";
+    else if (itemRoll < 0.60) rarity = "Rare";
+    else rarity = "Uncommon";
+  } else if (difficulty === "Normal") {
+    shouldDrop = itemRoll < 0.60;
+    if (itemRoll < 0.02) rarity = "Epic";
+    else if (itemRoll < 0.15) rarity = "Rare";
+    else if (itemRoll < 0.50) rarity = "Uncommon";
     else rarity = "Common";
   } else {
-    if (rolls < 0.05) rarity = "Rare";
-    else if (rolls < 0.30) rarity = "Uncommon";
+    shouldDrop = itemRoll < 0.30;
+    if (itemRoll < 0.05) rarity = "Rare";
+    else if (itemRoll < 0.30) rarity = "Uncommon";
     else rarity = "Common";
   }
 
-  const templates = LOOT_TEMPLATES[rarity] || LOOT_TEMPLATES.Common;
-  const picked = templates[Math.floor(Math.random() * templates.length)];
-  
-  let qty = 1;
-  if (picked.type === "material") {
-    qty = Math.floor(Math.random() * 4) + 1;
-  } else if (picked.type === "consumable") {
-    qty = Math.floor(Math.random() * 2) + 1;
-  }
+  if (shouldDrop) {
+    const templates = LOOT_TEMPLATES[rarity] || LOOT_TEMPLATES.Common;
+    let thematicTemplates = templates;
+    if (sectorId === "sec-gamma") {
+      thematicTemplates = templates.filter(t => t.category === "Medical" || t.id.includes("bio") || t.id.includes("stim"));
+    } else if (sectorId === "sec-delta") {
+      thematicTemplates = templates.filter(t => t.type === "weapon" || t.category === "Weapons");
+    } else if (sectorId === "sec-alpha" || sectorId === "sec-zeta") {
+      thematicTemplates = templates.filter(t => t.type === "armor" || t.category === "Armor");
+    }
 
-  return [
-    {
+    if (thematicTemplates.length === 0) {
+      thematicTemplates = templates;
+    }
+
+    const picked = thematicTemplates[Math.floor(Math.random() * thematicTemplates.length)];
+    let qty = 1;
+    if (picked.type === "material") {
+      qty = Math.floor(Math.random() * 4) + 1;
+    } else if (picked.type === "consumable") {
+      qty = Math.floor(Math.random() * 2) + 1;
+    }
+
+    items.push({
       ...picked,
+      id: `${picked.id}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       qty,
       rarity,
       quality: Math.floor(Math.random() * 20) + 80,
-      itemLevel: difficulty === "Hard" ? 20 : difficulty === "Normal" ? 12 : 5,
+      itemLevel: difficulty === "Critical" ? 25 : difficulty === "Hard" ? 20 : difficulty === "Normal" ? 12 : 5,
       classRequirement: picked.classRequirement || "None",
       stats: picked.stats || {},
-    } as InventoryItem
-  ];
+      weight: picked.weight ?? 0.5,
+      durability: picked.durability ?? 100,
+      maxDurability: picked.maxDurability ?? 100,
+    } as InventoryItem);
+  }
+
+  return { items, resources, credits };
 }
 
 // ─── Mission Reward Claim (Sprint 7: Full Campaign Engine) ────────────────────
@@ -676,7 +798,7 @@ export function claimMissionRewards(
   const updated = { ...profile };
 
   const xpGain      = cumulativeRewards.xp      || 0;
-  const creditGain  = cumulativeRewards.credits  || 0;
+  let creditGain    = cumulativeRewards.credits  || 0;
   const repGain     = cumulativeRewards.reputationBonus || 0;
   const isSuccess   = outcome === "SUCCESS" || outcome === "PARTIAL";
 
@@ -706,10 +828,16 @@ export function claimMissionRewards(
   const lootedItems: InventoryItem[] = [];
   if (isSuccess) {
     const sectorDanger = updated.worldState?.sectorStates?.[mission.region]?.dangerLevel || "Medium";
-    const loot = generateLootDrops(mission.difficulty, sectorDanger);
-    if (loot && loot.length > 0) {
-      lootedItems.push(...loot);
-      loot.forEach(item => {
+    const lootResult = generateLootDrops(mission.difficulty, sectorDanger, mission.region);
+    
+    creditGain += lootResult.credits;
+    Object.entries(lootResult.resources).forEach(([resName, qty]) => {
+      cumulativeRewards.resources[resName] = (cumulativeRewards.resources[resName] || 0) + qty;
+    });
+
+    if (lootResult.items && lootResult.items.length > 0) {
+      lootedItems.push(...lootResult.items);
+      lootResult.items.forEach(item => {
         const val = item.type === "material" ? item.qty : 1;
         cumulativeRewards.resources[item.name] = (cumulativeRewards.resources[item.name] || 0) + val;
       });
@@ -1220,19 +1348,36 @@ export function craftItem(
     return { updatedProfile: profile, updatedInventory: inventory, success: false, message: `Requires Operative Level ${recipe.requiredLevel}.` };
   }
 
-  // Verify ingredients
+  const updatedProfile = { ...profile, resources: { ...profile.resources } };
   const nextInv = inventory.map(item => ({ ...item }));
+
+  const isProfileResource = (itemId: string) => {
+    return ["Metal", "Electronics", "Medical Supplies", "Energy Cells", "Research Data", "Components"].includes(itemId);
+  };
+
+  // Verify ingredients
   for (const ing of recipe.ingredients) {
-    const invItem = nextInv.find(i => i.id === ing.itemId);
-    if (!invItem || invItem.qty < ing.qty) {
-      return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Insufficient ingredients." };
+    if (isProfileResource(ing.itemId)) {
+      const available = updatedProfile.resources[ing.itemId] || 0;
+      if (available < ing.qty) {
+        return { updatedProfile: profile, updatedInventory: inventory, success: false, message: `Insufficient ${ing.itemId} resource.` };
+      }
+    } else {
+      const invItem = nextInv.find(i => i.id === ing.itemId);
+      if (!invItem || invItem.qty < ing.qty) {
+        return { updatedProfile: profile, updatedInventory: inventory, success: false, message: `Insufficient ${ing.itemId} in inventory.` };
+      }
     }
   }
 
   // Consume ingredients
   recipe.ingredients.forEach(ing => {
-    const invItem = nextInv.find(i => i.id === ing.itemId)!;
-    invItem.qty -= ing.qty;
+    if (isProfileResource(ing.itemId)) {
+      updatedProfile.resources[ing.itemId] -= ing.qty;
+    } else {
+      const invItem = nextInv.find(i => i.id === ing.itemId)!;
+      invItem.qty -= ing.qty;
+    }
   });
 
   // Filter out exhausted materials/consumables
@@ -1264,7 +1409,7 @@ export function craftItem(
   }
 
   return {
-    updatedProfile: profile,
+    updatedProfile: updatedProfile,
     updatedInventory: filteredInv,
     success: true,
     message: `Synthesized ${recipe.name} successfully.`
@@ -1296,18 +1441,35 @@ export function upgradeEquipment(
     return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Equipment has reached max upgrade slots." };
   }
 
+  const updatedProfile = { ...profile, resources: { ...profile.resources } };
+
+  const isProfileResource = (itemId: string) => {
+    return ["Metal", "Electronics", "Medical Supplies", "Energy Cells", "Research Data", "Components"].includes(itemId);
+  };
+
   // Verify ingredients
   for (const ing of recipe.ingredients) {
-    const invItem = nextInv.find(i => i.id === ing.itemId);
-    if (!invItem || invItem.qty < ing.qty) {
-      return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Insufficient upgrade components." };
+    if (isProfileResource(ing.itemId)) {
+      const available = updatedProfile.resources[ing.itemId] || 0;
+      if (available < ing.qty) {
+        return { updatedProfile: profile, updatedInventory: inventory, success: false, message: `Insufficient ${ing.itemId} resource.` };
+      }
+    } else {
+      const invItem = nextInv.find(i => i.id === ing.itemId);
+      if (!invItem || invItem.qty < ing.qty) {
+        return { updatedProfile: profile, updatedInventory: inventory, success: false, message: "Insufficient upgrade components." };
+      }
     }
   }
 
   // Consume ingredients
   recipe.ingredients.forEach(ing => {
-    const invItem = nextInv.find(i => i.id === ing.itemId)!;
-    invItem.qty -= ing.qty;
+    if (isProfileResource(ing.itemId)) {
+      updatedProfile.resources[ing.itemId] -= ing.qty;
+    } else {
+      const invItem = nextInv.find(i => i.id === ing.itemId)!;
+      invItem.qty -= ing.qty;
+    }
   });
 
   const filteredInv = nextInv.filter(i => i.qty > 0 || i.type === "weapon" || i.type === "armor");
@@ -1322,7 +1484,7 @@ export function upgradeEquipment(
   };
 
   return {
-    updatedProfile: profile,
+    updatedProfile: updatedProfile,
     updatedInventory: filteredInv,
     success: true,
     message: `Upgraded ${upgraded.name} (Socket ${upgraded.upgradeSlots}/${upgraded.maxUpgradeSlots}).`

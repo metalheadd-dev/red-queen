@@ -757,7 +757,10 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
   { id: "inv-11", name: "Deuterium Power Cell", rarity: "Rare", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "High-density plasma power pack for calibrating transmitters.", qty: 12, type: "material", itemLevel: 1, stats: { EnergyCapacity: "500MW" }, category: "Materials", weight: 0.3 },
   { id: "inv-12", name: "Raw Titanite Scrap", rarity: "Common", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Scraped bulkhead alloys for crafting primary shield plates.", qty: 25, type: "material", itemLevel: 1, stats: { Purity: "78%" }, category: "Materials", weight: 0.5 },
   { id: "mat-bio-sample", name: "Pathogen Biostrain Sample", rarity: "Uncommon", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Localized bio-pathogen spores harvested from active containment zones.", qty: 4, type: "material", itemLevel: 1, stats: { HazardLevel: 3 }, category: "Materials", weight: 0.1 },
-  { id: "mat-encrypted-intel", name: "Encrypted Decryption Keyring", rarity: "Rare", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Decentralized trace registry telemetry captured from security exchanges.", qty: 2, type: "material", itemLevel: 1, stats: { DecryptTier: 2 }, category: "Materials", weight: 0.05 }
+  { id: "mat-encrypted-intel", name: "Encrypted Decryption Keyring", rarity: "Rare", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Decentralized trace registry telemetry captured from security exchanges.", qty: 2, type: "material", itemLevel: 1, stats: { DecryptTier: 2 }, category: "Materials", weight: 0.05 },
+  { id: "inv-10", name: "Field Medkit", rarity: "Rare", quality: 100, slot: "Medkit", classRequirement: "None", power: 40, desc: "Heavy cellular reconstructors to restore 60 HP and repair tissue.", qty: 2, type: "consumable", itemLevel: 8, stats: { Heal: "+60 HP", MedicalEfficiency: "+15%" }, category: "Medical", weight: 0.5, durability: 100, maxDurability: 100 },
+  { id: "inv-13", name: "Signal Booster", rarity: "Uncommon", quality: 100, slot: "Gadget", classRequirement: "None", power: 20, desc: "Tactical deployable boosting local communications. Boosts signal coverage.", qty: 1, type: "consumable", itemLevel: 4, stats: { DecryptSpeed: "+15%", ResearchEfficiency: "+10%" }, category: "Tools", weight: 0.3, durability: 100, maxDurability: 100 },
+  { id: "inv-14", name: "Portable Scanner", rarity: "Rare", quality: 100, slot: "Gadget", classRequirement: "None", power: 45, desc: "Provides radar sweeping overlays mapping biological signatures.", qty: 1, type: "consumable", itemLevel: 10, stats: { ThreatDetection: "+25", Detection: "+20" }, category: "Tools", weight: 0.6, durability: 100, maxDurability: 100 }
 ];
 
 export const CRAFTING_RECIPES: CraftingRecipe[] = [
@@ -768,8 +771,68 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
     resultItemId: "inv-3",
     resultQty: 1,
     ingredients: [
-      { itemId: "mat-bio-sample", qty: 2 },
-      { itemId: "inv-12", qty: 1 }
+      { itemId: "Medical Supplies", qty: 2 },
+      { itemId: "Components", qty: 1 }
+    ],
+    requiredLevel: 1
+  },
+  {
+    id: "rec-medkit",
+    name: "Field Medkit",
+    description: "Assemble a heavy trauma field medkit with cellular reconstructors.",
+    resultItemId: "inv-10",
+    resultQty: 1,
+    ingredients: [
+      { itemId: "Medical Supplies", qty: 4 },
+      { itemId: "Components", qty: 2 }
+    ],
+    requiredLevel: 2
+  },
+  {
+    id: "rec-energy-cell",
+    name: "Deuterium Power Cell",
+    description: "Refine raw alloys and capacitors into a tactical high-density power cell.",
+    resultItemId: "inv-11",
+    resultQty: 1,
+    ingredients: [
+      { itemId: "Metal", qty: 2 },
+      { itemId: "Components", qty: 1 }
+    ],
+    requiredLevel: 1
+  },
+  {
+    id: "rec-signal-booster",
+    name: "Signal Booster",
+    description: "Assemble a deployable antenna pack boosting telemetry ranges.",
+    resultItemId: "inv-13",
+    resultQty: 1,
+    ingredients: [
+      { itemId: "Electronics", qty: 2 },
+      { itemId: "Energy Cells", qty: 1 }
+    ],
+    requiredLevel: 2
+  },
+  {
+    id: "rec-portable-scanner",
+    name: "Portable Scanner",
+    description: "Synthesize a portable biosignature sweeper mapping life sign signatures.",
+    resultItemId: "inv-14",
+    resultQty: 1,
+    ingredients: [
+      { itemId: "Electronics", qty: 2 },
+      { itemId: "Components", qty: 2 }
+    ],
+    requiredLevel: 3
+  },
+  {
+    id: "rec-decoy-device",
+    name: "Decoy Device",
+    description: "Construct a misdirection transmitter emitting trace user profiles.",
+    resultItemId: "inv-6",
+    resultQty: 1,
+    ingredients: [
+      { itemId: "Electronics", qty: 1 },
+      { itemId: "Metal", qty: 1 }
     ],
     requiredLevel: 1
   },
@@ -780,10 +843,11 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
     resultItemId: "inv-1",
     resultQty: 1,
     ingredients: [
-      { itemId: "inv-12", qty: 15 },
-      { itemId: "inv-11", qty: 2 }
+      { itemId: "Metal", qty: 10 },
+      { itemId: "Components", qty: 5 },
+      { itemId: "Electronics", qty: 3 }
     ],
-    requiredLevel: 2
+    requiredLevel: 3
   }
 ];
 

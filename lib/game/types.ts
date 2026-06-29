@@ -130,7 +130,7 @@ export interface Mission {
   title: string;
   description: string;
   region: string;       // Sector ID
-  difficulty: "Easy" | "Normal" | "Hard";
+  difficulty: "Easy" | "Normal" | "Hard" | "Critical";
   duration: number;
   recommendedClass: string;
   recommendedFaction?: string;

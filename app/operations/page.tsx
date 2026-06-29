@@ -676,7 +676,47 @@ export default function OperationsPage() {
     return base;
   };
 
+  const getEffectiveTacticalStats = () => {
+    const base = {
+      maxHp: 100,
+      armor: 0,
+      resistance: 0,
+      detection: 50,
+      mobility: 100,
+      capacity: 15,
+      medEfficiency: 100,
+      resEfficiency: 100
+    };
+    if (equippedGear) {
+      Object.values(equippedGear).forEach(item => {
+        if (item && item.stats) {
+          Object.entries(item.stats).forEach(([statName, val]) => {
+            const key = statName.toLowerCase().replace(/_/g, "");
+            const numericVal = typeof val === "number" ? val : parseFloat(String(val)) || 0;
+            if (key === "shield" || key === "mitigation" || key === "armor") {
+              base.armor += numericVal;
+            } else if (key === "filterefficiency" || key === "resistance") {
+              base.resistance += numericVal;
+            } else if (key === "threatdetection" || key === "detection" || key === "awareness") {
+              base.detection += numericVal;
+            } else if (key === "speed" || key === "mobility") {
+              base.mobility += numericVal;
+            } else if (key === "slots" || key === "loadcapacity") {
+              base.capacity += numericVal;
+            } else if (key === "heal" || key === "medicalefficiency" || key === "medefficiency") {
+              base.medEfficiency += numericVal;
+            } else if (key === "decryptspeed" || key === "researchefficiency" || key === "resefficiency") {
+              base.resEfficiency += numericVal;
+            }
+          });
+        }
+      });
+    }
+    return base;
+  };
+
   const profileStats = getEffectiveStats();
+  const tacticalStats = getEffectiveTacticalStats();
   const currentBioScore = calculateBioScore(profileStats);
   const clearanceTier = getClearanceLevel(currentBioScore);
 
@@ -1414,6 +1454,29 @@ export default function OperationsPage() {
         {/* Content Pane - Viewport bound game HUD structure */}
         <main style={{ flex: 1, padding: "20px", background: "#030303", display: "flex", flexDirection: "column", height: "100%", boxSizing: "border-box", overflow: "hidden" }}>
           
+          {/* Critical Vitality Warning Banner */}
+          {profile && profile.health < 30 && (
+            <div style={{
+              background: "rgba(255, 77, 77, 0.12)",
+              border: "1px solid var(--accent)",
+              padding: "8px 14px",
+              marginBottom: "10px",
+              borderRadius: "2px",
+              fontFamily: "var(--mono)",
+              fontSize: "10px",
+              color: "var(--accent)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              boxShadow: "0 0 10px rgba(255, 77, 77, 0.15)",
+              animation: "blink 1.6s infinite",
+              flexShrink: 0
+            }}>
+              <span>⚠️ [WARNING: BIOMETRICS CRITICAL] Operative vital signal at {profile.health} HP. Cellular stabilization required.</span>
+              <span style={{ fontWeight: "bold" }}>STABILIZATION HUB ENCRYPTED //</span>
+            </div>
+          )}
+
           {/* TAB 1: COMMAND CENTER (HUD & OPERATIONS) */}
           {activeTab === "center" && (
             <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -2091,6 +2154,93 @@ export default function OperationsPage() {
                           );
                         });
                       })()}
+                    </div>
+                  </div>
+                  
+                  {/* Tactical stats grid */}
+                  <div style={{ marginTop: "8px", border: "1px solid rgba(255, 77, 77, 0.15)", background: "rgba(255, 77, 77, 0.01)", padding: "8px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--accent)", letterSpacing: "0.1em", borderBottom: "1px solid rgba(255, 77, 77, 0.15)", paddingBottom: "4px", marginBottom: "6px", fontWeight: "bold" }}>
+                      [ ACTIVE TACTICAL MODULE METRICS ]
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                      {[
+                        { label: "MAX VITALITY HP", val: `${tacticalStats.maxHp} HP`, bonus: tacticalStats.maxHp > 100 ? `(+${tacticalStats.maxHp - 100})` : "" },
+                        { label: "SHIELD ARMOR", val: `${tacticalStats.armor}%`, bonus: tacticalStats.armor > 0 ? `(+${tacticalStats.armor}%)` : "", color: "#0ea5e9" },
+                        { label: "FILTER RESISTANCE", val: `${tacticalStats.resistance}%`, bonus: tacticalStats.resistance > 0 ? `(+${tacticalStats.resistance}%)` : "", color: "#a855f7" },
+                        { label: "THREAT DETECTION", val: `${tacticalStats.detection}m`, bonus: tacticalStats.detection > 50 ? `(+${tacticalStats.detection - 50}m)` : "", color: "#22c55e" },
+                        { label: "SPEED MOBILITY", val: `${tacticalStats.mobility}%`, bonus: tacticalStats.mobility > 100 ? `(+${tacticalStats.mobility - 100}%)` : "", color: "#f0c929" },
+                        { label: "CARGO CAPACITY", val: `${tacticalStats.capacity} slots`, bonus: tacticalStats.capacity > 15 ? `(+${tacticalStats.capacity - 15})` : "", color: "#00ffcc" },
+                        { label: "MEDICAL EFFICIENCY", val: `${tacticalStats.medEfficiency}%`, bonus: tacticalStats.medEfficiency > 100 ? `(+${tacticalStats.medEfficiency - 100}%)` : "", color: "#ff4d4d" },
+                        { label: "RESEARCH EFFICIENCY", val: `${tacticalStats.resEfficiency}%`, bonus: tacticalStats.resEfficiency > 100 ? `(+${tacticalStats.resEfficiency - 100}%)` : "", color: "#a855f7" }
+                      ].map(stat => (
+                        <div key={stat.label} style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px" }}>
+                          <span style={{ color: "var(--text-dim)" }}>{stat.label}:</span>
+                          <span style={{ color: stat.color || "#fff", fontWeight: "bold" }}>
+                            {stat.val} <span style={{ color: "#22c55e", fontSize: "7.5px", marginLeft: "2px" }}>{stat.bonus}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Medical Stabilization Hub */}
+                  <div style={{ marginTop: "8px", border: "1px solid rgba(0, 255, 204, 0.2)", background: "rgba(0, 255, 204, 0.02)", padding: "8px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "#00ffcc", letterSpacing: "0.1em", borderBottom: "1px solid rgba(0, 255, 204, 0.2)", paddingBottom: "4px", marginBottom: "6px", fontWeight: "bold" }}>
+                      [ MEDICAL STATION STABILIZATION HUB ]
+                    </div>
+                    <p style={{ fontFamily: "var(--mono)", fontSize: "7.5px", color: "var(--text-muted)", margin: "0 0 6px 0", lineHeight: "1.3" }}>
+                      Restore biometric integrity index using Division credits.
+                    </p>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        onClick={() => {
+                          if (!profile) return;
+                          if (profile.health >= 100) {
+                            setAiLogs(prev => [...prev, `[SYS] MEDICAL HUBLINK // BIOMETRICS OPTIMIZED`]);
+                            return;
+                          }
+                          if (profile.credits < 25) {
+                            setAiLogs(prev => [...prev, `[WARN] INSUFFICIENT DIVISION CREDITS // 25 CR REQUIRED`]);
+                            return;
+                          }
+                          const iden = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+                          const nextH = Math.min(100, profile.health + 30);
+                          const updated = { ...profile, health: nextH, credits: profile.credits - 25 };
+                          setProfile(updated);
+                          saveProfile(iden, updated);
+                          setAiLogs(prev => [...prev, `[SYS] CELLULAR STABILIZATION // HEALTH: ${profile.health}% → ${nextH}%`]);
+                        }}
+                        style={{
+                          flex: 1, background: "transparent", border: "1px solid #00ffcc", color: "#00ffcc",
+                          fontSize: "7.5px", padding: "4px", cursor: "pointer", fontFamily: "var(--mono)"
+                        }}
+                      >
+                        [ STIM REGEN (+30 HP) // 25 CR ]
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!profile) return;
+                          if (profile.health >= 100) {
+                            setAiLogs(prev => [...prev, `[SYS] MEDICAL HUBLINK // BIOMETRICS OPTIMIZED`]);
+                            return;
+                          }
+                          if (profile.credits < 75) {
+                            setAiLogs(prev => [...prev, `[WARN] INSUFFICIENT DIVISION CREDITS // 75 CR REQUIRED`]);
+                            return;
+                          }
+                          const iden = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+                          const updated = { ...profile, health: 100, credits: profile.credits - 75 };
+                          setProfile(updated);
+                          saveProfile(iden, updated);
+                          setAiLogs(prev => [...prev, `[SYS] FULL BIOMETRIC RESTORATION // HEALTH: 100% // CURED`]);
+                        }}
+                        style={{
+                          flex: 1, background: "transparent", border: "1px solid #00ffcc", color: "#00ffcc",
+                          fontSize: "7.5px", padding: "4px", cursor: "pointer", fontFamily: "var(--mono)"
+                        }}
+                      >
+                        [ FULL CELL CURE (100% HP) // 75 CR ]
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -3105,13 +3255,29 @@ export default function OperationsPage() {
                 >
                   ABORT DEPLOYMENT
                 </button>
-                <button
-                  onClick={() => runDeployment(activeMission)}
-                  className="btn btn-primary"
-                  style={{ padding: "10px 32px", fontSize: "11px" }}
-                >
-                  DEPLOY OPERATIVE 🛰️
-                </button>
+                {(() => {
+                  const isHpRestricted = (profile?.health || 100) < 20 && (activeMission.difficulty === "Hard" || activeMission.difficulty === "Critical");
+                  return (
+                    <button
+                      disabled={isHpRestricted}
+                      onClick={() => {
+                        if (isHpRestricted) return;
+                        runDeployment(activeMission);
+                      }}
+                      className="btn btn-primary"
+                      style={{
+                        padding: "10px 32px",
+                        fontSize: "11px",
+                        background: isHpRestricted ? "rgba(255,255,255,0.05)" : "var(--accent)",
+                        color: isHpRestricted ? "var(--text-dim)" : "#000",
+                        border: isHpRestricted ? "1px solid rgba(255,255,255,0.05)" : "none",
+                        cursor: isHpRestricted ? "not-allowed" : "pointer"
+                      }}
+                    >
+                      {isHpRestricted ? "[ DEPLOYMENT REJECTED: HP CRITICAL ]" : "DEPLOY OPERATIVE 🛰️"}
+                    </button>
+                  );
+                })()}
               </div>
             </div>
           </div>
