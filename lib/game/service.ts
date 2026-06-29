@@ -1,8 +1,9 @@
 import { DEFAULT_STATS, UserStats } from "../progression";
-import { OperativeProfile, Mission, InventoryItem, WorldState } from "./types";
+import { OperativeProfile, Mission, InventoryItem, WorldState, SectorState, DynamicCampaignEvent, Sector } from "./types";
+import { INITIAL_SECTORS } from "./data";
 
 export const DEFAULT_WORLD_STATE: WorldState = {
-  unlockedSectors: ["sec-alpha", "sec-beta", "sec-delta", "sec-gamma"],
+  unlockedSectors: ["sec-alpha", "sec-beta", "sec-delta"],
   activeAnomalies: {
     "sec-alpha": ["Toxin Leak"],
     "sec-beta": ["Gravity Fluctuation"],
@@ -23,7 +24,20 @@ export const DEFAULT_WORLD_STATE: WorldState = {
     "VIRAL OUTBREAK SUSPECTED IN SEC-ALPHA",
     "EM ANOMALY DETECTED IN SUBSTATION BETA",
     "SYBIL PORT TRACING COMMENCED IN DELTA"
-  ]
+  ],
+  sectorStates: {
+    "sec-alpha": { id: "sec-alpha", status: "INFECTED", dangerLevel: "Low", ownership: "Vanguard", completion: 20, isUnlocked: true },
+    "sec-beta": { id: "sec-beta", status: "ACTIVE", dangerLevel: "Medium", ownership: "Nomads", completion: 0, isUnlocked: true },
+    "sec-delta": { id: "sec-delta", status: "ACTIVE", dangerLevel: "High", ownership: "Ghost Division", completion: 0, isUnlocked: true },
+    "sec-epsilon": { id: "sec-epsilon", status: "LOCKED", dangerLevel: "Severe", ownership: "Citadel", completion: 0, isUnlocked: false },
+    "sec-zeta": { id: "sec-zeta", status: "LOCKED", dangerLevel: "Severe", ownership: "Horizon", completion: 0, isUnlocked: false },
+    "sec-gamma": { id: "sec-gamma", status: "LOCKED", dangerLevel: "Medium", ownership: "Helix", completion: 0, isUnlocked: false },
+    "sec-omega": { id: "sec-omega", status: "LOCKED", dangerLevel: "Severe", ownership: "Citadel", completion: 0, isUnlocked: false }
+  },
+  activeEvents: [
+    { id: "evt-initial-1", type: "Outbreak", title: "Atmospheric Pathogen Flareup", description: "Toxin density spikes detected around medical depots.", region: "sec-alpha", duration: 3 }
+  ],
+  longestStreak: 0
 };
 
 export const DEFAULT_PROFILE: OperativeProfile = {
@@ -62,6 +76,81 @@ export const DEFAULT_PROFILE: OperativeProfile = {
 };
 
 /**
+ * Spawns a random campaign event in unlocked sectors.
+ */
+export function spawnRandomEvent(worldState: WorldState): { event: DynamicCampaignEvent | null; alert: string | null } {
+  const eventTypes: DynamicCampaignEvent["type"][] = [
+    "Outbreak", "Supply Drop", "Signal Detected", "Civilian Distress", "Faction Conflict", "Unknown Anomaly", "Satellite Crash"
+  ];
+  
+  const eventDetails = {
+    "Outbreak": { title: "Atmospheric Bio-Hazard Outbreak", desc: "Chemical/viral pathogen counts spiking above safe parameters." },
+    "Supply Drop": { title: "Ecosystem Supply Drop", desc: "A cargo pod containing rare materials has landed in the region." },
+    "Signal Detected": { title: "Encrypted Signal Intercepted", desc: "An unidentified telemetry transmission is broadcast from deep hubs." },
+    "Civilian Distress": { title: "Civilian Pod Distress Call", desc: "Civilian shelter reporting firewall failure and breach threats." },
+    "Faction Conflict": { title: "Faction Skirmish", desc: "Tactical friction detected between security cells and rogue trackers." },
+    "Unknown Anomaly": { title: "Quantum Signature Anomaly", desc: "Gravity drops and spatial compression faults detected." },
+    "Satellite Crash": { title: "Decayed Satellite Debris", desc: "An orbital satellite has impacted, exposing classified memory logs." }
+  };
+
+  const unlocked = worldState.unlockedSectors;
+  if (unlocked.length === 0) return { event: null, alert: null };
+
+  const randomSectorId = unlocked[Math.floor(Math.random() * unlocked.length)];
+  const randomType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+  const info = eventDetails[randomType];
+
+  const newEvent: DynamicCampaignEvent = {
+    id: `evt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    type: randomType,
+    title: info.title,
+    description: info.desc,
+    region: randomSectorId,
+    duration: 3
+  };
+
+  const alertMessage = `ALERT // ${randomType.toUpperCase()} DETECTED IN ${randomSectorId.replace("sec-", "").toUpperCase()}`;
+  return { event: newEvent, alert: alertMessage };
+}
+
+/**
+ * Generates custom AI commentary based on active profile stats, standings, sector danger, and mission specifications.
+ */
+export function generateAICommentary(profile: OperativeProfile, sector: Sector, sectorState: SectorState | undefined, mission: Mission): string {
+  const factionId = mission.recommendedFaction?.toLowerCase() || "";
+  const factionStanding = factionId ? (profile.factionStanding[factionId] || 0) : 0;
+  const status = sectorState ? sectorState.status : "ACTIVE";
+  
+  const commentaries: string[] = [];
+
+  // 1. Class recommendation matching
+  if (profile.class === mission.recommendedClass) {
+    commentaries.push(`Recon operative recommended. Operative class matches direct parameters.`);
+  } else {
+    commentaries.push(`Deployment parameters recommend a [${mission.recommendedClass.toUpperCase()}] class. Adjust tactical approach.`);
+  }
+
+  // 2. Faction relationship matching
+  if (factionId && factionStanding > 20) {
+    commentaries.push(`${mission.recommendedFaction} requests assistance. Relationship verified.`);
+  }
+
+  // 3. Danger level and Sector Status
+  if (status === "CRITICAL") {
+    commentaries.push(`Civilian survival probability decreased. Danger index critical.`);
+  }
+  
+  if (mission.environmentalHazard && mission.environmentalHazard !== "None") {
+    commentaries.push(`Radiation exceeds acceptable threshold. Calibrating containment shield.`);
+  }
+
+  if (commentaries.length === 0) {
+    return "Operations hub online. Commencing tactical briefing.";
+  }
+  return commentaries[Math.floor(Math.random() * commentaries.length)];
+}
+
+/**
  * Loads an Operative Profile from local storage, merging and healing missing keys dynamically.
  */
 export function loadProfile(identifier: string): OperativeProfile {
@@ -74,6 +163,16 @@ export function loadProfile(identifier: string): OperativeProfile {
     const parsed = JSON.parse(saved);
     
     // Self-healing / default merging logic
+    const worldState: WorldState = parsed.worldState ? {
+      unlockedSectors: Array.isArray(parsed.worldState.unlockedSectors) ? parsed.worldState.unlockedSectors : DEFAULT_WORLD_STATE.unlockedSectors,
+      activeAnomalies: parsed.worldState.activeAnomalies || DEFAULT_WORLD_STATE.activeAnomalies,
+      factionInfluence: parsed.worldState.factionInfluence || DEFAULT_WORLD_STATE.factionInfluence,
+      globalAlerts: Array.isArray(parsed.worldState.globalAlerts) ? parsed.worldState.globalAlerts : DEFAULT_WORLD_STATE.globalAlerts,
+      sectorStates: parsed.worldState.sectorStates || { ...DEFAULT_WORLD_STATE.sectorStates },
+      activeEvents: Array.isArray(parsed.worldState.activeEvents) ? parsed.worldState.activeEvents : [...DEFAULT_WORLD_STATE.activeEvents],
+      longestStreak: typeof parsed.worldState.longestStreak === "number" ? parsed.worldState.longestStreak : 0
+    } : { ...DEFAULT_WORLD_STATE };
+
     const profile: OperativeProfile = {
       name: parsed.name || DEFAULT_PROFILE.name,
       faction: parsed.faction || DEFAULT_PROFILE.faction,
@@ -91,7 +190,7 @@ export function loadProfile(identifier: string): OperativeProfile {
       missionHistory: Array.isArray(parsed.missionHistory) ? parsed.missionHistory : [],
       sectorDiscoveries: Array.isArray(parsed.sectorDiscoveries) ? parsed.sectorDiscoveries : DEFAULT_PROFILE.sectorDiscoveries,
       health: typeof parsed.health === "number" ? parsed.health : 100,
-      worldState: parsed.worldState ? parsed.worldState : { ...DEFAULT_WORLD_STATE }
+      worldState: worldState
     };
 
     return profile;
@@ -190,20 +289,80 @@ export function claimMissionRewards(
   updated.factionStanding = standings;
   updated.reputation = Math.min(1000, updated.reputation + reputationGain);
 
-  // 7. World Progression Shifts
+  // 7. World Progression Shifts & Dynamic Sector State Updates
   const worldState = { ...updated.worldState };
+  
+  if (!worldState.sectorStates) {
+    worldState.sectorStates = { ...DEFAULT_WORLD_STATE.sectorStates };
+  } else {
+    worldState.sectorStates = { ...worldState.sectorStates };
+  }
+  
+  if (!worldState.activeEvents) {
+    worldState.activeEvents = [];
+  } else {
+    worldState.activeEvents = [...worldState.activeEvents];
+  }
+
   const unlocked = new Set(worldState.unlockedSectors);
   let worldEventsMessage: string | null = null;
 
   if (outcome === "SUCCESS" || outcome === "PARTIAL") {
-    // Check if mission rewards unlocked a new sector
-    if (unlockedSectorId) {
-      unlocked.add(unlockedSectorId);
-      const newSecName = unlockedSectorId.replace("sec-", "").toUpperCase();
-      worldEventsMessage = `GRID FREQUENCY LOCKED // NEW SECTOR UNLOCKED: SECTOR ${newSecName}`;
+    const regionId = mission.region;
+    if (!worldState.sectorStates[regionId]) {
+      worldState.sectorStates[regionId] = {
+        id: regionId,
+        status: "ACTIVE",
+        dangerLevel: "Medium",
+        ownership: mission.recommendedFaction || "None",
+        completion: 0,
+        isUnlocked: true
+      };
     }
+    
+    const currentSectorState = { ...worldState.sectorStates[regionId] };
+    const oldCompletion = currentSectorState.completion;
+    currentSectorState.completion = Math.min(100, currentSectorState.completion + 20);
+    
+    if (currentSectorState.completion === 100 && currentSectorState.status !== "SECURED") {
+      currentSectorState.status = "SECURED";
+      if (currentSectorState.dangerLevel === "Severe") currentSectorState.dangerLevel = "High";
+      else if (currentSectorState.dangerLevel === "High") currentSectorState.dangerLevel = "Medium";
+      else if (currentSectorState.dangerLevel === "Medium") currentSectorState.dangerLevel = "Low";
+      else if (currentSectorState.dangerLevel === "Low") currentSectorState.dangerLevel = "Low";
+      
+      const staticSector = INITIAL_SECTORS.find(s => s.id === regionId);
+      if (staticSector && staticSector.connectedSectors) {
+        staticSector.connectedSectors.forEach(connId => {
+          unlocked.add(connId);
+          if (!worldState.sectorStates[connId]) {
+            const staticConn = INITIAL_SECTORS.find(s => s.id === connId);
+            worldState.sectorStates[connId] = {
+              id: connId,
+              status: "ACTIVE",
+              dangerLevel: staticConn ? staticConn.threatLevel : "Medium",
+              ownership: staticConn ? staticConn.threatType : "None",
+              completion: 0,
+              isUnlocked: true
+            };
+          } else {
+            const connState = { ...worldState.sectorStates[connId] };
+            connState.isUnlocked = true;
+            if (connState.status === "LOCKED") {
+              connState.status = "ACTIVE";
+            }
+            worldState.sectorStates[connId] = connState;
+          }
+        });
+      }
+      
+      worldEventsMessage = `GRID STABILITY SECURED // ${staticSector?.name || "SECTOR"} STABLE // NEIGHBORING CHANNELS ONLINE`;
+    } else {
+      worldEventsMessage = `SECTOR UPLINK INTEGRITY INCREASING: ${oldCompletion}% → ${currentSectorState.completion}%`;
+    }
+    
+    worldState.sectorStates[regionId] = currentSectorState;
 
-    // Shift faction influence in this sector
     const influence = { ...worldState.factionInfluence };
     if (influence[mission.region] && factionId) {
       const sectorInf = { ...influence[mission.region] };
@@ -213,24 +372,64 @@ export function claimMissionRewards(
     }
     worldState.factionInfluence = influence;
 
-    // Dynamically spawn/clear anomalies & global alerts on successes
     const activeAnoms = { ...worldState.activeAnomalies };
     const alerts = [...worldState.globalAlerts];
 
     if (mission.id === "op-1-sanctuary-search") {
-      // Clear toxin leak in alpha, unlock Epsilon, trigger radiation alarm
       activeAnoms["sec-alpha"] = [];
       unlocked.add("sec-epsilon");
       alerts.push("RADIATION STORM SPREADING TO EPSILON SILOS");
       worldEventsMessage = "GRID SHIFT // SANCTUARY SECURED // SECTOR EPSILON ONLINE";
+      
+      if (worldState.sectorStates["sec-epsilon"]) {
+        worldState.sectorStates["sec-epsilon"] = {
+          ...worldState.sectorStates["sec-epsilon"],
+          isUnlocked: true,
+          status: "ACTIVE"
+        };
+      }
     } else if (mission.id === "op-2-signal-recovery") {
-      // Clear anomaly in beta
       activeAnoms["sec-beta"] = [];
       alerts.push("VOLATILE PATHOGEN ANOMALY SPIKING IN GAMMA");
     }
 
     worldState.activeAnomalies = activeAnoms;
-    worldState.globalAlerts = alerts.slice(-6); // keep last 6 alerts
+    worldState.globalAlerts = alerts.slice(-6);
+  }
+
+  // Calculate survival streak
+  let currentStreak = 0;
+  for (let i = 0; i < updated.missionHistory.length; i++) {
+    if (updated.missionHistory[i].outcome === "SUCCESS") {
+      currentStreak++;
+    } else {
+      break;
+    }
+  }
+  worldState.longestStreak = Math.max(worldState.longestStreak || 0, currentStreak);
+
+  // Campaign dynamic events duration aging
+  worldState.activeEvents = worldState.activeEvents
+    .map(evt => ({ ...evt, duration: evt.duration - 1 }))
+    .filter(evt => evt.duration > 0);
+
+  // Spawn new event (40% success trigger chance)
+  if (outcome === "SUCCESS" && Math.random() < 0.40) {
+    const { event, alert } = spawnRandomEvent(worldState);
+    if (event && alert) {
+      worldState.activeEvents.push(event);
+      worldState.globalAlerts.push(alert);
+      worldState.globalAlerts = worldState.globalAlerts.slice(-6);
+      
+      const targetSecId = event.region;
+      if (worldState.sectorStates[targetSecId]) {
+        worldState.sectorStates[targetSecId] = {
+          ...worldState.sectorStates[targetSecId],
+          status: "INFECTED",
+          dangerLevel: "Severe"
+        };
+      }
+    }
   }
 
   worldState.unlockedSectors = Array.from(unlocked);
@@ -299,3 +498,4 @@ export function saveEquippedGear(identifier: string, equippedGear: Record<string
   if (typeof window === "undefined") return;
   localStorage.setItem(`rq_ops_equipped:${identifier}`, JSON.stringify(equippedGear));
 }
+

@@ -1,10 +1,32 @@
 import { UserStats } from "../progression";
 
+export interface SectorState {
+  id: string;
+  status: "SAFE" | "ACTIVE" | "INFECTED" | "CRITICAL" | "LOCKED" | "SECURED";
+  dangerLevel: "Low" | "Medium" | "High" | "Severe";
+  ownership: string;
+  completion: number;
+  isUnlocked: boolean;
+}
+
+export interface DynamicCampaignEvent {
+  id: string;
+  type: "Outbreak" | "Supply Drop" | "Signal Detected" | "Civilian Distress" | "Faction Conflict" | "Unknown Anomaly" | "Satellite Crash";
+  title: string;
+  description: string;
+  region: string; // Sector ID
+  duration: number; // Number of missions/turns active
+  rewards?: { xp?: number; credits?: number; resource?: string; resourceQty?: number };
+}
+
 export interface WorldState {
   unlockedSectors: string[];
   activeAnomalies: Record<string, string[]>; // sectorId -> anomalies
   factionInfluence: Record<string, Record<string, number>>; // sectorId -> Faction ID -> percentage (0-100)
   globalAlerts: string[];
+  sectorStates: Record<string, SectorState>;
+  activeEvents: DynamicCampaignEvent[];
+  longestStreak: number;
 }
 
 export interface Sector {
@@ -18,6 +40,7 @@ export interface Sector {
   points: string; // SVG polygon points
   labelX: number; // coordinates for map label placement
   labelY: number;
+  connectedSectors: string[]; // Neighboring sector IDs
 }
 
 export interface MissionChoice {
@@ -32,7 +55,7 @@ export interface MissionChoice {
     credits: number;
     resource?: string;
     resourceQty?: number;
-    injury?: number; // HP subtracted (positive number, e.g., 20 means subtract 20 HP)
+    injury?: number; // HP subtracted
     reputationBonus?: number;
     unlocksSectorId?: string; // sector ID unlocked on choice success
   };
@@ -43,6 +66,13 @@ export interface MissionEvent {
   title: string;
   text: string;
   options: MissionChoice[];
+}
+
+export interface MissionObjective {
+  id: string;
+  description: string;
+  status: "PENDING" | "COMPLETED" | "FAILED";
+  reward: string;
 }
 
 export interface Mission {
@@ -58,6 +88,14 @@ export interface Mission {
   unlockRequirements: { level?: number; bioScore?: number; completedMissionId?: string };
   category: "critical" | "normal" | "side";
   events: MissionEvent[];
+  story: string;
+  primaryObjective: string;
+  secondaryObjectives: string[];
+  expectedThreat: string;
+  environmentalHazard: string;
+  recommendedEquipment: string;
+  recommendedDivision: string;
+  objectives: MissionObjective[];
 }
 
 export interface InventoryItem {
@@ -71,6 +109,9 @@ export interface InventoryItem {
   desc: string;
   qty: number;
   type: "weapon" | "armor" | "consumable" | "material" | "quest";
+  itemLevel: number;
+  stats: Record<string, string | number>;
+  category: "Weapons" | "Armor" | "Medical" | "Tools" | "Materials" | "Mission Items";
 }
 
 export interface OperativeProfile {

@@ -17,7 +17,8 @@ import {
   saveInventory,
   loadEquippedGear,
   saveEquippedGear,
-  DEFAULT_WORLD_STATE
+  DEFAULT_WORLD_STATE,
+  generateAICommentary
 } from "@/lib/game/service";
 
 // Factions details list
@@ -519,6 +520,22 @@ export default function OperationsPage() {
   const currentBioScore = calculateBioScore(profileStats);
   const clearanceTier = getClearanceLevel(currentBioScore);
 
+  const totalDeployments = profile?.missionHistory?.length || 0;
+  const successfulDeployments = profile?.missionHistory?.filter(h => h.outcome === "SUCCESS").length || 0;
+  const successRate = totalDeployments > 0 ? Math.round((successfulDeployments / totalDeployments) * 100) : 0;
+  
+  let currentStreak = 0;
+  if (profile?.missionHistory) {
+    for (let i = 0; i < profile.missionHistory.length; i++) {
+      if (profile.missionHistory[i].outcome === "SUCCESS") {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+  }
+  const longestStreak = profile?.worldState?.longestStreak || 0;
+
   // Sector and Operations locks resolution
   const isMissionLocked = (mission: Mission) => {
     if (!profile) return true;
@@ -531,33 +548,63 @@ export default function OperationsPage() {
     return false;
   };
 
-  const getSectorCompletion = (sectorId: string) => {
+  const getSurvivalChance = (mission: Mission) => {
     if (!profile) return 0;
-    const sectorMissions = missions.filter(m => m.region === sectorId);
-    if (sectorMissions.length === 0) return 0;
-    const completedCount = sectorMissions.filter(m => profile.completedMissions.includes(m.id)).length;
-    return Math.floor((completedCount / sectorMissions.length) * 100);
+    
+    // Base survival chance based on difficulty
+    let base = 50;
+    if (mission.difficulty === "Easy") base = 70;
+    else if (mission.difficulty === "Normal") base = 55;
+    else if (mission.difficulty === "Hard") base = 40;
+
+    // 1. Recommended Class Match (+15%)
+    const classBonus = profile.class === mission.recommendedClass ? 15 : 0;
+
+    // 2. Faction Standing Match (+15% max)
+    const factionId = mission.recommendedFaction || profile.faction;
+    const factionStandingValue = profile.factionStanding?.[factionId] || 0;
+    const factionBonus = Math.floor(15 * (factionStandingValue / 100));
+
+    // 3. Level Difference
+    const recLevel = mission.unlockRequirements?.level || 1;
+    const levelDiff = profile.level - recLevel;
+    const levelBonus = levelDiff >= 0 
+      ? Math.min(10, levelDiff * 2) 
+      : Math.max(-25, levelDiff * 5);
+
+    // 4. Recommended Gear Match (+15%)
+    let gearMatch = false;
+    if (mission.recommendedEquipment) {
+      const reqTerms = mission.recommendedEquipment.toLowerCase().split(/[\s,]+/);
+      Object.values(equippedGear || {}).forEach(item => {
+        if (item && item.name) {
+          const itemNameLower = item.name.toLowerCase();
+          if (reqTerms.some(term => term.length > 2 && itemNameLower.includes(term))) {
+            gearMatch = true;
+          }
+        }
+      });
+    }
+    const gearBonus = gearMatch ? 15 : 0;
+
+    // Calculate final probability, clamped between 5% and 99%
+    const total = base + classBonus + factionBonus + levelBonus + gearBonus;
+    return Math.max(5, Math.min(99, total));
   };
 
-  const getSectorStatus = (sector: Sector): "LOCKED" | "AVAILABLE" | "IN_PROGRESS" | "SECURED" | "DANGEROUS" | "CRITICAL" => {
+  const getSectorCompletion = (sectorId: string) => {
+    if (!profile) return 0;
+    return profile.worldState?.sectorStates?.[sectorId]?.completion ?? 0;
+  };
+
+  const getSectorStatus = (sector: Sector): "LOCKED" | "AVAILABLE" | "IN_PROGRESS" | "SECURED" | "DANGEROUS" | "CRITICAL" | "SAFE" | "ACTIVE" | "INFECTED" => {
     if (!profile) return "LOCKED";
-    
-    const isUnlocked = profile.worldState.unlockedSectors.includes(sector.id) || sector.id === "sec-alpha";
-    if (!isUnlocked) return "LOCKED";
-
-    const sectorMissions = missions.filter(m => m.region === sector.id);
-    if (sectorMissions.length > 0 && sectorMissions.every(m => profile.completedMissions.includes(m.id))) {
-      return "SECURED";
+    const state = profile.worldState?.sectorStates?.[sector.id];
+    if (!state) {
+      return sector.id === "sec-alpha" ? "AVAILABLE" : "LOCKED";
     }
-
-    const hasAnyInProgress = sectorMissions.some(m => profile.completedMissions.includes(m.id));
-    if (hasAnyInProgress) return "IN_PROGRESS";
-    
-    if (sector.threatLevel === "Severe" || sector.threatLevel === "High") {
-      return "DANGEROUS";
-    }
-    
-    return "AVAILABLE";
+    if (!state.isUnlocked) return "LOCKED";
+    return state.status;
   };
 
   const getSortedMissions = () => {
@@ -652,7 +699,7 @@ export default function OperationsPage() {
       <div style={{
         position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
         background: "#030303", display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", overflowY: "auto", padding: "20px 24px"
+        alignItems: "center", justifyContent: "flex-start", overflowY: "auto", padding: "20px 24px"
       }}>
         <style>{`
           .ops-grid-3 {
@@ -755,7 +802,7 @@ export default function OperationsPage() {
           maxWidth: "1100px", width: "100%", position: "relative",
           background: "#060606", border: "2px solid rgba(255, 77, 77, 0.4)",
           boxShadow: "0 0 50px rgba(255, 77, 77, 0.12)", padding: "40px",
-          display: "flex", flexDirection: "column"
+          display: "flex", flexDirection: "column", marginTop: "auto", marginBottom: "auto"
         }}>
           {/* Corner brackets */}
           <div style={{ position: "absolute", top: "12px", left: "12px", width: "24px", height: "24px", borderTop: "3px solid var(--accent)", borderLeft: "3px solid var(--accent)" }} />
@@ -1249,6 +1296,16 @@ export default function OperationsPage() {
 
                   <svg width="100%" height="100%" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" style={{ position: "absolute", top: 0, left: 0 }}>
                     <defs>
+                      <style>{`
+                        @keyframes pulse-warning {
+                          0% { opacity: 0.45; }
+                          50% { opacity: 1; }
+                          100% { opacity: 0.45; }
+                        }
+                        .pulsing-alert {
+                          animation: pulse-warning 1.4s infinite ease-in-out;
+                        }
+                      `}</style>
                       <pattern id="map-grid-2" width="20" height="20" patternUnits="userSpaceOnUse">
                         <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.015)" strokeWidth="0.5"/>
                       </pattern>
@@ -1264,8 +1321,12 @@ export default function OperationsPage() {
 
                     {/* Operational Sector links */}
                     {SECTOR_CONNECTIONS.map((conn, idx) => {
-                      const fromUnlocked = profile?.worldState.unlockedSectors.includes(conn.from) || conn.from === "sec-alpha";
-                      const toUnlocked = profile?.worldState.unlockedSectors.includes(conn.to) || conn.to === "sec-alpha";
+                      const fromUnlocked = profile?.worldState?.sectorStates?.[conn.from]
+                        ? profile.worldState.sectorStates[conn.from].isUnlocked
+                        : (profile?.worldState?.unlockedSectors?.includes(conn.from) || conn.from === "sec-alpha");
+                      const toUnlocked = profile?.worldState?.sectorStates?.[conn.to]
+                        ? profile.worldState.sectorStates[conn.to].isUnlocked
+                        : (profile?.worldState?.unlockedSectors?.includes(conn.to) || conn.to === "sec-alpha");
                       const isLineActive = fromUnlocked && toUnlocked;
                       return (
                         <line
@@ -1280,10 +1341,14 @@ export default function OperationsPage() {
 
                     {/* Interactive SVG outline polygons representing territories */}
                     {sectors.map((sec) => {
-                      const isUnlocked = profile?.worldState.unlockedSectors.includes(sec.id) || sec.id === "sec-alpha";
+                      const isUnlocked = profile?.worldState?.sectorStates?.[sec.id]
+                        ? profile.worldState.sectorStates[sec.id].isUnlocked
+                        : (profile?.worldState?.unlockedSectors?.includes(sec.id) || sec.id === "sec-alpha");
                       const isSelected = selectedSectorId === sec.id;
                       const status = getSectorStatus(sec);
                       const completion = getSectorCompletion(sec.id);
+                      const ownership = profile?.worldState?.sectorStates?.[sec.id]?.ownership || "Neutral";
+                      const activeEvent = profile?.worldState?.activeEvents?.find(evt => evt.region === sec.id);
 
                       const colorMap = {
                         LOCKED: "rgba(60,60,60,0.15)",
@@ -1291,12 +1356,15 @@ export default function OperationsPage() {
                         IN_PROGRESS: "rgba(0, 255, 204, 0.04)",
                         SECURED: "rgba(0, 255, 204, 0.08)",
                         DANGEROUS: "rgba(255, 77, 77, 0.06)",
-                        CRITICAL: "rgba(255, 77, 77, 0.12)"
+                        CRITICAL: "rgba(255, 77, 77, 0.12)",
+                        SAFE: "rgba(0, 255, 204, 0.08)",
+                        ACTIVE: "rgba(240, 201, 41, 0.04)",
+                        INFECTED: "rgba(255, 77, 77, 0.15)"
                       };
                       const strokeColor = 
                         !isUnlocked ? "#333333" :
-                        status === "SECURED" ? "#00ffcc" :
-                        status === "DANGEROUS" || status === "CRITICAL" ? "#ff4d4d" : "#f0c929";
+                        (status === "SECURED" || status === "SAFE") ? "#00ffcc" :
+                        (status === "DANGEROUS" || status === "CRITICAL" || status === "INFECTED") ? "#ff4d4d" : "#f0c929";
 
                       return (
                         <g key={sec.id}>
@@ -1321,6 +1389,23 @@ export default function OperationsPage() {
                             }}
                           />
                           
+                          {/* Pulsing Warning caution icon overlay for sectors experiencing active events */}
+                          {isUnlocked && activeEvent && (
+                            <g className="pulsing-alert" pointerEvents="all">
+                              <text
+                                x={sec.labelX}
+                                y={sec.labelY - 14}
+                                fill="#ff4d4d"
+                                fontSize="14px"
+                                textAnchor="middle"
+                                style={{ cursor: "help" }}
+                              >
+                                ⚠️
+                                <title>{`[ACTIVE EVENT] ${activeEvent.title}\n${activeEvent.description}`}</title>
+                              </text>
+                            </g>
+                          )}
+
                           <text
                             x={sec.labelX}
                             y={sec.labelY}
@@ -1335,7 +1420,7 @@ export default function OperationsPage() {
                           </text>
                           <text
                             x={sec.labelX}
-                            y={sec.labelY + 14}
+                            y={sec.labelY + 12}
                             fill={strokeColor}
                             fontSize="8.5px"
                             fontFamily="var(--mono)"
@@ -1344,6 +1429,21 @@ export default function OperationsPage() {
                           >
                             {!isUnlocked ? "LOCKED 🔒" : `${completion}% SECURED`}
                           </text>
+
+                          {/* Faction Ownership Text Overlay */}
+                          {isUnlocked && (
+                            <text
+                              x={sec.labelX}
+                              y={sec.labelY + 22}
+                              fill="rgba(255, 255, 255, 0.4)"
+                              fontSize="7px"
+                              fontFamily="var(--mono)"
+                              textAnchor="middle"
+                              pointerEvents="none"
+                            >
+                              {ownership.toUpperCase()}
+                            </text>
+                          )}
                         </g>
                       );
                     })}
@@ -1623,10 +1723,34 @@ export default function OperationsPage() {
                       {profile?.reputation || 0} pts
                     </span>
                   </div>
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
                     <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>DISCOVERIES:</span>
                     <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#fff" }}>
                       {profile?.sectorDiscoveries.length} sectors
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>DEPLOYMENTS:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#fff" }}>
+                      {totalDeployments}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>SUCCESS RATE:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: successRate >= 75 ? "#00ffcc" : successRate >= 50 ? "#f0c929" : "#ff4d4d", fontWeight: "bold" }}>
+                      {successRate}%
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>ACTIVE STREAK:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: currentStreak > 0 ? "#00ffcc" : "var(--text-dim)", fontWeight: "bold" }}>
+                      🔥 {currentStreak}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>LONGEST STREAK:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: longestStreak > 0 ? "#f0c929" : "var(--text-dim)", fontWeight: "bold" }}>
+                      🏆 {longestStreak}
                     </span>
                   </div>
                 </div>
@@ -1820,26 +1944,243 @@ export default function OperationsPage() {
               </div>
 
               {/* Center Column: Operative Vector Silhouette */}
-              <div className="loadout-center-silhouette panel holo-noise animate-pulse-slow" style={{
+              <div className="loadout-center-silhouette panel holo-noise" style={{
                 background: "#050505", border: "1px dashed rgba(255,255,255,0.1)",
-                display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center",
-                alignItems: "center", position: "relative", height: "100%"
+                display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "flex-start",
+                alignItems: "stretch", position: "relative", height: "100%", padding: "16px", overflowY: "auto"
               }}>
-                <svg width="180" height="180" viewBox="0 0 100 100" style={{ opacity: 0.15, position: "absolute" }}>
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" />
-                  <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" />
-                  <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" strokeWidth="0.5" />
-                  <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="0.5" />
-                </svg>
-                
-                <div style={{ zIndex: 1, textAlign: "center" }} className="animate-flicker">
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.2em", display: "block" }}>
-                    [ BIOMETRIC RADAR GRID ]
-                  </span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
-                    SIGNAL BOUND SECURED // SLOT DRAG INJECTION READY
-                  </span>
-                </div>
+                {!selectedInventoryItem ? (
+                  <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center", alignItems: "center", width: "100%" }}>
+                    <svg width="180" height="180" viewBox="0 0 100 100" style={{ opacity: 0.15, position: "absolute" }}>
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" />
+                      <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" />
+                      <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" strokeWidth="0.5" />
+                      <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="0.5" />
+                    </svg>
+                    
+                    <div style={{ zIndex: 1, textAlign: "center" }} className="animate-flicker">
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.2em", display: "block" }}>
+                        [ BIOMETRIC RADAR GRID ]
+                      </span>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
+                        SIGNAL BOUND SECURED // SLOT DRAG INJECTION READY
+                      </span>
+                    </div>
+                  </div>
+                ) : (() => {
+                  const equippedItem = equippedGear[selectedInventoryItem.slot];
+                  const isEquipped = equippedItem?.id === selectedInventoryItem.id;
+                  const itemColor = getRarityStyle(selectedInventoryItem.rarity).color;
+                  
+                  if (isEquipped) {
+                    return (
+                      <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between", gap: "12px", zIndex: 1 }}>
+                        <div>
+                          <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "8px", marginBottom: "8px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>
+                              [ INSPECTING LOADOUT SLOTS // EQUIPPED ]
+                            </span>
+                            <h3 style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: itemColor, margin: "4px 0 2px 0", fontWeight: "bold" }}>
+                              {selectedInventoryItem.name}
+                            </h3>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
+                              {selectedInventoryItem.rarity.toUpperCase()} {selectedInventoryItem.slot.toUpperCase()} // LVL {selectedInventoryItem.itemLevel}
+                            </span>
+                          </div>
+
+                          <div style={{ display: "flex", justifyContent: "space-between", background: "#0c0c0c", padding: "8px 12px", border: "1px solid var(--border)", marginBottom: "12px" }}>
+                            <div>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>RATING POWER</span>
+                              <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "#00ffcc", fontWeight: "bold" }}>
+                                {selectedInventoryItem.power}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: "right" }}>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>INTEGRITY QUALITY</span>
+                              <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "#fff", fontWeight: "bold" }}>
+                                {selectedInventoryItem.quality}%
+                              </div>
+                            </div>
+                          </div>
+
+                          <p style={{ fontSize: "10.5px", color: "var(--text-muted)", lineHeight: "1.4", margin: "0 0 12px 0" }}>
+                            {selectedInventoryItem.desc}
+                          </p>
+
+                          <div style={{ borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "8px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>STAT MODULE MATRIX</span>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                              {Object.entries(selectedInventoryItem.stats || {}).map(([key, val]) => (
+                                <div key={key} style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)", padding: "2px 0" }}>
+                                  <span style={{ color: "var(--text-dim)", textTransform: "uppercase" }}>{key}</span>
+                                  <span style={{ color: "#fff", fontWeight: "bold" }}>{val}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", gap: "10px", marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "12px" }}>
+                          <button
+                            onClick={() => { handleUnequip(selectedInventoryItem.slot); setSelectedInventoryItem(null); }}
+                            style={{
+                              flex: 1, background: "rgba(255, 77, 77, 0.1)", border: "1px solid var(--accent)",
+                              color: "var(--accent)", padding: "8px", fontFamily: "var(--mono)", fontSize: "10px",
+                              fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
+                            }}
+                          >
+                            [ DISCONNECT GEAR ]
+                          </button>
+                          <button
+                            onClick={() => setSelectedInventoryItem(null)}
+                            style={{
+                              flex: 1, background: "none", border: "1px solid var(--border)",
+                              color: "var(--text-dim)", padding: "8px", fontFamily: "var(--mono)", fontSize: "10px",
+                              fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
+                            }}
+                          >
+                            [ RETURN ]
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    const powerShift = selectedInventoryItem.power - (equippedItem?.power || 0);
+                    const qualityShift = selectedInventoryItem.quality - (equippedItem?.quality || 0);
+                    const allKeys = Array.from(new Set([
+                      ...Object.keys(equippedItem?.stats || {}),
+                      ...Object.keys(selectedInventoryItem.stats || {})
+                    ]));
+
+                    return (
+                      <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between", gap: "12px", zIndex: 1 }}>
+                        <div>
+                          <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "8px", marginBottom: "8px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>
+                              [ TACTICAL LOADOUT SHIFT COMPARISON ]
+                            </span>
+                            <h3 style={{ fontFamily: "var(--title-font)", fontSize: "15px", color: itemColor, margin: "4px 0 2px 0", fontWeight: "bold" }}>
+                              {selectedInventoryItem.name}
+                            </h3>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
+                              COMPARE SLOTS: {selectedInventoryItem.slot.toUpperCase()} // LEVEL {selectedInventoryItem.itemLevel}
+                            </span>
+                          </div>
+
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
+                            <div style={{ background: "rgba(255,255,255,0.01)", border: "1px dashed rgba(255,255,255,0.05)", padding: "6px 8px" }}>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "7.5px", color: "var(--text-dim)" }}>ACTIVE EQUIPPED</span>
+                              {equippedItem ? (
+                                <div style={{ marginTop: "2px" }}>
+                                  <div style={{ fontSize: "10px", color: getRarityStyle(equippedItem.rarity).color, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                    {equippedItem.name}
+                                  </div>
+                                  <div style={{ fontSize: "9.5px", color: "#fff", fontFamily: "var(--mono)" }}>
+                                    PWR: {equippedItem.power}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div style={{ fontSize: "9.5px", color: "var(--text-muted)", fontStyle: "italic", marginTop: "2px" }}>
+                                  [ EMPTY SLOT ]
+                                </div>
+                              )}
+                            </div>
+
+                            <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.15)", padding: "6px 8px" }}>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "7.5px", color: "#00ffcc" }}>NEW INSPECTED</span>
+                              <div style={{ marginTop: "2px" }}>
+                                <div style={{ fontSize: "10px", color: itemColor, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                  {selectedInventoryItem.name}
+                                </div>
+                                <div style={{ fontSize: "9.5px", color: "#fff", fontFamily: "var(--mono)" }}>
+                                  PWR: {selectedInventoryItem.power}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px", background: "#0c0c0c", border: "1px solid var(--border)", padding: "8px 12px", marginBottom: "12px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>POWER DIFFERENCE:</span>
+                              <span style={{
+                                fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold",
+                                color: powerShift > 0 ? "#22c55e" : powerShift < 0 ? "#ff4d4d" : "var(--text-dim)"
+                              }}>
+                                {powerShift > 0 ? `+${powerShift}` : powerShift} PWR
+                              </span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>INTEGRITY SHIFT:</span>
+                              <span style={{
+                                fontFamily: "var(--mono)", fontSize: "10px", fontWeight: "bold",
+                                color: qualityShift > 0 ? "#22c55e" : qualityShift < 0 ? "#ff4d4d" : "var(--text-dim)"
+                              }}>
+                                {equippedItem ? `${equippedItem.quality}%` : "0%"} → {selectedInventoryItem.quality}% ({qualityShift > 0 ? `+${qualityShift}` : qualityShift}%)
+                              </span>
+                            </div>
+                          </div>
+
+                          <div style={{ borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "8px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>STAT DIFFERENTIAL MATRIX</span>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                              {allKeys.map(key => {
+                                const valEquippedRaw = equippedItem?.stats?.[key];
+                                const valSelectedRaw = selectedInventoryItem.stats?.[key];
+
+                                const valEquipped = typeof valEquippedRaw === "number" ? valEquippedRaw : parseFloat(String(valEquippedRaw || "")) || 0;
+                                const valSelected = typeof valSelectedRaw === "number" ? valSelectedRaw : parseFloat(String(valSelectedRaw || "")) || 0;
+                                
+                                const isNumber = (typeof valEquippedRaw === "number" || !isNaN(parseFloat(String(valEquippedRaw)))) && 
+                                                 (typeof valSelectedRaw === "number" || !isNaN(parseFloat(String(valSelectedRaw))));
+                                
+                                const shift = valSelected - valEquipped;
+
+                                return (
+                                  <div key={key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", fontFamily: "var(--mono)", padding: "2px 0" }}>
+                                    <span style={{ color: "var(--text-dim)", textTransform: "uppercase" }}>{key}</span>
+                                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                      <span style={{ color: "var(--text-muted)" }}>{valEquippedRaw ?? "—"}</span>
+                                      <span style={{ color: "var(--text-dim)" }}>→</span>
+                                      <span style={{ color: "#fff", fontWeight: "bold" }}>{valSelectedRaw ?? "—"}</span>
+                                      {isNumber && shift !== 0 && (
+                                        <span style={{ color: shift > 0 ? "#22c55e" : "#ff4d4d", fontSize: "8.5px", fontWeight: "bold" }}>
+                                          ({shift > 0 ? `+${shift}` : shift})
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", gap: "10px", marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "12px" }}>
+                          <button
+                            onClick={() => { handleEquip(selectedInventoryItem); setSelectedInventoryItem(null); }}
+                            style={{
+                              flex: 1, background: "var(--accent)", border: "none",
+                              color: "#000", padding: "8px", fontFamily: "var(--mono)", fontSize: "10px",
+                              fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
+                            }}
+                          >
+                            [ EQUIP GEAR ]
+                          </button>
+                          <button
+                            onClick={() => setSelectedInventoryItem(null)}
+                            style={{
+                              flex: 1, background: "none", border: "1px solid var(--border)",
+                              color: "var(--text-dim)", padding: "8px", fontFamily: "var(--mono)", fontSize: "10px",
+                              fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
+                            }}
+                          >
+                            [ CANCEL ]
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                })()}
               </div>
 
               {/* Right Column: Complete RPG Inventory grid */}
@@ -2029,97 +2370,205 @@ export default function OperationsPage() {
       {/* --- IN-GAME OVERLAYS SYSTEM (MULTI-EVENT CAMPAIGN LOOP) --- */}
       
       {/* 1. Briefing Overlay */}
-      {activeMission && missionFlow === "briefing" && (
-        <div style={{
-          position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
-          background: "rgba(0, 0, 0, 0.9)", display: "flex", alignItems: "center", justifyContent: "center",
-          padding: "24px"
-        }}>
-          <div className="panel" style={{
-            maxWidth: "760px", width: "100%", borderColor: "rgba(255, 77, 77, 0.45)",
-            background: "#080808", padding: "40px"
+      {activeMission && missionFlow === "briefing" && (() => {
+        const sector = sectors.find(s => s.id === activeMission.region);
+        const sectorState = profile ? profile.worldState?.sectorStates?.[activeMission.region] : undefined;
+        const commentary = profile && sector ? generateAICommentary(profile, sector, sectorState, activeMission) : "";
+        const survivalChance = getSurvivalChance(activeMission);
+        return (
+          <div style={{
+            position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
+            background: "rgba(0, 0, 0, 0.93)", display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px"
           }}>
-            <div style={{ borderBottom: "2px solid rgba(255,77,77,0.3)", paddingBottom: "16px", marginBottom: "24px" }}>
-              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
-                CODENAME: RED QUEEN AI // MISSION DEPLOYMENT DIALOG
-              </span>
-              <h2 style={{ fontSize: "28px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em" }}>{activeMission.title}</h2>
-            </div>
-            
-            <div className="holo-noise" style={{
-              height: "140px", width: "100%", background: "#030303", border: "1px dashed rgba(255,255,255,0.15)",
-              marginBottom: "24px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
+            <div className="panel" style={{
+              maxWidth: "840px", width: "100%", maxHeight: "92vh", overflowY: "auto",
+              borderColor: "rgba(255, 77, 77, 0.45)", background: "#080808", padding: "30px",
+              display: "flex", flexDirection: "column", gap: "16px"
             }}>
-              <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.15em", display: "block" }}>
-                [ SYSTEM COORDINATES LOADED ]
-              </span>
-              <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
-                DECENTRALIZED WAVE SYNC COMPLETE // {activeMission.events.length} TACTICAL PHALANXES
-              </span>
-            </div>
-
-            <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "28px" }}>
-              {activeMission.description}
-            </p>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "16px", marginBottom: "28px" }}>
-              <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>SECTOR</span>
-                <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#fff", fontWeight: "bold", marginTop: "4px" }}>
-                  {activeMission.region.toUpperCase()}
+              <div style={{ borderBottom: "2px solid rgba(255,77,77,0.3)", paddingBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                <div>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
+                    CODENAME: RED QUEEN AI // MISSION DEPLOYMENT DIALOG
+                  </span>
+                  <h2 style={{ fontSize: "24px", color: "#fff", margin: "4px 0 0 0", letterSpacing: "0.05em" }}>{activeMission.title}</h2>
+                </div>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", paddingBottom: "2px" }}>
+                  PHALANX SYNC ACTIVE
                 </div>
               </div>
-              <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>DIFFICULTY</span>
-                <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "var(--accent)", fontWeight: "bold", marginTop: "4px" }}>
-                  {activeMission.difficulty.toUpperCase()}
-                </div>
-              </div>
-              <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>DURATION</span>
-                <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#fff", fontWeight: "bold", marginTop: "4px" }}>
-                  {activeMission.duration} MIN
-                </div>
-              </div>
-              <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>RECOMMENDED</span>
-                <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#00ffcc", fontWeight: "bold", marginTop: "4px" }}>
-                  {activeMission.recommendedClass.toUpperCase()}
-                </div>
-              </div>
-            </div>
 
-            {/* Red Queen AI Briefing Commentary */}
-            <div style={{ background: "rgba(255, 0, 51, 0.04)", borderLeft: "4px solid var(--accent)", padding: "20px", marginBottom: "32px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "6px", fontWeight: "bold" }}>
-                [ SYSTEM UPLINK COMMENTARY ]
+              {/* 5-Column Stats Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1.2fr 1.2fr", gap: "12px" }}>
+                <div style={{ background: "#000", border: "1px solid var(--border)", padding: "10px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)" }}>SECTOR</span>
+                  <div style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "#fff", fontWeight: "bold", marginTop: "2px" }}>
+                    {activeMission.region.toUpperCase()}
+                  </div>
+                </div>
+                <div style={{ background: "#000", border: "1px solid var(--border)", padding: "10px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)" }}>DIFFICULTY</span>
+                  <div style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", marginTop: "2px" }}>
+                    {activeMission.difficulty.toUpperCase()}
+                  </div>
+                </div>
+                <div style={{ background: "#000", border: "1px solid var(--border)", padding: "10px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)" }}>DURATION</span>
+                  <div style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "#fff", fontWeight: "bold", marginTop: "2px" }}>
+                    {activeMission.duration} MIN
+                  </div>
+                </div>
+                <div style={{ background: "#000", border: "1px solid var(--border)", padding: "10px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)" }}>REC. CLASS</span>
+                  <div style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold", marginTop: "2px" }}>
+                    {activeMission.recommendedClass.toUpperCase()}
+                  </div>
+                </div>
+                <div style={{ background: "rgba(0, 255, 204, 0.03)", border: "1px solid rgba(0, 255, 204, 0.25)", padding: "10px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "rgba(0, 255, 204, 0.8)" }}>SURVIVAL CHANCE</span>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: survivalChance >= 75 ? "#00ffcc" : survivalChance >= 50 ? "#f0c929" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
+                    {survivalChance}% EST.
+                  </div>
+                </div>
               </div>
-              <p style={{ fontFamily: "var(--mono)", fontSize: "13px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.6", margin: 0 }}>
-                {activeMission.recommendedClass === profile?.class
-                  ? `"Operative configuration matches mission coordinates. Your medic/specialist capabilities yield +15% success probability check. Deploy immediately."`
-                  : `"Warning: Active class [${profile?.class?.toUpperCase()}] deviates from recommended profile [${activeMission.recommendedClass.toUpperCase()}]. Proceed with caution."`}
-              </p>
-            </div>
 
-            <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between" }}>
-              <button
-                onClick={() => { setActiveMission(null); setMissionFlow(null); }}
-                className="btn btn-ghost"
-                style={{ border: "1px solid var(--border)", padding: "12px 28px" }}
-              >
-                ABORT DEPLOYMENT
-              </button>
-              <button
-                onClick={() => runDeployment(activeMission)}
-                className="btn btn-primary"
-                style={{ padding: "12px 36px" }}
-              >
-                DEPLOY OPERATIVE 🛰️
-              </button>
+              {/* 2-Column Details Layout */}
+              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "16px" }}>
+                {/* Left Column: Dossier Story & Objectives */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ background: "#040404", border: "1px solid rgba(255,255,255,0.03)", padding: "14px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.12em", display: "block", marginBottom: "6px" }}>
+                      OPERATIONAL ANOMALY DOSSIER / STORY
+                    </span>
+                    <p style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: "1.5", margin: 0 }}>
+                      {activeMission.story || activeMission.description}
+                    </p>
+                  </div>
+
+                  <div style={{ background: "#040404", border: "1px solid rgba(255,255,255,0.03)", padding: "14px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.12em", display: "block", marginBottom: "6px" }}>
+                      CHECKLIST OBJECTIVES
+                    </span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {activeMission.objectives?.map((obj) => (
+                        <div key={obj.id} style={{ display: "flex", alignItems: "flex-start", gap: "6px", fontSize: "10.5px", fontFamily: "var(--mono)" }}>
+                          <span style={{ color: obj.status === "COMPLETED" ? "#22c55e" : obj.status === "FAILED" ? "#ff4d4d" : "var(--accent)", fontWeight: "bold" }}>
+                            [{obj.status === "COMPLETED" ? "✔ RESOLVED" : obj.status === "FAILED" ? "✘ FAILED" : "▢ PENDING"}]
+                          </span>
+                          <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                            <span style={{ color: "#fff" }}>{obj.description}</span>
+                            <span style={{ fontSize: "8.5px", color: "var(--text-muted)", marginTop: "1px" }}>
+                              REWARD: <span style={{ color: "var(--accent)" }}>{obj.reward}</span>
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Hazards & Recommendations */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ background: "#040404", border: "1px solid rgba(255,255,255,0.03)", padding: "14px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.12em", display: "block", marginBottom: "6px" }}>
+                      ENVIRONMENTAL hazard MATRIX
+                    </span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>HAZARDS</span>
+                        <div style={{ fontSize: "11px", color: "#ff4d4d", fontFamily: "var(--mono)", marginTop: "1px" }}>
+                          ⚡ {activeMission.environmentalHazard || "None Detected"}
+                        </div>
+                      </div>
+                      <div>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>EXPECTED THREATS</span>
+                        <div style={{ fontSize: "11px", color: "#fff", fontFamily: "var(--mono)", marginTop: "1px" }}>
+                          👾 {activeMission.expectedThreat || "Standard Hostiles"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: "#040404", border: "1px solid rgba(255,255,255,0.03)", padding: "14px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.12em", display: "block", marginBottom: "6px" }}>
+                      SUPPORT SPECS & GEAR REQUIREMENTS
+                    </span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>RECOMMENDED DIVISION</span>
+                        <div style={{ fontSize: "11px", color: "#00ffcc", fontFamily: "var(--mono)", marginTop: "1px" }}>
+                          🛡️ {activeMission.recommendedDivision || "Any"}
+                        </div>
+                      </div>
+                      <div>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>RECOMMENDED EQUIPMENT</span>
+                        <div style={{ fontSize: "11px", color: "#fff", fontFamily: "var(--mono)", marginTop: "1px" }}>
+                          ⚙️ {activeMission.recommendedEquipment || "None Required"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rewards Panel */}
+              <div style={{ background: "#060606", border: "1px solid rgba(255, 255, 255, 0.05)", padding: "12px" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.12em", display: "block", marginBottom: "6px" }}>
+                  ESTIMATED DEPLOYMENT REWARDS
+                </span>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.2fr", gap: "10px" }}>
+                  <div style={{ background: "#000", border: "1px solid rgba(255,255,255,0.04)", padding: "8px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>CREDITS</span>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#f0c929", fontWeight: "bold", marginTop: "1px" }}>
+                      {activeMission.rewards.credits} $THREAT
+                    </div>
+                  </div>
+                  <div style={{ background: "#000", border: "1px solid rgba(255,255,255,0.04)", padding: "8px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>EXPERIENCE</span>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#a855f7", fontWeight: "bold", marginTop: "1px" }}>
+                      +{activeMission.rewards.xp} XP
+                    </div>
+                  </div>
+                  <div style={{ background: "#000", border: "1px solid rgba(255,255,255,0.04)", padding: "8px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>RESOURCE DROP</span>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold", marginTop: "1px" }}>
+                      {activeMission.rewards.resourceQty}x {activeMission.rewards.resource}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Red Queen AI Briefing Commentary */}
+              <div style={{ background: "rgba(255, 0, 51, 0.04)", borderLeft: "4px solid var(--accent)", padding: "14px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.12em", marginBottom: "4px", fontWeight: "bold" }}>
+                  [ RED QUEEN AI COMM LINK UPLINK ]
+                </div>
+                <p style={{ fontFamily: "var(--mono)", fontSize: "11px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.5", margin: 0 }}>
+                  {commentary}
+                </p>
+              </div>
+
+              {/* Actions Footer */}
+              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", marginTop: "6px" }}>
+                <button
+                  onClick={() => { setActiveMission(null); setMissionFlow(null); }}
+                  className="btn btn-ghost"
+                  style={{ border: "1px solid var(--border)", padding: "10px 24px", fontSize: "11px" }}
+                >
+                  ABORT DEPLOYMENT
+                </button>
+                <button
+                  onClick={() => runDeployment(activeMission)}
+                  className="btn btn-primary"
+                  style={{ padding: "10px 32px", fontSize: "11px" }}
+                >
+                  DEPLOY OPERATIVE 🛰️
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 2. Deployment Simulator Overlay */}
       {activeMission && missionFlow === "deployment" && (

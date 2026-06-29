@@ -24,7 +24,8 @@ export const INITIAL_SECTORS: Sector[] = [
     description: "Ruined medical depots in suburban zone containing vital civilian caches. Pathogen contamination remains high.",
     points: "50,50 250,50 280,240 80,260",
     labelX: 150,
-    labelY: 130
+    labelY: 130,
+    connectedSectors: ["sec-beta", "sec-delta"]
   },
   {
     id: "sec-beta",
@@ -36,7 +37,8 @@ export const INITIAL_SECTORS: Sector[] = [
     description: "High-voltage transmission substation generating localized magnetic storms and gravity drops.",
     points: "280,30 520,30 480,210 290,190",
     labelX: 380,
-    labelY: 100
+    labelY: 100,
+    connectedSectors: ["sec-alpha", "sec-epsilon", "sec-zeta"]
   },
   {
     id: "sec-delta",
@@ -48,7 +50,8 @@ export const INITIAL_SECTORS: Sector[] = [
     description: "Decentralized database center currently seized by rogue Sybil tracer drones monitoring connection signatures.",
     points: "80,280 270,260 250,420 60,400",
     labelX: 150,
-    labelY: 330
+    labelY: 330,
+    connectedSectors: ["sec-alpha", "sec-epsilon", "sec-gamma"]
   },
   {
     id: "sec-epsilon",
@@ -60,7 +63,8 @@ export const INITIAL_SECTORS: Sector[] = [
     description: "Underground military server warehouses protected by thick reinforced bulkhead gates.",
     points: "290,210 560,230 500,410 310,390",
     labelX: 410,
-    labelY: 300
+    labelY: 300,
+    connectedSectors: ["sec-beta", "sec-delta", "sec-zeta", "sec-omega"]
   },
   {
     id: "sec-zeta",
@@ -72,7 +76,8 @@ export const INITIAL_SECTORS: Sector[] = [
     description: "Abandoned reactor core suffering from gravity waves and spatial compression faults.",
     points: "540,50 780,60 840,240 580,240",
     labelX: 650,
-    labelY: 140
+    labelY: 140,
+    connectedSectors: ["sec-beta", "sec-epsilon", "sec-omega"]
   },
   {
     id: "sec-gamma",
@@ -84,7 +89,8 @@ export const INITIAL_SECTORS: Sector[] = [
     description: "Volatile orbital fallout telemetry station currently leaking biological hazards.",
     points: "70,440 270,440 230,580 50,560",
     labelX: 150,
-    labelY: 500
+    labelY: 500,
+    connectedSectors: ["sec-delta", "sec-omega"]
   },
   {
     id: "sec-omega",
@@ -96,7 +102,8 @@ export const INITIAL_SECTORS: Sector[] = [
     description: "Deep subterranean quantum relay substation undergoing temporal sync delays and firewall shifts.",
     points: "520,430 850,430 800,580 480,570",
     labelX: 650,
-    labelY: 500
+    labelY: 500,
+    connectedSectors: ["sec-epsilon", "sec-gamma", "sec-zeta"]
   }
 ];
 
@@ -113,6 +120,18 @@ export const INITIAL_MISSIONS: Mission[] = [
     rewards: { xp: 25, credits: 50, resource: "Medical Supplies", resourceQty: 2 },
     unlockRequirements: {},
     category: "critical",
+    story: "Red Queen scouts have pinpointed a structural node in Sector Alpha containing trapped medical staff. Bypassing the security gateway is required to retrieve them before local toxin levels saturate their pod filters.",
+    primaryObjective: "Extract civilian medical pod from Sector Alpha.",
+    secondaryObjectives: ["Retrieve bio-toxin samples", "Decrypt security gate keylogs"],
+    expectedThreat: "Low-level rogue cleaning drones, atmospheric toxins.",
+    environmentalHazard: "Bio-toxin gas (level 2)",
+    recommendedEquipment: "Biosensor Helmet, Insulated Cutters",
+    recommendedDivision: "Helix Division",
+    objectives: [
+      { id: "obj-1-1", description: "Breach the security gateway at the medical depot entrance", status: "PENDING", reward: "25 XP" },
+      { id: "obj-1-2", description: "Bypass the toxic hallway filters without sustaining damage", status: "PENDING", reward: "15 credits" },
+      { id: "obj-1-3", description: "Manually decrypt the release coordinates on the escape pod console", status: "PENDING", reward: "1 Medical Supplies" }
+    ],
     events: [
       {
         id: "op-1-ev-1",
@@ -155,7 +174,7 @@ export const INITIAL_MISSIONS: Mission[] = [
           },
           {
             id: "op-1-ev2-opt2",
-            text: "Jump across the structural girder supports.",
+            text: "Jump across structural girder supports.",
             success_prob: 60,
             class_bonus: { classId: "Recon", bonus: 20 },
             success_text: "You leap across the columns, landing on solid platform boards.",
@@ -171,7 +190,7 @@ export const INITIAL_MISSIONS: Mission[] = [
         options: [
           {
             id: "op-1-ev3-opt1",
-            text: "Manually bypass the pressure release valves using insulated cutters.",
+            text: "Manually bypass pressure release valves using insulated cutters.",
             success_prob: 65,
             class_bonus: { classId: "Engineer", bonus: 20 },
             success_text: "The hatch popped open. The survivors are secure.",
@@ -203,6 +222,18 @@ export const INITIAL_MISSIONS: Mission[] = [
     rewards: { xp: 45, credits: 100, resource: "Electronics", resourceQty: 3 },
     unlockRequirements: { level: 1 },
     category: "normal",
+    story: "An orbital transmitter beacon has dropped in Sector Beta, emitting a powerful gravitational anomaly. Gravity spikes are tearing the local structures apart. Recover the core before structural collapse is complete.",
+    primaryObjective: "Extract transmitter beacon core.",
+    secondaryObjectives: ["Map localized gravitational faults", "Secure electronics caches"],
+    expectedThreat: "Gravitational compression waves, EM flares.",
+    environmentalHazard: "Gravity waves (level 3)",
+    recommendedEquipment: "Gravity wave stabilizer, Volumetric Shield Core",
+    recommendedDivision: "Nomads Division",
+    objectives: [
+      { id: "obj-2-1", description: "Navigate through gravity field boundaries safely", status: "PENDING", reward: "45 XP" },
+      { id: "obj-2-2", description: "Inject a dampening script to disable the beacon circuit shield", status: "PENDING", reward: "30 credits" },
+      { id: "obj-2-3", description: "Use remote drone extraction to recover the anomaly core", status: "PENDING", reward: "1 Electronics" }
+    ],
     events: [
       {
         id: "op-2-ev-1",
@@ -293,6 +324,18 @@ export const INITIAL_MISSIONS: Mission[] = [
     rewards: { xp: 60, credits: 150, resource: "Research Data", resourceQty: 2 },
     unlockRequirements: { bioScore: 15 },
     category: "critical",
+    story: "Sybil routing sensors are tracing network communication signatures in Sector Delta. Infiltrate the routing exchange nodes, deploy WASM decrypters, and purge your operative digital footprint before they isolate your location.",
+    primaryObjective: "Bypass routing exchanges and copy coordinates.",
+    secondaryObjectives: ["Obfuscate telemetry logs", "Erase router memory registries"],
+    expectedThreat: "Sybil tracker drones, firewall trace programs.",
+    environmentalHazard: "Firewall trace arrays",
+    recommendedEquipment: "Decoy Signature Key, Quantum Decryptor Pad",
+    recommendedDivision: "Ghost Division",
+    objectives: [
+      { id: "obj-3-1", description: "Avoid routing scanner sweeps using decoy signature relays", status: "PENDING", reward: "60 XP" },
+      { id: "obj-3-2", description: "Deactivate the double-blind firewall on the routing node rack", status: "PENDING", reward: "45 credits" },
+      { id: "obj-3-3", description: "Extract decrypted database core memory before the purge sequence", status: "PENDING", reward: "1 Research Data" }
+    ],
     events: [
       {
         id: "op-3-ev-1",
@@ -310,7 +353,7 @@ export const INITIAL_MISSIONS: Mission[] = [
           },
           {
             id: "op-3-ev1-opt2",
-            text: "Slip through the sensor shadows using cloak filters.",
+            text: "Slip through sensor shadows using cloak filters.",
             success_prob: 70,
             class_bonus: { classId: "Recon", bonus: 20 },
             success_text: "You navigated the node corridor unseen.",
@@ -383,6 +426,18 @@ export const INITIAL_MISSIONS: Mission[] = [
     rewards: { xp: 40, credits: 90, resource: "Research Data", resourceQty: 3 },
     unlockRequirements: { completedMissionId: "op-2-signal-recovery", level: 2 },
     category: "normal",
+    story: "The underground military warehouses in Sector Epsilon contain encrypted coordinates for advanced anomalies. Automated security systems are active. Perform a fast tactical raid to extract the data drives.",
+    primaryObjective: "Recover data drives from server warehouses.",
+    secondaryObjectives: ["Disable automated perimeter turret", "Download backup silo telemetry"],
+    expectedThreat: "Automated kinetic turrets, security alarms.",
+    environmentalHazard: "High-voltage containment field",
+    recommendedEquipment: "Stealth Recon Cloak, EM Grenade",
+    recommendedDivision: "Eclipse Division",
+    objectives: [
+      { id: "obj-4-1", description: "Bypass outer silo kinetic turrets without triggering security alerts", status: "PENDING", reward: "40 XP" },
+      { id: "obj-4-2", description: "Inject security bypass codes into the server rack terminal", status: "PENDING", reward: "25 credits" },
+      { id: "obj-4-3", description: "Secure the drive and escape through the vents", status: "PENDING", reward: "1 Research Data" }
+    ],
     events: [
       {
         id: "op-4-ev-1",
@@ -455,6 +510,18 @@ export const INITIAL_MISSIONS: Mission[] = [
     rewards: { xp: 75, credits: 200, resource: "Energy Cells", resourceQty: 2 },
     unlockRequirements: { completedMissionId: "op-3-sybil-breach", bioScore: 30 },
     category: "critical",
+    story: "A volatile pathogen leak is spiking in Sector Gamma, centering around a high-altitude telemetry dish. Inject alignment instructions to redirect scanning paths and secure local sensor arrays.",
+    primaryObjective: "Redirect scanning paths of the telemetry dish.",
+    secondaryObjectives: ["Contain localized pathogen leaks", "Inject decoy signatures into the uplink"],
+    expectedThreat: "Volatile bio-pathogens, search drones.",
+    environmentalHazard: "Pathogen storm (level 4)",
+    recommendedEquipment: "Advanced Stim Injector, Biosensor Helmet",
+    recommendedDivision: "Horizon Division",
+    objectives: [
+      { id: "obj-5-1", description: "Synthesize anti-radiation pathogen inoculations", status: "PENDING", reward: "75 XP" },
+      { id: "obj-5-2", description: "Calibrate alignment spectrum grids on the dish controller", status: "PENDING", reward: "50 credits" },
+      { id: "obj-5-3", description: "Initiate decoy signature scripts to clear search drones from the deck", status: "PENDING", reward: "1 Energy Cells" }
+    ],
     events: [
       {
         id: "op-5-ev-1",
@@ -518,6 +585,17 @@ export const INITIAL_MISSIONS: Mission[] = [
     rewards: { xp: 20, credits: 40, resource: "Metal", resourceQty: 2 },
     unlockRequirements: {},
     category: "side",
+    story: "An outpost guarding a transport route in Sector Alpha has locked its perimeter fortifications. Clear the blockade to ensure secure supply route travel.",
+    primaryObjective: "Clear outpost parameter fortifications.",
+    secondaryObjectives: ["Scan sector gateway channels", "Disable backup power distributors"],
+    expectedThreat: "Security lock grids, defense drones.",
+    environmentalHazard: "None",
+    recommendedEquipment: "Breach Charge, Kinetic Carbine",
+    recommendedDivision: "Vanguard Division",
+    objectives: [
+      { id: "obj-6-1", description: "Blow the reinforced parameter door using breach charges", status: "PENDING", reward: "20 XP" },
+      { id: "obj-6-2", description: "Neutralize the active security drone blocking the escape vector", status: "PENDING", reward: "15 credits" }
+    ],
     events: [
       {
         id: "op-6-ev-1",
@@ -556,15 +634,15 @@ export const INITIAL_MISSIONS: Mission[] = [
 ];
 
 export const INITIAL_INVENTORY: InventoryItem[] = [
-  { id: "inv-1", name: "Kinetic Carbine V3", rarity: "Rare", quality: 100, slot: "Weapon", classRequirement: "Assault", power: 45, desc: "Short-stroke piston rifle caliber tailored for anomaly breach parameters.", qty: 1, type: "weapon" },
-  { id: "inv-2", name: "Stealth Recon Cloak", rarity: "Epic", quality: 92, slot: "Gadget", classRequirement: "Recon", power: 65, desc: "Bends electromagnetic spectra to match surrounding quadrant visual noise.", qty: 1, type: "weapon" },
-  { id: "inv-3", name: "Advanced Stim Injector", rarity: "Uncommon", quality: 100, slot: "Medkit", classRequirement: "Medic", power: 25, desc: "Rapidly neutralizes biological toxins and restores 30 HP.", qty: 5, type: "consumable" },
-  { id: "inv-4", name: "Volumetric Shield Core", rarity: "Legendary", quality: 100, slot: "Armor", classRequirement: "Scientist", power: 90, desc: "Projects a gravity displacement barrier to deflect analog projectiles.", qty: 1, type: "armor" },
-  { id: "inv-5", name: "C-4 Anomaly Breach Charge", rarity: "Rare", quality: 100, slot: "Utility", classRequirement: "Assault", power: 50, desc: "Heavy thermite detonation device capable of punching through node shields.", qty: 3, type: "consumable" },
-  { id: "inv-6", name: "Decoy Signature Key", rarity: "Common", quality: 100, slot: "Utility", classRequirement: "Specialist", power: 10, desc: "Injects synthetic user profiles to misdirect rogue Sybil trackers.", qty: 8, type: "consumable" },
-  { id: "inv-7", name: "Quantum Decryptor Pad", rarity: "Uncommon", quality: 85, slot: "Gadget", classRequirement: "Scientist", power: 30, desc: "Processes localized sub-quantum key decryptions via custom WASM modules.", qty: 1, type: "weapon" },
-  { id: "inv-8", name: "Helix Biosensor Helmet", rarity: "Epic", quality: 95, slot: "Helmet", classRequirement: "Medic", power: 75, desc: "Monitors oxygen filtration levels and identifies regional pathogen clusters.", qty: 1, type: "armor" },
-  { id: "inv-9", name: "Modular Tactical Pack", rarity: "Common", quality: 100, slot: "Backpack", classRequirement: "Engineer", power: 15, desc: "Extra load-bearing compartments reinforced with composite materials.", qty: 1, type: "armor" },
-  { id: "inv-11", name: "Deuterium Power Cell", rarity: "Rare", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "High-density plasma power pack for calibrating transmitters.", qty: 12, type: "material" },
-  { id: "inv-12", name: "Raw Titanite Scrap", rarity: "Common", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Scraped bulkhead alloys for crafting primary shield plates.", qty: 25, type: "material" }
+  { id: "inv-1", name: "Kinetic Carbine V3", rarity: "Rare", quality: 100, slot: "Weapon", classRequirement: "Assault", power: 45, desc: "Short-stroke piston rifle caliber tailored for anomaly breach parameters.", qty: 1, type: "weapon", itemLevel: 12, stats: { DPS: 48, Accuracy: "94%", Range: "45m" }, category: "Weapons" },
+  { id: "inv-2", name: "Stealth Recon Cloak", rarity: "Epic", quality: 92, slot: "Gadget", classRequirement: "Recon", power: 65, desc: "Bends electromagnetic spectra to match surrounding quadrant visual noise.", qty: 1, type: "weapon", itemLevel: 18, stats: { Stealth: "+30", Evade: "+12%" }, category: "Armor" },
+  { id: "inv-3", name: "Advanced Stim Injector", rarity: "Uncommon", quality: 100, slot: "Medkit", classRequirement: "Medic", power: 25, desc: "Rapidly neutralizes biological toxins and restores 30 HP.", qty: 5, type: "consumable", itemLevel: 5, stats: { Heal: "+30 HP", Speed: "+15%" }, category: "Medical" },
+  { id: "inv-4", name: "Volumetric Shield Core", rarity: "Legendary", quality: 100, slot: "Armor", classRequirement: "Scientist", power: 90, desc: "Projects a gravity displacement barrier to deflect analog projectiles.", qty: 1, type: "armor", itemLevel: 25, stats: { Shield: "+150", Mitigation: "20%" }, category: "Armor" },
+  { id: "inv-5", name: "C-4 Anomaly Breach Charge", rarity: "Rare", quality: 100, slot: "Utility", classRequirement: "Assault", power: 50, desc: "Heavy thermite detonation device capable of punching through node shields.", qty: 3, type: "consumable", itemLevel: 10, stats: { BreachPower: 120, Radius: "4m" }, category: "Tools" },
+  { id: "inv-6", name: "Decoy Signature Key", rarity: "Common", quality: 100, slot: "Utility", classRequirement: "Specialist", power: 10, desc: "Injects synthetic user profiles to misdirect rogue Sybil trackers.", qty: 8, type: "consumable", itemLevel: 3, stats: { Obfuscate: "+15", Duration: "45s" }, category: "Tools" },
+  { id: "inv-7", name: "Quantum Decryptor Pad", rarity: "Uncommon", quality: 85, slot: "Gadget", classRequirement: "Scientist", power: 30, desc: "Processes localized sub-quantum key decryptions via custom WASM modules.", qty: 1, type: "weapon", itemLevel: 8, stats: { DecryptSpeed: "+25%", PowerCost: "-10%" }, category: "Tools" },
+  { id: "inv-8", name: "Helix Biosensor Helmet", rarity: "Epic", quality: 95, slot: "Helmet", classRequirement: "Medic", power: 75, desc: "Monitors oxygen filtration levels and identifies regional pathogen clusters.", qty: 1, type: "armor", itemLevel: 15, stats: { ThreatDetection: "+20", FilterEfficiency: "98%" }, category: "Armor" },
+  { id: "inv-9", name: "Modular Tactical Pack", rarity: "Common", quality: 100, slot: "Backpack", classRequirement: "Engineer", power: 15, desc: "Extra load-bearing compartments reinforced with composite materials.", qty: 1, type: "armor", itemLevel: 4, stats: { Slots: "+10", LoadCapacity: "+15kg" }, category: "Armor" },
+  { id: "inv-11", name: "Deuterium Power Cell", rarity: "Rare", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "High-density plasma power pack for calibrating transmitters.", qty: 12, type: "material", itemLevel: 1, stats: { EnergyCapacity: "500MW" }, category: "Materials" },
+  { id: "inv-12", name: "Raw Titanite Scrap", rarity: "Common", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Scraped bulkhead alloys for crafting primary shield plates.", qty: 25, type: "material", itemLevel: 1, stats: { Purity: "78%" }, category: "Materials" }
 ];
