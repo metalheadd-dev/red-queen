@@ -177,7 +177,8 @@ export default function OperationsPage() {
     let currentStep = 0;
     const interval = setInterval(() => {
       if (currentStep < logSteps.length) {
-        setDeploymentLogs(prev => [...prev, logSteps[currentStep]]);
+        const logLine = logSteps[currentStep];
+        setDeploymentLogs(prev => [...prev, logLine]);
         setDeploymentProgress(Math.floor(((currentStep + 1) / logSteps.length) * 100));
         currentStep++;
       } else {
@@ -204,7 +205,8 @@ export default function OperationsPage() {
     let current = 0;
     const interval = setInterval(() => {
       if (current < connSteps.length) {
-        setConnectionLogs(prev => [...prev, connSteps[current]]);
+        const connLine = connSteps[current];
+        setConnectionLogs(prev => [...prev, connLine]);
         current++;
       } else {
         clearInterval(interval);
