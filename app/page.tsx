@@ -980,7 +980,7 @@ export default function HomePage() {
                     title: "01 // LIVE OPERATIONS",
                     status: "ACTIVE NOW",
                     statusColor: "#00ffcc",
-                    desc: "Complete community missions and technical bounties. Submit proofs of work directly to claim XP and token rewards."
+                    desc: "Complete community missions and technical bounties. Submit proofs of work directly to claim XP and in-game resources."
                   },
                   {
                     title: "02 // BROADCASTS",

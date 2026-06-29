@@ -1,34 +1,75 @@
 import { UserStats } from "../progression";
 
-export interface SectorState {
-  id: string;
-  status: "SAFE" | "ACTIVE" | "INFECTED" | "CRITICAL" | "LOCKED" | "SECURED";
-  dangerLevel: "Low" | "Medium" | "High" | "Severe";
-  ownership: string;
-  completion: number;
-  isUnlocked: boolean;
+// ─── Campaign Statistics ──────────────────────────────────────────────────────
+export interface CampaignStats {
+  operationsCompleted: number;
+  operationsFailed: number;
+  sectorsSecured: number;
+  researchDataCollected: number;
+  civiliansExtracted: number;
+  anomaliesDiscovered: number;
+  totalResourcesRecovered: Record<string, number>;
 }
 
+// ─── Operations Archive Record ────────────────────────────────────────────────
+export interface ArchiveMissionRecord {
+  missionId: string;
+  missionTitle: string;
+  sectorId: string;
+  outcome: "SUCCESS" | "PARTIAL" | "FAILURE";
+  timestamp: string;
+  xpEarned: number;
+  creditsEarned: number;
+  resourcesEarned: Record<string, number>;
+  objectivesCompleted: number;
+  objectivesTotal: number;
+}
+
+// ─── Sector State (Dynamic, Persisted) ───────────────────────────────────────
+export interface SectorState {
+  id: string;
+  status: "SAFE" | "ACTIVE" | "INFECTED" | "CRITICAL" | "LOCKED" | "SECURED" | "DANGEROUS" | "IN_PROGRESS" | "AVAILABLE";
+  dangerLevel: "Low" | "Medium" | "High" | "Severe";
+  ownership: string;
+  completion: number;   // 0-100 campaign progress for this sector
+  isUnlocked: boolean;
+  // Unlock requirement display labels (shown to player on locked sector)
+  unlockRequiredSector?: string;  // Human-readable name of sector to secure first
+  unlockRequiredLevel?: number;
+  unlockRequiredBioScore?: number;
+  unlockRequiredFaction?: string; // Faction name with required standing
+  // ─── Campaign State persistence (Sprint 7 additions) ───
+  stability: number;                    // 0-100 stability percentage
+  influence: Record<string, number>;    // factionId -> influence percentage
+  completedMissions: string[];          // list of completed mission IDs in this sector
+  availableMissions: string[];          // list of currently available mission IDs in this sector
+  worldEvents: string[];                // list of active event IDs in this sector
+}
+
+// ─── Dynamic Campaign Event ───────────────────────────────────────────────────
 export interface DynamicCampaignEvent {
   id: string;
   type: "Outbreak" | "Supply Drop" | "Signal Detected" | "Civilian Distress" | "Faction Conflict" | "Unknown Anomaly" | "Satellite Crash";
   title: string;
   description: string;
-  region: string; // Sector ID
-  duration: number; // Number of missions/turns active
+  region: string;       // Sector ID
+  duration: number;     // Number of missions/turns active
   rewards?: { xp?: number; credits?: number; resource?: string; resourceQty?: number };
 }
 
+// ─── World State (Persistent Campaign World) ──────────────────────────────────
 export interface WorldState {
   unlockedSectors: string[];
-  activeAnomalies: Record<string, string[]>; // sectorId -> anomalies
-  factionInfluence: Record<string, Record<string, number>>; // sectorId -> Faction ID -> percentage (0-100)
+  activeAnomalies: Record<string, string[]>;          // sectorId -> anomaly list
+  factionInfluence: Record<string, Record<string, number>>; // sectorId -> factionId -> %
   globalAlerts: string[];
   sectorStates: Record<string, SectorState>;
   activeEvents: DynamicCampaignEvent[];
   longestStreak: number;
+  dynamicMissions: Mission[];  // Auto-generated repeatable operations
 }
 
+// ─── Sector (Static Definition) ──────────────────────────────────────────────
 export interface Sector {
   id: string;
   name: string;
@@ -37,12 +78,13 @@ export interface Sector {
   threatType: string;
   availableResources: string[];
   description: string;
-  points: string; // SVG polygon points
-  labelX: number; // coordinates for map label placement
+  points: string;       // SVG polygon points
+  labelX: number;
   labelY: number;
-  connectedSectors: string[]; // Neighboring sector IDs
+  connectedSectors: string[];
 }
 
+// ─── Mission Choice ───────────────────────────────────────────────────────────
 export interface MissionChoice {
   id: string;
   text: string;
@@ -55,12 +97,13 @@ export interface MissionChoice {
     credits: number;
     resource?: string;
     resourceQty?: number;
-    injury?: number; // HP subtracted
+    injury?: number;
     reputationBonus?: number;
-    unlocksSectorId?: string; // sector ID unlocked on choice success
+    unlocksSectorId?: string;
   };
 }
 
+// ─── Mission Event ────────────────────────────────────────────────────────────
 export interface MissionEvent {
   id: string;
   title: string;
@@ -68,6 +111,7 @@ export interface MissionEvent {
   options: MissionChoice[];
 }
 
+// ─── Mission Objective ────────────────────────────────────────────────────────
 export interface MissionObjective {
   id: string;
   description: string;
@@ -75,18 +119,25 @@ export interface MissionObjective {
   reward: string;
 }
 
+// ─── Mission ──────────────────────────────────────────────────────────────────
 export interface Mission {
   id: string;
   title: string;
   description: string;
-  region: string; // Sector ID
+  region: string;       // Sector ID
   difficulty: "Easy" | "Normal" | "Hard";
   duration: number;
   recommendedClass: string;
   recommendedFaction?: string;
   rewards: { xp: number; credits: number; resource: string; resourceQty: number };
-  unlockRequirements: { level?: number; bioScore?: number; completedMissionId?: string };
-  category: "critical" | "normal" | "side";
+  unlockRequirements: { 
+    level?: number; 
+    bioScore?: number; 
+    completedMissionId?: string;
+    requiredFaction?: string;           // Faction ID required to unlock this operation
+    requiredFactionStanding?: number;   // Faction standing required to unlock this operation
+  };
+  category: "critical" | "normal" | "side" | "dynamic";
   events: MissionEvent[];
   story: string;
   primaryObjective: string;
@@ -96,15 +147,24 @@ export interface Mission {
   recommendedEquipment: string;
   recommendedDivision: string;
   objectives: MissionObjective[];
+  // Faction reputation changes on SUCCESS: positive = gain, negative = loss
+  factionReputationDelta?: Record<string, number>;
+  // Override difficulty-based sector progress points
+  sectorProgressPoints?: number;
+  // Repeatable missions can be run multiple times
+  isRepeatable?: boolean;
 }
 
+// ─── Inventory Item ───────────────────────────────────────────────────────────
 export interface InventoryItem {
   id: string;
   name: string;
   rarity: "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary";
-  quality: number; // Quality percentage (e.g., 100% = Pristine)
+  quality: number;
   slot: "Helmet" | "Armor" | "Weapon" | "Utility" | "Medkit" | "Backpack" | "Gadget" | "None";
   classRequirement: string;
+  factionRequirement?: string;         // Faction ID required to equip
+  factionStandingRequirement?: number; // Faction standing required to equip
   power: number;
   desc: string;
   qty: number;
@@ -114,6 +174,7 @@ export interface InventoryItem {
   category: "Weapons" | "Armor" | "Medical" | "Tools" | "Materials" | "Mission Items";
 }
 
+// ─── Operative Profile (Persistent Player State) ─────────────────────────────
 export interface OperativeProfile {
   name: string;
   faction: string;
@@ -126,10 +187,14 @@ export interface OperativeProfile {
   stats: UserStats;
   completedMissions: string[];
   reputation: number;
-  factionStanding: Record<string, number>; // Faction ID -> standing score (0-100)
+  factionStanding: Record<string, number>;  // factionId -> 0-100
   achievements: string[];
   missionHistory: { missionId: string; outcome: "SUCCESS" | "FAILURE"; timestamp: string }[];
   sectorDiscoveries: string[];
-  health: number; // Operative Health (0-100)
-  worldState: WorldState; // Global Evolving campaign world
+  health: number;
+  worldState: WorldState;
+  // ── Sprint 7 Additions ──────────────────────────────────────────────────
+  campaignStats: CampaignStats;
+  operationsArchive: ArchiveMissionRecord[];
+  totalPlaytimeSeconds: number;
 }

@@ -120,6 +120,8 @@ export const INITIAL_MISSIONS: Mission[] = [
     rewards: { xp: 25, credits: 50, resource: "Medical Supplies", resourceQty: 2 },
     unlockRequirements: {},
     category: "critical",
+    factionReputationDelta: { helix: 12, citadel: -5 },
+    sectorProgressPoints: 10,
     story: "Red Queen scouts have pinpointed a structural node in Sector Alpha containing trapped medical staff. Bypassing the security gateway is required to retrieve them before local toxin levels saturate their pod filters.",
     primaryObjective: "Extract civilian medical pod from Sector Alpha.",
     secondaryObjectives: ["Retrieve bio-toxin samples", "Decrypt security gate keylogs"],
@@ -220,8 +222,10 @@ export const INITIAL_MISSIONS: Mission[] = [
     recommendedClass: "Engineer",
     recommendedFaction: "Nomads",
     rewards: { xp: 45, credits: 100, resource: "Electronics", resourceQty: 3 },
-    unlockRequirements: { level: 1 },
+    unlockRequirements: { completedMissionId: "op-1-sanctuary-search", level: 1 },
     category: "normal",
+    factionReputationDelta: { nomads: 10, aegis: -4 },
+    sectorProgressPoints: 15,
     story: "An orbital transmitter beacon has dropped in Sector Beta, emitting a powerful gravitational anomaly. Gravity spikes are tearing the local structures apart. Recover the core before structural collapse is complete.",
     primaryObjective: "Extract transmitter beacon core.",
     secondaryObjectives: ["Map localized gravitational faults", "Secure electronics caches"],
@@ -322,8 +326,10 @@ export const INITIAL_MISSIONS: Mission[] = [
     recommendedClass: "Specialist",
     recommendedFaction: "Ghost Division",
     rewards: { xp: 60, credits: 150, resource: "Research Data", resourceQty: 2 },
-    unlockRequirements: { bioScore: 15 },
+    unlockRequirements: { completedMissionId: "op-2-signal-recovery", bioScore: 15 },
     category: "critical",
+    factionReputationDelta: { ghost: 15, horizon: -6 },
+    sectorProgressPoints: 25,
     story: "Sybil routing sensors are tracing network communication signatures in Sector Delta. Infiltrate the routing exchange nodes, deploy WASM decrypters, and purge your operative digital footprint before they isolate your location.",
     primaryObjective: "Bypass routing exchanges and copy coordinates.",
     secondaryObjectives: ["Obfuscate telemetry logs", "Erase router memory registries"],
@@ -424,8 +430,10 @@ export const INITIAL_MISSIONS: Mission[] = [
     recommendedClass: "Recon",
     recommendedFaction: "Eclipse",
     rewards: { xp: 40, credits: 90, resource: "Research Data", resourceQty: 3 },
-    unlockRequirements: { completedMissionId: "op-2-signal-recovery", level: 2 },
+    unlockRequirements: { completedMissionId: "op-3-sybil-breach", level: 2 },
     category: "normal",
+    factionReputationDelta: { eclipse: 10, vanguard: -4 },
+    sectorProgressPoints: 15,
     story: "The underground military warehouses in Sector Epsilon contain encrypted coordinates for advanced anomalies. Automated security systems are active. Perform a fast tactical raid to extract the data drives.",
     primaryObjective: "Recover data drives from server warehouses.",
     secondaryObjectives: ["Disable automated perimeter turret", "Download backup silo telemetry"],
@@ -508,8 +516,10 @@ export const INITIAL_MISSIONS: Mission[] = [
     recommendedClass: "Scientist",
     recommendedFaction: "Horizon",
     rewards: { xp: 75, credits: 200, resource: "Energy Cells", resourceQty: 2 },
-    unlockRequirements: { completedMissionId: "op-3-sybil-breach", bioScore: 30 },
+    unlockRequirements: { completedMissionId: "op-4-server-raid", bioScore: 30 },
     category: "critical",
+    factionReputationDelta: { horizon: 15, ghost: -6 },
+    sectorProgressPoints: 25,
     story: "A volatile pathogen leak is spiking in Sector Gamma, centering around a high-altitude telemetry dish. Inject alignment instructions to redirect scanning paths and secure local sensor arrays.",
     primaryObjective: "Redirect scanning paths of the telemetry dish.",
     secondaryObjectives: ["Contain localized pathogen leaks", "Inject decoy signatures into the uplink"],
@@ -585,6 +595,9 @@ export const INITIAL_MISSIONS: Mission[] = [
     rewards: { xp: 20, credits: 40, resource: "Metal", resourceQty: 2 },
     unlockRequirements: {},
     category: "side",
+    factionReputationDelta: { vanguard: 8, eclipse: -3 },
+    sectorProgressPoints: 10,
+    isRepeatable: true,
     story: "An outpost guarding a transport route in Sector Alpha has locked its perimeter fortifications. Clear the blockade to ensure secure supply route travel.",
     primaryObjective: "Clear outpost parameter fortifications.",
     secondaryObjectives: ["Scan sector gateway channels", "Disable backup power distributors"],
@@ -630,18 +643,116 @@ export const INITIAL_MISSIONS: Mission[] = [
         ]
       }
     ]
+  },
+  {
+    id: "op-7-omega-nexus",
+    title: "OPERATION OMEGA NEXUS",
+    description: "Infiltrate the deep subterranean quantum relay in Sector Omega. Establish final firewall uplink and secure humanity's legacy registry.",
+    region: "sec-omega",
+    difficulty: "Hard",
+    duration: 20,
+    recommendedClass: "Specialist",
+    recommendedFaction: "Ghost Division",
+    rewards: { xp: 100, credits: 300, resource: "Research Data", resourceQty: 5 },
+    unlockRequirements: { completedMissionId: "op-5-satellite-hijack", level: 5, bioScore: 40 },
+    category: "critical",
+    factionReputationDelta: { ghost: 20, horizon: 10, eclipse: -10 },
+    sectorProgressPoints: 25,
+    story: "This is the final coordinate node. The deep subterranean quantum relay in Sector Omega is undergoing temporal drift. Secure the node structure, establish a direct mainframe link, and execute the final security handshake to secure the network registry.",
+    primaryObjective: "Establish final mainframe uplink handshake.",
+    secondaryObjectives: ["Purge leftover tracking anomalies", "Download deep core database memory"],
+    expectedThreat: "Temporal quantum echoes, automated terminal gates.",
+    environmentalHazard: "Temporal displacement anomalies",
+    recommendedEquipment: "Quantum Decryptor Pad, Decoy Signature Key",
+    recommendedDivision: "Ghost Division",
+    objectives: [
+      { id: "obj-7-1", description: "Decrypt final firewall layers using WASM subroutines", status: "PENDING", reward: "100 XP" },
+      { id: "obj-7-2", description: "Establish direct quantum telemetry linkage", status: "PENDING", reward: "100 credits" }
+    ],
+    events: [
+      {
+        id: "op-7-ev-1",
+        title: "THE NEXUS ARCH",
+        text: "The quantum core is surrounded by shifting energy barriers. Chrono-flares threaten to destabilize your terminal connection.",
+        options: [
+          {
+            id: "op-7-ev1-opt1",
+            text: "Calibrate frequency arrays using quantum data pads.",
+            success_prob: 75,
+            class_bonus: { classId: "Scientist", bonus: 15 },
+            success_text: "Frequency locked. Chrono-flares normalized.",
+            failure_text: "Chronological feedback shocked your deck, causing temporary system drift.",
+            effects: { xp: 30, credits: 50, injury: 25 }
+          },
+          {
+            id: "op-7-ev1-opt2",
+            text: "Inject routing override bypass loops.",
+            success_prob: 80,
+            class_bonus: { classId: "Specialist", bonus: 15 },
+            success_text: "Bypass completed successfully. The arch opened.",
+            failure_text: "Bypass detected. Core defense systems fired warning lasers.",
+            effects: { xp: 35, credits: 40, injury: 30 }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "op-8-core-venting",
+    title: "OPERATION CORE VENTING",
+    description: "Deploy to Sector Zeta reactor core to vent radioactive particles and secure deuterium canisters. Repeatable side-op.",
+    region: "sec-zeta",
+    difficulty: "Hard",
+    duration: 10,
+    recommendedClass: "Engineer",
+    recommendedFaction: "Nomads",
+    rewards: { xp: 50, credits: 120, resource: "Energy Cells", resourceQty: 3 },
+    unlockRequirements: { completedMissionId: "op-5-satellite-hijack", level: 4 },
+    category: "side",
+    factionReputationDelta: { nomads: 12, citadel: -4 },
+    sectorProgressPoints: 20,
+    isRepeatable: true,
+    story: "The reactor core in Sector Zeta has accumulated dangerous gravity distortions. Manually cycle the pressure valves and extract remaining Deuterium containers before the core goes critical.",
+    primaryObjective: "Cycle pressure valves and extract Deuterium containers.",
+    secondaryObjectives: ["Vent radioactive particles", "Calibrate primary backup power grid"],
+    expectedThreat: "Gravity drops, radioactive coolant leaks.",
+    environmentalHazard: "Radiation leaks (level 4)",
+    recommendedEquipment: "Gravity wave stabilizer, Power cutters",
+    recommendedDivision: "Nomads Division",
+    objectives: [
+      { id: "obj-8-1", description: "Trigger localized venting sequence in reactor core", status: "PENDING", reward: "50 XP" },
+      { id: "obj-8-2", description: "Vent coolant pressure valves manually", status: "PENDING", reward: "30 credits" }
+    ],
+    events: [
+      {
+        id: "op-8-ev-1",
+        title: "COOLANT PIPES",
+        text: "Coolant pipes are ruptured, venting high-pressure radioactive vapor across the catwalk.",
+        options: [
+          {
+            id: "op-8-ev1-opt1",
+            text: "Vent the backup valve stack using insulated cutters.",
+            success_prob: 75,
+            class_bonus: { classId: "Engineer", bonus: 15 },
+            success_text: "Pressure released. Path cleared.",
+            failure_text: "Scalding coolant vapor escaped before you could seal the pipe.",
+            effects: { xp: 20, credits: 30, injury: 25 }
+          }
+        ]
+      }
+    ]
   }
 ];
 
 export const INITIAL_INVENTORY: InventoryItem[] = [
-  { id: "inv-1", name: "Kinetic Carbine V3", rarity: "Rare", quality: 100, slot: "Weapon", classRequirement: "Assault", power: 45, desc: "Short-stroke piston rifle caliber tailored for anomaly breach parameters.", qty: 1, type: "weapon", itemLevel: 12, stats: { DPS: 48, Accuracy: "94%", Range: "45m" }, category: "Weapons" },
-  { id: "inv-2", name: "Stealth Recon Cloak", rarity: "Epic", quality: 92, slot: "Gadget", classRequirement: "Recon", power: 65, desc: "Bends electromagnetic spectra to match surrounding quadrant visual noise.", qty: 1, type: "weapon", itemLevel: 18, stats: { Stealth: "+30", Evade: "+12%" }, category: "Armor" },
+  { id: "inv-1", name: "Kinetic Carbine V3", rarity: "Rare", quality: 100, slot: "Weapon", classRequirement: "Assault", factionRequirement: "vanguard", factionStandingRequirement: 15, power: 45, desc: "Short-stroke piston rifle caliber tailored for anomaly breach parameters.", qty: 1, type: "weapon", itemLevel: 12, stats: { DPS: 48, Accuracy: "94%", Range: "45m" }, category: "Weapons" },
+  { id: "inv-2", name: "Stealth Recon Cloak", rarity: "Epic", quality: 92, slot: "Gadget", classRequirement: "Recon", factionRequirement: "eclipse", factionStandingRequirement: 25, power: 65, desc: "Bends electromagnetic spectra to match surrounding quadrant visual noise.", qty: 1, type: "weapon", itemLevel: 18, stats: { Stealth: "+30", Evade: "+12%" }, category: "Armor" },
   { id: "inv-3", name: "Advanced Stim Injector", rarity: "Uncommon", quality: 100, slot: "Medkit", classRequirement: "Medic", power: 25, desc: "Rapidly neutralizes biological toxins and restores 30 HP.", qty: 5, type: "consumable", itemLevel: 5, stats: { Heal: "+30 HP", Speed: "+15%" }, category: "Medical" },
-  { id: "inv-4", name: "Volumetric Shield Core", rarity: "Legendary", quality: 100, slot: "Armor", classRequirement: "Scientist", power: 90, desc: "Projects a gravity displacement barrier to deflect analog projectiles.", qty: 1, type: "armor", itemLevel: 25, stats: { Shield: "+150", Mitigation: "20%" }, category: "Armor" },
+  { id: "inv-4", name: "Volumetric Shield Core", rarity: "Legendary", quality: 100, slot: "Armor", classRequirement: "Scientist", factionRequirement: "citadel", factionStandingRequirement: 30, power: 90, desc: "Projects a gravity displacement barrier to deflect analog projectiles.", qty: 1, type: "armor", itemLevel: 25, stats: { Shield: "+150", Mitigation: "20%" }, category: "Armor" },
   { id: "inv-5", name: "C-4 Anomaly Breach Charge", rarity: "Rare", quality: 100, slot: "Utility", classRequirement: "Assault", power: 50, desc: "Heavy thermite detonation device capable of punching through node shields.", qty: 3, type: "consumable", itemLevel: 10, stats: { BreachPower: 120, Radius: "4m" }, category: "Tools" },
   { id: "inv-6", name: "Decoy Signature Key", rarity: "Common", quality: 100, slot: "Utility", classRequirement: "Specialist", power: 10, desc: "Injects synthetic user profiles to misdirect rogue Sybil trackers.", qty: 8, type: "consumable", itemLevel: 3, stats: { Obfuscate: "+15", Duration: "45s" }, category: "Tools" },
   { id: "inv-7", name: "Quantum Decryptor Pad", rarity: "Uncommon", quality: 85, slot: "Gadget", classRequirement: "Scientist", power: 30, desc: "Processes localized sub-quantum key decryptions via custom WASM modules.", qty: 1, type: "weapon", itemLevel: 8, stats: { DecryptSpeed: "+25%", PowerCost: "-10%" }, category: "Tools" },
-  { id: "inv-8", name: "Helix Biosensor Helmet", rarity: "Epic", quality: 95, slot: "Helmet", classRequirement: "Medic", power: 75, desc: "Monitors oxygen filtration levels and identifies regional pathogen clusters.", qty: 1, type: "armor", itemLevel: 15, stats: { ThreatDetection: "+20", FilterEfficiency: "98%" }, category: "Armor" },
+  { id: "inv-8", name: "Helix Biosensor Helmet", rarity: "Epic", quality: 95, slot: "Helmet", classRequirement: "Medic", factionRequirement: "helix", factionStandingRequirement: 20, power: 75, desc: "Monitors oxygen filtration levels and identifies regional pathogen clusters.", qty: 1, type: "armor", itemLevel: 15, stats: { ThreatDetection: "+20", FilterEfficiency: "98%" }, category: "Armor" },
   { id: "inv-9", name: "Modular Tactical Pack", rarity: "Common", quality: 100, slot: "Backpack", classRequirement: "Engineer", power: 15, desc: "Extra load-bearing compartments reinforced with composite materials.", qty: 1, type: "armor", itemLevel: 4, stats: { Slots: "+10", LoadCapacity: "+15kg" }, category: "Armor" },
   { id: "inv-11", name: "Deuterium Power Cell", rarity: "Rare", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "High-density plasma power pack for calibrating transmitters.", qty: 12, type: "material", itemLevel: 1, stats: { EnergyCapacity: "500MW" }, category: "Materials" },
   { id: "inv-12", name: "Raw Titanite Scrap", rarity: "Common", quality: 100, slot: "None", classRequirement: "None", power: 0, desc: "Scraped bulkhead alloys for crafting primary shield plates.", qty: 25, type: "material", itemLevel: 1, stats: { Purity: "78%" }, category: "Materials" }

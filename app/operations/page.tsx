@@ -18,6 +18,7 @@ import {
   loadEquippedGear,
   saveEquippedGear,
   DEFAULT_WORLD_STATE,
+  DEFAULT_CAMPAIGN_STATS,
   generateAICommentary
 } from "@/lib/game/service";
 
@@ -57,8 +58,45 @@ export default function OperationsPage() {
   const { publicKey } = useWallet();
   const { setVisible } = useWalletModal();
   const { authIdentifier } = useAuth();
-  
-  // Game states
+
+  // Helper to map sector name to its ID
+  const getSectorIdByName = (name: string) => {
+    if (!name) return null;
+    const lower = name.toLowerCase();
+    if (lower.includes("alpha")) return "sec-alpha";
+    if (lower.includes("beta")) return "sec-beta";
+    if (lower.includes("delta")) return "sec-delta";
+    if (lower.includes("epsilon")) return "sec-epsilon";
+    if (lower.includes("zeta")) return "sec-zeta";
+    if (lower.includes("gamma")) return "sec-gamma";
+    if (lower.includes("omega")) return "sec-omega";
+    return null;
+  };
+
+  // Helper to parse and check faction clearance standing
+  const checkFactionClearance = (factionStr: string) => {
+    if (!profile) return { met: false, current: 0, required: 0, factionName: "Unknown" };
+    const lower = factionStr.toLowerCase();
+    let factionId = "citadel"; // default fallback
+    let fName = "CITADEL";
+    if (lower.includes("vanguard")) { factionId = "vanguard"; fName = "VANGUARD"; }
+    else if (lower.includes("helix")) { factionId = "helix"; fName = "HELIX"; }
+    else if (lower.includes("nomads")) { factionId = "nomads"; fName = "NOMADS"; }
+    else if (lower.includes("eclipse")) { factionId = "eclipse"; fName = "ECLIPSE"; }
+    else if (lower.includes("ghost")) { factionId = "ghost"; fName = "GHOST DIVISION"; }
+    else if (lower.includes("aegis")) { factionId = "aegis"; fName = "AEGIS"; }
+    else if (lower.includes("horizon")) { factionId = "horizon"; fName = "HORIZON"; }
+
+    const match = factionStr.match(/\d+/);
+    const reqStanding = match ? parseInt(match[0]) : 30;
+    const currentStanding = profile.factionStanding?.[factionId] || 0;
+    return {
+      met: currentStanding >= reqStanding,
+      current: currentStanding,
+      required: reqStanding,
+      factionName: fName,
+    };
+  };
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<OperativeProfile | null>(null);
   
@@ -179,6 +217,22 @@ export default function OperationsPage() {
     }, 400);
   }, [authIdentifier, publicKey]);
 
+  // Playtime tracker — persists every 60 seconds while profile is active
+  useEffect(() => {
+    if (!profile) return;
+    const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+    const interval = setInterval(() => {
+      setProfile(prev => {
+        if (!prev) return null;
+        const updated = { ...prev, totalPlaytimeSeconds: (prev.totalPlaytimeSeconds || 0) + 60 };
+        saveProfile(identifier, updated);
+        return updated;
+      });
+    }, 60000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!profile, authIdentifier]);
+
   // Handle Onboarding Completion
   const handleOnboardingSubmit = () => {
     if (!operativeName || !selectedFaction || !selectedClass || !selectedRole) return;
@@ -226,7 +280,10 @@ export default function OperationsPage() {
       missionHistory: [],
       sectorDiscoveries: ["sec-alpha", "sec-beta", "sec-delta"],
       health: 100,
-      worldState: { ...DEFAULT_WORLD_STATE }
+      worldState: { ...DEFAULT_WORLD_STATE },
+      campaignStats: { ...DEFAULT_CAMPAIGN_STATS },
+      operationsArchive: [],
+      totalPlaytimeSeconds: 0,
     };
     
     saveProfile(identifier, initialProfile);
@@ -311,8 +368,23 @@ export default function OperationsPage() {
     if (choice.class_bonus?.classId === profile.class) {
       matchingBonus = choice.class_bonus.bonus || 15;
     }
+
+    // Check active events in region for success chance or reward multipliers
+    const activeEvents = profile.worldState?.activeEvents || [];
+    const regionalEvent = activeEvents.find(evt => evt.region === activeMission.region);
     
-    const finalChance = Math.min(95, baseProb + matchingBonus);
+    let eventSuccessModifier = 0;
+    let resourceMultiplier = 1;
+
+    if (regionalEvent) {
+      if (regionalEvent.type === "Outbreak") {
+        eventSuccessModifier = -15; // 15% penalty to survival chance during an Outbreak
+      } else if (regionalEvent.type === "Supply Drop") {
+        resourceMultiplier = 2; // Double resource rewards on Supply Drop
+      }
+    }
+    
+    const finalChance = Math.max(10, Math.min(95, baseProb + matchingBonus + eventSuccessModifier));
     const roll = Math.floor(Math.random() * 100) + 1;
     const success = roll <= finalChance;
     
@@ -322,7 +394,8 @@ export default function OperationsPage() {
     setCumulativeRewards(prev => {
       const nextResources = { ...prev.resources };
       if (reward.resource) {
-        nextResources[reward.resource] = (nextResources[reward.resource] || 0) + (success ? (reward.resourceQty || 1) : 0);
+        const qty = (reward.resourceQty || 1) * resourceMultiplier;
+        nextResources[reward.resource] = (nextResources[reward.resource] || 0) + (success ? qty : 0);
       }
       return {
         xp: prev.xp + (success ? reward.xp : Math.floor(reward.xp / 2)),
@@ -397,12 +470,16 @@ export default function OperationsPage() {
 
     const unlocksSector = selectedOption?.effects?.unlocksSectorId;
 
+    const eventsCompleted = Math.min(currentEventIndex + 1, activeMission.events?.length || 1);
+    const eventsTotal = activeMission.events?.length || 1;
     const { updatedProfile, levelUpMessage: lvlMsg, worldEventsMessage: wldMsg } = claimMissionRewards(
       profile,
       activeMission,
       missionOutcome || "SUCCESS",
       cumulativeRewards,
-      unlocksSector
+      unlocksSector,
+      eventsCompleted,
+      eventsTotal
     );
 
     saveProfile(identifier, updatedProfile);
@@ -418,10 +495,40 @@ export default function OperationsPage() {
     setMissionOutcome(null);
   };
 
+  // Check if item meets class and faction reputation requirements
+  const canEquipItem = (item: InventoryItem) => {
+    if (!profile) return { can: false, reason: "No profile loaded" };
+    
+    // Class check
+    if (item.classRequirement !== "None" && item.classRequirement !== profile.class) {
+      return { can: false, reason: `Requires Class: ${item.classRequirement}` };
+    }
+
+    // Faction standing check
+    if (item.factionRequirement) {
+      const standing = profile.factionStanding?.[item.factionRequirement] || 0;
+      const reqStanding = item.factionStandingRequirement || 0;
+      if (standing < reqStanding) {
+        return { 
+          can: false, 
+          reason: `Requires ${item.factionRequirement.toUpperCase()} standing of ${reqStanding} (Current: ${standing})` 
+        };
+      }
+    }
+
+    return { can: true };
+  };
+
   // Swapping inventory slots
   const handleEquip = (item: InventoryItem) => {
     if (!profile) return;
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+    
+    const check = canEquipItem(item);
+    if (!check.can) {
+      alert(`EQUIP ERROR: ${check.reason}`);
+      return;
+    }
     
     const slot = item.slot;
     if (slot === "None") return;
@@ -1373,18 +1480,13 @@ export default function OperationsPage() {
                             fill={isSelected ? "rgba(255, 77, 77, 0.15)" : colorMap[status] || "none"}
                             stroke={isSelected ? "var(--accent)" : strokeColor}
                             strokeWidth={isSelected ? "2.5" : "1.5"}
-                            style={{ cursor: isUnlocked ? "pointer" : "not-allowed", transition: "all 0.18s" }}
+                            style={{ cursor: "pointer", transition: "all 0.18s" }}
                             onClick={() => {
-                              if (!isUnlocked) {
-                                setMapAlert(`SECTOR SYSTEM GATE LOCKED // PROGRESS CAMPAIGN TO DECRYPT`);
-                                setTimeout(() => setMapAlert(null), 3500);
-                              } else {
-                                setSelectedSectorId(sec.id);
-                                // select first mission in that sector
+                              setSelectedSectorId(sec.id);
+                              if (isUnlocked) {
                                 const sectorMissions = missions.filter(m => m.region === sec.id);
-                                if (sectorMissions.length > 0) {
-                                  setSelectedMapSector(sectorMissions[0].id);
-                                }
+                                const firstAvail = sectorMissions.find(m => !isMissionLocked(m) && !profile?.completedMissions.includes(m.id)) || sectorMissions[0];
+                                if (firstAvail) setSelectedMapSector(firstAvail.id);
                               }
                             }}
                           />
@@ -1511,72 +1613,185 @@ export default function OperationsPage() {
                   background: "#080808", border: "1px solid var(--border)",
                   padding: "14px", display: "flex", flexDirection: "column", gap: "10px", overflow: "hidden"
                 }}>
-                  {selectedSector ? (
-                    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
-                      
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                            [ SECTOR INTEL OVERVIEW ]
-                          </span>
-                          <span className={`tag ${getSectorStatus(selectedSector) === "SECURED" ? "tag-green" : "tag-red"}`} style={{ fontSize: "8px", padding: "2px 6px" }}>
-                            {getSectorStatus(selectedSector).toUpperCase()}
-                          </span>
-                        </div>
+                  {selectedSector ? (() => {
+                    const sectorIsLocked = getSectorStatus(selectedSector) === "LOCKED";
+                    const sectorState = profile?.worldState?.sectorStates?.[selectedSector.id];
 
-                        <h3 style={{ fontSize: "16px", color: "#fff", margin: "2px 0 4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
-                          {selectedSector.name}
-                        </h3>
+                    if (sectorIsLocked) {
+                      return (
+                        <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "8px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                              [ SECTOR INTEL OVERVIEW ]
+                            </span>
+                            <span className="tag tag-red" style={{ fontSize: "8px", padding: "2px 6px" }}>LOCKED 🔒</span>
+                          </div>
 
-                        <p style={{ fontSize: "10.5px", color: "var(--text-dim)", lineHeight: "1.4", margin: 0, height: "45px", overflowY: "auto" }}>
-                          {selectedSector.description}
-                        </p>
+                          <h3 style={{ fontSize: "16px", color: "rgba(255,255,255,0.4)", margin: "2px 0 4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
+                            {selectedSector.name}
+                          </h3>
 
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "9.5px", fontFamily: "var(--mono)", background: "#0c0c0c", padding: "8px", border: "1px solid rgba(255,255,255,0.03)" }}>
-                          <div>
-                            <span style={{ color: "var(--text-muted)" }}>THREAT RATIO:</span>
-                            <div style={{ color: selectedSector.threatLevel === "Severe" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
-                              {selectedSector.threatLevel.toUpperCase()}
+                          <p style={{ fontSize: "10px", color: "var(--text-muted)", lineHeight: "1.4", margin: 0 }}>
+                            {selectedSector.description}
+                          </p>
+
+                          <div style={{ background: "rgba(255, 77, 77, 0.02)", border: "1px solid rgba(255, 77, 77, 0.15)", padding: "12px", marginTop: "8px", borderRadius: "3px" }}>
+                            <style>{`
+                              @keyframes lock-pulse {
+                                0% { transform: scale(1); filter: drop-shadow(0 0 3px rgba(255, 77, 77, 0.4)); }
+                                50% { transform: scale(1.05); filter: drop-shadow(0 0 10px rgba(255, 77, 77, 0.7)); }
+                                100% { transform: scale(1); filter: drop-shadow(0 0 3px rgba(255, 77, 77, 0.4)); }
+                              }
+                            `}</style>
+                            
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "8px auto 16px auto", display: "block", animation: "lock-pulse 2.5s infinite ease-in-out" }}>
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                              <circle cx="12" cy="16" r="1.5" />
+                            </svg>
+
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#ff4d4d", fontWeight: "bold", marginBottom: "10px", letterSpacing: "0.1em", textAlign: "center" }}>
+                              [ SECURITY ACCESS BLOCKED ]
+                            </div>
+                            
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                              {sectorState?.unlockRequiredSector && (() => {
+                                const reqSectorId = getSectorIdByName(sectorState.unlockRequiredSector);
+                                const reqSecState = profile?.worldState?.sectorStates?.[reqSectorId || ""];
+                                const met = reqSecState?.status === "SECURED";
+                                return (
+                                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "9px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "6px" }}>
+                                    <span style={{ color: "var(--text-muted)" }}>SECURE PRE-REQ:</span>
+                                    <span 
+                                      style={{ 
+                                        color: met ? "#00ffcc" : "#f0c929", 
+                                        fontWeight: "bold", 
+                                        textDecoration: reqSectorId ? "underline" : "none", 
+                                        cursor: reqSectorId ? "pointer" : "default" 
+                                      }}
+                                      title={reqSectorId ? "Click to view sector details" : ""}
+                                      onClick={() => {
+                                        if (reqSectorId) setSelectedSectorId(reqSectorId);
+                                      }}
+                                    >
+                                      {sectorState.unlockRequiredSector} {reqSectorId && "🔍"} {met ? "✓ SECURED" : "✗ INCOMPLETE"}
+                                    </span>
+                                  </div>
+                                );
+                              })()}
+                              {sectorState?.unlockRequiredLevel && (
+                                <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "9px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "6px" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>MIN LEVEL:</span>
+                                  <span style={{ color: (profile?.level || 1) >= sectorState.unlockRequiredLevel ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                    Lvl {sectorState.unlockRequiredLevel}{" "}
+                                    {(profile?.level || 1) >= sectorState.unlockRequiredLevel ? "✓ MET" : `✗ UNMET (Yours: ${profile?.level || 1})`}
+                                  </span>
+                                </div>
+                              )}
+                              {sectorState?.unlockRequiredBioScore && (
+                                <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "9px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "6px" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>MIN BIO-SCORE:</span>
+                                  <span style={{ color: currentBioScore >= sectorState.unlockRequiredBioScore ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                    {sectorState.unlockRequiredBioScore}{" "}
+                                    {currentBioScore >= sectorState.unlockRequiredBioScore ? "✓ MET" : `✗ UNMET (Yours: ${currentBioScore})`}
+                                  </span>
+                                </div>
+                              )}
+                              {sectorState?.unlockRequiredFaction && (() => {
+                                const clearance = checkFactionClearance(sectorState.unlockRequiredFaction);
+                                return (
+                                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "9px" }}>
+                                    <span style={{ color: "var(--text-muted)" }}>CLEARANCE:</span>
+                                    <span style={{ color: clearance.met ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                      {clearance.factionName} ({clearance.required}){" "}
+                                      {clearance.met ? "✓ MET" : `✗ UNMET (Yours: ${clearance.current})`}
+                                    </span>
+                                  </div>
+                                );
+                              })()}
+                              {!sectorState?.unlockRequiredSector && !sectorState?.unlockRequiredLevel && !sectorState?.unlockRequiredBioScore && !sectorState?.unlockRequiredFaction && (
+                                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", textAlign: "center", display: "block" }}>
+                                  Complete regional campaign milestones to authorize access.
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <div>
-                            <span style={{ color: "var(--text-muted)" }}>ANOMALIES:</span>
-                            <div style={{ color: "#fff", fontWeight: "bold", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {profile?.worldState.activeAnomalies[selectedSector.id]?.join(", ") || "None"}
-                            </div>
+
+                          <div style={{ marginTop: "auto", fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: "6px" }}>
+                            THREAT CLASS: <span style={{ color: "#ff4d4d", fontWeight: "bold" }}>{selectedSector.threatLevel.toUpperCase()}</span>
+                            {" // "}<span>RESOURCES: {selectedSector.availableResources.join(", ")}</span>
                           </div>
                         </div>
+                      );
+                    }
 
-                        {/* Faction Presence indicators */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)" }}>FACTION INFLUENCE INDEX:</span>
-                          {Object.keys(profile?.worldState.factionInfluence[selectedSector.id] || {}).map((fid) => {
-                            const score = profile?.worldState.factionInfluence[selectedSector.id]?.[fid] || 0;
-                            const facName = FACTIONS.find(f => f.id === fid)?.name || fid.toUpperCase();
-                            const facColor = getFactionColor(fid);
-                            return (
-                              <div key={fid}>
-                                <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", color: facColor }}>
-                                  <span>{facName}</span>
-                                  <span>{score}%</span>
-                                </div>
-                                <div style={{ width: "100%", height: "3px", background: "rgba(255,255,255,0.03)", borderRadius: "1px", overflow: "hidden" }}>
-                                  <div style={{ width: `${score}%`, height: "100%", background: facColor }} />
-                                </div>
+                    return (
+                      <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                        
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                              [ SECTOR INTEL OVERVIEW ]
+                            </span>
+                            <span className={`tag ${getSectorStatus(selectedSector) === "SECURED" ? "tag-green" : "tag-red"}`} style={{ fontSize: "8px", padding: "2px 6px" }}>
+                              {getSectorStatus(selectedSector).toUpperCase()}
+                            </span>
+                          </div>
+
+                          <h3 style={{ fontSize: "16px", color: "#fff", margin: "2px 0 4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
+                            {selectedSector.name}
+                          </h3>
+
+                          <p style={{ fontSize: "10.5px", color: "var(--text-dim)", lineHeight: "1.4", margin: 0, height: "45px", overflowY: "auto" }}>
+                            {selectedSector.description}
+                          </p>
+
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "9.5px", fontFamily: "var(--mono)", background: "#0c0c0c", padding: "8px", border: "1px solid rgba(255,255,255,0.03)" }}>
+                            <div>
+                              <span style={{ color: "var(--text-muted)" }}>THREAT RATIO:</span>
+                              <div style={{ color: selectedSector.threatLevel === "Severe" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
+                                {selectedSector.threatLevel.toUpperCase()}
                               </div>
-                            );
-                          })}
+                            </div>
+                            <div>
+                              <span style={{ color: "var(--text-muted)" }}>ANOMALIES:</span>
+                              <div style={{ color: "#fff", fontWeight: "bold", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {profile?.worldState.activeAnomalies[selectedSector.id]?.join(", ") || "None"}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Faction Presence indicators */}
+                          <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)" }}>FACTION INFLUENCE INDEX:</span>
+                            {Object.keys(profile?.worldState.factionInfluence[selectedSector.id] || {}).map((fid) => {
+                              const score = profile?.worldState.factionInfluence[selectedSector.id]?.[fid] || 0;
+                              const facName = FACTIONS.find(f => f.id === fid)?.name || fid.toUpperCase();
+                              const facColor = getFactionColor(fid);
+                              return (
+                                <div key={fid}>
+                                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", color: facColor }}>
+                                    <span>{facName}</span>
+                                    <span>{score}%</span>
+                                  </div>
+                                  <div style={{ width: "100%", height: "3px", background: "rgba(255,255,255,0.03)", borderRadius: "1px", overflow: "hidden" }}>
+                                    <div style={{ width: `${score}%`, height: "100%", background: facColor }} />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
 
-                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "6px", display: "flex", justifyItems: "center", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>
-                          RESOURCES: {selectedSector.availableResources.join(", ")}
-                        </span>
-                      </div>
+                        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "6px", display: "flex", justifyItems: "center", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>
+                            RESOURCES: {selectedSector.availableResources.join(", ")}
+                          </span>
+                        </div>
 
-                    </div>
-                  ) : (
+                      </div>
+                    );
+                  })() : (
                     <div style={{ display: "flex", justifyItems: "center", justifyContent: "center", alignItems: "center", height: "100%" }}>
                       <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>AWAITING SECTOR INTERACTION...</span>
                     </div>
@@ -1710,7 +1925,7 @@ export default function OperationsPage() {
                 </div>
 
                 {/* Identity Stamps & Reputation stats */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", overflowY: "auto", maxHeight: "350px", paddingRight: "4px" }}>
                   <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
                     <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>FACTION ALLIANCE:</span>
                     <span style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: getFactionColor(profile?.faction || ""), fontWeight: "bold" }}>
@@ -1723,35 +1938,83 @@ export default function OperationsPage() {
                       {profile?.reputation || 0} pts
                     </span>
                   </div>
+                  
+                  {/* Playtime */}
                   <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>DISCOVERIES:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#fff" }}>
-                      {profile?.sectorDiscoveries.length} sectors
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>CAMPAIGN PLAYTIME:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#fff" }}>
+                      {(() => {
+                        const s = profile?.totalPlaytimeSeconds || 0;
+                        const hours = Math.floor(s / 3600);
+                        const minutes = Math.floor((s % 3600) / 60);
+                        const seconds = s % 60;
+                        return `${hours}h ${minutes}m ${seconds}s`;
+                      })()}
+                    </span>
+                  </div>
+
+                  {/* Campaign Completion */}
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>CAMPAIGN SECURED:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", fontWeight: "bold" }}>
+                      {(() => {
+                        if (!profile?.worldState?.sectorStates) return "0%";
+                        const sectors = Object.values(profile.worldState.sectorStates);
+                        const securedCount = sectors.filter(s => s.status === "SECURED").length;
+                        const pct = Math.round((securedCount / 7) * 100);
+                        return `${pct}% (${securedCount}/7 Sectors)`;
+                      })()}
+                    </span>
+                  </div>
+
+                  {/* Deployments & Outcomes */}
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>OPERATIONS RECORD:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#fff" }}>
+                      {profile?.campaignStats?.operationsCompleted || 0} Successful / {profile?.campaignStats?.operationsFailed || 0} Failed
+                    </span>
+                  </div>
+
+                  {/* Civilians & Anomalies */}
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>CIVILIANS EXTRACTED:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", fontWeight: "bold" }}>
+                      👥 {profile?.campaignStats?.civiliansExtracted || 0} survivors
                     </span>
                   </div>
                   <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>DEPLOYMENTS:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#fff" }}>
-                      {totalDeployments}
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>ANOMALIES RECORDED:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#f0c929", fontWeight: "bold" }}>
+                      🌀 {profile?.campaignStats?.anomaliesDiscovered || 0} discovered
                     </span>
                   </div>
                   <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>SUCCESS RATE:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: successRate >= 75 ? "#00ffcc" : successRate >= 50 ? "#f0c929" : "#ff4d4d", fontWeight: "bold" }}>
-                      {successRate}%
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>RESEARCH ACQUIRED:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#a855f7", fontWeight: "bold" }}>
+                      🔬 {profile?.campaignStats?.researchDataCollected || 0} points
                     </span>
                   </div>
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>ACTIVE STREAK:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: currentStreak > 0 ? "#00ffcc" : "var(--text-dim)", fontWeight: "bold" }}>
-                      🔥 {currentStreak}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>LONGEST STREAK:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: longestStreak > 0 ? "#f0c929" : "var(--text-dim)", fontWeight: "bold" }}>
-                      🏆 {longestStreak}
-                    </span>
+                  
+                  {/* Resources grid */}
+                  <div style={{ marginTop: "4px", border: "1px solid rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.3)", padding: "8px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", letterSpacing: "0.1em", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "4px", marginBottom: "6px" }}>
+                      [ TOTAL DEPLOYMENT MATERIAL HARVEST ]
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
+                      {(() => {
+                        const res = profile?.campaignStats?.totalResourcesRecovered || {};
+                        const keys = ["Metal", "Electronics", "Medical Supplies", "Energy Cells", "Components"];
+                        return keys.map(k => {
+                          const val = res[k] || 0;
+                          return (
+                            <div key={k} style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px" }}>
+                              <span style={{ color: "var(--text-dim)" }}>{k.toUpperCase()}:</span>
+                              <span style={{ color: val > 0 ? "#00ffcc" : "var(--text-muted)", fontWeight: "bold" }}>{val}</span>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1856,6 +2119,66 @@ export default function OperationsPage() {
                       })}
                     </div>
                   </div>
+
+                  {/* Campaign Statistics */}
+                  <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "10px" }}>
+                      [ CAMPAIGN STATISTICS OVERVIEW ]
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
+                      {([
+                        { label: "OPS COMPLETED",  val: profile?.campaignStats?.operationsCompleted || 0,      color: "#00ffcc" },
+                        { label: "OPS FAILED",      val: profile?.campaignStats?.operationsFailed || 0,         color: "#ff4d4d" },
+                        { label: "SECTORS SECURED", val: profile?.campaignStats?.sectorsSecured || 0,           color: "#f0c929" },
+                        { label: "RESEARCH DATA",   val: profile?.campaignStats?.researchDataCollected || 0,    color: "#a855f7" },
+                        { label: "PLAYTIME (MIN)",  val: Math.floor((profile?.totalPlaytimeSeconds || 0) / 60), color: "#0ea5e9" },
+                        { label: "ARCHIVE RECORDS", val: profile?.operationsArchive?.length || 0,               color: "#fff"    },
+                      ] as { label: string; val: number; color: string }[]).map((stat) => (
+                        <div key={stat.label} style={{ background: "#080808", border: "1px solid rgba(255,255,255,0.04)", padding: "8px 10px" }}>
+                          <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", marginBottom: "2px" }}>{stat.label}</div>
+                          <div style={{ fontFamily: "var(--mono)", fontSize: "16px", color: stat.color, fontWeight: "bold" }}>{stat.val}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Operations Archive */}
+                  {(profile?.operationsArchive?.length || 0) > 0 && (
+                    <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "10px" }}>
+                        [ OPERATIONS ARCHIVE — LAST 10 RECORDS ]
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        {profile?.operationsArchive?.slice(0, 10).map((rec, idx) => (
+                          <div key={idx} style={{
+                            background: "#0a0a0a",
+                            border: `1px solid ${rec.outcome === "SUCCESS" ? "rgba(0,255,204,0.15)" : rec.outcome === "PARTIAL" ? "rgba(240,201,41,0.15)" : "rgba(255,77,77,0.15)"}`,
+                            padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", borderRadius: "2px"
+                          }}>
+                            <div>
+                              <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#fff", fontWeight: "bold" }}>{rec.missionTitle}</div>
+                              <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", marginTop: "2px" }}>
+                                {rec.sectorId.replace("sec-", "SECTOR ").toUpperCase()} // {new Date(rec.timestamp).toLocaleDateString()} // Objectives: {rec.objectivesCompleted || 0}/{rec.objectivesTotal || 0}
+                              </div>
+                              {rec.resourcesEarned && Object.entries(rec.resourcesEarned).filter(([_, q]) => (q as number) > 0).length > 0 && (
+                                <div style={{ fontFamily: "var(--mono)", fontSize: "7.5px", color: "var(--accent)", marginTop: "2px" }}>
+                                  LOOT EXTRACTED: {Object.entries(rec.resourcesEarned).filter(([_, q]) => (q as number) > 0).map(([r, qty]) => `+${qty} ${r}`).join(", ")}
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ textAlign: "right" }}>
+                              <span className={`tag ${rec.outcome === "SUCCESS" ? "tag-green" : rec.outcome === "PARTIAL" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "1px 5px" }}>
+                                {rec.outcome}
+                              </span>
+                              <div style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "3px" }}>
+                                +{rec.xpEarned} XP // +{rec.creditsEarned} CR
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Skill tree placeholder */}
                   <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px" }}>
@@ -2156,16 +2479,29 @@ export default function OperationsPage() {
                         </div>
 
                         <div style={{ display: "flex", gap: "10px", marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "12px" }}>
-                          <button
-                            onClick={() => { handleEquip(selectedInventoryItem); setSelectedInventoryItem(null); }}
-                            style={{
-                              flex: 1, background: "var(--accent)", border: "none",
-                              color: "#000", padding: "8px", fontFamily: "var(--mono)", fontSize: "10px",
-                              fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
-                            }}
-                          >
-                            [ EQUIP GEAR ]
-                          </button>
+                          {(() => {
+                            const check = canEquipItem(selectedInventoryItem);
+                            return (
+                              <button
+                                disabled={!check.can}
+                                onClick={() => { handleEquip(selectedInventoryItem); setSelectedInventoryItem(null); }}
+                                style={{
+                                  flex: 1, 
+                                  background: check.can ? "var(--accent)" : "rgba(255,255,255,0.05)", 
+                                  border: "none",
+                                  color: check.can ? "#000" : "var(--text-dim)", 
+                                  padding: "8px", 
+                                  fontFamily: "var(--mono)", 
+                                  fontSize: "9px",
+                                  fontWeight: "bold", 
+                                  cursor: check.can ? "pointer" : "not-allowed", 
+                                  borderRadius: "2px"
+                                }}
+                              >
+                                {check.can ? "[ EQUIP GEAR ]" : `[ LOCKED: ${check.reason} ]`}
+                              </button>
+                            );
+                          })()}
                           <button
                             onClick={() => setSelectedInventoryItem(null)}
                             style={{
@@ -2317,12 +2653,25 @@ export default function OperationsPage() {
                         </p>
                       </div>
 
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: "6px" }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)" }}>
-                          Class Req: {selectedInventoryItem.classRequirement}
-                        </span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: "6px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ 
+                            fontFamily: "var(--mono)", fontSize: "8px", 
+                            color: profile?.class === selectedInventoryItem.classRequirement || selectedInventoryItem.classRequirement === "None" ? "var(--text-dim)" : "#ff4d4d" 
+                          }}>
+                            Class Req: {selectedInventoryItem.classRequirement}
+                          </span>
+                          {selectedInventoryItem.factionRequirement && (
+                            <span style={{ 
+                              fontFamily: "var(--mono)", fontSize: "8px", 
+                              color: (profile?.factionStanding?.[selectedInventoryItem.factionRequirement] || 0) >= (selectedInventoryItem.factionStandingRequirement || 0) ? "var(--text-dim)" : "#ff4d4d" 
+                            }}>
+                              Rep Req: {selectedInventoryItem.factionRequirement.toUpperCase()} ({selectedInventoryItem.factionStandingRequirement})
+                            </span>
+                          )}
+                        </div>
                         
-                        <div style={{ display: "flex", gap: "8px" }}>
+                        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "2px" }}>
                           {selectedInventoryItem.slot === "Medkit" && selectedInventoryItem.type === "consumable" && (
                             <button
                               onClick={() => handleUseMedkit(selectedInventoryItem)}
@@ -2335,18 +2684,28 @@ export default function OperationsPage() {
                               [ INJECT STIM (+30 HP) ]
                             </button>
                           )}
-                          {selectedInventoryItem.slot !== "None" && selectedInventoryItem.slot !== "Medkit" && (
-                            <button
-                              onClick={() => handleEquip(selectedInventoryItem)}
-                              style={{
-                                background: "var(--accent)", color: "#000", border: "none",
-                                padding: "4px 12px", fontFamily: "var(--mono)", fontSize: "9.5px",
-                                fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
-                              }}
-                            >
-                              [ EQUIP GEAR ]
-                            </button>
-                          )}
+                          {selectedInventoryItem.slot !== "None" && selectedInventoryItem.slot !== "Medkit" && (() => {
+                            const check = canEquipItem(selectedInventoryItem);
+                            return (
+                              <button
+                                disabled={!check.can}
+                                onClick={() => handleEquip(selectedInventoryItem)}
+                                style={{
+                                  background: check.can ? "var(--accent)" : "rgba(255,255,255,0.05)",
+                                  color: check.can ? "#000" : "var(--text-dim)",
+                                  border: "none",
+                                  padding: "4px 12px",
+                                  fontFamily: "var(--mono)",
+                                  fontSize: "9.5px",
+                                  fontWeight: "bold",
+                                  cursor: check.can ? "pointer" : "not-allowed",
+                                  borderRadius: "2px"
+                                }}
+                              >
+                                {check.can ? "[ EQUIP GEAR ]" : `[ LOCKED: ${check.reason} ]`}
+                              </button>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -2520,7 +2879,7 @@ export default function OperationsPage() {
                   <div style={{ background: "#000", border: "1px solid rgba(255,255,255,0.04)", padding: "8px" }}>
                     <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>CREDITS</span>
                     <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#f0c929", fontWeight: "bold", marginTop: "1px" }}>
-                      {activeMission.rewards.credits} $THREAT
+                      {activeMission.rewards.credits} CR
                     </div>
                   </div>
                   <div style={{ background: "#000", border: "1px solid rgba(255,255,255,0.04)", padding: "8px" }}>
