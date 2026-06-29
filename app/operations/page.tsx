@@ -6,7 +6,20 @@ import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import { DEFAULT_STATS, UserStats, calculateBioScore, getClearanceLevel } from "@/lib/progression";
 
-// Factions list with unique colors and philosophies
+// Game Types & Data imports
+import { Sector, Mission, InventoryItem, OperativeProfile } from "@/lib/game/types";
+import { INITIAL_SECTORS, INITIAL_MISSIONS, INITIAL_INVENTORY } from "@/lib/game/data";
+import {
+  loadProfile,
+  saveProfile,
+  claimMissionRewards,
+  loadInventory,
+  saveInventory,
+  loadEquippedGear,
+  saveEquippedGear
+} from "@/lib/game/service";
+
+// Factions details list
 const FACTIONS = [
   { id: "vanguard", name: "Vanguard", color: "#ff4d4d", desc: "Forward scouting, threat containment, and rapid kinetic response operations.", ideology: "Active neutralization of emerging anomalies before they spread." },
   { id: "eclipse", name: "Eclipse", color: "#a855f7", desc: "Operations in dark quadrants, sub-quantum stealth systems, and classified deep recon.", ideology: "Observing from the shadows, striking with precision when the threat manifests." },
@@ -18,7 +31,7 @@ const FACTIONS = [
   { id: "horizon", name: "Horizon", color: "#10b981", desc: "Long-range sensor arrays, space telemetry analysis, and future collapse mapping.", ideology: "Observe, forecast, and prepare long before the anomaly crosses the threshold." }
 ];
 
-// Classes list with preferred loadouts
+// Classes details list
 const CLASSES = [
   { id: "Assault", name: "Assault", desc: "Tactical combat specialization, heavy breach charges, and kinetic energy weapons.", preferred_gear: "Heavy Armor, Breach charges, Kinetic rifles", ability: "Overcharge Shield Grid" },
   { id: "Recon", name: "Recon", desc: "Stealth operations, zone scanning, target acquisition, and mapping surveillance grids.", preferred_gear: "Sensor array, Thermal cloak, Sniper rifle", ability: "Scan Grid Weaknesses" },
@@ -28,7 +41,7 @@ const CLASSES = [
   { id: "Specialist", name: "Specialist", desc: "Algorithmic routing, network signature security, and Sybil counter-measures.", preferred_gear: "Decoy keys, Multi-hop routers, Wasm shields", ability: "Overload Sybil Trackers" }
 ];
 
-// Core roles
+// Core roles mapping
 const ROLES: Record<string, string[]> = {
   Assault: ["Heavy Assault", "Vanguard Commando", "Breach Specialist"],
   Recon: ["Sniper", "Pathfinder", "Intel Scout"],
@@ -38,24 +51,6 @@ const ROLES: Record<string, string[]> = {
   Specialist: ["Drone Operator", "Infiltrator", "Network Router"]
 };
 
-// Initial Mock Inventory Items
-const INITIAL_INVENTORY = [
-  { id: "inv-1", name: "Kinetic Carbine V3", type: "weapon", slot: "Weapon", rarity: "Rare", power: 45, class_requirement: "Assault", desc: "Short-stroke piston rifle caliber tailored for anomaly breach parameters.", qty: 1 },
-  { id: "inv-2", name: "Stealth Recon Cloak", type: "gadget", slot: "Gadget", rarity: "Epic", power: 65, class_requirement: "Recon", desc: "Bends electromagnetic spectra to match surrounding quadrant visual noise.", qty: 1 },
-  { id: "inv-3", name: "Advanced Stim Injector", type: "consumable", slot: "Medkit", rarity: "Uncommon", power: 25, class_requirement: "Medic", desc: "Rapidly neutralizes biological toxins and speeds metabolic repair.", qty: 5 },
-  { id: "inv-4", name: "Volumetric Shield Core", type: "armor", slot: "Armor", rarity: "Legendary", power: 90, class_requirement: "Scientist", desc: "Projects a gravity displacement barrier to deflect analog projectiles.", qty: 1 },
-  { id: "inv-5", name: "C-4 Anomaly Breach Charge", type: "consumable", slot: "Utility", rarity: "Rare", power: 50, class_requirement: "Assault", desc: "Heavy thermite detonation device capable of punching through node shields.", qty: 3 },
-  { id: "inv-6", name: "Decoy Signature Key", type: "consumable", slot: "Utility", rarity: "Common", power: 10, class_requirement: "Specialist", desc: "Injects synthetic user profiles to misdirect rogue Sybil trackers.", qty: 8 },
-  { id: "inv-7", name: "Quantum Decryptor Pad", type: "gadget", slot: "Gadget", rarity: "Uncommon", power: 30, class_requirement: "Scientist", desc: "Processes localized sub-quantum key decryptions via custom WASM modules.", qty: 1 },
-  { id: "inv-8", name: "Helix Biosensor Helmet", type: "helmet", slot: "Helmet", rarity: "Epic", power: 75, class_requirement: "Medic", desc: "Monitors oxygen filtration levels and identifies regional pathogen clusters.", qty: 1 },
-  { id: "inv-9", name: "Modular Tactical Pack", type: "backpack", slot: "Backpack", rarity: "Common", power: 15, class_requirement: "Engineer", desc: "Extra load-bearing compartments reinforced with composite materials.", qty: 1 },
-  { id: "inv-10", name: "Kevlar Node Mesh Jacket", type: "armor", slot: "Armor", rarity: "Common", power: 22, class_requirement: "Engineer", desc: "Reinforced under-armor offering basic protection against thermal loops.", qty: 1 },
-  { id: "inv-11", name: "Deuterium Power Cell", type: "material", slot: "None", rarity: "Rare", power: 0, class_requirement: "None", desc: "High-density plasma power pack for calibrating transmitters.", qty: 12 },
-  { id: "inv-12", name: "Raw Titanite Scrap", type: "material", slot: "None", rarity: "Common", power: 0, class_requirement: "None", desc: "Scraped bulkhead alloys for crafting primary shield plates.", qty: 25 },
-  { id: "inv-13", name: "Sybil Decoy Router", type: "gadget", slot: "Gadget", rarity: "Epic", power: 70, class_requirement: "Specialist", desc: "Establishes multi-hop non-custodial transaction relay connections.", qty: 1 },
-  { id: "inv-14", name: "Portable Gravity Analyzer", type: "utility", slot: "Utility", rarity: "Rare", power: 55, class_requirement: "Scientist", desc: "Measures localized gravity-well contractions and warns of grid implosions.", qty: 1 }
-];
-
 export default function OperationsPage() {
   const { publicKey } = useWallet();
   const { setVisible } = useWalletModal();
@@ -63,26 +58,29 @@ export default function OperationsPage() {
   
   // Game states
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<OperativeProfile | null>(null);
   
-  // Onboarding step
+  // Onboarding step states
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [selectedFaction, setSelectedFaction] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [operativeName, setOperativeName] = useState("");
 
-  // Operations list
-  const [operations, setOperations] = useState<any[]>([]);
+  // Reusable Data Models driven states
+  const [sectors, setSectors] = useState<Sector[]>(INITIAL_SECTORS);
+  const [missions, setMissions] = useState<Mission[]>(INITIAL_MISSIONS);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [equippedGear, setEquippedGear] = useState<Record<string, InventoryItem | null>>({});
   const [loadingOps, setLoadingOps] = useState(false);
   const [activeTab, setActiveTab] = useState<"center" | "profile" | "inventory">("center");
 
-  // Selection state on the Tactical Map
+  // Map and Selected Sector selection
   const [selectedMapSector, setSelectedMapSector] = useState<string>("op-1-sanctuary-search");
   const [mapAlert, setMapAlert] = useState<string | null>(null);
 
-  // Mission State
-  const [activeMission, setActiveMission] = useState<any>(null);
+  // Active Mission Simulation flow states
+  const [activeMission, setActiveMission] = useState<Mission | null>(null);
   const [missionFlow, setMissionFlow] = useState<"briefing" | "deployment" | "connection" | "decision" | "debriefing" | "rewards" | null>(null);
   const [deploymentLogs, setDeploymentLogs] = useState<string[]>([]);
   const [deploymentProgress, setDeploymentProgress] = useState(0);
@@ -92,34 +90,24 @@ export default function OperationsPage() {
   const [outcomeRewards, setOutcomeRewards] = useState<any>(null);
   const [levelUpMessage, setLevelUpMessage] = useState<string | null>(null);
 
-  // Connection handshaking sequence logs
+  // Connection and handshake logs
   const [connectionLogs, setConnectionLogs] = useState<string[]>([]);
 
-  // Immersive AI Console Diagnostic stream logs
+  // Immersive AI console telemetry streaming log
   const [aiLogs, setAiLogs] = useState<string[]>([
     "[SYS] CORE SYNAPSE ENGAGED...",
     "[SYS] UPLINK STATUS // ONLINE // SECURE"
   ]);
 
-  // Inventory System States
-  const [inventory, setInventory] = useState<any[]>(INITIAL_INVENTORY);
-  const [equippedGear, setEquippedGear] = useState<Record<string, any>>({
-    Helmet: null,
-    Armor: null,
-    Weapon: null,
-    Utility: null,
-    Medkit: null,
-    Backpack: null,
-    Gadget: null
-  });
+  // Inventory Filtering & Sorting
   const [inventoryFilter, setInventoryFilter] = useState<string>("all");
   const [inventorySort, setInventorySort] = useState<string>("power-desc");
   const [inventorySearch, setInventorySearch] = useState<string>("");
-  const [selectedInventoryItem, setSelectedInventoryItem] = useState<any>(null);
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null);
 
   const aiLogsEndRef = useRef<HTMLDivElement>(null);
 
-  // Continuous background diagnostic log updater to make the console feel alive
+  // AI telemetry diagnostics simulator
   useEffect(() => {
     const aiLogPool = [
       "[DB] SCANNING ANOMALOUS ENCRYPT NODES...",
@@ -135,62 +123,45 @@ export default function OperationsPage() {
 
     const interval = setInterval(() => {
       const line = aiLogPool[Math.floor(Math.random() * aiLogPool.length)];
-      setAiLogs(prev => [...prev.slice(-30), line]); // Cap logs array at 30
+      setAiLogs(prev => [...prev.slice(-30), line]);
     }, 5500);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-scroll AI logs
   useEffect(() => {
     if (aiLogsEndRef.current) {
       aiLogsEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [aiLogs]);
 
-  // Load operative stats from client persistence with safety guards to prevent crashes
-  const fetchOperationsProfile = () => {
+  // Load operative stats and inventory from services
+  const loadGameData = () => {
     setLoading(true);
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
     
-    // Check localStorage
-    const saved = localStorage.getItem(`rq_ops_profile:${identifier}`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Ensure stats and resources are populated safely to avoid render errors
-        if (!parsed.stats) parsed.stats = { ...DEFAULT_STATS };
-        if (!parsed.resources) parsed.resources = { Metal: 5, Electronics: 3, "Medical Supplies": 2, "Energy Cells": 2, "Research Data": 1 };
-        setProfile(parsed);
-      } catch (e) {
-        console.error("Failed to parse saved profile:", e);
-        setProfile(null);
-      }
-    } else {
-      setProfile(null);
-    }
+    // Load profile
+    const prof = loadProfile(identifier);
+    setProfile(prof);
+
+    // Load inventory & gear
+    const inv = loadInventory(identifier, INITIAL_INVENTORY);
+    setInventory(inv);
+
+    const gear = loadEquippedGear(identifier);
+    setEquippedGear(gear);
+    
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchOperationsProfile();
+    loadGameData();
     
-    // Load operations from mock API
-    async function loadOps() {
-      setLoadingOps(true);
-      try {
-        const res = await fetch("/api/operations");
-        const data = await res.json();
-        if (data.success) {
-          setOperations(data.data);
-        }
-      } catch (err) {
-        console.error("Failed to load operations list:", err);
-      } finally {
-        setLoadingOps(false);
-      }
-    }
-    loadOps();
+    // Fetch dynamic operations list if needed, or stick to our modular INITIAL_MISSIONS list
+    setLoadingOps(true);
+    setTimeout(() => {
+      setLoadingOps(false);
+    }, 400);
   }, [authIdentifier, publicKey]);
 
   // Handle Onboarding Completion
@@ -198,7 +169,7 @@ export default function OperationsPage() {
     if (!operativeName || !selectedFaction || !selectedClass || !selectedRole) return;
     
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
-    const initialProfile = {
+    const initialProfile: OperativeProfile = {
       name: operativeName.toUpperCase(),
       faction: selectedFaction,
       class: selectedClass,
@@ -223,15 +194,30 @@ export default function OperationsPage() {
         adaptability: 10,
         resourcefulness: 10,
         surveillance_resistance: 10
-      }
+      },
+      completedMissions: [],
+      reputation: 0,
+      factionStanding: {
+        vanguard: selectedFaction === "vanguard" ? 25 : 10,
+        eclipse: selectedFaction === "eclipse" ? 25 : 0,
+        helix: selectedFaction === "helix" ? 25 : 0,
+        nomads: selectedFaction === "nomads" ? 25 : 0,
+        citadel: selectedFaction === "citadel" ? 25 : 0,
+        ghost: selectedFaction === "ghost" ? 25 : 0,
+        aegis: selectedFaction === "aegis" ? 25 : 0,
+        horizon: selectedFaction === "horizon" ? 25 : 0
+      },
+      achievements: [],
+      missionHistory: [],
+      sectorDiscoveries: ["sec-alpha", "sec-beta"]
     };
     
-    localStorage.setItem(`rq_ops_profile:${identifier}`, JSON.stringify(initialProfile));
+    saveProfile(identifier, initialProfile);
     setProfile(initialProfile);
   };
 
-  // Deployment logs generator - Fixed closure variables
-  const runDeployment = (op: any) => {
+  // Tickers & steps sequence triggers
+  const runDeployment = (op: Mission) => {
     setMissionFlow("deployment");
     setDeploymentProgress(0);
     setDeploymentLogs([]);
@@ -261,7 +247,6 @@ export default function OperationsPage() {
     }, 450);
   };
 
-  // Run the Connection Handshake step - Fixed closure variables
   const runConnectionSequence = () => {
     setMissionFlow("connection");
     setConnectionLogs([]);
@@ -288,16 +273,14 @@ export default function OperationsPage() {
     }, 600);
   };
 
-  // Process Option Choice
+  // Option Choice Handler
   const handleSelectOption = (option: any) => {
     if (!option) return;
     setSelectedOption(option);
     
-    // Calculate success probability
     let baseProb = option.success_prob || 50;
     let matchingBonus = 0;
     
-    // Class match check
     if (option.class_bonus?.classId === profile?.class) {
       matchingBonus = option.class_bonus.bonus || 15;
     }
@@ -308,7 +291,6 @@ export default function OperationsPage() {
     
     setMissionOutcome(isSuccess ? "SUCCESS" : "FAILURE");
     
-    // Set AI commentary evaluation
     if (isSuccess) {
       setOutcomeCommentary(
         `[RED QUEEN AI DEBRIEFING]\n"Tactical response successful. Choice [${option.text}] matches expected behavior metrics. Anomaly resolved within acceptable safety thresholds. Progression registered."`
@@ -318,7 +300,6 @@ export default function OperationsPage() {
       setOutcomeCommentary(
         `[RED QUEEN AI DEBRIEFING]\n"Tactical error detected. Choice [${option.text}] caused signal collapse and system feedback. Anomaly mitigated with sub-optimal results. Return to Command Center for further diagnostic training."`
       );
-      // Give half XP and no resources on failure
       setOutcomeRewards({
         xp: Math.floor((option.stat_gains?.xp || 20) / 2),
         credits: Math.floor((option.stat_gains?.credits || 50) / 3),
@@ -331,63 +312,23 @@ export default function OperationsPage() {
     setMissionFlow("debriefing");
   };
 
-  // Claim Rewards and Update Stats
+  // Claim Rewards via service
   const handleClaimRewards = () => {
-    if (!profile) return;
+    if (!profile || !activeMission) return;
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
-    
-    const currentStats = {
-      ...DEFAULT_STATS,
-      ...(profile?.stats || {})
-    };
-    const xpGain = outcomeRewards?.xp || 0;
-    const creditGain = outcomeRewards?.credits || 0;
-    const resourceName = outcomeRewards?.resource;
-    const resourceQty = outcomeRewards?.resource_qty || 0;
-    
-    const newXP = currentStats.xp + xpGain;
-    const newLevel = Math.floor(newXP / 100) + 1;
-    
-    // Check level up
-    if (newLevel > currentStats.level) {
-      setLevelUpMessage(`OPERATIVE LEVEL UP! Clearance level increased to Level ${newLevel}.`);
-    } else {
-      setLevelUpMessage(null);
-    }
 
-    // Apply sub-stat updates
-    const updatedStats = { ...currentStats };
-    updatedStats.xp = newXP;
-    updatedStats.level = newLevel;
+    const { updatedProfile, levelUpMessage: lvlMsg } = claimMissionRewards(
+      profile,
+      activeMission,
+      missionOutcome === "SUCCESS",
+      outcomeRewards
+    );
 
-    if (outcomeRewards?.sub_stats) {
-      Object.keys(outcomeRewards.sub_stats).forEach((k) => {
-        const key = k as keyof UserStats;
-        if (updatedStats[key] !== undefined) {
-          updatedStats[key] = Math.min(100, updatedStats[key] + outcomeRewards.sub_stats[key]);
-        }
-      });
-    }
-
-    // Update resources and credits
-    const updatedResources = { ...profile.resources };
-    if (resourceName && resourceQty > 0) {
-      updatedResources[resourceName] = (updatedResources[resourceName] || 0) + resourceQty;
-    }
-
-    const updatedProfile = {
-      ...profile,
-      level: newLevel,
-      xp: newXP,
-      credits: (profile.credits || 0) + creditGain,
-      resources: updatedResources,
-      stats: updatedStats
-    };
-
-    localStorage.setItem(`rq_ops_profile:${identifier}`, JSON.stringify(updatedProfile));
+    saveProfile(identifier, updatedProfile);
     setProfile(updatedProfile);
+    setLevelUpMessage(lvlMsg);
 
-    // Reset Flow
+    // Reset Flow states
     setActiveMission(null);
     setMissionFlow(null);
     setSelectedOption(null);
@@ -395,51 +336,54 @@ export default function OperationsPage() {
     setOutcomeRewards(null);
   };
 
-  // Interactive RPG Inventory actions
-  const handleEquipItem = (item: any) => {
-    if (!item || item.slot === "None") return;
+  // Swapping inventory slots
+  const handleEquip = (item: InventoryItem) => {
+    if (!profile) return;
+    const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
     
-    // Setup target slot
-    const slotName = item.slot;
-    const currentlyEquipped = equippedGear[slotName];
+    const slot = item.slot;
+    if (slot === "None") return;
+
+    const currentEquipped = equippedGear[slot];
+    const newEquipped = { ...equippedGear, [slot]: item };
     
-    // Update equipped state
-    setEquippedGear(prev => ({
-      ...prev,
-      [slotName]: item
-    }));
-    
-    // Remove equipped item from inventory list, and put unequipped item back
-    setInventory(prev => {
-      const filtered = prev.filter(i => i.id !== item.id);
-      if (currentlyEquipped) {
-        return [...filtered, currentlyEquipped];
-      }
-      return filtered;
-    });
-    
+    let newInventory = inventory.filter(i => i.id !== item.id);
+    if (currentEquipped) {
+      newInventory = [...newInventory, currentEquipped];
+    }
+
+    setEquippedGear(newEquipped);
+    setInventory(newInventory);
     setSelectedInventoryItem(null);
+
+    // Persist
+    saveInventory(identifier, newInventory);
+    saveEquippedGear(identifier, newEquipped);
   };
 
-  const handleUnequipItem = (slotName: string) => {
+  const handleUnequip = (slotName: string) => {
+    if (!profile) return;
+    const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+    
     const item = equippedGear[slotName];
     if (!item) return;
-    
-    // Remove from slot
-    setEquippedGear(prev => ({
-      ...prev,
-      [slotName]: null
-    }));
-    
-    // Return to inventory
-    setInventory(prev => [...prev, item]);
+
+    const newEquipped = { ...equippedGear, [slotName]: null };
+    const newInventory = [...inventory, item];
+
+    setEquippedGear(newEquipped);
+    setInventory(newInventory);
+
+    // Persist
+    saveInventory(identifier, newInventory);
+    saveEquippedGear(identifier, newEquipped);
   };
 
+  // Resolvers
   const getFactionColor = (facId: string) => {
     return FACTIONS.find(f => f.id === facId)?.color || "var(--accent)";
   };
 
-  // Safe Stats and Bio Score resolution
   const profileStats = {
     ...DEFAULT_STATS,
     ...(profile?.stats || {})
@@ -447,13 +391,78 @@ export default function OperationsPage() {
   const currentBioScore = calculateBioScore(profileStats);
   const clearanceTier = getClearanceLevel(currentBioScore);
 
-  // Selected operation detail resolution
-  const selectedOperation = operations.find(o => o.id === selectedMapSector);
+  // Sector and Operations locks resolution
+  const isMissionLocked = (mission: Mission) => {
+    if (!profile) return true;
+    
+    const reqs = mission.unlockRequirements;
+    if (reqs.level && profile.level < reqs.level) return true;
+    if (reqs.bioScore && currentBioScore < reqs.bioScore) return true;
+    if (reqs.completedMissionId && !profile.completedMissions.includes(reqs.completedMissionId)) return true;
+    
+    return false;
+  };
 
-  // Filter and Sort inventory
+  const getSectorCompletion = (sectorId: string) => {
+    if (!profile) return 0;
+    const sectorMissions = missions.filter(m => m.region === sectorId);
+    if (sectorMissions.length === 0) return 0;
+    const completedCount = sectorMissions.filter(m => profile.completedMissions.includes(m.id)).length;
+    return Math.floor((completedCount / sectorMissions.length) * 100);
+  };
+
+  const getSectorStatus = (sector: Sector) => {
+    if (!profile) return "LOCKED";
+    
+    const sectorMissions = missions.filter(m => m.region === sector.id);
+    if (sectorMissions.length > 0 && sectorMissions.every(m => profile.completedMissions.includes(m.id))) {
+      return "COMPLETED";
+    }
+    
+    const hasAnyUnlocked = sectorMissions.some(m => !isMissionLocked(m));
+    if (!hasAnyUnlocked && sectorMissions.length > 0) {
+      return "LOCKED";
+    }
+    
+    const hasIncompleteCritical = sectorMissions.some(m => m.category === "critical" && !profile.completedMissions.includes(m.id));
+    if (hasIncompleteCritical || sector.difficulty === "Hard") {
+      return "DANGEROUS";
+    }
+    
+    return "AVAILABLE";
+  };
+
+  const getSortedMissions = () => {
+    if (!profile) return [];
+    
+    return [...missions].sort((a, b) => {
+      const aCompleted = profile.completedMissions.includes(a.id);
+      const bCompleted = profile.completedMissions.includes(b.id);
+      
+      const aLocked = isMissionLocked(a);
+      const bLocked = isMissionLocked(b);
+      
+      if (aLocked && !bLocked) return 1;
+      if (!aLocked && bLocked) return -1;
+      
+      if (aCompleted && !bCompleted) return 1;
+      if (!aCompleted && bCompleted) return -1;
+      
+      if (a.category === "critical" && b.category !== "critical") return -1;
+      if (a.category !== "critical" && b.category === "critical") return 1;
+      
+      if (a.category === "normal" && b.category === "side") return -1;
+      if (a.category === "side" && b.category === "normal") return 1;
+      
+      return a.id.localeCompare(b.id);
+    });
+  };
+
+  const selectedOperation = missions.find(m => m.id === selectedMapSector);
+
+  // Filter and Sort inventory items
   const filteredInventory = inventory
     .filter(item => {
-      // Tab category filter
       if (inventoryFilter === "weapon") return item.type === "weapon";
       if (inventoryFilter === "armor") return item.type === "armor" || item.slot === "Helmet";
       if (inventoryFilter === "consumable") return item.type === "consumable" || item.slot === "Utility" || item.slot === "Medkit";
@@ -461,17 +470,14 @@ export default function OperationsPage() {
       return true;
     })
     .filter(item => {
-      // Search input text match
       if (!inventorySearch) return true;
       return item.name.toLowerCase().includes(inventorySearch.toLowerCase()) || item.desc.toLowerCase().includes(inventorySearch.toLowerCase());
     })
     .sort((a, b) => {
-      // Sort logic
       if (inventorySort === "power-desc") return b.power - a.power;
       if (inventorySort === "power-asc") return a.power - b.power;
       if (inventorySort === "name-asc") return a.name.localeCompare(b.name);
       
-      // Rarity weight sorting helper
       const rarityWeight = (rarity: string) => {
         if (rarity === "Legendary") return 5;
         if (rarity === "Epic") return 4;
@@ -483,7 +489,6 @@ export default function OperationsPage() {
       return 0;
     });
 
-  // Get Rarity Tier CSS Styles
   const getRarityStyle = (rarity: string) => {
     if (rarity === "Legendary") return { border: "1px solid #eab308", color: "#eab308", bg: "rgba(234, 179, 8, 0.08)" };
     if (rarity === "Epic") return { border: "1px solid #a855f7", color: "#a855f7", bg: "rgba(168, 85, 247, 0.08)" };
@@ -517,7 +522,7 @@ export default function OperationsPage() {
       <div style={{
         position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
         background: "#030303", display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", overflowY: "auto", padding: "40px 24px"
+        alignItems: "center", justifyContent: "center", overflowY: "auto", padding: "20px 24px"
       }}>
         <style>{`
           .ops-grid-3 {
@@ -569,7 +574,36 @@ export default function OperationsPage() {
             50% { opacity: 0.45; border-color: rgba(255, 77, 77, 0.15); }
           }
           
-          @media (max-width: 1366px) {
+          /* Low-height laptop responsive overrides */
+          @media (max-height: 800px) {
+            .onboarding-panel {
+              padding: 20px !important;
+              max-height: 95vh !important;
+              overflow-y: auto !important;
+            }
+            .onboarding-header {
+              margin-bottom: 16px !important;
+              padding-bottom: 12px !important;
+            }
+            .onboarding-header h1 {
+              font-size: 24px !important;
+            }
+            .ops-grid-2 {
+              gap: 8px !important;
+            }
+            .ops-grid-2 button {
+              padding: 10px !important;
+            }
+            .holo-noise {
+              min-height: 120px !important;
+              margin: 10px 0 !important;
+            }
+            .class-ability {
+              display: none !important;
+            }
+          }
+
+          @media (max-width: 1200px) {
             .ops-grid-3 {
               grid-template-columns: repeat(2, 1fr) !important;
             }
@@ -587,10 +621,11 @@ export default function OperationsPage() {
           }
         `}</style>
 
-        <div className="panel" style={{
+        <div className="panel onboarding-panel" style={{
           maxWidth: "1100px", width: "100%", position: "relative",
           background: "#060606", border: "2px solid rgba(255, 77, 77, 0.4)",
-          boxShadow: "0 0 50px rgba(255, 77, 77, 0.12)", padding: "40px"
+          boxShadow: "0 0 50px rgba(255, 77, 77, 0.12)", padding: "40px",
+          display: "flex", flexDirection: "column"
         }}>
           {/* Corner brackets */}
           <div style={{ position: "absolute", top: "12px", left: "12px", width: "24px", height: "24px", borderTop: "3px solid var(--accent)", borderLeft: "3px solid var(--accent)" }} />
@@ -598,7 +633,7 @@ export default function OperationsPage() {
           <div style={{ position: "absolute", bottom: "12px", left: "12px", width: "24px", height: "24px", borderBottom: "3px solid var(--accent)", borderLeft: "3px solid var(--accent)" }} />
           <div style={{ position: "absolute", bottom: "12px", right: "12px", width: "24px", height: "24px", borderBottom: "3px solid var(--accent)", borderRight: "3px solid var(--accent)" }} />
 
-          <div style={{ textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "24px", marginBottom: "32px" }}>
+          <div className="onboarding-header" style={{ textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "24px", marginBottom: "32px" }}>
             <div className="tag tag-red animate-pulse-red" style={{ marginBottom: "12px", fontSize: "11px", letterSpacing: "0.2em", border: "1px solid" }}>
               CRITICAL NOTICE: SECURITY ACCESS VERIFICATION PENDING
             </div>
@@ -610,7 +645,7 @@ export default function OperationsPage() {
 
           <div className="ops-grid-2-large">
             {/* Left Selection Controls */}
-            <div>
+            <div style={{ maxHeight: "55vh", overflowY: "auto", paddingRight: "8px" }}>
               {/* Onboarding Step 1: Codename & Faction */}
               {onboardingStep === 1 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -692,7 +727,7 @@ export default function OperationsPage() {
                         >
                           <div style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "#fff", fontWeight: "bold", marginBottom: "6px" }}>{c.name}</div>
                           <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.4", marginBottom: "8px" }}>{c.desc}</p>
-                          <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc" }}>Ability: {c.ability}</div>
+                          <div className="class-ability" style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc" }}>Ability: {c.ability}</div>
                         </button>
                       ))}
                     </div>
@@ -842,7 +877,7 @@ export default function OperationsPage() {
         }
         .ops-grid-3-loadout {
           display: grid;
-          grid-template-columns: 1fr 1.1fr 1.9fr;
+          grid-template-columns: 1.2fr 1.1fr 1.7fr;
           gap: 24px;
           width: 100%;
           height: 100%;
@@ -853,7 +888,6 @@ export default function OperationsPage() {
           background-size: 100% 4px, 6px 100%;
         }
         
-        /* CRT scanline effect */
         .crt-scanlines {
           position: fixed;
           top: 0; left: 0; width: 100vw; height: 100vh;
@@ -908,7 +942,6 @@ export default function OperationsPage() {
           50% { transform: scale(1.2); opacity: 0.5; }
         }
 
-        /* Responsive overrides for smaller layouts */
         @media (max-width: 1440px) {
           .ops-grid-3-loadout {
             grid-template-columns: 1fr 1.2fr 1.8fr !important;
@@ -968,6 +1001,8 @@ export default function OperationsPage() {
             onClick={() => {
               const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
               localStorage.removeItem(`rq_ops_profile:${identifier}`);
+              localStorage.removeItem(`rq_ops_inventory:${identifier}`);
+              localStorage.removeItem(`rq_ops_equipped:${identifier}`);
               setProfile(null);
             }}
             className="btn btn-ghost"
@@ -1053,7 +1088,7 @@ export default function OperationsPage() {
           {activeTab === "center" && (
             <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
               
-              {/* TOP SECTION: MASSIVE GLOBAL TACTICAL MAP (52% height) */}
+              {/* TOP SECTION: DATA-DRIVEN TACTICAL MAP */}
               <div className="panel holo-noise animate-pulse-slow" style={{
                 position: "relative", padding: "16px", height: "50%", minHeight: "280px", background: "#050505",
                 border: "2px solid rgba(255, 77, 77, 0.3)", boxShadow: "0 0 30px rgba(0, 0, 0, 0.9)",
@@ -1109,127 +1144,73 @@ export default function OperationsPage() {
                     
                     {/* Scanning radar sweep lines */}
                     <line className="map-scope-circle" x1="50" y1="50" x2="95" y2="50" stroke="rgba(255, 77, 77, 0.06)" strokeWidth="0.5" />
-                    
-                    {/* Connecting operational links */}
-                    <line x1="25" y1="35" x2="50" y2="60" stroke="rgba(0, 255, 204, 0.05)" strokeWidth="0.5" strokeDasharray="1,1" />
-                    <line x1="50" y1="60" x2="75" y2="30" stroke="rgba(0, 255, 204, 0.05)" strokeWidth="0.5" strokeDasharray="1,1" />
-                    <line x1="25" y1="35" x2="75" y2="30" stroke="rgba(0, 255, 204, 0.05)" strokeWidth="0.5" strokeDasharray="1,1" />
                   </svg>
 
-                  {/* INTERACTIVE NODES */}
-                  
-                  {/* Node 1: Sector Alpha */}
-                  <div style={{ position: "absolute", left: "25%", top: "35%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
-                    <button
-                      onClick={() => setSelectedMapSector("op-1-sanctuary-search")}
-                      style={{
-                        background: "none", border: "none", padding: 0, cursor: "pointer",
-                        display: "flex", flexDirection: "column", alignItems: "center"
-                      }}
-                    >
-                      <span className="map-pulse-node" style={{
-                        width: "12px", height: "12px", background: "#00ffcc", borderRadius: "50%",
-                        border: selectedMapSector === "op-1-sanctuary-search" ? "3px solid #fff" : "2px solid #00ffcc",
-                        boxShadow: "0 0 10px #00ffcc"
-                      }} />
-                      <span style={{
-                        fontFamily: "var(--mono)", fontSize: "9px", color: selectedMapSector === "op-1-sanctuary-search" ? "#fff" : "var(--text-dim)",
-                        marginTop: "4px", background: "rgba(0,0,0,0.8)", padding: "1px 4px", border: "1px solid rgba(255,255,255,0.06)"
-                      }}>
-                        SECTOR ALPHA
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Node 2: Sector Beta */}
-                  <div style={{ position: "absolute", left: "50%", top: "60%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
-                    <button
-                      onClick={() => setSelectedMapSector("op-2-signal-recovery")}
-                      style={{
-                        background: "none", border: "none", padding: 0, cursor: "pointer",
-                        display: "flex", flexDirection: "column", alignItems: "center"
-                      }}
-                    >
-                      <span className="map-pulse-node" style={{
-                        width: "12px", height: "12px", background: "#f0c929", borderRadius: "50%",
-                        border: selectedMapSector === "op-2-signal-recovery" ? "3px solid #fff" : "2px solid #f0c929",
-                        boxShadow: "0 0 10px #f0c929"
-                      }} />
-                      <span style={{
-                        fontFamily: "var(--mono)", fontSize: "9px", color: selectedMapSector === "op-2-signal-recovery" ? "#fff" : "var(--text-dim)",
-                        marginTop: "4px", background: "rgba(0,0,0,0.8)", padding: "1px 4px", border: "1px solid rgba(255,255,255,0.06)"
-                      }}>
-                        SECTOR BETA
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Node 3: Sector Delta */}
-                  <div style={{ position: "absolute", left: "75%", top: "30%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
-                    <button
-                      onClick={() => setSelectedMapSector("op-3-sybil-breach")}
-                      style={{
-                        background: "none", border: "none", padding: 0, cursor: "pointer",
-                        display: "flex", flexDirection: "column", alignItems: "center"
-                      }}
-                    >
-                      <span className="map-pulse-node" style={{
-                        width: "12px", height: "12px", background: "#ff4d4d", borderRadius: "50%",
-                        border: selectedMapSector === "op-3-sybil-breach" ? "3px solid #fff" : "2px solid #ff4d4d",
-                        boxShadow: "0 0 10px #ff4d4d"
-                      }} />
-                      <span style={{
-                        fontFamily: "var(--mono)", fontSize: "9px", color: selectedMapSector === "op-3-sybil-breach" ? "#fff" : "var(--text-dim)",
-                        marginTop: "4px", background: "rgba(0,0,0,0.8)", padding: "1px 4px", border: "1px solid rgba(255,255,255,0.06)"
-                      }}>
-                        SECTOR DELTA
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Node 4: Sector Epsilon (Locked) */}
-                  <div style={{ position: "absolute", left: "20%", top: "75%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
-                    <button
-                      onClick={() => {
-                        setMapAlert("ACCESS DENIED // RECON SENSORS OFFLINE // BIO-SCORE REQUIRED: 40");
-                        setTimeout(() => setMapAlert(null), 3000);
-                      }}
-                      style={{
-                        background: "none", border: "none", padding: 0, cursor: "pointer",
-                        display: "flex", flexDirection: "column", alignItems: "center", opacity: 0.35
-                      }}
-                    >
-                      <span style={{ width: "10px", height: "10px", background: "#555", borderRadius: "50%", border: "1.5px solid #222" }} />
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "4px" }}>
-                        LOCKED
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Node 5: Sector Gamma (Locked) */}
-                  <div style={{ position: "absolute", left: "85%", top: "70%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
-                    <button
-                      onClick={() => {
-                        setMapAlert("ACCESS DENIED // SIGNAL ENCRYPTION BLOCKED // LEVEL REQUIRED: 5");
-                        setTimeout(() => setMapAlert(null), 3000);
-                      }}
-                      style={{
-                        background: "none", border: "none", padding: 0, cursor: "pointer",
-                        display: "flex", flexDirection: "column", alignItems: "center", opacity: 0.35
-                      }}
-                    >
-                      <span style={{ width: "10px", height: "10px", background: "#555", borderRadius: "50%", border: "1.5px solid #222" }} />
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "4px" }}>
-                        LOCKED
-                      </span>
-                    </button>
-                  </div>
+                  {/* DATA-DRIVEN INTERACTIVE SECTOR NODES */}
+                  {sectors.map((sec) => {
+                    const status = getSectorStatus(sec);
+                    const isSelected = selectedOperation?.region === sec.id;
+                    const completion = getSectorCompletion(sec.id);
+                    
+                    const statusColor = 
+                      status === "LOCKED" ? "#555555" : 
+                      status === "COMPLETED" ? "#00ffcc" : 
+                      status === "DANGEROUS" ? "#ff4d4d" : "#f0c929";
+                    
+                    return (
+                      <div
+                        key={sec.id}
+                        style={{
+                          position: "absolute",
+                          left: sec.x,
+                          top: sec.y,
+                          transform: "translate(-50%, -50%)",
+                          zIndex: 5
+                        }}
+                      >
+                        <button
+                          onClick={() => {
+                            if (status === "LOCKED") {
+                              setMapAlert(`ACCESS DENIED // ${sec.name} IS LOCKED // LEVEL CHECK REQUIRED`);
+                              setTimeout(() => setMapAlert(null), 3000);
+                            } else {
+                              const firstMission = missions.find(m => m.region === sec.id && !isMissionLocked(m));
+                              if (firstMission) {
+                                setSelectedMapSector(firstMission.id);
+                              }
+                            }
+                          }}
+                          style={{
+                            background: "none", border: "none", padding: 0, cursor: status === "LOCKED" ? "not-allowed" : "pointer",
+                            display: "flex", flexDirection: "column", alignItems: "center",
+                            opacity: status === "LOCKED" ? 0.35 : 1
+                          }}
+                        >
+                          <span
+                            className={status !== "LOCKED" ? "map-pulse-node" : ""}
+                            style={{
+                              width: "12px", height: "12px", background: statusColor, borderRadius: "50%",
+                              border: isSelected ? "3px solid #fff" : `2px solid ${statusColor}`,
+                              boxShadow: status !== "LOCKED" ? `0 0 10px ${statusColor}` : "none"
+                            }}
+                          />
+                          <span style={{
+                            fontFamily: "var(--mono)", fontSize: "9px", color: isSelected ? "#fff" : "var(--text-dim)",
+                            marginTop: "4px", background: "rgba(0,0,0,0.85)", padding: "1px 6px",
+                            border: "1px solid rgba(255,255,255,0.06)", whiteSpace: "nowrap"
+                          }}>
+                            {sec.name} {status === "LOCKED" ? "🔒" : `(${completion}%)`}
+                          </span>
+                        </button>
+                      </div>
+                    );
+                  })}
 
                 </div>
 
                 {/* Map footer coordinates */}
                 <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "10px" }}>
-                  <span>ACTIVE SECTORS: 3 ONLINE // 2 OFFLINE</span>
+                  <span>ACTIVE SECTORS: {sectors.filter(s => getSectorStatus(s) !== "LOCKED").length} ONLINE // {sectors.filter(s => getSectorStatus(s) === "LOCKED").length} OFFLINE</span>
                   <span>DEC. GRID SYSTEM SWAP BUFFER [ONLINE]</span>
                 </div>
               </div>
@@ -1254,7 +1235,6 @@ export default function OperationsPage() {
                       alignItems: "center", justifyContent: "center", position: "relative",
                       overflow: "hidden", flexShrink: 0
                     }}>
-                      {/* Scanning sweeping bar */}
                       <div style={{
                         position: "absolute", top: 0, left: 0, width: "100%", height: "2px",
                         background: "rgba(255,77,77,0.4)", animation: "scanlines-scrolling 2s linear infinite"
@@ -1269,7 +1249,7 @@ export default function OperationsPage() {
                         DISPATCH UPLINK RECOMMENDATION
                       </span>
                       <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", lineHeight: "1.4", margin: "2px 0 0 0" }}>
-                        "Select active sector coordinates from the scroll deck or map above to decrypt."
+                        "Decoupled telemetry service loaded. Complete operational contracts to calibrate standing standings."
                       </p>
                     </div>
                   </div>
@@ -1297,7 +1277,7 @@ export default function OperationsPage() {
                       [ AVAILABLE OPERATIONS BROWSER ]
                     </span>
                     <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)" }}>
-                      COUNT: {operations.length}
+                      COUNT: {missions.length}
                     </span>
                   </div>
 
@@ -1307,26 +1287,43 @@ export default function OperationsPage() {
                         DECRYPTING REGIONAL CONDUITS...
                       </div>
                     ) : (
-                      operations.map((op) => {
+                      getSortedMissions().map((op) => {
                         const isSelected = selectedMapSector === op.id;
+                        const isLocked = isMissionLocked(op);
+                        const isCompleted = profile?.completedMissions.includes(op.id);
+                        
                         return (
                           <div
                             key={op.id}
-                            onClick={() => setSelectedMapSector(op.id)}
+                            onClick={() => {
+                              if (!isLocked) setSelectedMapSector(op.id);
+                            }}
                             style={{
-                              background: isSelected ? "rgba(255, 77, 77, 0.04)" : "#0c0c0c",
-                              border: isSelected ? "1.5px solid var(--accent)" : "1px solid var(--border)",
-                              padding: "12px", borderRadius: "2px", cursor: "pointer", transition: "all 0.15s",
-                              display: "flex", gap: "12px", alignItems: "center"
+                              background: isCompleted 
+                                ? "rgba(0, 255, 204, 0.02)" 
+                                : isSelected 
+                                ? "rgba(255, 77, 77, 0.04)" 
+                                : isLocked 
+                                ? "rgba(255,255,255,0.01)" 
+                                : "#0c0c0c",
+                              border: isSelected 
+                                ? "1.5px solid var(--accent)" 
+                                : isCompleted 
+                                ? "1px solid rgba(0, 255, 204, 0.2)" 
+                                : "1px solid var(--border)",
+                              padding: "12px", borderRadius: "2px", cursor: isLocked ? "not-allowed" : "pointer",
+                              transition: "all 0.15s", display: "flex", gap: "12px", alignItems: "center",
+                              opacity: isLocked ? 0.35 : 1
                             }}
                           >
-                            {/* Mission Card Artwork placeholder */}
                             <div className="holo-noise" style={{
                               width: "50px", height: "50px", background: "rgba(0,0,0,0.5)",
                               border: isSelected ? "1px dashed var(--accent)" : "1px dashed rgba(255,255,255,0.1)",
                               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
                             }}>
-                              <span style={{ fontSize: "14px" }}>🛰️</span>
+                              <span style={{ fontSize: "14px" }}>
+                                {isLocked ? "🔒" : isCompleted ? "✅" : op.category === "critical" ? "🔥" : op.category === "side" ? "🛰️" : "📡"}
+                              </span>
                             </div>
 
                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -1335,15 +1332,16 @@ export default function OperationsPage() {
                                   {op.difficulty.toUpperCase()}
                                 </span>
                                 <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>
-                                  {op.estimated_duration}m
+                                  {op.duration}m
                                 </span>
                               </div>
                               <h4 style={{ fontSize: "11.5px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                 {op.title}
                               </h4>
-                              <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", display: "block" }}>
-                                REGION: {op.category.toUpperCase()}
-                              </span>
+                              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
+                                <span>{op.category.toUpperCase()} MISSION</span>
+                                {isLocked && <span style={{ color: "var(--accent)" }}>REQ: Lvl {op.unlockRequirements.level || op.unlockRequirements.bioScore || 1}</span>}
+                              </div>
                             </div>
                           </div>
                         );
@@ -1381,20 +1379,22 @@ export default function OperationsPage() {
                         <div style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
                           <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)" }}>
                             <span style={{ color: "var(--text-muted)" }}>RECOMMENDED CLASS:</span>
-                            <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{selectedOperation.recommended_class_id.toUpperCase()}</span>
+                            <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{selectedOperation.recommendedClass.toUpperCase()}</span>
                           </div>
                           <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)" }}>
-                            <span style={{ color: "var(--text-muted)" }}>THREAT RATING:</span>
-                            <span style={{ color: selectedOperation.difficulty === "Hard" ? "#ff4d4d" : "#f0c929", fontWeight: "bold" }}>
-                              {selectedOperation.difficulty === "Easy" ? "LOW" : selectedOperation.difficulty === "Normal" ? "MEDIUM" : "CRITICAL"}
-                            </span>
+                            <span style={{ color: "var(--text-muted)" }}>REACTION FACTION:</span>
+                            <span style={{ color: getFactionColor(selectedOperation.recommendedFaction || ""), fontWeight: "bold" }}>{selectedOperation.recommendedFaction?.toUpperCase() || "ANY"}</span>
+                          </div>
+                          <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)" }}>
+                            <span style={{ color: "var(--text-muted)" }}>REWARDS:</span>
+                            <span style={{ color: "#fff" }}>{selectedOperation.rewards.xp} XP / {selectedOperation.rewards.credits} CR</span>
                           </div>
                         </div>
                       </div>
 
                       <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "10px", display: "flex", justifyItems: "center", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
-                          EST. TIME: {selectedOperation.estimated_duration} MIN
+                          EST. TIME: {selectedOperation.duration} MIN
                         </span>
                         
                         <button
@@ -1402,7 +1402,7 @@ export default function OperationsPage() {
                           className="btn btn-primary"
                           style={{
                             fontSize: "10px", padding: "6px 14px",
-                            background: selectedOperation.recommended_class_id === profile?.class ? "#00ffcc" : "var(--accent)",
+                            background: selectedOperation.recommendedClass === profile?.class ? "#00ffcc" : "var(--accent)",
                             color: "#000"
                           }}
                         >
@@ -1450,7 +1450,7 @@ export default function OperationsPage() {
                 <div className="holo-noise" style={{
                   flex: 1, border: "1px dashed rgba(255, 77, 77, 0.2)", background: "rgba(0,0,0,0.5)",
                   margin: "16px 0", display: "flex", flexDirection: "column", alignItems: "center",
-                  justifyContent: "center", position: "relative", minHeight: "180px"
+                  justifyContent: "center", position: "relative", minHeight: "150px"
                 }}>
                   <div style={{ position: "absolute", top: "40%", left: "40%", width: "20%", height: "20%", border: "1px dashed rgba(255,77,77,0.25)", borderRadius: "50%" }} />
                   
@@ -1464,31 +1464,37 @@ export default function OperationsPage() {
                   </div>
                 </div>
 
-                {/* Identity Stamps */}
+                {/* Identity Stamps & Reputation stats */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>DIVISION STAMP:</span>
-                    <span style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: getFactionColor(profile?.faction), fontWeight: "bold" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>FACTION ALLIANCE:</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: getFactionColor(profile?.faction || ""), fontWeight: "bold" }}>
                       {profile?.faction?.toUpperCase()}
                     </span>
                   </div>
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>CLEARANCE STATUS:</span>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>REPUTATION:</span>
                     <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc", fontWeight: "bold" }}>
-                      ACTIVE // SECURE
+                      {profile?.reputation || 0} pts
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>DISCOVERIES:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#fff" }}>
+                      {profile?.sectorDiscoveries.length} sectors
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Sub-stats Diagnostic panel */}
+              {/* Player stats and Factions standings scroll block */}
               <div className="panel" style={{ border: "1px solid var(--border)", padding: "24px", gridColumn: "span 2", display: "flex", flexDirection: "column", overflow: "hidden", height: "100%" }}>
                 <h2 style={{ fontSize: "15px", color: "#fff", marginBottom: "16px", borderBottom: "1px dashed var(--border)", paddingBottom: "8px", flexShrink: 0 }}>
-                  OPERATIVE READINESS EVALUATION
+                  OPERATIVE PROGRESSION & STANDING MATRIX
                 </h2>
                 
                 <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {/* Level and XP progress bar */}
+                  {/* Level & XP */}
                   <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "12px" }}>
                     <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "11px", marginBottom: "6px" }}>
                       <span>OPERATIVE LEVEL: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile?.level || 1}</span></span>
@@ -1499,21 +1505,21 @@ export default function OperationsPage() {
                     </div>
                   </div>
 
-                  {/* Sub-stats telemetry checklist */}
+                  {/* sub-stats progress bars */}
                   <div className="ops-grid-2">
                     {[
-                      { label: "THREAT AWARENESS", val: profileStats.threat_awareness, desc: "Early-warning detection of global anomalies." },
-                      { label: "OPERATIONAL DISCIPLINE", val: profileStats.operational_discipline, desc: "Consistency in executing countermeasure tasks." },
-                      { label: "PSYCHOLOGICAL STABILITY", val: profileStats.psychological_stability, desc: "Stress threshold during quarantine/nuclear alerts." },
-                      { label: "TECHNICAL PREPAREDNESS", val: profileStats.technical_preparedness, desc: "Calibrating systems and analog backup skills." },
-                      { label: "ADAPTABILITY", val: profileStats.adaptability, desc: "Survival capacity during rapid environmental shifts." },
-                      { label: "RESOURCEFULNESS", val: profileStats.resourcefulness, desc: "Farming efficiency and custom secondary bonuses." },
-                      { label: "SURVEILLANCE RESISTANCE", val: profileStats.surveillance_resistance, desc: "On-chain transaction privacy preservation." }
+                      { label: "THREAT AWARENESS", val: profileStats.threat_awareness },
+                      { label: "OPERATIONAL DISCIPLINE", val: profileStats.operational_discipline },
+                      { label: "PSYCHOLOGICAL STABILITY", val: profileStats.psychological_stability },
+                      { label: "TECHNICAL PREPAREDNESS", val: profileStats.technical_preparedness },
+                      { label: "ADAPTABILITY", val: profileStats.adaptability },
+                      { label: "RESOURCEFULNESS", val: profileStats.resourcefulness },
+                      { label: "SURVEILLANCE RESISTANCE", val: profileStats.surveillance_resistance }
                     ].map((s) => (
                       <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                        <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "10.5px" }}>
+                        <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "10px" }}>
                           <span style={{ color: "#fff", fontWeight: "bold" }}>{s.label}</span>
-                          <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{s.val} %</span>
+                          <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{s.val}%</span>
                         </div>
                         <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.02)", borderRadius: "2px", overflow: "hidden" }}>
                           <div style={{ width: `${s.val}%`, height: "100%", background: "#00ffcc" }} />
@@ -1522,29 +1528,78 @@ export default function OperationsPage() {
                     ))}
                   </div>
 
-                  {/* Resources display */}
+                  {/* Faction Standings */}
                   <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px" }}>
                     <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "10px" }}>
-                      [ OPERATIVE RESOURCE PROFILE ]
+                      [ DIVISION FACTION TRUST PROFILE ]
                     </div>
                     
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px" }}>
-                      <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "10px", borderRadius: "2px" }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", display: "block" }}>CREDITS</span>
-                        <span style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#00ffcc", fontWeight: "bold", display: "block", marginTop: "2px" }}>
-                          {profile?.credits || 0} CR
-                        </span>
-                      </div>
-                      {Object.keys(profile?.resources || {}).map((resName) => (
-                        <div key={resName} style={{ background: "#080808", border: "1px solid var(--border)", padding: "10px", borderRadius: "2px" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", display: "block" }}>{resName.toUpperCase()}</span>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#fff", fontWeight: "bold", display: "block", marginTop: "2px" }}>
-                            {profile?.resources?.[resName]} UNITS
-                          </span>
-                        </div>
-                      ))}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                      {Object.keys(profile?.factionStanding || {}).map((fid) => {
+                        const score = profile?.factionStanding?.[fid] || 0;
+                        const facName = FACTIONS.find(f => f.id === fid)?.name || fid.toUpperCase();
+                        const facColor = getFactionColor(fid);
+                        return (
+                          <div key={fid} style={{ background: "#080808", border: "1px solid rgba(255,255,255,0.02)", padding: "8px 12px" }}>
+                            <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "9.5px", marginBottom: "4px" }}>
+                              <span style={{ color: facColor, fontWeight: "bold" }}>{facName}</span>
+                              <span style={{ color: "#fff" }}>{score}/100</span>
+                            </div>
+                            <div style={{ width: "100%", height: "3px", background: "rgba(255,255,255,0.03)", borderRadius: "1px", overflow: "hidden" }}>
+                              <div style={{ width: `${score}%`, height: "100%", background: facColor }} />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
+
+                  {/* Achievements Grid */}
+                  <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "10px" }}>
+                      [ UNLOCKED DECORATIONS / ACHIEVEMENTS ]
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px" }}>
+                      {[
+                        { id: "FIRST_CONTACT", label: "FIRST CONTACT", icon: "⭐", desc: "Initiated satellite handshake logs." },
+                        { id: "TACTICIAN", label: "TACTICIAN", icon: "🎯", desc: "Resolved 3 critical tactical nodes." },
+                        { id: "SURVIVALIST", label: "SURVIVALIST", icon: "🧬", desc: "Reached clearance level 3." },
+                        { id: "DIVISION_VETERAN", label: "VETERAN", icon: "🔥", desc: "Faction trust index exceeds 30." },
+                        { id: "CARTOGRAPHER", label: "CARTOGRAPHER", icon: "🗺️", desc: "Mapped discoveries in 4 regions." }
+                      ].map((ach) => {
+                        const hasIt = profile?.achievements.includes(ach.id);
+                        return (
+                          <div
+                            key={ach.id}
+                            style={{
+                              background: hasIt ? "rgba(0, 255, 204, 0.04)" : "#0c0c0c",
+                              border: hasIt ? "1px solid #00ffcc" : "1px dashed rgba(255,255,255,0.04)",
+                              padding: "10px 4px", textAlign: "center", opacity: hasIt ? 1 : 0.35, borderRadius: "2px"
+                            }}
+                            title={ach.desc}
+                          >
+                            <span style={{ fontSize: "18px" }}>{ach.icon}</span>
+                            <span style={{ display: "block", fontFamily: "var(--mono)", fontSize: "8px", color: hasIt ? "#00ffcc" : "var(--text-muted)", marginTop: "4px" }}>
+                              {ach.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Skill tree placeholder */}
+                  <div style={{ borderTop: "1px dashed var(--border)", paddingTop: "14px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "8px" }}>
+                      [ COGNITIVE SKILL TREE UPLINK ]
+                    </div>
+                    <div style={{ background: "#050505", border: "1px dashed rgba(255,77,77,0.15)", padding: "16px", textAlign: "center" }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", fontWeight: "bold", animation: "blink 2.2s infinite" }}>
+                        SKILL TREE CHANNELS ENCRYPTED // AWAITING CLEARED SIGNAL TIER 4
+                      </span>
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
@@ -1599,7 +1654,7 @@ export default function OperationsPage() {
                               {item.name}
                             </span>
                             <button
-                              onClick={() => handleUnequipItem(s.slot)}
+                              onClick={() => handleUnequip(s.slot)}
                               style={{
                                 background: "none", border: "none", color: "#ff4d4d", cursor: "pointer",
                                 fontSize: "9px", fontFamily: "var(--mono)", padding: 0
@@ -1780,12 +1835,12 @@ export default function OperationsPage() {
 
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: "6px" }}>
                         <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)" }}>
-                          Class Req: {selectedInventoryItem.class_requirement}
+                          Class Req: {selectedInventoryItem.classRequirement}
                         </span>
                         
                         {selectedInventoryItem.slot !== "None" ? (
                           <button
-                            onClick={() => handleEquipItem(selectedInventoryItem)}
+                            onClick={() => handleEquip(selectedInventoryItem)}
                             style={{
                               background: "var(--accent)", color: "#000", border: "none",
                               padding: "4px 12px", fontFamily: "var(--mono)", fontSize: "9.5px",
@@ -1818,7 +1873,7 @@ export default function OperationsPage() {
         </main>
       </div>
 
-      {/* --- IN-GAME GAMEPLAY OVERLAYS SYSTEM --- */}
+      {/* --- IN-GAME OVERLAYS SYSTEM --- */}
       
       {/* 1. Briefing Overlay */}
       {activeMission && missionFlow === "briefing" && (
@@ -1838,7 +1893,6 @@ export default function OperationsPage() {
               <h2 style={{ fontSize: "28px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em" }}>{activeMission.title}</h2>
             </div>
             
-            {/* Mission Artwork container - Art Container Frame */}
             <div className="holo-noise" style={{
               height: "180px", width: "100%", background: "#030303", border: "1px dashed rgba(255,255,255,0.15)",
               marginBottom: "24px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
@@ -1859,7 +1913,7 @@ export default function OperationsPage() {
               <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
                 <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>SECTOR</span>
                 <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#fff", fontWeight: "bold", marginTop: "4px" }}>
-                  {activeMission.category.toUpperCase()}
+                  {activeMission.region.toUpperCase()}
                 </div>
               </div>
               <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
@@ -1871,13 +1925,13 @@ export default function OperationsPage() {
               <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
                 <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>DURATION</span>
                 <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#fff", fontWeight: "bold", marginTop: "4px" }}>
-                  {activeMission.estimated_duration} MIN
+                  {activeMission.duration} MIN
                 </div>
               </div>
               <div style={{ background: "#000", border: "1px solid var(--border)", padding: "16px" }}>
                 <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>RECOMMENDED</span>
                 <div style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#00ffcc", fontWeight: "bold", marginTop: "4px" }}>
-                  {activeMission.recommended_class_id.toUpperCase()}
+                  {activeMission.recommendedClass.toUpperCase()}
                 </div>
               </div>
             </div>
@@ -1888,9 +1942,9 @@ export default function OperationsPage() {
                 [ SYSTEM UPLINK COMMENTARY ]
               </div>
               <p style={{ fontFamily: "var(--mono)", fontSize: "13px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.6", margin: 0 }}>
-                {activeMission.recommended_class_id === profile?.class
+                {activeMission.recommendedClass === profile?.class
                   ? `"Operative configuration matches mission coordinates. Your medic/specialist capabilities yield +15% success probability check. Deploy immediately."`
-                  : `"Warning: Active class [${profile?.class?.toUpperCase()}] deviates from recommended profile [${activeMission.recommended_class_id.toUpperCase()}]. Proceed with caution."`}
+                  : `"Warning: Active class [${profile?.class?.toUpperCase()}] deviates from recommended profile [${activeMission.recommendedClass.toUpperCase()}]. Proceed with caution."`}
               </p>
             </div>
 
@@ -1929,7 +1983,6 @@ export default function OperationsPage() {
               <span className="status-dot animate-pulse" />
             </div>
 
-            {/* Terminal console */}
             <div style={{
               background: "#040404", border: "1px solid #141414", padding: "24px", borderRadius: "2px",
               minHeight: "240px", fontFamily: "var(--mono)", fontSize: "13px", color: "#e8e8e8",
@@ -1941,7 +1994,6 @@ export default function OperationsPage() {
               <div className="loading-dots" style={{ marginTop: "12px", opacity: 0.5 }}>CONNECTING</div>
             </div>
 
-            {/* Simulated progress bar */}
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "11px", marginBottom: "8px", color: "var(--text-dim)" }}>
                 <span>ENCRYPTING CORE COORDINATES...</span>
@@ -1970,7 +2022,6 @@ export default function OperationsPage() {
               <span className="status-dot animate-pulse" style={{ background: "#00ffcc", boxShadow: "0 0 10px #00ffcc" }} />
             </div>
 
-            {/* Handshake terminals */}
             <div className="holo-noise" style={{
               background: "#040404", border: "1px solid #141414", padding: "32px", borderRadius: "2px",
               minHeight: "240px", fontFamily: "var(--mono)", fontSize: "14px", color: "#00ffcc",
@@ -1985,7 +2036,6 @@ export default function OperationsPage() {
               )}
             </div>
 
-            {/* Visual alert */}
             <div style={{ display: "flex", justifyItems: "center", gap: "10px", alignItems: "center" }}>
               <span style={{ width: "8px", height: "8px", background: "#00ffcc", borderRadius: "50%" }} className="animate-pulse" />
               <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
@@ -2082,11 +2132,16 @@ export default function OperationsPage() {
               </p>
             </div>
 
-            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "24px", display: "flex", justifyContent: "flex-end" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              {levelUpMessage && (
+                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", fontWeight: "bold" }}>
+                  {levelUpMessage}
+                </span>
+              )}
               <button
                 onClick={() => setMissionFlow("rewards")}
                 className="btn btn-primary"
-                style={{ padding: "12px 32px" }}
+                style={{ padding: "12px 32px", marginLeft: "auto" }}
               >
                 PROCEED TO DEBRIEFING →
               </button>
@@ -2111,7 +2166,6 @@ export default function OperationsPage() {
               <h2 style={{ fontSize: "22px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em" }}>OPERATIONAL CONTRACT RESOLVED</h2>
             </div>
 
-            {/* Reward list */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "32px" }} className="ops-grid-2">
               <div style={{ background: "#000", padding: "20px", border: "1px solid var(--border)", textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", display: "block" }}>OPERATIVE EXPERIENCE</span>
