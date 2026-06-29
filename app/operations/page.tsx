@@ -263,7 +263,10 @@ export default function OperationsPage() {
     if (!profile) return;
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
     
-    const currentStats = profile?.stats || { ...DEFAULT_STATS };
+    const currentStats = {
+      ...DEFAULT_STATS,
+      ...(profile?.stats || {})
+    };
     const xpGain = outcomeRewards?.xp || 0;
     const creditGain = outcomeRewards?.credits || 0;
     const resourceName = outcomeRewards?.resource;
@@ -324,7 +327,10 @@ export default function OperationsPage() {
   };
 
   // Safe Stats and Bio Score resolution
-  const profileStats = profile?.stats || DEFAULT_STATS;
+  const profileStats = {
+    ...DEFAULT_STATS,
+    ...(profile?.stats || {})
+  };
   const currentBioScore = calculateBioScore(profileStats);
   const clearanceTier = getClearanceLevel(currentBioScore);
 
@@ -1789,12 +1795,12 @@ export default function OperationsPage() {
                   </span>
                 </div>
               )}
-              {outcomeRewards?.sub_stats && Object.keys(outcomeRewards.sub_stats).length > 0 && (
+              {outcomeRewards?.sub_stats && Object.keys(outcomeRewards?.sub_stats || {}).length > 0 && (
                 <div style={{ border: "1px solid var(--border)", padding: "20px", background: "#000", gridColumn: "span 2" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", display: "block", marginBottom: "8px", fontWeight: "bold" }}>
                     BIO-SCORE SUB-STATS RE-CALIBRATION:
                   </span>
-                  {Object.keys(outcomeRewards.sub_stats).map((k) => (
+                  {Object.keys(outcomeRewards?.sub_stats || {}).map((k) => (
                     <div key={k} style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "13px", fontFamily: "var(--mono)", borderBottom: "1px dashed rgba(255,255,255,0.03)", padding: "4px 0" }}>
                       <span style={{ color: "var(--text-dim)" }}>{k.replace("_", " ").toUpperCase()}</span>
                       <span style={{ color: "#00ffcc", fontWeight: "bold" }}>+{outcomeRewards?.sub_stats?.[k]}%</span>

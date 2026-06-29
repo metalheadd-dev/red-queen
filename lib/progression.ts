@@ -42,15 +42,16 @@ export function getClearanceLevel(bioScore: number) {
 /**
  * Calculates the overall BIO SCORE (0-100) based on sub-stats.
  */
-export function calculateBioScore(stats: UserStats): number {
+export function calculateBioScore(stats?: UserStats): number {
+  if (!stats) return 0;
   const sum = 
-    stats.threat_awareness + 
-    stats.operational_discipline + 
-    stats.psychological_stability + 
-    stats.technical_preparedness + 
-    stats.adaptability + 
-    stats.resourcefulness + 
-    stats.surveillance_resistance;
+    (stats.threat_awareness || 0) + 
+    (stats.operational_discipline || 0) + 
+    (stats.psychological_stability || 0) + 
+    (stats.technical_preparedness || 0) + 
+    (stats.adaptability || 0) + 
+    (stats.resourcefulness || 0) + 
+    (stats.surveillance_resistance || 0);
   const avg = Math.floor(sum / 7);
   return Math.min(100, Math.max(0, avg));
 }
