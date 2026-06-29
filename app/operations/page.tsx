@@ -59,6 +59,10 @@ export default function OperationsPage() {
   const [loadingOps, setLoadingOps] = useState(false);
   const [activeTab, setActiveTab] = useState<"center" | "profile" | "inventory">("center");
 
+  // Selection state on the Tactical Map
+  const [selectedMapSector, setSelectedMapSector] = useState<string>("op-1-sanctuary-search");
+  const [mapAlert, setMapAlert] = useState<string | null>(null);
+
   // Mission State
   const [activeMission, setActiveMission] = useState<any>(null);
   const [missionFlow, setMissionFlow] = useState<"briefing" | "deployment" | "connection" | "decision" | "debriefing" | "rewards" | null>(null);
@@ -73,7 +77,7 @@ export default function OperationsPage() {
   // Connection handshaking sequence logs
   const [connectionLogs, setConnectionLogs] = useState<string[]>([]);
 
-  // Load operative stats from client persistence
+  // Load operative stats from client persistence with safety guards to prevent crashes
   const fetchOperationsProfile = () => {
     setLoading(true);
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
@@ -81,8 +85,16 @@ export default function OperationsPage() {
     // Check localStorage
     const saved = localStorage.getItem(`rq_ops_profile:${identifier}`);
     if (saved) {
-      const parsed = JSON.parse(saved);
-      setProfile(parsed);
+      try {
+        const parsed = JSON.parse(saved);
+        // Ensure stats and resources are populated safely to avoid render errors
+        if (!parsed.stats) parsed.stats = { ...DEFAULT_STATS };
+        if (!parsed.resources) parsed.resources = { Metal: 5, Electronics: 3, "Medical Supplies": 2, "Energy Cells": 2, "Research Data": 1 };
+        setProfile(parsed);
+      } catch (e) {
+        console.error("Failed to parse saved profile:", e);
+        setProfile(null);
+      }
     } else {
       setProfile(null);
     }
@@ -157,7 +169,7 @@ export default function OperationsPage() {
       `[SYS_INIT] CONNECTING TO SATELLITE NETWORK ROUTE...`,
       `[SHIELD] ESTABLISHING DECENTRALIZED DATA TUNNEL...`,
       `[ORACLE] SCANNING REGION THREAT MATRIX FOR: ${op.title}...`,
-      `[UPLINK] OPERATIVE BIOMETRICS VERIFIED: CLASS [${profile.class.toUpperCase()}]`,
+      `[UPLINK] OPERATIVE BIOMETRICS VERIFIED: CLASS [${profile?.class?.toUpperCase()}]`,
       `[TACTICAL] COMMENCING TRANSIT TO ZONE CONDUIT...`,
       `[SUCCESS] DEPLOYMENT ZONE SECURED. INTERFACE ENGAGED.`
     ];
@@ -248,9 +260,10 @@ export default function OperationsPage() {
 
   // Claim Rewards and Update Stats
   const handleClaimRewards = () => {
+    if (!profile) return;
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
     
-    const currentStats = profile.stats;
+    const currentStats = profile?.stats || { ...DEFAULT_STATS };
     const xpGain = outcomeRewards?.xp || 0;
     const creditGain = outcomeRewards?.credits || 0;
     const resourceName = outcomeRewards?.resource;
@@ -290,7 +303,7 @@ export default function OperationsPage() {
       ...profile,
       level: newLevel,
       xp: newXP,
-      credits: profile.credits + creditGain,
+      credits: (profile.credits || 0) + creditGain,
       resources: updatedResources,
       stats: updatedStats
     };
@@ -310,8 +323,13 @@ export default function OperationsPage() {
     return FACTIONS.find(f => f.id === facId)?.color || "var(--accent)";
   };
 
-  const currentBioScore = profile ? calculateBioScore(profile.stats) : 0;
+  // Safe Stats and Bio Score resolution
+  const profileStats = profile?.stats || DEFAULT_STATS;
+  const currentBioScore = calculateBioScore(profileStats);
   const clearanceTier = getClearanceLevel(currentBioScore);
+
+  // Selected operation detail resolution
+  const selectedOperation = operations.find(o => o.id === selectedMapSector);
 
   if (loading) {
     return (
@@ -384,12 +402,12 @@ export default function OperationsPage() {
             47% { opacity: 0.98; }
           }
           @keyframes scanner-pulse {
-            0%, 100% { opacity: 0.2; transform: scale(0.99); }
+            0%, 100% { opacity: 0.15; transform: scale(0.99); }
             50% { opacity: 0.35; transform: scale(1.01); }
           }
           @keyframes alert-blink {
-            0%, 100% { opacity: 1; border-color: rgba(255, 77, 77, 0.45); }
-            50% { opacity: 0.5; border-color: rgba(255, 77, 77, 0.15); }
+            0%, 100% { opacity: 1; border-color: rgba(255, 77, 77, 0.4); }
+            50% { opacity: 0.45; border-color: rgba(255, 77, 77, 0.15); }
           }
           
           /* Responsive overrides for smaller layouts */
@@ -708,6 +726,23 @@ export default function OperationsPage() {
           100% { background-position: 0 100%; }
         }
 
+        /* Tactical Map scope animations */
+        @keyframes map-scope-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .map-scope-circle {
+          animation: map-scope-spin 20s linear infinite;
+          transform-origin: 50px 50px;
+        }
+        .map-pulse-node {
+          animation: map-node-pulse 2s infinite;
+        }
+        @keyframes map-node-pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.2); opacity: 0.5; }
+        }
+
         /* Responsive overrides for smaller layouts */
         @media (max-width: 1440px) {
           .ops-grid-3 {
@@ -743,18 +778,18 @@ export default function OperationsPage() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ width: "12px", height: "12px", background: getFactionColor(profile.faction), borderRadius: "50%", boxShadow: `0 0 12px ${getFactionColor(profile.faction)}` }} />
+            <span style={{ width: "12px", height: "12px", background: getFactionColor(profile?.faction), borderRadius: "50%", boxShadow: `0 0 12px ${getFactionColor(profile?.faction)}` }} />
             <span style={{ fontFamily: "var(--title-font)", fontSize: "15px", fontWeight: "900", letterSpacing: "0.15em", color: "#fff" }}>
-              {profile.name} // {profile.faction.toUpperCase()}
+              {profile?.name} // {profile?.faction?.toUpperCase()}
             </span>
           </div>
           <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
           <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)" }}>
-            CLASS: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile.class.toUpperCase()}</span>
+            CLASS: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile?.class?.toUpperCase()}</span>
           </span>
           <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
           <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-dim)" }}>
-            OPERATIVE ROLE: <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{profile.role.toUpperCase()}</span>
+            OPERATIVE ROLE: <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{profile?.role?.toUpperCase()}</span>
           </span>
         </div>
 
@@ -852,193 +887,299 @@ export default function OperationsPage() {
         {/* Content Pane */}
         <main style={{ flex: 1, padding: "40px", overflowY: "auto", background: "#030303" }}>
           
-          {/* LEVEL UP POPUP NOTIFICATION */}
-          {levelUpMessage && (
-            <div style={{
-              background: "rgba(0, 255, 204, 0.08)", border: "2px solid #00ffcc", padding: "20px 28px",
-              marginBottom: "32px", borderRadius: "2px", display: "flex", justifyContent: "space-between",
-              alignItems: "center", animation: "glitch 0.6s ease", boxShadow: "0 0 20px rgba(0,255,204,0.1)"
-            }}>
-              <div>
-                <h4 style={{ color: "#00ffcc", margin: 0, fontSize: "14px", letterSpacing: "0.1em" }}>UPLINK UPGRADE</h4>
-                <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text)", margin: "6px 0 0" }}>{levelUpMessage}</p>
-              </div>
-              <button
-                onClick={() => setLevelUpMessage(null)}
-                style={{ background: "none", border: "none", color: "#00ffcc", cursor: "pointer", fontFamily: "var(--mono)", fontSize: "13px", fontWeight: "bold" }}
-              >
-                [ ACKNOWLEDGE ]
-              </button>
-            </div>
-          )}
-
           {/* TAB 1: COMMAND CENTER (HUD & OPERATIONS) */}
           {activeTab === "center" && (
-            <div className="ops-grid-3">
+            <div style={{ display: "flex", flexDirection: "column", gap: "32px", width: "100%" }}>
               
-              {/* Column 1: Red Queen AI Hologram & Telemetry Logs */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                <div className="panel animate-pulse-red" style={{
-                  background: "#080808", border: "2px solid rgba(255, 77, 77, 0.35)",
+              {/* TOP SECTION: MASSIVE GLOBAL TACTICAL MAP */}
+              <div className="panel holo-noise animate-pulse-slow" style={{
+                position: "relative", padding: "24px", minHeight: "520px", background: "#060606",
+                border: "2px solid rgba(255, 77, 77, 0.35)", boxShadow: "0 0 40px rgba(0, 0, 0, 0.8)",
+                display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "space-between"
+              }}>
+                {/* Visual Corner Brackets */}
+                <div style={{ position: "absolute", top: "12px", left: "12px", width: "16px", height: "16px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", top: "12px", right: "12px", width: "16px", height: "16px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", bottom: "12px", left: "12px", width: "16px", height: "16px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
+                <div style={{ position: "absolute", bottom: "12px", right: "12px", width: "16px", height: "16px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
+
+                {/* Map telemetry header */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span style={{ width: "8px", height: "8px", background: "#ff4d4d", borderRadius: "50%" }} className="animate-pulse" />
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
+                      RED QUEEN GLOBAL TACTICAL RADAR GRID
+                    </span>
+                  </div>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
+                    MAP_UPLINK_STATUS: SECURE // SCANNING...
+                  </span>
+                </div>
+
+                {/* The Interactive Map SVG Canvas */}
+                <div style={{ flex: 1, position: "relative", margin: "20px 0", minHeight: "360px", background: "rgba(0,0,0,0.5)" }}>
+                  
+                  {/* Transient message banner if sector locked clicked */}
+                  {mapAlert && (
+                    <div style={{
+                      position: "absolute", top: "16px", left: "50%", transform: "translateX(-50%)",
+                      background: "rgba(255, 77, 77, 0.08)", border: "1px solid var(--accent)", padding: "10px 20px",
+                      zIndex: 10, fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)",
+                      boxShadow: "0 0 15px rgba(255,77,77,0.15)", borderRadius: "2px"
+                    }}>
+                      {mapAlert}
+                    </div>
+                  )}
+
+                  <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", top: 0, left: 0 }}>
+                    {/* Background grid lines */}
+                    <defs>
+                      <pattern id="map-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.015)" strokeWidth="0.5"/>
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#map-grid)" />
+
+                    {/* Radar sweeps */}
+                    <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255, 77, 77, 0.03)" strokeWidth="0.5" />
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255, 77, 77, 0.02)" strokeWidth="0.5" />
+                    <circle cx="50" cy="50" r="15" fill="none" stroke="rgba(255, 77, 77, 0.04)" strokeWidth="0.5" />
+                    
+                    {/* Scanning radar sweep lines */}
+                    <line className="map-scope-circle" x1="50" y1="50" x2="95" y2="50" stroke="rgba(255, 77, 77, 0.06)" strokeWidth="0.5" />
+                    
+                    {/* Connecting operational links */}
+                    <line x1="25" y1="35" x2="50" y2="60" stroke="rgba(0, 255, 204, 0.05)" strokeWidth="0.5" strokeDasharray="1,1" />
+                    <line x1="50" y1="60" x2="75" y2="30" stroke="rgba(0, 255, 204, 0.05)" strokeWidth="0.5" strokeDasharray="1,1" />
+                    <line x1="25" y1="35" x2="75" y2="30" stroke="rgba(0, 255, 204, 0.05)" strokeWidth="0.5" strokeDasharray="1,1" />
+                  </svg>
+
+                  {/* INTERACTIVE NODES (Absolute positioned elements over canvas) */}
+                  
+                  {/* Node 1: Sector Alpha */}
+                  <div style={{ position: "absolute", left: "25%", top: "35%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
+                    <button
+                      onClick={() => setSelectedMapSector("op-1-sanctuary-search")}
+                      style={{
+                        background: "none", border: "none", padding: 0, cursor: "pointer",
+                        display: "flex", flexDirection: "column", alignItems: "center"
+                      }}
+                    >
+                      <span className="map-pulse-node" style={{
+                        width: "14px", height: "14px", background: "#00ffcc", borderRadius: "50%",
+                        border: selectedMapSector === "op-1-sanctuary-search" ? "3px solid #fff" : "2px solid #00ffcc",
+                        boxShadow: "0 0 12px #00ffcc"
+                      }} />
+                      <span style={{
+                        fontFamily: "var(--mono)", fontSize: "9.5px", color: selectedMapSector === "op-1-sanctuary-search" ? "#fff" : "var(--text-dim)",
+                        marginTop: "6px", background: "rgba(0,0,0,0.8)", padding: "2px 6px", border: "1px solid rgba(255,255,255,0.06)"
+                      }}>
+                        SECTOR ALPHA
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Node 2: Sector Beta */}
+                  <div style={{ position: "absolute", left: "50%", top: "60%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
+                    <button
+                      onClick={() => setSelectedMapSector("op-2-signal-recovery")}
+                      style={{
+                        background: "none", border: "none", padding: 0, cursor: "pointer",
+                        display: "flex", flexDirection: "column", alignItems: "center"
+                      }}
+                    >
+                      <span className="map-pulse-node" style={{
+                        width: "14px", height: "14px", background: "#f0c929", borderRadius: "50%",
+                        border: selectedMapSector === "op-2-signal-recovery" ? "3px solid #fff" : "2px solid #f0c929",
+                        boxShadow: "0 0 12px #f0c929"
+                      }} />
+                      <span style={{
+                        fontFamily: "var(--mono)", fontSize: "9.5px", color: selectedMapSector === "op-2-signal-recovery" ? "#fff" : "var(--text-dim)",
+                        marginTop: "6px", background: "rgba(0,0,0,0.8)", padding: "2px 6px", border: "1px solid rgba(255,255,255,0.06)"
+                      }}>
+                        SECTOR BETA
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Node 3: Sector Delta */}
+                  <div style={{ position: "absolute", left: "75%", top: "30%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
+                    <button
+                      onClick={() => setSelectedMapSector("op-3-sybil-breach")}
+                      style={{
+                        background: "none", border: "none", padding: 0, cursor: "pointer",
+                        display: "flex", flexDirection: "column", alignItems: "center"
+                      }}
+                    >
+                      <span className="map-pulse-node" style={{
+                        width: "14px", height: "14px", background: "#ff4d4d", borderRadius: "50%",
+                        border: selectedMapSector === "op-3-sybil-breach" ? "3px solid #fff" : "2px solid #ff4d4d",
+                        boxShadow: "0 0 12px #ff4d4d"
+                      }} />
+                      <span style={{
+                        fontFamily: "var(--mono)", fontSize: "9.5px", color: selectedMapSector === "op-3-sybil-breach" ? "#fff" : "var(--text-dim)",
+                        marginTop: "6px", background: "rgba(0,0,0,0.8)", padding: "2px 6px", border: "1px solid rgba(255,255,255,0.06)"
+                      }}>
+                        SECTOR DELTA
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Node 4: Sector Epsilon (Locked) */}
+                  <div style={{ position: "absolute", left: "20%", top: "75%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
+                    <button
+                      onClick={() => {
+                        setMapAlert("ACCESS DENIED // RECON SENSORS LOCKED // BIO-SCORE REQUIRED: 40");
+                        setTimeout(() => setMapAlert(null), 3000);
+                      }}
+                      style={{
+                        background: "none", border: "none", padding: 0, cursor: "pointer",
+                        display: "flex", flexDirection: "column", alignItems: "center", opacity: 0.4
+                      }}
+                    >
+                      <span style={{
+                        width: "12px", height: "12px", background: "#555", borderRadius: "50%",
+                        border: "1.5px solid #222"
+                      }} />
+                      <span style={{
+                        fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)",
+                        marginTop: "6px", background: "rgba(0,0,0,0.8)", padding: "2px 6px"
+                      }}>
+                        LOCKED SECTOR
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Node 5: Sector Gamma (Locked) */}
+                  <div style={{ position: "absolute", left: "85%", top: "70%", transform: "translate(-50%, -50%)", zIndex: 5 }}>
+                    <button
+                      onClick={() => {
+                        setMapAlert("ACCESS DENIED // COMMUNICATIONS LINK TERMINATED // LEVEL REQUIRED: 5");
+                        setTimeout(() => setMapAlert(null), 3000);
+                      }}
+                      style={{
+                        background: "none", border: "none", padding: 0, cursor: "pointer",
+                        display: "flex", flexDirection: "column", alignItems: "center", opacity: 0.4
+                      }}
+                    >
+                      <span style={{
+                        width: "12px", height: "12px", background: "#555", borderRadius: "50%",
+                        border: "1.5px solid #222"
+                      }} />
+                      <span style={{
+                        fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)",
+                        marginTop: "6px", background: "rgba(0,0,0,0.8)", padding: "2px 6px"
+                      }}>
+                        LOCKED SECTOR
+                      </span>
+                    </button>
+                  </div>
+
+                </div>
+
+                {/* Map footer coordinates */}
+                <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "12px" }}>
+                  <span>ACTIVE SECTORS: 3 ONLINE // 2 OFFLINE</span>
+                  <span>DEC. GRID SYSTEM SWAP BUFFER [ONLINE]</span>
+                </div>
+              </div>
+
+              {/* BOTTOM SECTION: RED QUEEN AI (LEFT) vs SELECTED MISSION / ALERTS (RIGHT) */}
+              <div className="ops-grid-2-large">
+                
+                {/* Left Panel: Red Queen AI Hologram */}
+                <div className="panel" style={{
+                  background: "#080808", border: "1px solid rgba(255, 77, 77, 0.3)",
                   position: "relative", padding: "24px", display: "flex", flexDirection: "column", gap: "16px"
                 }}>
                   {/* Hologram Camera Brackets */}
                   <div style={{ position: "absolute", top: "10px", left: "10px", width: "12px", height: "12px", borderTop: "1.5px solid rgba(255,77,77,0.3)", borderLeft: "1.5px solid rgba(255,77,77,0.3)" }} />
                   <div style={{ position: "absolute", top: "10px", right: "10px", width: "12px", height: "12px", borderTop: "1.5px solid rgba(255,77,77,0.3)", borderRight: "1.5px solid rgba(255,77,77,0.3)" }} />
-                  <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "12px", height: "12px", borderBottom: "1.5px solid rgba(255,77,77,0.3)", borderLeft: "1.5px solid rgba(255,77,77,0.3)" }} />
-                  <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "12px", height: "12px", borderBottom: "1.5px solid rgba(255,77,77,0.3)", borderRight: "1.5px solid rgba(255,77,77,0.3)" }} />
-
+                  
                   <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                    [ RED QUEEN SYSTEM COGNITIVE LINK ]
+                    [ RED QUEEN HOLOGRAM CONSOLE ]
                   </span>
                   
-                  {/* AI Portrait Container - Art Container Frame */}
-                  <div className="holo-noise" style={{
-                    height: "220px", width: "100%", background: "rgba(0,0,0,0.6)",
-                    border: "1px dashed rgba(255, 77, 77, 0.25)", display: "flex",
-                    flexDirection: "column", alignItems: "center", justifyContent: "center",
-                    position: "relative", overflow: "hidden"
-                  }}>
-                    {/* Simulated scanning laser line */}
-                    <div style={{
-                      position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-                      background: "rgba(255, 77, 77, 0.35)", boxShadow: "0 0 10px rgba(255,77,77,0.65)",
-                      animation: "scanlines-scrolling 6s linear infinite"
-                    }} />
-                    
-                    <div style={{ zIndex: 1, textAlign: "center" }} className="animate-flicker">
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold", animation: "blink 1.2s infinite" }}>
-                        [ COGNITIVE PORTRAIT TERMINAL ]
-                      </div>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", marginTop: "4px" }}>
-                        SIGNAL LOCKED // AWAITING CORE SYNAPSE
+                  <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                    {/* AI Portrait Container - Art Container Frame */}
+                    <div className="holo-noise" style={{
+                      height: "100px", width: "100px", background: "rgba(0,0,0,0.6)",
+                      border: "1px dashed rgba(255, 77, 77, 0.25)", display: "flex",
+                      alignItems: "center", justifyContent: "center", position: "relative",
+                      overflow: "hidden", flexShrink: 0
+                    }}>
+                      <div style={{ zIndex: 1, textAlign: "center" }} className="animate-flicker">
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", fontWeight: "bold" }}>
+                          [ AI CORE ]
+                        </span>
                       </div>
                     </div>
-                  </div>
 
-                  {/* AI recommendation brief */}
-                  <div style={{ borderTop: "1px dashed rgba(255,255,255,0.08)", paddingTop: "14px" }}>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "4px" }}>
-                      TACTICAL RECOMMENDATION:
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>
+                        TACTICAL DISPATCH RECOMMENDATION
+                      </span>
+                      <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", lineHeight: "1.5", margin: "4px 0 0 0" }}>
+                        "Select any flashing sector on the Tactical Map above to synchronize coordinates. I will execute briefings and diagnostic evaluations upon deployment."
+                      </p>
                     </div>
-                    <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", lineHeight: "1.5", margin: 0 }}>
-                      "Prioritize Operation Sanctuary Search in Sector Alpha to calibrate biological containment sensors before deploying to high-gravity quadrants."
-                    </p>
                   </div>
                 </div>
 
-                {/* Operations status feed */}
-                <div className="panel" style={{ background: "#050505", border: "1px solid var(--border)", padding: "20px" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", display: "block", marginBottom: "12px" }}>
-                    ▶ LIVE MAINFRAME STATUS ALERTS
-                  </span>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", display: "flex", flexDirection: "column", gap: "8px", color: "var(--text-muted)" }}>
-                    <div>[INFO] Sensor nodes scanned: 104,281 anomalies monitored.</div>
-                    <div>[WARN] Gravitational distortion detected in Sector Beta.</div>
-                    <div>[SYS] Decryption pipeline verified; 65% fee swap buffer ready.</div>
-                  </div>
-                </div>
-              </div>
+                {/* Right Panel: Selected Mission / Dossier details */}
+                <div className="panel" style={{ background: "#080808", border: "1px solid var(--border)", padding: "24px" }}>
+                  {selectedOperation ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span className={`tag ${selectedOperation.difficulty === "Easy" ? "tag-green" : selectedOperation.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "9.5px", padding: "2px 8px" }}>
+                          {selectedOperation.difficulty.toUpperCase()}
+                        </span>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)" }}>
+                          {selectedOperation.category.toUpperCase()} MISSION
+                        </span>
+                      </div>
+                      
+                      <h3 style={{ fontSize: "18px", color: "#fff", margin: 0 }}>{selectedOperation.title}</h3>
+                      <p style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.5", margin: 0 }}>
+                        {selectedOperation.description}
+                      </p>
 
-              {/* Column 2: Available Operations List (Cinematic Cards) */}
-              <div style={{ gridColumn: "span 2", display: "flex", flexDirection: "column", gap: "24px" }}>
-                
-                {/* Holographic Telemetry World Map Container - Art Container Frame */}
-                <div className="holo-noise animate-pulse-slow" style={{
-                  height: "220px", border: "1px dashed rgba(255,255,255,0.15)", background: "#060606",
-                  position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
-                }}>
-                  {/* Outer target brackets */}
-                  <div style={{ position: "absolute", top: "12px", left: "12px", width: "16px", height: "16px", borderTop: "2px solid rgba(255,255,255,0.2)", borderLeft: "2px solid rgba(255,255,255,0.2)" }} />
-                  <div style={{ position: "absolute", top: "12px", right: "12px", width: "16px", height: "16px", borderTop: "2px solid rgba(255,255,255,0.2)", borderRight: "2px solid rgba(255,255,255,0.2)" }} />
-                  <div style={{ position: "absolute", bottom: "12px", left: "12px", width: "16px", height: "16px", borderBottom: "2px solid rgba(255,255,255,0.2)", borderLeft: "2px solid rgba(255,255,255,0.2)" }} />
-                  <div style={{ position: "absolute", bottom: "12px", right: "12px", width: "16px", height: "16px", borderBottom: "2px solid rgba(255,255,255,0.2)", borderRight: "2px solid rgba(255,255,255,0.2)" }} />
-                  
-                  <div style={{ textAlign: "center", zIndex: 1 }} className="animate-flicker">
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.2em", display: "block" }}>
-                      [ GLOBAL TACTICAL MAP OFFLINE ]
-                    </span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
-                      ENCRYPTED SATELLITE FEED // SIGNAL STABILITY 12.4%
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <h2 style={{ fontSize: "18px", color: "#fff", marginBottom: "16px", letterSpacing: "0.08em" }}>AVAILABLE MISSION REGIONS</h2>
-                  {loadingOps ? (
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)" }}>
-                      SCANNING OPERATIONAL SECTORS<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
-                    </div>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                      {operations.map((op) => (
-                        <div
-                          key={op.id}
-                          className="panel"
+                      <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "14px", marginTop: "4px" }}>
+                        <div style={{ display: "flex", gap: "16px", fontFamily: "var(--mono)", fontSize: "10.5px" }}>
+                          <span>EST. DURATION: <b style={{ color: "#fff" }}>{selectedOperation.estimated_duration}m</b></span>
+                        </div>
+                        
+                        <button
+                          onClick={() => { setActiveMission(selectedOperation); setMissionFlow("briefing"); }}
+                          className="btn btn-primary"
                           style={{
-                            background: "#080808", border: op.recommended_class_id === profile.class ? "2px solid rgba(0, 255, 204, 0.3)" : "1px solid var(--border)",
-                            padding: "32px", display: "flex", flexDirection: "column", gap: "16px",
-                            boxShadow: op.recommended_class_id === profile.class ? "0 0 25px rgba(0, 255, 204, 0.05)" : "none"
+                            fontSize: "11px", padding: "6px 16px",
+                            background: selectedOperation.recommended_class_id === profile?.class ? "#00ffcc" : "var(--accent)",
+                            color: "#000"
                           }}
                         >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                              <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "10px", padding: "4px 10px" }}>
-                                {op.difficulty.toUpperCase()}
-                              </span>
-                              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em" }}>
-                                {op.category.toUpperCase()} SECTOR
-                              </span>
-                            </div>
-                            {op.recommended_class_id === profile.class && (
-                              <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", background: "rgba(0,255,204,0.05)", border: "1px solid rgba(0,255,204,0.3)", padding: "4px 10px", borderRadius: "2px" }}>
-                                RECOMMENDED TACTICAL CONFIGURATION
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Massive mission title */}
-                          <h3 style={{ fontSize: "22px", color: "#fff", margin: 0, letterSpacing: "0.05em" }}>{op.title}</h3>
-                          
-                          <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0 }}>
-                            {op.description}
-                          </p>
-
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "20px", marginTop: "8px" }}>
-                            <div style={{ display: "flex", gap: "24px" }}>
-                              <div>
-                                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>EST. DURATION</span>
-                                <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#fff", fontWeight: "bold" }}>{op.estimated_duration} MINUTES</span>
-                              </div>
-                              <div>
-                                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block" }}>ENERGY COST</span>
-                                <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#fff", fontWeight: "bold" }}>{op.energy_cost} EC</span>
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => { setActiveMission(op); setMissionFlow("briefing"); }}
-                              className="btn btn-primary"
-                              style={{
-                                fontSize: "11px", padding: "10px 24px",
-                                background: op.recommended_class_id === profile.class ? "#00ffcc" : "var(--accent)",
-                                color: "#000"
-                              }}
-                            >
-                              UPLINK DEPLOYMENT →
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                          LAUNCH BRIEFING →
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center", alignItems: "center", minHeight: "120px", textAlign: "center" }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-muted)" }}>
+                        [ NO TACTICAL SECTOR SELECTED ]
+                      </span>
+                      <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>
+                        Select Sector Alpha, Beta, or Delta on the radar grid above to inspect regional status.
+                      </p>
                     </div>
                   )}
                 </div>
+
               </div>
+
             </div>
           )}
 
-          {/* TAB 2: SOLVIVOR PROFILE DECK (OPERATIVE DOSSIER) */}
+          {/* TAB 2: SOLVIVOR PROFILE DECK */}
           {activeTab === "profile" && (
             <div className="ops-grid-3">
               
@@ -1080,8 +1221,8 @@ export default function OperationsPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
                     <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>DIVISION STAMP:</span>
-                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: getFactionColor(profile.faction), fontWeight: "bold" }}>
-                      {profile.faction.toUpperCase()}
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: getFactionColor(profile?.faction), fontWeight: "bold" }}>
+                      {profile?.faction?.toUpperCase()}
                     </span>
                   </div>
                   <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between" }}>
@@ -1102,24 +1243,24 @@ export default function OperationsPage() {
                 {/* Level and XP progress bar */}
                 <div style={{ marginBottom: "32px", background: "#080808", border: "1px solid var(--border)", padding: "20px" }}>
                   <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "12.5px", marginBottom: "8px" }}>
-                    <span>OPERATIVE LEVEL: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile.level}</span></span>
-                    <span>{profile.xp % 100} / 100 XP TO UPGRADE</span>
+                    <span>OPERATIVE LEVEL: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile?.level || 1}</span></span>
+                    <span>{(profile?.xp || 0) % 100} / 100 XP TO UPGRADE</span>
                   </div>
                   <div style={{ width: "100%", height: "8px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
-                    <div style={{ width: `${profile.xp % 100}%`, height: "100%", background: "var(--accent)" }} />
+                    <div style={{ width: `${(profile?.xp || 0) % 100}%`, height: "100%", background: "var(--accent)" }} />
                   </div>
                 </div>
 
                 {/* Sub-stats telemetry checklist */}
                 <div className="ops-grid-2">
                   {[
-                    { label: "THREAT AWARENESS", val: profile.stats.threat_awareness, desc: "Early-warning detection of global anomalies." },
-                    { label: "OPERATIONAL DISCIPLINE", val: profile.stats.operational_discipline, desc: "Consistency in executing countermeasure tasks." },
-                    { label: "PSYCHOLOGICAL STABILITY", val: profile.stats.psychological_stability, desc: "Stress threshold during quarantine/nuclear alerts." },
-                    { label: "TECHNICAL PREPAREDNESS", val: profile.stats.technical_preparedness, desc: "Calibrating systems and analog backup skills." },
-                    { label: "ADAPTABILITY", val: profile.stats.adaptability, desc: "Survival capacity during rapid environmental shifts." },
-                    { label: "RESOURCEFULNESS", val: profile.stats.resourcefulness, desc: "Farming efficiency and custom secondary bonuses." },
-                    { label: "SURVEILLANCE RESISTANCE", val: profile.stats.surveillance_resistance, desc: "On-chain transaction privacy preservation." }
+                    { label: "THREAT AWARENESS", val: profileStats.threat_awareness, desc: "Early-warning detection of global anomalies." },
+                    { label: "OPERATIONAL DISCIPLINE", val: profileStats.operational_discipline, desc: "Consistency in executing countermeasure tasks." },
+                    { label: "PSYCHOLOGICAL STABILITY", val: profileStats.psychological_stability, desc: "Stress threshold during quarantine/nuclear alerts." },
+                    { label: "TECHNICAL PREPAREDNESS", val: profileStats.technical_preparedness, desc: "Calibrating systems and analog backup skills." },
+                    { label: "ADAPTABILITY", val: profileStats.adaptability, desc: "Survival capacity during rapid environmental shifts." },
+                    { label: "RESOURCEFULNESS", val: profileStats.resourcefulness, desc: "Farming efficiency and custom secondary bonuses." },
+                    { label: "SURVEILLANCE RESISTANCE", val: profileStats.surveillance_resistance, desc: "On-chain transaction privacy preservation." }
                   ].map((s) => (
                     <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                       <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "12px" }}>
@@ -1145,14 +1286,14 @@ export default function OperationsPage() {
                     <div style={{ background: "#080808", border: "1px solid var(--border)", padding: "16px", borderRadius: "2px" }}>
                       <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>CREDITS</span>
                       <span style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: "#00ffcc", fontWeight: "bold", display: "block", marginTop: "4px" }}>
-                        {profile.credits} CR
+                        {profile?.credits || 0} CR
                       </span>
                     </div>
-                    {Object.keys(profile.resources).map((resName) => (
+                    {Object.keys(profile?.resources || {}).map((resName) => (
                       <div key={resName} style={{ background: "#080808", border: "1px solid var(--border)", padding: "16px", borderRadius: "2px" }}>
                         <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>{resName.toUpperCase()}</span>
                         <span style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "#fff", fontWeight: "bold", display: "block", marginTop: "4px" }}>
-                          {profile.resources[resName]} UNITS
+                          {profile?.resources?.[resName]} UNITS
                         </span>
                       </div>
                     ))}
@@ -1196,7 +1337,7 @@ export default function OperationsPage() {
                   [ VITAL DEFENSE SLOTS ]
                 </div>
 
-                {/* Helmet Slot - Art Container Frame */}
+                {/* Helmet Slot */}
                 <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
                   <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🪖</span>
@@ -1207,7 +1348,7 @@ export default function OperationsPage() {
                   </div>
                 </div>
 
-                {/* Armor Slot - Art Container Frame */}
+                {/* Armor Slot */}
                 <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
                   <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🛡️</span>
@@ -1218,7 +1359,7 @@ export default function OperationsPage() {
                   </div>
                 </div>
 
-                {/* Primary Weapon Slot - Art Container Frame */}
+                {/* Primary Weapon Slot */}
                 <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
                   <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🔫</span>
@@ -1229,7 +1370,7 @@ export default function OperationsPage() {
                   </div>
                 </div>
 
-                {/* Secondary Weapon Slot - Art Container Frame */}
+                {/* Secondary Weapon Slot */}
                 <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
                   <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🔫</span>
@@ -1242,7 +1383,7 @@ export default function OperationsPage() {
 
               </div>
 
-              {/* Central Column: Operative Vector Silhouette - Art Container Frame */}
+              {/* Central Column: Operative Vector Silhouette */}
               <div className="panel holo-noise animate-pulse-slow" style={{
                 background: "#050505", border: "1px dashed rgba(255,255,255,0.1)",
                 display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center",
@@ -1272,7 +1413,7 @@ export default function OperationsPage() {
                   [ TACTICAL UTILITY SLOTS ]
                 </div>
 
-                {/* Utility Slot - Art Container Frame */}
+                {/* Utility Slot */}
                 <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
                   <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🛠️</span>
@@ -1283,7 +1424,7 @@ export default function OperationsPage() {
                   </div>
                 </div>
 
-                {/* Medical Slot - Art Container Frame */}
+                {/* Medical Slot */}
                 <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
                   <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🧪</span>
@@ -1294,7 +1435,7 @@ export default function OperationsPage() {
                   </div>
                 </div>
 
-                {/* Backpack Slot - Art Container Frame */}
+                {/* Backpack Slot */}
                 <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
                   <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">🎒</span>
@@ -1305,7 +1446,7 @@ export default function OperationsPage() {
                   </div>
                 </div>
 
-                {/* Gadget Slot - Art Container Frame */}
+                {/* Gadget Slot */}
                 <div className="panel" style={{ background: "#080808", padding: "16px 20px", border: "1px solid var(--border)", display: "flex", gap: "16px", alignItems: "center" }}>
                   <div className="holo-noise" style={{ width: "48px", height: "48px", border: "1px dashed rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: "20px", opacity: 0.3 }} className="animate-flicker">📡</span>
@@ -1394,9 +1535,9 @@ export default function OperationsPage() {
                 [ SYSTEM UPLINK COMMENTARY ]
               </div>
               <p style={{ fontFamily: "var(--mono)", fontSize: "13px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.6", margin: 0 }}>
-                {activeMission.recommended_class_id === profile.class
+                {activeMission.recommended_class_id === profile?.class
                   ? `"Operative configuration matches mission coordinates. Your medic/specialist capabilities yield +15% success probability check. Deploy immediately."`
-                  : `"Warning: Active class [${profile.class.toUpperCase()}] deviates from recommended profile [${activeMission.recommended_class_id.toUpperCase()}]. Proceed with caution."`}
+                  : `"Warning: Active class [${profile?.class?.toUpperCase()}] deviates from recommended profile [${activeMission.recommended_class_id.toUpperCase()}]. Proceed with caution."`}
               </p>
             </div>
 
@@ -1619,7 +1760,7 @@ export default function OperationsPage() {
             </div>
 
             {/* Reward list */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "32px" }} className="responsive-grid-2">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "32px" }} className="ops-grid-2">
               <div style={{ background: "#000", padding: "20px", border: "1px solid var(--border)", textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", display: "block" }}>OPERATIVE EXPERIENCE</span>
                 <span style={{ fontFamily: "var(--title-font)", fontSize: "20px", color: "#00ffcc", fontWeight: "bold", display: "block", marginTop: "6px" }}>
@@ -1644,7 +1785,7 @@ export default function OperationsPage() {
                 <div style={{ background: "#000", padding: "20px", border: "1px solid var(--border)", textAlign: "center", gridColumn: "span 2" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", display: "block" }}>RAW MATERIAL RECOVERED</span>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "#fff", fontWeight: "bold", display: "block", marginTop: "6px" }}>
-                    +{outcomeRewards.resource_qty} UNITS OF {outcomeRewards.resource.toUpperCase()}
+                    +{outcomeRewards?.resource_qty || 0} UNITS OF {outcomeRewards?.resource?.toUpperCase() || "RESOURCES"}
                   </span>
                 </div>
               )}
@@ -1656,7 +1797,7 @@ export default function OperationsPage() {
                   {Object.keys(outcomeRewards.sub_stats).map((k) => (
                     <div key={k} style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "13px", fontFamily: "var(--mono)", borderBottom: "1px dashed rgba(255,255,255,0.03)", padding: "4px 0" }}>
                       <span style={{ color: "var(--text-dim)" }}>{k.replace("_", " ").toUpperCase()}</span>
-                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>+{outcomeRewards.sub_stats[k]}%</span>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>+{outcomeRewards?.sub_stats?.[k]}%</span>
                     </div>
                   ))}
                 </div>
