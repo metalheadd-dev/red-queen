@@ -1208,74 +1208,15 @@ export default function OperationsPage() {
         <main style={{ flex: 1, padding: "20px", background: "#030303", display: "flex", flexDirection: "column", height: "100%", boxSizing: "border-box", overflow: "hidden" }}>
           
           {/* TAB 1: COMMAND CENTER (HUD & OPERATIONS) */}
-          {/* TAB 1: COMMAND CENTER (HUD & OPERATIONS) */}
           {activeTab === "center" && (
-            <div style={{ display: "grid", gridTemplateColumns: "250px 1fr 340px", gap: "16px", height: "100%", overflow: "hidden" }}>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
               
-              {/* LEFT COLUMN: THE WORLD IS ALIVE */}
-              <div className="panel" style={{
-                background: "#050505", border: "1px solid rgba(255, 77, 77, 0.25)",
-                padding: "16px", display: "flex", flexDirection: "column", justifyItems: "center",
-                justifyContent: "space-between", overflow: "hidden", position: "relative"
-              }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px", overflowY: "auto", paddingRight: "4px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
-                    03 // THE WORLD
-                  </div>
-                  
-                  <h2 style={{ fontSize: "22px", fontFamily: "var(--title-font)", fontWeight: "900", color: "var(--accent)", letterSpacing: "0.02em", margin: "2px 0 0 0", lineHeight: "1.1" }}>
-                    THE WORLD <br/><span style={{ color: "#fff" }}>IS ALIVE</span>
-                  </h2>
-
-                  <p style={{ fontSize: "11px", color: "var(--text-dim)", lineHeight: "1.4", margin: "4px 0" }}>
-                    Explore a dangerous world divided into sectors. Every region has its own threats, resources, opportunities and secrets.
-                  </p>
-
-                  {/* Bullet indicators */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "8px" }}>
-                    {[
-                      { title: "DYNAMIC SECTORS", desc: "The situation changes. Outbreaks spread. New threats emerge.", icon: "☣️" },
-                      { title: "VALUABLE RESOURCES", desc: "Scavenge, secure and manage critical resources to survive.", icon: "📦" },
-                      { title: "STRATEGIC MISSIONS", desc: "Each mission affects the world. Your decisions shape the future.", icon: "🎯" },
-                      { title: "FACTION INFLUENCE", desc: "Factions fight for control. Your reputation opens doors.", icon: "🤝" },
-                      { title: "GLOBAL THREATS", desc: "From viruses to disasters. Humanity faces extinction vectors.", icon: "🚨" }
-                    ].map((item, idx) => (
-                      <div key={idx} style={{ display: "flex", gap: "8px" }}>
-                        <span style={{ fontSize: "12px", filter: "drop-shadow(0 0 3px var(--accent))" }}>{item.icon}</span>
-                        <div>
-                          <h4 style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#fff", margin: 0, fontWeight: "bold" }}>{item.title}</h4>
-                          <p style={{ fontSize: "9.5px", color: "var(--text-muted)", margin: "2px 0 0 0", lineHeight: "1.3" }}>{item.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Bottom indicators */}
-                <div style={{ borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontFamily: "var(--mono)", fontSize: "9px" }}>
-                    <div>
-                      <span style={{ color: "var(--text-muted)", display: "block" }}>WORLD STATUS:</span>
-                      <span style={{ color: "#ff4d4d", fontWeight: "bold" }}>UNSTABLE</span>
-                    </div>
-                    <div>
-                      <span style={{ color: "var(--text-muted)", display: "block" }}>GLOBAL THREAT:</span>
-                      <span style={{ color: "#ff4d4d", fontWeight: "bold" }}>SEVERE</span>
-                    </div>
-                  </div>
-                  {/* Small wave simulator graphic */}
-                  <div style={{ height: "20px", background: "rgba(255,0,0,0.04)", border: "1px solid rgba(255,0,0,0.1)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
-                    <div style={{ width: "100%", height: "2px", background: "var(--accent)", position: "absolute", opacity: 0.15 }} />
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "7.5px", color: "var(--accent-dim)" }}>[ BIOMETRICS SCAN STEADY ]</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* CENTER COLUMN: MAP WINDOW */}
+              {/* TOP SECTION: EVOLVING WORLD MAP WITH SVG SHAPES */}
               <div className="panel holo-noise animate-pulse-slow" style={{
-                position: "relative", background: "#050505", border: "2px solid rgba(255, 77, 77, 0.3)",
-                boxShadow: "0 0 30px rgba(0, 0, 0, 0.9)", display: "flex", flexDirection: "column",
-                justifyItems: "center", justifyContent: "space-between", padding: "12px", overflow: "hidden"
+                position: "relative", padding: "12px", height: "55%", minHeight: "300px", background: "#050505",
+                border: "2px solid rgba(255, 77, 77, 0.3)", boxShadow: "0 0 30px rgba(0, 0, 0, 0.9)",
+                display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "space-between",
+                marginBottom: "16px", flexShrink: 0
               }}>
                 <div style={{ position: "absolute", top: "10px", left: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
                 <div style={{ position: "absolute", top: "10px", right: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
@@ -1286,12 +1227,15 @@ export default function OperationsPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ width: "6px", height: "6px", background: "#ff4d4d", borderRadius: "50%" }} className="animate-pulse" />
                     <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
-                      RED QUEEN Systems // TACTICAL MAP v2.8.7
+                      CAMPAIGN WORLD MAP OVERVIEW
                     </span>
                   </div>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
+                    GRID SWEEPS: CONTINUOUS // SELECT SECTOR TO VIEW INTEL
+                  </span>
                 </div>
 
-                <div style={{ flex: 1, position: "relative", margin: "6px 0", background: "rgba(0,0,0,0.65)", overflow: "hidden" }}>
+                <div style={{ flex: 1, position: "relative", margin: "6px 0", background: "rgba(0,0,0,0.6)", overflow: "hidden" }}>
                   {mapAlert && (
                     <div style={{
                       position: "absolute", top: "12px", left: "50%", transform: "translateX(-50%)",
@@ -1305,33 +1249,32 @@ export default function OperationsPage() {
 
                   <svg width="100%" height="100%" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" style={{ position: "absolute", top: 0, left: 0 }}>
                     <defs>
-                      <pattern id="map-grid-3" width="25" height="25" patternUnits="userSpaceOnUse">
-                        <path d="M 25 0 L 0 0 0 25" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="0.5"/>
+                      <pattern id="map-grid-2" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.015)" strokeWidth="0.5"/>
                       </pattern>
                     </defs>
-                    <rect width="100%" height="100%" fill="url(#map-grid-3)" />
+                    <rect width="100%" height="100%" fill="url(#map-grid-2)" />
 
                     {/* Radar sweeps */}
-                    <circle cx="500" cy="300" r="140" fill="none" stroke="rgba(255, 77, 77, 0.02)" strokeWidth="0.5" />
-                    <circle cx="500" cy="300" r="280" fill="none" stroke="rgba(255, 77, 77, 0.01)" strokeWidth="0.5" />
-                    <line className="map-scope-circle" x1="500" y1="300" x2="980" y2="300" stroke="rgba(255, 77, 77, 0.04)" strokeWidth="0.5" />
+                    <circle cx="500" cy="300" r="100" fill="none" stroke="rgba(255, 77, 77, 0.02)" strokeWidth="0.5" />
+                    <circle cx="500" cy="300" r="220" fill="none" stroke="rgba(255, 77, 77, 0.01)" strokeWidth="0.5" />
+                    
+                    {/* Scanning radar sweep lines */}
+                    <line className="map-scope-circle" x1="500" y1="300" x2="950" y2="300" stroke="rgba(255, 77, 77, 0.04)" strokeWidth="0.5" />
 
-                    {/* Sector links and route nodes */}
+                    {/* Operational Sector links */}
                     {SECTOR_CONNECTIONS.map((conn, idx) => {
                       const fromUnlocked = profile?.worldState.unlockedSectors.includes(conn.from) || conn.from === "sec-alpha";
                       const toUnlocked = profile?.worldState.unlockedSectors.includes(conn.to) || conn.to === "sec-alpha";
                       const isLineActive = fromUnlocked && toUnlocked;
                       return (
-                        <g key={idx}>
-                          <line
-                            x1={conn.x1} y1={conn.y1} x2={conn.x2} y2={conn.y2}
-                            stroke={isLineActive ? "rgba(0, 255, 204, 0.25)" : "rgba(255, 255, 255, 0.05)"}
-                            strokeWidth={isLineActive ? "2.5" : "1"}
-                            strokeDasharray={isLineActive ? "none" : "5,5"}
-                          />
-                          {/* Dotted path circles on route midpoints */}
-                          <circle cx={(conn.x1 + conn.x2) / 2} cy={(conn.y1 + conn.y2) / 2} r="3" fill={isLineActive ? "#00ffcc" : "#555"} opacity="0.6" />
-                        </g>
+                        <line
+                          key={idx}
+                          x1={conn.x1} y1={conn.y1} x2={conn.x2} y2={conn.y2}
+                          stroke={isLineActive ? "rgba(0, 255, 204, 0.25)" : "rgba(255, 255, 255, 0.05)"}
+                          strokeWidth={isLineActive ? "2" : "1"}
+                          strokeDasharray="4,4"
+                        />
                       );
                     })}
 
@@ -1343,15 +1286,15 @@ export default function OperationsPage() {
                       const completion = getSectorCompletion(sec.id);
 
                       const colorMap = {
-                        LOCKED: "rgba(45,45,45,0.2)",
-                        AVAILABLE: "rgba(0, 255, 204, 0.02)",
-                        IN_PROGRESS: "rgba(0, 255, 204, 0.05)",
-                        SECURED: "rgba(0, 255, 204, 0.12)",
-                        DANGEROUS: "rgba(240, 201, 41, 0.06)",
-                        CRITICAL: "rgba(255, 77, 77, 0.15)"
+                        LOCKED: "rgba(60,60,60,0.15)",
+                        AVAILABLE: "rgba(240, 201, 41, 0.04)",
+                        IN_PROGRESS: "rgba(0, 255, 204, 0.04)",
+                        SECURED: "rgba(0, 255, 204, 0.08)",
+                        DANGEROUS: "rgba(255, 77, 77, 0.06)",
+                        CRITICAL: "rgba(255, 77, 77, 0.12)"
                       };
                       const strokeColor = 
-                        !isUnlocked ? "#333" :
+                        !isUnlocked ? "#333333" :
                         status === "SECURED" ? "#00ffcc" :
                         status === "DANGEROUS" || status === "CRITICAL" ? "#ff4d4d" : "#f0c929";
 
@@ -1378,240 +1321,252 @@ export default function OperationsPage() {
                             }}
                           />
                           
-                          {/* Immersive HUD Label Floating Card */}
-                          <g style={{ pointerEvents: "none" }}>
-                            {/* Card Border Background */}
-                            <rect
-                              x={sec.labelX - 60}
-                              y={sec.labelY - 24}
-                              width="120"
-                              height="48"
-                              rx="3"
-                              fill="rgba(2,2,2,0.85)"
-                              stroke={isSelected ? "var(--accent)" : isUnlocked ? "rgba(0,255,204,0.15)" : "rgba(255,255,255,0.05)"}
-                              strokeWidth="1.5"
-                            />
-                            {/* Inner Faction Indicator Square */}
-                            <rect
-                              x={sec.labelX - 52}
-                              y={sec.labelY - 16}
-                              width="8"
-                              height="8"
-                              fill={strokeColor}
-                            />
-                            <text
-                              x={sec.labelX + 8}
-                              y={sec.labelY - 10}
-                              fill="#fff"
-                              fontSize="9.5px"
-                              fontWeight="900"
-                              fontFamily="var(--mono)"
-                              textAnchor="middle"
-                            >
-                              {sec.name}
-                            </text>
-                            <text
-                              x={sec.labelX}
-                              y={sec.labelY + 8}
-                              fill="rgba(255,255,255,0.6)"
-                              fontSize="7.5px"
-                              fontFamily="var(--mono)"
-                              textAnchor="middle"
-                            >
-                              STABILITY: {completion}%
-                            </text>
-                            <text
-                              x={sec.labelX}
-                              y={sec.labelY + 18}
-                              fill={strokeColor}
-                              fontSize="7.5px"
-                              fontFamily="var(--mono)"
-                              textAnchor="middle"
-                              fontWeight="bold"
-                            >
-                              {!isUnlocked ? "LOCKED" : `THREAT: ${sec.threatLevel.toUpperCase()}`}
-                            </text>
-                          </g>
+                          <text
+                            x={sec.labelX}
+                            y={sec.labelY}
+                            fill={isSelected ? "#fff" : "rgba(255,255,255,0.7)"}
+                            fontSize="11px"
+                            fontWeight="bold"
+                            fontFamily="var(--mono)"
+                            textAnchor="middle"
+                            pointerEvents="none"
+                          >
+                            {sec.name}
+                          </text>
+                          <text
+                            x={sec.labelX}
+                            y={sec.labelY + 14}
+                            fill={strokeColor}
+                            fontSize="8.5px"
+                            fontFamily="var(--mono)"
+                            textAnchor="middle"
+                            pointerEvents="none"
+                          >
+                            {!isUnlocked ? "LOCKED 🔒" : `${completion}% SECURED`}
+                          </text>
                         </g>
                       );
                     })}
                   </svg>
                 </div>
 
-                {/* Legend bar at the bottom */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "6px" }}>
-                  <div style={{ display: "flex", gap: "16px" }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      <span style={{ width: "12px", height: "2px", background: "rgba(0,255,204,0.7)" }} /> SAFE ROUTE
-                    </span>
-                    <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      <span style={{ width: "12px", height: "0", borderBottom: "2px dashed rgba(255,255,255,0.35)" }} /> RISKY ROUTE
-                    </span>
-                    <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      ☣️ OUTBREAK
-                    </span>
-                    <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      📦 RESOURCE NODE
-                    </span>
-                    <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      🏰 STRONGHOLD
-                    </span>
-                  </div>
-                  <span>GRID CONSOLE ONLINE</span>
+                <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "6px" }}>
+                  <span>ACTIVE SECTORS: {sectors.filter(s => profile?.worldState.unlockedSectors.includes(s.id) || s.id === "sec-alpha").length} ONLINE</span>
+                  <span>CAMPAIGN PROGRESS INTEGRATION LOGS [ENGAGED]</span>
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: SECTOR OVERVIEW & MISSION BOARD */}
-              <div className="panel" style={{
-                background: "#050505", border: "1px solid rgba(255, 77, 77, 0.25)",
-                padding: "16px", display: "flex", flexDirection: "column", justifyItems: "center",
-                justifyContent: "space-between", overflow: "hidden", position: "relative"
-              }}>
-                {selectedSector ? (
-                  <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", flexShrink: 0 }}>
-                      <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                          [ SECTOR BRIEFING ]
-                        </span>
-                        <span className={`tag ${getSectorStatus(selectedSector) === "SECURED" ? "tag-green" : "tag-red"}`} style={{ fontSize: "8.5px", padding: "2px 8px" }}>
-                          {getSectorStatus(selectedSector).toUpperCase()}
-                        </span>
-                      </div>
-
-                      <h3 style={{ fontSize: "18px", color: "#fff", margin: "2px 0", letterSpacing: "0.02em", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
-                        {selectedSector.name}
-                      </h3>
-
-                      <p style={{ fontSize: "11px", color: "var(--text-dim)", lineHeight: "1.4", margin: 0 }}>
-                        {selectedSector.description}
-                      </p>
-
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "10px", fontFamily: "var(--mono)", background: "#000", padding: "10px", border: "1px solid rgba(255,255,255,0.03)", marginTop: "4px" }}>
-                        <div>
-                          <span style={{ color: "var(--text-muted)" }}>THREAT:</span>
-                          <div style={{ color: selectedSector.threatLevel === "Severe" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
-                            {selectedSector.threatLevel.toUpperCase()}
-                          </div>
-                        </div>
-                        <div>
-                          <span style={{ color: "var(--text-muted)" }}>ANOMALY:</span>
-                          <div style={{ color: "#fff", fontWeight: "bold", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {profile?.worldState.activeAnomalies[selectedSector.id]?.join(", ") || "None"}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Faction standings list */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>INFLUENCE INDEX:</span>
-                        {Object.keys(profile?.worldState.factionInfluence[selectedSector.id] || {}).map((fid) => {
-                          const score = profile?.worldState.factionInfluence[selectedSector.id]?.[fid] || 0;
-                          const facColor = getFactionColor(fid);
-                          const facName = FACTIONS.find(f => f.id === fid)?.name || fid.toUpperCase();
-                          return (
-                            <div key={fid}>
-                              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "9px", fontFamily: "var(--mono)", color: facColor }}>
-                                <span>{facName}</span>
-                                <span>{score}%</span>
-                              </div>
-                              <div style={{ width: "100%", height: "3px", background: "rgba(255,255,255,0.03)", overflow: "hidden" }}>
-                                <div style={{ width: `${score}%`, height: "100%", background: facColor }} />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+              {/* BOTTOM SECTION: 3-COLUMN CONTROL DECK WITH SECTOR OVERVIEW */}
+              <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1.3fr 1.3fr", gap: "16px", overflow: "hidden", minHeight: "180px" }}>
+                
+                {/* Col 1: Hologram Console & Global alerts */}
+                <div className="panel" style={{
+                  background: "#080808", border: "1px solid rgba(255, 77, 77, 0.25)",
+                  position: "relative", padding: "12px", display: "flex", flexDirection: "column", gap: "8px",
+                  overflow: "hidden"
+                }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                    [ RED QUEEN AI DISPATCH SYSTEM ]
+                  </span>
+                  
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <div className="holo-noise animate-flicker" style={{
+                      height: "64px", width: "64px", background: "rgba(0,0,0,0.6)",
+                      border: "1px dashed rgba(255, 77, 77, 0.2)", display: "flex",
+                      alignItems: "center", justifyContent: "center", flexShrink: 0
+                    }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--accent)", fontWeight: "bold" }}>
+                        [ CORE ]
+                      </span>
                     </div>
 
-                    {/* Missions list section */}
-                    <div style={{ flex: 1, overflowY: "auto", margin: "14px 0", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>OPERATIONS AVAILABLE:</span>
-                      {selectedSectorMissions.map((op) => {
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block" }}>
+                        CAMPAIGN STATUS BRIEFING
+                      </span>
+                      <p style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc", lineHeight: "1.3", margin: "2px 0 0 0" }}>
+                        "Sectors outline mapped. Deploy stim-packs in inventory if health falls to critical levels."
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Scrollable diagnostic log terminal */}
+                  <div style={{
+                    flex: 1, background: "#040404", border: "1px solid #141414", padding: "8px",
+                    fontFamily: "var(--mono)", fontSize: "9px", color: "#666", overflowY: "auto",
+                    display: "flex", flexDirection: "column", gap: "4px"
+                  }}>
+                    {profile?.worldState.globalAlerts.map((log, idx) => (
+                      <div key={idx} style={{ color: "#ff4d4d" }}>▶ {log}</div>
+                    ))}
+                    {aiLogs.map((log, idx) => (
+                      <div key={`ai-${idx}`} style={{ color: log.includes("[WARN]") ? "#ff4d4d" : log.includes("[SYS]") ? "#00ffcc" : "#666" }}>{log}</div>
+                    ))}
+                    <div ref={aiLogsEndRef} />
+                  </div>
+                </div>
+
+                {/* Col 2: Sector Overview panel (intelligence profile) */}
+                <div className="panel" style={{
+                  background: "#080808", border: "1px solid var(--border)",
+                  padding: "14px", display: "flex", flexDirection: "column", gap: "10px", overflow: "hidden"
+                }}>
+                  {selectedSector ? (
+                    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                      
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                            [ SECTOR INTEL OVERVIEW ]
+                          </span>
+                          <span className={`tag ${getSectorStatus(selectedSector) === "SECURED" ? "tag-green" : "tag-red"}`} style={{ fontSize: "8px", padding: "2px 6px" }}>
+                            {getSectorStatus(selectedSector).toUpperCase()}
+                          </span>
+                        </div>
+
+                        <h3 style={{ fontSize: "16px", color: "#fff", margin: "2px 0 4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
+                          {selectedSector.name}
+                        </h3>
+
+                        <p style={{ fontSize: "10.5px", color: "var(--text-dim)", lineHeight: "1.4", margin: 0, height: "45px", overflowY: "auto" }}>
+                          {selectedSector.description}
+                        </p>
+
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "9.5px", fontFamily: "var(--mono)", background: "#0c0c0c", padding: "8px", border: "1px solid rgba(255,255,255,0.03)" }}>
+                          <div>
+                            <span style={{ color: "var(--text-muted)" }}>THREAT RATIO:</span>
+                            <div style={{ color: selectedSector.threatLevel === "Severe" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
+                              {selectedSector.threatLevel.toUpperCase()}
+                            </div>
+                          </div>
+                          <div>
+                            <span style={{ color: "var(--text-muted)" }}>ANOMALIES:</span>
+                            <div style={{ color: "#fff", fontWeight: "bold", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {profile?.worldState.activeAnomalies[selectedSector.id]?.join(", ") || "None"}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Faction Presence indicators */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)" }}>FACTION INFLUENCE INDEX:</span>
+                          {Object.keys(profile?.worldState.factionInfluence[selectedSector.id] || {}).map((fid) => {
+                            const score = profile?.worldState.factionInfluence[selectedSector.id]?.[fid] || 0;
+                            const facName = FACTIONS.find(f => f.id === fid)?.name || fid.toUpperCase();
+                            const facColor = getFactionColor(fid);
+                            return (
+                              <div key={fid}>
+                                <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", color: facColor }}>
+                                  <span>{facName}</span>
+                                  <span>{score}%</span>
+                                </div>
+                                <div style={{ width: "100%", height: "3px", background: "rgba(255,255,255,0.03)", borderRadius: "1px", overflow: "hidden" }}>
+                                  <div style={{ width: `${score}%`, height: "100%", background: facColor }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "6px", display: "flex", justifyItems: "center", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>
+                          RESOURCES: {selectedSector.availableResources.join(", ")}
+                        </span>
+                      </div>
+
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", justifyItems: "center", justifyContent: "center", alignItems: "center", height: "100%" }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>AWAITING SECTOR INTERACTION...</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Col 3: Available Operations list inside selected Sector */}
+                <div className="panel" style={{
+                  background: "#080808", border: "1px solid var(--border)",
+                  padding: "14px", display: "flex", flexDirection: "column", gap: "10px", overflow: "hidden"
+                }}>
+                  <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em", fontWeight: "bold" }}>
+                      [ AVAILABLE OPERATIONS ]
+                    </span>
+                  </div>
+
+                  <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", paddingRight: "4px" }}>
+                    {selectedSectorMissions.length > 0 ? (
+                      selectedSectorMissions.map((op) => {
                         const isSelected = selectedMapSector === op.id;
                         const isLocked = isMissionLocked(op);
                         const isCompleted = profile?.completedMissions.includes(op.id);
-
+                        
                         return (
                           <div
                             key={op.id}
-                            onClick={() => { if (!isLocked) setSelectedMapSector(op.id); }}
+                            onClick={() => {
+                              if (!isLocked) setSelectedMapSector(op.id);
+                            }}
                             style={{
-                              background: isCompleted ? "rgba(0,255,204,0.01)" : isSelected ? "rgba(255,77,77,0.04)" : "#0c0c0c",
-                              border: isSelected ? "1.5px solid var(--accent)" : "1px solid var(--border)",
+                              background: isCompleted 
+                                ? "rgba(0, 255, 204, 0.02)" 
+                                : isSelected 
+                                ? "rgba(255, 77, 77, 0.04)" 
+                                : isLocked 
+                                ? "rgba(255,255,255,0.01)" 
+                                : "#0c0c0c",
+                              border: isSelected 
+                                ? "1.5px solid var(--accent)" 
+                                : isCompleted 
+                                ? "1px solid rgba(0, 255, 204, 0.2)" 
+                                : "1px solid var(--border)",
                               padding: "10px", borderRadius: "2px", cursor: isLocked ? "not-allowed" : "pointer",
-                              opacity: isLocked ? 0.35 : 1, transition: "all 0.15s"
+                              transition: "all 0.15s", display: "flex", gap: "10px", alignItems: "center",
+                              opacity: isLocked ? 0.35 : 1
                             }}
                           >
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                              <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "7.5px", padding: "1px 4px" }}>
-                                {op.difficulty.toUpperCase()}
-                              </span>
-                              <span style={{ fontFamily: "var(--mono)", fontSize: "7.5px", color: "var(--text-muted)" }}>{op.duration}m</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "1px 5px" }}>
+                                  {op.difficulty.toUpperCase()}
+                                </span>
+                                <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>
+                                  {op.duration}m
+                                </span>
+                              </div>
+                              <h4 style={{ fontSize: "11px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {op.title}
+                              </h4>
+                              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
+                                <span>{op.category.toUpperCase()} MISSION</span>
+                                {isLocked && <span style={{ color: "var(--accent)" }}>REQ: Lvl {op.unlockRequirements.level || op.unlockRequirements.bioScore || 1}</span>}
+                              </div>
                             </div>
-                            <h4 style={{ fontSize: "11.5px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {op.title}
-                            </h4>
-                            {isLocked && <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--accent)" }}>GATE: Level {op.unlockRequirements.level || 1}</span>}
                           </div>
                         );
-                      })}
-                    </div>
-
-                    {selectedOperation && selectedOperation.region === selectedSectorId && (
-                      <button
-                        onClick={() => { setActiveMission(selectedOperation); setMissionFlow("briefing"); }}
-                        className="btn btn-primary"
-                        style={{
-                          width: "100%", justifyContent: "center", fontSize: "11.5px", padding: "10px", flexShrink: 0,
-                          background: selectedOperation.recommendedClass === profile?.class ? "#00ffcc" : "var(--accent)",
-                          color: "#000"
-                        }}
-                      >
-                        DEPLOY TO SECTOR 🛰️
-                      </button>
+                      })
+                    ) : (
+                      <div style={{ textAlign: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", marginTop: "20px" }}>
+                        NO OPERATIONS IN SECTOR
+                      </div>
                     )}
                   </div>
-                ) : (
-                  /* DEFAULT STATS BRIEFING COL (when no sector selected) */
-                  <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
-                        RED QUEEN: OPERATIONS
-                      </span>
-                      
-                      <h3 style={{ fontSize: "16px", color: "#fff", margin: "2px 0 6px 0", letterSpacing: "0.02em", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
-                        YOUR DECISIONS CHANGE EVERYTHING.
-                      </h3>
 
-                      {/* Small teaser cards from reference image */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "4px" }}>
-                        {[
-                          { title: "SECURE SECTORS", desc: "Clear threats, stabilize regions and bring hope back to humanity.", icon: "🏢" },
-                          { title: "STOP OUTBREAKS", desc: "Contain deadly outbreaks before they spread beyond control.", icon: "☣️" },
-                          { title: "DISCOVER ANOMALIES", desc: "Uncover the truth behind anomalies and hidden technologies.", icon: "📡" },
-                          { title: "SHAPE THE FUTURE", desc: "Every mission, every choice and every victory moves humanity forward.", icon: "🚀" }
-                        ].map((card, idx) => (
-                          <div key={idx} style={{ background: "#0c0c0c", border: "1px solid var(--border)", padding: "10px", display: "flex", gap: "10px", alignItems: "center" }}>
-                            <span style={{ fontSize: "14px" }}>{card.icon}</span>
-                            <div>
-                              <h4 style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#fff", margin: 0, fontWeight: "bold" }}>{card.title}</h4>
-                              <p style={{ fontSize: "9px", color: "var(--text-muted)", margin: "2.5px 0 0 0", lineHeight: "1.3" }}>{card.desc}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                  {selectedOperation && selectedOperation.region === selectedSectorId && (
+                    <button
+                      onClick={() => { setActiveMission(selectedOperation); setMissionFlow("briefing"); }}
+                      className="btn btn-primary"
+                      style={{
+                        width: "100%", justifyContent: "center", fontSize: "11px", padding: "8px",
+                        background: selectedOperation.recommendedClass === profile?.class ? "#00ffcc" : "var(--accent)",
+                        color: "#000"
+                      }}
+                    >
+                      DEPLOY TO SECTOR 🛰️
+                    </button>
+                  )}
+                </div>
 
-                    <div style={{
-                      background: "rgba(255, 0, 51, 0.05)", border: "1px solid var(--accent)", padding: "12px",
-                      borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--accent)",
-                      textAlign: "center", lineHeight: "1.4"
-                    }} className="animate-flicker">
-                      THE WORLD IS NOT STATIC. <br/>IT REACTS. IT ADAPTS. IT REMEMBERS.
-                    </div>
-                  </div>
-                )}
               </div>
 
             </div>
