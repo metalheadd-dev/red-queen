@@ -202,11 +202,27 @@ export default function OperationsPage() {
 
     // Load inventory & gear
     const inv = loadInventory(identifier, INITIAL_INVENTORY);
-    setInventory(inv);
-
     const gear = loadEquippedGear(identifier);
-    setEquippedGear(gear);
     
+    // Migration: If any gear is equipped, ensure it exists in the inventory array with equipped: true
+    let updatedInv = [...inv];
+    Object.entries(gear).forEach(([slot, item]) => {
+      if (item) {
+        const baseId = item.id.replace(/-equipped$/, "");
+        const alreadyInInv = updatedInv.some(i => i.id.replace(/-equipped$/, "") === baseId && i.equipped);
+        if (!alreadyInInv) {
+          const equippedItem: InventoryItem = {
+            ...item,
+            id: item.id.endsWith("-equipped") ? item.id : `${item.id}-equipped`,
+            equipped: true,
+            qty: 1
+          };
+          updatedInv.push(equippedItem);
+        }
+      }
+    });
+
+    setInventory(updatedInv);
     setLoading(false);
   };
 
@@ -234,6 +250,23 @@ export default function OperationsPage() {
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [!!profile, authIdentifier]);
+
+  // Synchronize equippedGear state and save it whenever inventory is updated
+  useEffect(() => {
+    if (!profile) return;
+    const derived: Record<string, InventoryItem | null> = {
+      Helmet: null, Armor: null, Weapon: null, Utility: null, Medkit: null, Backpack: null, Gadget: null
+    };
+    inventory.forEach(item => {
+      if (item.equipped && item.slot && item.slot !== "None") {
+        derived[item.slot] = item;
+      }
+    });
+    setEquippedGear(derived);
+    
+    const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+    saveEquippedGear(identifier, derived);
+  }, [inventory, !!profile, authIdentifier, publicKey]);
 
   // Handle Onboarding Completion
   const handleOnboardingSubmit = () => {
@@ -521,6 +554,92 @@ export default function OperationsPage() {
     setMissionOutcome(null);
   };
 
+  const equipItemInInventory = (inv: InventoryItem[], itemIdToEquip: string, itemSlot: string, isEquippedAlready: boolean): InventoryItem[] => {
+    let nextInv = inv.map(i => ({ ...i }));
+    
+    // 1. Unequip any item currently equipped in the same slot
+    const currentEquippedIndex = nextInv.findIndex(i => i.equipped && i.slot === itemSlot);
+    if (currentEquippedIndex !== -1) {
+      const currentEquipped = nextInv[currentEquippedIndex];
+      currentEquipped.equipped = false;
+      const baseId = currentEquipped.id.replace(/-equipped$/, "");
+      currentEquipped.id = baseId;
+      
+      // Check if we can merge it with an existing unequipped stack
+      const existingUnequippedIndex = nextInv.findIndex(i => !i.equipped && i.id === baseId);
+      if (existingUnequippedIndex !== -1 && existingUnequippedIndex !== currentEquippedIndex) {
+        nextInv[existingUnequippedIndex].qty += currentEquipped.qty;
+        nextInv.splice(currentEquippedIndex, 1);
+      }
+    }
+
+    // 2. Equip the new item
+    const targetIndex = nextInv.findIndex(i => i.id === itemIdToEquip && !i.equipped);
+    if (targetIndex !== -1) {
+      const targetItem = nextInv[targetIndex];
+      if (targetItem.qty > 1) {
+        // Split the stack
+        targetItem.qty -= 1;
+        const baseId = targetItem.id.replace(/-equipped$/, "");
+        const equippedItem: InventoryItem = {
+          ...targetItem,
+          id: `${baseId}-equipped`,
+          qty: 1,
+          equipped: true,
+        };
+        nextInv.push(equippedItem);
+      } else {
+        // Just mark it as equipped
+        targetItem.equipped = true;
+        const baseId = targetItem.id.replace(/-equipped$/, "");
+        targetItem.id = `${baseId}-equipped`;
+      }
+    }
+
+    return nextInv;
+  };
+
+  const unequipItemInInventory = (inv: InventoryItem[], slotName: string): InventoryItem[] => {
+    let nextInv = inv.map(i => ({ ...i }));
+    const targetIndex = nextInv.findIndex(i => i.equipped && i.slot === slotName);
+    if (targetIndex !== -1) {
+      const targetItem = nextInv[targetIndex];
+      targetItem.equipped = false;
+      const baseId = targetItem.id.replace(/-equipped$/, "");
+      targetItem.id = baseId;
+
+      // Check if we can merge it with an existing unequipped stack
+      const existingUnequippedIndex = nextInv.findIndex(i => !i.equipped && i.id === baseId);
+      if (existingUnequippedIndex !== -1 && existingUnequippedIndex !== targetIndex) {
+        nextInv[existingUnequippedIndex].qty += targetItem.qty;
+        nextInv.splice(targetIndex, 1);
+      }
+    }
+    return nextInv;
+  };
+
+  const updateSelectedAfterInventoryChange = (newInv: InventoryItem[], oldItem: InventoryItem | null, actionType: "equip" | "unequip" | "upgrade" | "use") => {
+    if (!oldItem) return null;
+    const baseId = oldItem.id.replace(/-equipped$/, "");
+    
+    if (actionType === "equip") {
+      const found = newInv.find(i => i.equipped && i.id.replace(/-equipped$/, "") === baseId);
+      return found || null;
+    }
+    
+    if (actionType === "unequip") {
+      const found = newInv.find(i => !i.equipped && i.id.replace(/-equipped$/, "") === baseId);
+      return found || null;
+    }
+
+    if (actionType === "upgrade" || actionType === "use") {
+      const found = newInv.find(i => i.id === oldItem.id);
+      return found || null;
+    }
+    
+    return null;
+  };
+
   // Check if item meets class and faction reputation requirements
   const canEquipItem = (item: InventoryItem) => {
     if (!profile) return { can: false, reason: "No profile loaded" };
@@ -559,57 +678,28 @@ export default function OperationsPage() {
     const slot = item.slot;
     if (slot === "None") return;
 
-    const currentEquipped = equippedGear[slot];
-    const newEquipped = { ...equippedGear, [slot]: item };
-    
-    let newInventory = inventory.map(i => {
-      if (i.id === item.id) {
-        return { ...i, qty: i.qty - 1 };
-      }
-      return i;
-    }).filter(i => i.qty > 0);
-
-    if (currentEquipped) {
-      const existing = newInventory.find(i => i.id === currentEquipped.id);
-      if (existing) {
-        existing.qty += 1;
-      } else {
-        newInventory = [...newInventory, { ...currentEquipped, qty: 1 }];
-      }
-    }
-
-    setEquippedGear(newEquipped);
+    const newInventory = equipItemInInventory(inventory, item.id, slot, item.equipped || false);
     setInventory(newInventory);
-    setSelectedInventoryItem(null);
+    
+    const updatedSelection = updateSelectedAfterInventoryChange(newInventory, item, "equip");
+    setSelectedInventoryItem(updatedSelection);
 
     // Persist
     saveInventory(identifier, newInventory);
-    saveEquippedGear(identifier, newEquipped);
   };
 
   const handleUnequip = (slotName: string) => {
     if (!profile) return;
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
     
-    const item = equippedGear[slotName];
-    if (!item) return;
-
-    const newEquipped = { ...equippedGear, [slotName]: null };
-    
-    let newInventory = [...inventory];
-    const existing = newInventory.find(i => i.id === item.id);
-    if (existing) {
-      existing.qty += 1;
-    } else {
-      newInventory = [...newInventory, { ...item, qty: 1 }];
-    }
-
-    setEquippedGear(newEquipped);
+    const newInventory = unequipItemInInventory(inventory, slotName);
     setInventory(newInventory);
+
+    const updatedSelection = updateSelectedAfterInventoryChange(newInventory, selectedInventoryItem, "unequip");
+    setSelectedInventoryItem(updatedSelection);
 
     // Persist
     saveInventory(identifier, newInventory);
-    saveEquippedGear(identifier, newEquipped);
   };
 
   // Use consumable Medkit/Stim
@@ -2631,7 +2721,7 @@ export default function OperationsPage() {
                   </div>
                 ) : (() => {
                   const equippedItem = equippedGear[selectedInventoryItem.slot];
-                  const isEquipped = equippedItem?.id === selectedInventoryItem.id;
+                  const isEquipped = selectedInventoryItem.equipped === true;
                   const itemColor = getRarityStyle(selectedInventoryItem.rarity).color;
                   
                   if (isEquipped) {
@@ -2921,20 +3011,36 @@ export default function OperationsPage() {
                 <div style={{ flex: 1, overflowY: "auto", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(64px, 1fr))", gap: "8px", alignContent: "start", paddingRight: "4px" }}>
                   {filteredInventory.map((item) => {
                     const rarityStyle = getRarityStyle(item.rarity);
-                    const isSelected = selectedInventoryItem?.id === item.id;
+                    const isSelected = selectedInventoryItem?.id === item.id && selectedInventoryItem?.equipped === item.equipped;
                     
                     return (
                       <button
                         key={item.id}
                         onClick={() => setSelectedInventoryItem(item)}
                         style={{
-                          aspectRatio: "1", background: rarityStyle.bg, border: isSelected ? "2px solid #fff" : rarityStyle.border,
+                          aspectRatio: "1", 
+                          background: item.equipped ? "rgba(0, 255, 204, 0.08)" : rarityStyle.bg, 
+                          border: isSelected 
+                            ? "2px solid #fff" 
+                            : item.equipped 
+                              ? "2px solid var(--accent)" 
+                              : rarityStyle.border,
                           cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center",
                           justifyContent: "center", position: "relative", padding: "4px", borderRadius: "2px"
                         }}
                       >
                         <span style={{ position: "absolute", top: "4px", right: "4px", width: "4px", height: "4px", borderRadius: "50%", background: rarityStyle.color }} />
                         
+                        {item.equipped && (
+                          <span style={{
+                            position: "absolute", top: "2px", left: "4px", fontFamily: "var(--mono)",
+                            fontSize: "7.5px", color: "var(--accent)", fontWeight: "bold", background: "rgba(0,0,0,0.85)",
+                            padding: "0px 2px", border: "1px solid var(--accent)", borderRadius: "1px"
+                          }}>
+                            EQ
+                          </span>
+                        )}
+
                         <span style={{ fontSize: "18px" }}>
                           {item.type === "weapon" ? "🔫" : item.slot === "Helmet" ? "🪖" : item.type === "armor" ? "🛡️" : item.type === "material" ? "📦" : "🧪"}
                         </span>
@@ -2945,7 +3051,7 @@ export default function OperationsPage() {
                         }}>
                           {item.name.split(" ")[0]}
                         </span>
-
+ 
                         {item.qty > 1 && (
                           <span style={{
                             position: "absolute", bottom: "2px", right: "4px", fontFamily: "var(--mono)",

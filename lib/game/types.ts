@@ -177,6 +177,7 @@ export interface InventoryItem {
   itemLevel: number;
   stats: Record<string, string | number>;
   category: "Weapons" | "Armor" | "Medical" | "Tools" | "Materials" | "Mission Items";
+  equipped?: boolean;                  // Indicates whether the item is currently equipped
   // ─── Milestone 2 Survival Parameters ───
   weight?: number;                      // weight in kg
   durability?: number;                  // current durability (0-100)
