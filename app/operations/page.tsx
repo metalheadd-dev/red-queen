@@ -8,7 +8,7 @@ import { DEFAULT_STATS, UserStats, calculateBioScore, getClearanceLevel } from "
 
 // Game Types & Data imports
 import { Sector, Mission, InventoryItem, OperativeProfile } from "@/lib/game/types";
-import { INITIAL_SECTORS, INITIAL_MISSIONS, INITIAL_INVENTORY } from "@/lib/game/data";
+import { INITIAL_SECTORS, INITIAL_MISSIONS, INITIAL_INVENTORY, SECTOR_CONNECTIONS } from "@/lib/game/data";
 import {
   loadProfile,
   saveProfile,
@@ -16,7 +16,8 @@ import {
   loadInventory,
   saveInventory,
   loadEquippedGear,
-  saveEquippedGear
+  saveEquippedGear,
+  DEFAULT_WORLD_STATE
 } from "@/lib/game/service";
 
 // Factions details list
@@ -76,21 +77,35 @@ export default function OperationsPage() {
   const [activeTab, setActiveTab] = useState<"center" | "profile" | "inventory">("center");
 
   // Map and Selected Sector selection
+  const [selectedSectorId, setSelectedSectorId] = useState<string>("sec-alpha");
   const [selectedMapSector, setSelectedMapSector] = useState<string>("op-1-sanctuary-search");
   const [mapAlert, setMapAlert] = useState<string | null>(null);
 
   // Active Mission Simulation flow states
   const [activeMission, setActiveMission] = useState<Mission | null>(null);
   const [missionFlow, setMissionFlow] = useState<"briefing" | "deployment" | "connection" | "decision" | "debriefing" | "rewards" | null>(null);
+  
+  // Multi-event stages tracking
+  const [currentEventIndex, setCurrentEventIndex] = useState(0);
+  const [eventOutcomeText, setEventOutcomeText] = useState<string | null>(null);
+  const [eventResolved, setEventResolved] = useState(false);
+  const [cumulativeRewards, setCumulativeRewards] = useState({
+    xp: 0,
+    credits: 0,
+    resources: {} as Record<string, number>,
+    injury: 0,
+    reputationBonus: 0
+  });
+
   const [deploymentLogs, setDeploymentLogs] = useState<string[]>([]);
   const [deploymentProgress, setDeploymentProgress] = useState(0);
   const [selectedOption, setSelectedOption] = useState<any>(null);
-  const [missionOutcome, setMissionOutcome] = useState<"SUCCESS" | "FAILURE" | null>(null);
+  const [missionOutcome, setMissionOutcome] = useState<"SUCCESS" | "PARTIAL" | "FAILURE" | "CRITICAL_FAILURE" | null>(null);
   const [outcomeCommentary, setOutcomeCommentary] = useState("");
-  const [outcomeRewards, setOutcomeRewards] = useState<any>(null);
   const [levelUpMessage, setLevelUpMessage] = useState<string | null>(null);
+  const [worldEventsMessage, setWorldEventsMessage] = useState<string | null>(null);
 
-  // Connection and handshake logs
+  // Connection logs
   const [connectionLogs, setConnectionLogs] = useState<string[]>([]);
 
   // Immersive AI console telemetry streaming log
@@ -157,7 +172,6 @@ export default function OperationsPage() {
   useEffect(() => {
     loadGameData();
     
-    // Fetch dynamic operations list if needed, or stick to our modular INITIAL_MISSIONS list
     setLoadingOps(true);
     setTimeout(() => {
       setLoadingOps(false);
@@ -209,18 +223,30 @@ export default function OperationsPage() {
       },
       achievements: [],
       missionHistory: [],
-      sectorDiscoveries: ["sec-alpha", "sec-beta"]
+      sectorDiscoveries: ["sec-alpha", "sec-beta", "sec-delta"],
+      health: 100,
+      worldState: { ...DEFAULT_WORLD_STATE }
     };
     
     saveProfile(identifier, initialProfile);
     setProfile(initialProfile);
   };
 
-  // Tickers & steps sequence triggers
+  // Deployment sequences tickers
   const runDeployment = (op: Mission) => {
     setMissionFlow("deployment");
     setDeploymentProgress(0);
     setDeploymentLogs([]);
+    setCurrentEventIndex(0);
+    setEventResolved(false);
+    setEventOutcomeText(null);
+    setCumulativeRewards({
+      xp: 0,
+      credits: 0,
+      resources: {},
+      injury: 0,
+      reputationBonus: 0
+    });
     
     const logSteps = [
       `[SYS_INIT] CONNECTING TO SATELLITE NETWORK ROUTE...`,
@@ -273,43 +299,94 @@ export default function OperationsPage() {
     }, 600);
   };
 
-  // Option Choice Handler
-  const handleSelectOption = (option: any) => {
-    if (!option) return;
-    setSelectedOption(option);
+  // Event Choice Handler
+  const handleSelectOption = (choice: any) => {
+    if (!profile || !activeMission) return;
+    setSelectedOption(choice);
     
-    let baseProb = option.success_prob || 50;
+    let baseProb = choice.success_prob || 50;
     let matchingBonus = 0;
     
-    if (option.class_bonus?.classId === profile?.class) {
-      matchingBonus = option.class_bonus.bonus || 15;
+    if (choice.class_bonus?.classId === profile.class) {
+      matchingBonus = choice.class_bonus.bonus || 15;
     }
     
-    const totalProb = Math.min(95, baseProb + matchingBonus);
+    const finalChance = Math.min(95, baseProb + matchingBonus);
     const roll = Math.floor(Math.random() * 100) + 1;
-    const isSuccess = roll <= totalProb;
+    const success = roll <= finalChance;
     
-    setMissionOutcome(isSuccess ? "SUCCESS" : "FAILURE");
-    
-    if (isSuccess) {
-      setOutcomeCommentary(
-        `[RED QUEEN AI DEBRIEFING]\n"Tactical response successful. Choice [${option.text}] matches expected behavior metrics. Anomaly resolved within acceptable safety thresholds. Progression registered."`
-      );
-      setOutcomeRewards(option.stat_gains);
+    const reward = choice.effects;
+
+    // Accumulate results
+    setCumulativeRewards(prev => {
+      const nextResources = { ...prev.resources };
+      if (reward.resource) {
+        nextResources[reward.resource] = (nextResources[reward.resource] || 0) + (success ? (reward.resourceQty || 1) : 0);
+      }
+      return {
+        xp: prev.xp + (success ? reward.xp : Math.floor(reward.xp / 2)),
+        credits: prev.credits + (success ? reward.credits : Math.floor(reward.credits / 3)),
+        injury: prev.injury + (success ? 0 : (reward.injury || 0)),
+        reputationBonus: prev.reputationBonus + (success ? (reward.reputationBonus || 0) : 0),
+        resources: nextResources
+      };
+    });
+
+    if (success) {
+      setEventOutcomeText(`[SUCCESS] ${choice.success_text}`);
     } else {
-      setOutcomeCommentary(
-        `[RED QUEEN AI DEBRIEFING]\n"Tactical error detected. Choice [${option.text}] caused signal collapse and system feedback. Anomaly mitigated with sub-optimal results. Return to Command Center for further diagnostic training."`
-      );
-      setOutcomeRewards({
-        xp: Math.floor((option.stat_gains?.xp || 20) / 2),
-        credits: Math.floor((option.stat_gains?.credits || 50) / 3),
-        resource: option.stat_gains?.resource || "Metal",
-        resource_qty: 0,
-        sub_stats: {}
+      const damage = reward.injury || 0;
+      setEventOutcomeText(`[FAILURE] ${choice.failure_text} (Health Impact: -${damage} HP)`);
+      
+      // Deduct health directly in local UI state
+      setProfile(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          health: Math.max(10, prev.health - damage)
+        };
       });
     }
 
-    setMissionFlow("debriefing");
+    setEventResolved(true);
+  };
+
+  // Process next event or debriefing
+  const handleNextEvent = () => {
+    if (!activeMission || !profile) return;
+    
+    // Check if player died during choice
+    if (profile.health <= 10) {
+      setMissionOutcome("FAILURE");
+      setMissionFlow("debriefing");
+      setOutcomeCommentary(
+        `[RED QUEEN AI WARNING]\n"Operative down. Vital bio-signals reached critical threshold. Automatic evacuation teleport triggered. Telemetry recovery failed."`
+      );
+      return;
+    }
+
+    if (currentEventIndex < activeMission.events.length - 1) {
+      setCurrentEventIndex(prev => prev + 1);
+      setEventOutcomeText(null);
+      setEventResolved(false);
+      setSelectedOption(null);
+    } else {
+      // Debriefing calculation
+      const totalInjury = cumulativeRewards.injury;
+      let finalOutcome: "SUCCESS" | "PARTIAL" | "FAILURE" | "CRITICAL_FAILURE" = "SUCCESS";
+      
+      if (totalInjury >= 50) {
+        finalOutcome = "PARTIAL";
+      }
+      
+      setMissionOutcome(finalOutcome);
+      setMissionFlow("debriefing");
+      setOutcomeCommentary(
+        finalOutcome === "SUCCESS"
+          ? `[RED QUEEN AI DEBRIEFING]\n"Target objective secured cleanly. Standing calibrators locked. All parameters green."`
+          : `[RED QUEEN AI DEBRIEFING]\n"Objective achieved but with high stress parameters. Heavy biological impact registered."`
+      );
+    }
   };
 
   // Claim Rewards via service
@@ -317,23 +394,27 @@ export default function OperationsPage() {
     if (!profile || !activeMission) return;
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
 
-    const { updatedProfile, levelUpMessage: lvlMsg } = claimMissionRewards(
+    const unlocksSector = selectedOption?.effects?.unlocksSectorId;
+
+    const { updatedProfile, levelUpMessage: lvlMsg, worldEventsMessage: wldMsg } = claimMissionRewards(
       profile,
       activeMission,
-      missionOutcome === "SUCCESS",
-      outcomeRewards
+      missionOutcome || "SUCCESS",
+      cumulativeRewards,
+      unlocksSector
     );
 
     saveProfile(identifier, updatedProfile);
     setProfile(updatedProfile);
+    
     setLevelUpMessage(lvlMsg);
+    setWorldEventsMessage(wldMsg);
 
     // Reset Flow states
     setActiveMission(null);
     setMissionFlow(null);
     setSelectedOption(null);
     setMissionOutcome(null);
-    setOutcomeRewards(null);
   };
 
   // Swapping inventory slots
@@ -347,9 +428,20 @@ export default function OperationsPage() {
     const currentEquipped = equippedGear[slot];
     const newEquipped = { ...equippedGear, [slot]: item };
     
-    let newInventory = inventory.filter(i => i.id !== item.id);
+    let newInventory = inventory.map(i => {
+      if (i.id === item.id) {
+        return { ...i, qty: i.qty - 1 };
+      }
+      return i;
+    }).filter(i => i.qty > 0);
+
     if (currentEquipped) {
-      newInventory = [...newInventory, currentEquipped];
+      const existing = newInventory.find(i => i.id === currentEquipped.id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        newInventory = [...newInventory, { ...currentEquipped, qty: 1 }];
+      }
     }
 
     setEquippedGear(newEquipped);
@@ -369,7 +461,14 @@ export default function OperationsPage() {
     if (!item) return;
 
     const newEquipped = { ...equippedGear, [slotName]: null };
-    const newInventory = [...inventory, item];
+    
+    let newInventory = [...inventory];
+    const existing = newInventory.find(i => i.id === item.id);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      newInventory = [...newInventory, { ...item, qty: 1 }];
+    }
 
     setEquippedGear(newEquipped);
     setInventory(newInventory);
@@ -377,6 +476,35 @@ export default function OperationsPage() {
     // Persist
     saveInventory(identifier, newInventory);
     saveEquippedGear(identifier, newEquipped);
+  };
+
+  // Use consumable Medkit/Stim
+  const handleUseMedkit = (item: InventoryItem) => {
+    if (!profile || profile.health >= 100) return;
+    const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+
+    const updatedProfile = {
+      ...profile,
+      health: Math.min(100, profile.health + 30)
+    };
+
+    let updatedInventory = inventory.map(i => {
+      if (i.id === item.id) {
+        return { ...i, qty: i.qty - 1 };
+      }
+      return i;
+    }).filter(i => i.qty > 0);
+
+    setProfile(updatedProfile);
+    setInventory(updatedInventory);
+
+    // Save state
+    saveProfile(identifier, updatedProfile);
+    saveInventory(identifier, updatedInventory);
+    setSelectedInventoryItem(null);
+    
+    // Trigger confirm log
+    setAiLogs(prev => [...prev, `[MEDKIT] MEDICAL UPLINK ENGAGED // BIO-HEALTH CALIBRATED TO ${updatedProfile.health} HP`]);
   };
 
   // Resolvers
@@ -411,21 +539,21 @@ export default function OperationsPage() {
     return Math.floor((completedCount / sectorMissions.length) * 100);
   };
 
-  const getSectorStatus = (sector: Sector) => {
+  const getSectorStatus = (sector: Sector): "LOCKED" | "AVAILABLE" | "IN_PROGRESS" | "SECURED" | "DANGEROUS" | "CRITICAL" => {
     if (!profile) return "LOCKED";
     
+    const isUnlocked = profile.worldState.unlockedSectors.includes(sector.id) || sector.id === "sec-alpha";
+    if (!isUnlocked) return "LOCKED";
+
     const sectorMissions = missions.filter(m => m.region === sector.id);
     if (sectorMissions.length > 0 && sectorMissions.every(m => profile.completedMissions.includes(m.id))) {
-      return "COMPLETED";
+      return "SECURED";
     }
+
+    const hasAnyInProgress = sectorMissions.some(m => profile.completedMissions.includes(m.id));
+    if (hasAnyInProgress) return "IN_PROGRESS";
     
-    const hasAnyUnlocked = sectorMissions.some(m => !isMissionLocked(m));
-    if (!hasAnyUnlocked && sectorMissions.length > 0) {
-      return "LOCKED";
-    }
-    
-    const hasIncompleteCritical = sectorMissions.some(m => m.category === "critical" && !profile.completedMissions.includes(m.id));
-    if (hasIncompleteCritical || sector.difficulty === "Hard") {
+    if (sector.threatLevel === "Severe" || sector.threatLevel === "High") {
       return "DANGEROUS";
     }
     
@@ -458,6 +586,8 @@ export default function OperationsPage() {
     });
   };
 
+  const selectedSector = sectors.find(s => s.id === selectedSectorId);
+  const selectedSectorMissions = missions.filter(m => m.region === selectedSectorId);
   const selectedOperation = missions.find(m => m.id === selectedMapSector);
 
   // Filter and Sort inventory items
@@ -932,16 +1062,9 @@ export default function OperationsPage() {
         }
         .map-scope-circle {
           animation: map-scope-spin 20s linear infinite;
-          transform-origin: 50px 50px;
+          transform-origin: 500px 300px;
         }
-        .map-pulse-node {
-          animation: map-node-pulse 2s infinite;
-        }
-        @keyframes map-node-pulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.2); opacity: 0.5; }
-        }
-
+        
         @media (max-width: 1440px) {
           .ops-grid-3-loadout {
             grid-template-columns: 1fr 1.2fr 1.8fr !important;
@@ -980,11 +1103,11 @@ export default function OperationsPage() {
           </div>
           <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
           <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>
-            CLASS: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile?.class?.toUpperCase()}</span>
+            HP: <span style={{ color: (profile?.health || 100) > 30 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>{profile?.health || 100} / 100</span>
           </span>
           <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
           <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>
-            ROLE: <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{profile?.role?.toUpperCase()}</span>
+            DISCIPLINE: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile?.class?.toUpperCase()}</span>
           </span>
         </div>
 
@@ -1082,42 +1205,37 @@ export default function OperationsPage() {
         </aside>
 
         {/* Content Pane - Viewport bound game HUD structure */}
-        <main style={{ flex: 1, padding: "24px", background: "#030303", display: "flex", flexDirection: "column", height: "100%", boxSizing: "border-box", overflow: "hidden" }}>
+        <main style={{ flex: 1, padding: "20px", background: "#030303", display: "flex", flexDirection: "column", height: "100%", boxSizing: "border-box", overflow: "hidden" }}>
           
           {/* TAB 1: COMMAND CENTER (HUD & OPERATIONS) */}
           {activeTab === "center" && (
             <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
               
-              {/* TOP SECTION: DATA-DRIVEN TACTICAL MAP */}
+              {/* TOP SECTION: EVOLVING WORLD MAP WITH SVG SHAPES */}
               <div className="panel holo-noise animate-pulse-slow" style={{
-                position: "relative", padding: "16px", height: "50%", minHeight: "280px", background: "#050505",
+                position: "relative", padding: "12px", height: "55%", minHeight: "300px", background: "#050505",
                 border: "2px solid rgba(255, 77, 77, 0.3)", boxShadow: "0 0 30px rgba(0, 0, 0, 0.9)",
                 display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "space-between",
-                marginBottom: "20px", flexShrink: 0
+                marginBottom: "16px", flexShrink: 0
               }}>
-                {/* Visual Corner Brackets */}
                 <div style={{ position: "absolute", top: "10px", left: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
                 <div style={{ position: "absolute", top: "10px", right: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
                 <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
                 <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
 
-                {/* Map telemetry header */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "6px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ width: "6px", height: "6px", background: "#ff4d4d", borderRadius: "50%" }} className="animate-pulse" />
                     <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
-                      RED QUEEN GLOBAL TACTICAL RADAR GRID
+                      CAMPAIGN WORLD MAP OVERVIEW
                     </span>
                   </div>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>
-                    MAP_UPLINK_STATUS: SECURE // SCANNING...
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
+                    GRID SWEEPS: CONTINUOUS // SELECT SECTOR TO VIEW INTEL
                   </span>
                 </div>
 
-                {/* Interactive Map SVG Canvas */}
-                <div style={{ flex: 1, position: "relative", margin: "10px 0", background: "rgba(0,0,0,0.6)" }}>
-                  
-                  {/* Transient message banner if sector locked clicked */}
+                <div style={{ flex: 1, position: "relative", margin: "6px 0", background: "rgba(0,0,0,0.6)", overflow: "hidden" }}>
                   {mapAlert && (
                     <div style={{
                       position: "absolute", top: "12px", left: "50%", transform: "translateX(-50%)",
@@ -1129,165 +1247,256 @@ export default function OperationsPage() {
                     </div>
                   )}
 
-                  <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", top: 0, left: 0 }}>
+                  <svg width="100%" height="100%" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" style={{ position: "absolute", top: 0, left: 0 }}>
                     <defs>
-                      <pattern id="map-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.015)" strokeWidth="0.5"/>
+                      <pattern id="map-grid-2" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.015)" strokeWidth="0.5"/>
                       </pattern>
                     </defs>
-                    <rect width="100%" height="100%" fill="url(#map-grid)" />
+                    <rect width="100%" height="100%" fill="url(#map-grid-2)" />
 
                     {/* Radar sweeps */}
-                    <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255, 77, 77, 0.03)" strokeWidth="0.5" />
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255, 77, 77, 0.02)" strokeWidth="0.5" />
-                    <circle cx="50" cy="50" r="15" fill="none" stroke="rgba(255, 77, 77, 0.04)" strokeWidth="0.5" />
+                    <circle cx="500" cy="300" r="100" fill="none" stroke="rgba(255, 77, 77, 0.02)" strokeWidth="0.5" />
+                    <circle cx="500" cy="300" r="220" fill="none" stroke="rgba(255, 77, 77, 0.01)" strokeWidth="0.5" />
                     
                     {/* Scanning radar sweep lines */}
-                    <line className="map-scope-circle" x1="50" y1="50" x2="95" y2="50" stroke="rgba(255, 77, 77, 0.06)" strokeWidth="0.5" />
-                  </svg>
+                    <line className="map-scope-circle" x1="500" y1="300" x2="950" y2="300" stroke="rgba(255, 77, 77, 0.04)" strokeWidth="0.5" />
 
-                  {/* DATA-DRIVEN INTERACTIVE SECTOR NODES */}
-                  {sectors.map((sec) => {
-                    const status = getSectorStatus(sec);
-                    const isSelected = selectedOperation?.region === sec.id;
-                    const completion = getSectorCompletion(sec.id);
-                    
-                    const statusColor = 
-                      status === "LOCKED" ? "#555555" : 
-                      status === "COMPLETED" ? "#00ffcc" : 
-                      status === "DANGEROUS" ? "#ff4d4d" : "#f0c929";
-                    
-                    return (
-                      <div
-                        key={sec.id}
-                        style={{
-                          position: "absolute",
-                          left: sec.x,
-                          top: sec.y,
-                          transform: "translate(-50%, -50%)",
-                          zIndex: 5
-                        }}
-                      >
-                        <button
-                          onClick={() => {
-                            if (status === "LOCKED") {
-                              setMapAlert(`ACCESS DENIED // ${sec.name} IS LOCKED // LEVEL CHECK REQUIRED`);
-                              setTimeout(() => setMapAlert(null), 3000);
-                            } else {
-                              const firstMission = missions.find(m => m.region === sec.id && !isMissionLocked(m));
-                              if (firstMission) {
-                                setSelectedMapSector(firstMission.id);
+                    {/* Operational Sector links */}
+                    {SECTOR_CONNECTIONS.map((conn, idx) => {
+                      const fromUnlocked = profile?.worldState.unlockedSectors.includes(conn.from) || conn.from === "sec-alpha";
+                      const toUnlocked = profile?.worldState.unlockedSectors.includes(conn.to) || conn.to === "sec-alpha";
+                      const isLineActive = fromUnlocked && toUnlocked;
+                      return (
+                        <line
+                          key={idx}
+                          x1={conn.x1} y1={conn.y1} x2={conn.x2} y2={conn.y2}
+                          stroke={isLineActive ? "rgba(0, 255, 204, 0.25)" : "rgba(255, 255, 255, 0.05)"}
+                          strokeWidth={isLineActive ? "2" : "1"}
+                          strokeDasharray="4,4"
+                        />
+                      );
+                    })}
+
+                    {/* Interactive SVG outline polygons representing territories */}
+                    {sectors.map((sec) => {
+                      const isUnlocked = profile?.worldState.unlockedSectors.includes(sec.id) || sec.id === "sec-alpha";
+                      const isSelected = selectedSectorId === sec.id;
+                      const status = getSectorStatus(sec);
+                      const completion = getSectorCompletion(sec.id);
+
+                      const colorMap = {
+                        LOCKED: "rgba(60,60,60,0.15)",
+                        AVAILABLE: "rgba(240, 201, 41, 0.04)",
+                        IN_PROGRESS: "rgba(0, 255, 204, 0.04)",
+                        SECURED: "rgba(0, 255, 204, 0.08)",
+                        DANGEROUS: "rgba(255, 77, 77, 0.06)",
+                        CRITICAL: "rgba(255, 77, 77, 0.12)"
+                      };
+                      const strokeColor = 
+                        !isUnlocked ? "#333333" :
+                        status === "SECURED" ? "#00ffcc" :
+                        status === "DANGEROUS" || status === "CRITICAL" ? "#ff4d4d" : "#f0c929";
+
+                      return (
+                        <g key={sec.id}>
+                          <polygon
+                            points={sec.points}
+                            fill={isSelected ? "rgba(255, 77, 77, 0.15)" : colorMap[status] || "none"}
+                            stroke={isSelected ? "var(--accent)" : strokeColor}
+                            strokeWidth={isSelected ? "2.5" : "1.5"}
+                            style={{ cursor: isUnlocked ? "pointer" : "not-allowed", transition: "all 0.18s" }}
+                            onClick={() => {
+                              if (!isUnlocked) {
+                                setMapAlert(`SECTOR SYSTEM GATE LOCKED // PROGRESS CAMPAIGN TO DECRYPT`);
+                                setTimeout(() => setMapAlert(null), 3500);
+                              } else {
+                                setSelectedSectorId(sec.id);
+                                // select first mission in that sector
+                                const sectorMissions = missions.filter(m => m.region === sec.id);
+                                if (sectorMissions.length > 0) {
+                                  setSelectedMapSector(sectorMissions[0].id);
+                                }
                               }
-                            }
-                          }}
-                          style={{
-                            background: "none", border: "none", padding: 0, cursor: status === "LOCKED" ? "not-allowed" : "pointer",
-                            display: "flex", flexDirection: "column", alignItems: "center",
-                            opacity: status === "LOCKED" ? 0.35 : 1
-                          }}
-                        >
-                          <span
-                            className={status !== "LOCKED" ? "map-pulse-node" : ""}
-                            style={{
-                              width: "12px", height: "12px", background: statusColor, borderRadius: "50%",
-                              border: isSelected ? "3px solid #fff" : `2px solid ${statusColor}`,
-                              boxShadow: status !== "LOCKED" ? `0 0 10px ${statusColor}` : "none"
                             }}
                           />
-                          <span style={{
-                            fontFamily: "var(--mono)", fontSize: "9px", color: isSelected ? "#fff" : "var(--text-dim)",
-                            marginTop: "4px", background: "rgba(0,0,0,0.85)", padding: "1px 6px",
-                            border: "1px solid rgba(255,255,255,0.06)", whiteSpace: "nowrap"
-                          }}>
-                            {sec.name} {status === "LOCKED" ? "🔒" : `(${completion}%)`}
-                          </span>
-                        </button>
-                      </div>
-                    );
-                  })}
-
+                          
+                          <text
+                            x={sec.labelX}
+                            y={sec.labelY}
+                            fill={isSelected ? "#fff" : "rgba(255,255,255,0.7)"}
+                            fontSize="11px"
+                            fontWeight="bold"
+                            fontFamily="var(--mono)"
+                            textAnchor="middle"
+                            pointerEvents="none"
+                          >
+                            {sec.name}
+                          </text>
+                          <text
+                            x={sec.labelX}
+                            y={sec.labelY + 14}
+                            fill={strokeColor}
+                            fontSize="8.5px"
+                            fontFamily="var(--mono)"
+                            textAnchor="middle"
+                            pointerEvents="none"
+                          >
+                            {!isUnlocked ? "LOCKED 🔒" : `${completion}% SECURED`}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
                 </div>
 
-                {/* Map footer coordinates */}
-                <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "10px" }}>
-                  <span>ACTIVE SECTORS: {sectors.filter(s => getSectorStatus(s) !== "LOCKED").length} ONLINE // {sectors.filter(s => getSectorStatus(s) === "LOCKED").length} OFFLINE</span>
-                  <span>DEC. GRID SYSTEM SWAP BUFFER [ONLINE]</span>
+                <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "6px" }}>
+                  <span>ACTIVE SECTORS: {sectors.filter(s => profile?.worldState.unlockedSectors.includes(s.id) || s.id === "sec-alpha").length} ONLINE</span>
+                  <span>CAMPAIGN PROGRESS INTEGRATION LOGS [ENGAGED]</span>
                 </div>
               </div>
 
-              {/* BOTTOM SECTION: 3-COLUMN CONTROL DECK (50% height) */}
-              <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1.3fr 1.3fr", gap: "20px", overflow: "hidden", minHeight: "200px" }}>
+              {/* BOTTOM SECTION: 3-COLUMN CONTROL DECK WITH SECTOR OVERVIEW */}
+              <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1.3fr 1.3fr", gap: "16px", overflow: "hidden", minHeight: "180px" }}>
                 
-                {/* Col 1: Red Queen AI Console & Live Diagnostic log */}
+                {/* Col 1: Hologram Console & Global alerts */}
                 <div className="panel" style={{
                   background: "#080808", border: "1px solid rgba(255, 77, 77, 0.25)",
-                  position: "relative", padding: "16px", display: "flex", flexDirection: "column", gap: "12px",
+                  position: "relative", padding: "12px", display: "flex", flexDirection: "column", gap: "8px",
                   overflow: "hidden"
                 }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                    [ RED QUEEN HOLOGRAM CONSOLE ]
+                    [ RED QUEEN AI DISPATCH SYSTEM ]
                   </span>
                   
-                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                     <div className="holo-noise animate-flicker" style={{
-                      height: "80px", width: "80px", background: "rgba(0,0,0,0.6)",
+                      height: "64px", width: "64px", background: "rgba(0,0,0,0.6)",
                       border: "1px dashed rgba(255, 77, 77, 0.2)", display: "flex",
-                      alignItems: "center", justifyContent: "center", position: "relative",
-                      overflow: "hidden", flexShrink: 0
+                      alignItems: "center", justifyContent: "center", flexShrink: 0
                     }}>
-                      <div style={{
-                        position: "absolute", top: 0, left: 0, width: "100%", height: "2px",
-                        background: "rgba(255,77,77,0.4)", animation: "scanlines-scrolling 2s linear infinite"
-                      }} />
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--accent)", fontWeight: "bold" }}>
-                        [ AI CORE ]
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--accent)", fontWeight: "bold" }}>
+                        [ CORE ]
                       </span>
                     </div>
 
                     <div style={{ flex: 1 }}>
                       <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block" }}>
-                        DISPATCH UPLINK RECOMMENDATION
+                        CAMPAIGN STATUS BRIEFING
                       </span>
-                      <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", lineHeight: "1.4", margin: "2px 0 0 0" }}>
-                        "Decoupled telemetry service loaded. Complete operational contracts to calibrate standing standings."
+                      <p style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc", lineHeight: "1.3", margin: "2px 0 0 0" }}>
+                        "Sectors outline mapped. Deploy stim-packs in inventory if health falls to critical levels."
                       </p>
                     </div>
                   </div>
 
                   {/* Scrollable diagnostic log terminal */}
                   <div style={{
-                    flex: 1, background: "#040404", border: "1px solid #141414", padding: "10px",
+                    flex: 1, background: "#040404", border: "1px solid #141414", padding: "8px",
                     fontFamily: "var(--mono)", fontSize: "9px", color: "#666", overflowY: "auto",
                     display: "flex", flexDirection: "column", gap: "4px"
                   }}>
+                    {profile?.worldState.globalAlerts.map((log, idx) => (
+                      <div key={idx} style={{ color: "#ff4d4d" }}>▶ {log}</div>
+                    ))}
                     {aiLogs.map((log, idx) => (
-                      <div key={idx} style={{ color: log.includes("[WARN]") ? "#ff4d4d" : log.includes("[SYS]") ? "#00ffcc" : "#666" }}>{log}</div>
+                      <div key={`ai-${idx}`} style={{ color: log.includes("[WARN]") ? "#ff4d4d" : log.includes("[SYS]") ? "#00ffcc" : "#666" }}>{log}</div>
                     ))}
                     <div ref={aiLogsEndRef} />
                   </div>
                 </div>
 
-                {/* Col 2: Mission Browser Scroll-deck */}
+                {/* Col 2: Sector Overview panel (intelligence profile) */}
                 <div className="panel" style={{
                   background: "#080808", border: "1px solid var(--border)",
-                  padding: "16px", display: "flex", flexDirection: "column", gap: "12px", overflow: "hidden"
+                  padding: "14px", display: "flex", flexDirection: "column", gap: "10px", overflow: "hidden"
                 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "6px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                      [ AVAILABLE OPERATIONS BROWSER ]
-                    </span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)" }}>
-                      COUNT: {missions.length}
+                  {selectedSector ? (
+                    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                      
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                            [ SECTOR INTEL OVERVIEW ]
+                          </span>
+                          <span className={`tag ${getSectorStatus(selectedSector) === "SECURED" ? "tag-green" : "tag-red"}`} style={{ fontSize: "8px", padding: "2px 6px" }}>
+                            {getSectorStatus(selectedSector).toUpperCase()}
+                          </span>
+                        </div>
+
+                        <h3 style={{ fontSize: "16px", color: "#fff", margin: "2px 0 4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
+                          {selectedSector.name}
+                        </h3>
+
+                        <p style={{ fontSize: "10.5px", color: "var(--text-dim)", lineHeight: "1.4", margin: 0, height: "45px", overflowY: "auto" }}>
+                          {selectedSector.description}
+                        </p>
+
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "9.5px", fontFamily: "var(--mono)", background: "#0c0c0c", padding: "8px", border: "1px solid rgba(255,255,255,0.03)" }}>
+                          <div>
+                            <span style={{ color: "var(--text-muted)" }}>THREAT RATIO:</span>
+                            <div style={{ color: selectedSector.threatLevel === "Severe" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
+                              {selectedSector.threatLevel.toUpperCase()}
+                            </div>
+                          </div>
+                          <div>
+                            <span style={{ color: "var(--text-muted)" }}>ANOMALIES:</span>
+                            <div style={{ color: "#fff", fontWeight: "bold", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {profile?.worldState.activeAnomalies[selectedSector.id]?.join(", ") || "None"}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Faction Presence indicators */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)" }}>FACTION INFLUENCE INDEX:</span>
+                          {Object.keys(profile?.worldState.factionInfluence[selectedSector.id] || {}).map((fid) => {
+                            const score = profile?.worldState.factionInfluence[selectedSector.id]?.[fid] || 0;
+                            const facName = FACTIONS.find(f => f.id === fid)?.name || fid.toUpperCase();
+                            const facColor = getFactionColor(fid);
+                            return (
+                              <div key={fid}>
+                                <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", color: facColor }}>
+                                  <span>{facName}</span>
+                                  <span>{score}%</span>
+                                </div>
+                                <div style={{ width: "100%", height: "3px", background: "rgba(255,255,255,0.03)", borderRadius: "1px", overflow: "hidden" }}>
+                                  <div style={{ width: `${score}%`, height: "100%", background: facColor }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "6px", display: "flex", justifyItems: "center", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>
+                          RESOURCES: {selectedSector.availableResources.join(", ")}
+                        </span>
+                      </div>
+
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", justifyItems: "center", justifyContent: "center", alignItems: "center", height: "100%" }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>AWAITING SECTOR INTERACTION...</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Col 3: Available Operations list inside selected Sector */}
+                <div className="panel" style={{
+                  background: "#080808", border: "1px solid var(--border)",
+                  padding: "14px", display: "flex", flexDirection: "column", gap: "10px", overflow: "hidden"
+                }}>
+                  <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em", fontWeight: "bold" }}>
+                      [ AVAILABLE OPERATIONS ]
                     </span>
                   </div>
 
-                  <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingRight: "4px" }}>
-                    {loadingOps ? (
-                      <div style={{ textAlign: "center", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)", marginTop: "24px" }}>
-                        DECRYPTING REGIONAL CONDUITS...
-                      </div>
-                    ) : (
-                      getSortedMissions().map((op) => {
+                  <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", paddingRight: "4px" }}>
+                    {selectedSectorMissions.length > 0 ? (
+                      selectedSectorMissions.map((op) => {
                         const isSelected = selectedMapSector === op.id;
                         const isLocked = isMissionLocked(op);
                         const isCompleted = profile?.completedMissions.includes(op.id);
@@ -1311,21 +1520,11 @@ export default function OperationsPage() {
                                 : isCompleted 
                                 ? "1px solid rgba(0, 255, 204, 0.2)" 
                                 : "1px solid var(--border)",
-                              padding: "12px", borderRadius: "2px", cursor: isLocked ? "not-allowed" : "pointer",
-                              transition: "all 0.15s", display: "flex", gap: "12px", alignItems: "center",
+                              padding: "10px", borderRadius: "2px", cursor: isLocked ? "not-allowed" : "pointer",
+                              transition: "all 0.15s", display: "flex", gap: "10px", alignItems: "center",
                               opacity: isLocked ? 0.35 : 1
                             }}
                           >
-                            <div className="holo-noise" style={{
-                              width: "50px", height: "50px", background: "rgba(0,0,0,0.5)",
-                              border: isSelected ? "1px dashed var(--accent)" : "1px dashed rgba(255,255,255,0.1)",
-                              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-                            }}>
-                              <span style={{ fontSize: "14px" }}>
-                                {isLocked ? "🔒" : isCompleted ? "✅" : op.category === "critical" ? "🔥" : op.category === "side" ? "🛰️" : "📡"}
-                              </span>
-                            </div>
-
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "1px 5px" }}>
@@ -1335,10 +1534,10 @@ export default function OperationsPage() {
                                   {op.duration}m
                                 </span>
                               </div>
-                              <h4 style={{ fontSize: "11.5px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              <h4 style={{ fontSize: "11px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                 {op.title}
                               </h4>
-                              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
+                              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
                                 <span>{op.category.toUpperCase()} MISSION</span>
                                 {isLocked && <span style={{ color: "var(--accent)" }}>REQ: Lvl {op.unlockRequirements.level || op.unlockRequirements.bioScore || 1}</span>}
                               </div>
@@ -1346,79 +1545,25 @@ export default function OperationsPage() {
                           </div>
                         );
                       })
+                    ) : (
+                      <div style={{ textAlign: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", marginTop: "20px" }}>
+                        NO OPERATIONS IN SECTOR
+                      </div>
                     )}
                   </div>
-                </div>
 
-                {/* Col 3: Selected Mission Dossier detail card */}
-                <div className="panel" style={{
-                  background: "#080808", border: "1px solid var(--border)",
-                  padding: "16px", display: "flex", flexDirection: "column", gap: "10px", overflow: "hidden"
-                }}>
-                  {selectedOperation ? (
-                    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
-                      
-                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>
-                            [ TARGET ANOMALY PROFILE ]
-                          </span>
-                          <span className={`tag ${selectedOperation.difficulty === "Easy" ? "tag-green" : selectedOperation.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "2px 6px" }}>
-                            {selectedOperation.difficulty.toUpperCase()}
-                          </span>
-                        </div>
-                        
-                        <h3 style={{ fontSize: "15px", color: "#fff", margin: 0, borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "6px" }}>
-                          {selectedOperation.title}
-                        </h3>
-                        
-                        <p style={{ fontSize: "11px", color: "var(--text-dim)", lineHeight: "1.4", margin: 0, height: "60px", overflowY: "auto" }}>
-                          {selectedOperation.description}
-                        </p>
-
-                        <div style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                          <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)" }}>
-                            <span style={{ color: "var(--text-muted)" }}>RECOMMENDED CLASS:</span>
-                            <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{selectedOperation.recommendedClass.toUpperCase()}</span>
-                          </div>
-                          <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)" }}>
-                            <span style={{ color: "var(--text-muted)" }}>REACTION FACTION:</span>
-                            <span style={{ color: getFactionColor(selectedOperation.recommendedFaction || ""), fontWeight: "bold" }}>{selectedOperation.recommendedFaction?.toUpperCase() || "ANY"}</span>
-                          </div>
-                          <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)" }}>
-                            <span style={{ color: "var(--text-muted)" }}>REWARDS:</span>
-                            <span style={{ color: "#fff" }}>{selectedOperation.rewards.xp} XP / {selectedOperation.rewards.credits} CR</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "10px", display: "flex", justifyItems: "center", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
-                          EST. TIME: {selectedOperation.duration} MIN
-                        </span>
-                        
-                        <button
-                          onClick={() => { setActiveMission(selectedOperation); setMissionFlow("briefing"); }}
-                          className="btn btn-primary"
-                          style={{
-                            fontSize: "10px", padding: "6px 14px",
-                            background: selectedOperation.recommendedClass === profile?.class ? "#00ffcc" : "var(--accent)",
-                            color: "#000"
-                          }}
-                        >
-                          LAUNCH BRIEFING →
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center", alignItems: "center", height: "100%", textAlign: "center" }}>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
-                        [ NO TACTICAL SECTOR SELECTED ]
-                      </span>
-                      <p style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>
-                        Select coordinates from the Operations Browser or map above.
-                      </p>
-                    </div>
+                  {selectedOperation && selectedOperation.region === selectedSectorId && (
+                    <button
+                      onClick={() => { setActiveMission(selectedOperation); setMissionFlow("briefing"); }}
+                      className="btn btn-primary"
+                      style={{
+                        width: "100%", justifyContent: "center", fontSize: "11px", padding: "8px",
+                        background: selectedOperation.recommendedClass === profile?.class ? "#00ffcc" : "var(--accent)",
+                        color: "#000"
+                      }}
+                    >
+                      DEPLOY TO SECTOR 🛰️
+                    </button>
                   )}
                 </div>
 
@@ -1622,7 +1767,7 @@ export default function OperationsPage() {
                   { slot: "Weapon", icon: "🔫", label: "PRIMARY WEAPON" },
                   { slot: "Utility", icon: "🛠️", label: "TACTICAL UTILITY" },
                   { slot: "Medkit", icon: "🧪", label: "MEDICAL LOAD" },
-                  { slot: "Backpack", icon: "🎒", label: "CARGO BAG" },
+                  { slot: "Backpack", icon: "🎒", label: "CARGO BACKPACK" },
                   { slot: "Gadget", icon: "📡", label: "TELEMETRY GADGET" }
                 ].map((s) => {
                   const item = equippedGear[s.slot];
@@ -1772,7 +1917,6 @@ export default function OperationsPage() {
                           justifyContent: "center", position: "relative", padding: "4px", borderRadius: "2px"
                         }}
                       >
-                        {/* Rarity Color dot */}
                         <span style={{ position: "absolute", top: "4px", right: "4px", width: "4px", height: "4px", borderRadius: "50%", background: rarityStyle.color }} />
                         
                         <span style={{ fontSize: "18px" }}>
@@ -1786,7 +1930,6 @@ export default function OperationsPage() {
                           {item.name.split(" ")[0]}
                         </span>
 
-                        {/* Quantity stack count */}
                         {item.qty > 1 && (
                           <span style={{
                             position: "absolute", bottom: "2px", right: "4px", fontFamily: "var(--mono)",
@@ -1838,22 +1981,32 @@ export default function OperationsPage() {
                           Class Req: {selectedInventoryItem.classRequirement}
                         </span>
                         
-                        {selectedInventoryItem.slot !== "None" ? (
-                          <button
-                            onClick={() => handleEquip(selectedInventoryItem)}
-                            style={{
-                              background: "var(--accent)", color: "#000", border: "none",
-                              padding: "4px 12px", fontFamily: "var(--mono)", fontSize: "9.5px",
-                              fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
-                            }}
-                          >
-                            [ EQUIP GEAR ]
-                          </button>
-                        ) : (
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", fontStyle: "italic" }}>
-                            NON-EQUIPPABLE
-                          </span>
-                        )}
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          {selectedInventoryItem.slot === "Medkit" && selectedInventoryItem.type === "consumable" && (
+                            <button
+                              onClick={() => handleUseMedkit(selectedInventoryItem)}
+                              style={{
+                                background: "#00ffcc", color: "#000", border: "none",
+                                padding: "4px 12px", fontFamily: "var(--mono)", fontSize: "9.5px",
+                                fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
+                              }}
+                            >
+                              [ INJECT STIM (+30 HP) ]
+                            </button>
+                          )}
+                          {selectedInventoryItem.slot !== "None" && selectedInventoryItem.slot !== "Medkit" && (
+                            <button
+                              onClick={() => handleEquip(selectedInventoryItem)}
+                              style={{
+                                background: "var(--accent)", color: "#000", border: "none",
+                                padding: "4px 12px", fontFamily: "var(--mono)", fontSize: "9.5px",
+                                fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
+                              }}
+                            >
+                              [ EQUIP GEAR ]
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -1873,7 +2026,7 @@ export default function OperationsPage() {
         </main>
       </div>
 
-      {/* --- IN-GAME OVERLAYS SYSTEM --- */}
+      {/* --- IN-GAME OVERLAYS SYSTEM (MULTI-EVENT CAMPAIGN LOOP) --- */}
       
       {/* 1. Briefing Overlay */}
       {activeMission && missionFlow === "briefing" && (
@@ -1894,14 +2047,14 @@ export default function OperationsPage() {
             </div>
             
             <div className="holo-noise" style={{
-              height: "180px", width: "100%", background: "#030303", border: "1px dashed rgba(255,255,255,0.15)",
+              height: "140px", width: "100%", background: "#030303", border: "1px dashed rgba(255,255,255,0.15)",
               marginBottom: "24px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
             }}>
               <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.15em", display: "block" }}>
-                [ MISSION SECTOR PROFILE LOCKED ]
+                [ SYSTEM COORDINATES LOADED ]
               </span>
               <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
-                AWAITING SATELLITE RECONNAISSANCE IMAGERY
+                DECENTRALIZED WAVE SYNC COMPLETE // {activeMission.events.length} TACTICAL PHALANXES
               </span>
             </div>
 
@@ -2007,7 +2160,7 @@ export default function OperationsPage() {
         </div>
       )}
 
-      {/* 3. Connection Sequence Overlay */}
+      {/* 3. Connection Handshake Overlay */}
       {activeMission && missionFlow === "connection" && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
@@ -2039,14 +2192,14 @@ export default function OperationsPage() {
             <div style={{ display: "flex", justifyItems: "center", gap: "10px", alignItems: "center" }}>
               <span style={{ width: "8px", height: "8px", background: "#00ffcc", borderRadius: "50%" }} className="animate-pulse" />
               <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
-                TRANSMISSION COORDINATES RESOLVED. AWAITING FINAL HANDSHAKE SIGNATURES.
+                TRANSMISSION COORDINATES RESOLVED. AWAITING DATA INJECTION.
               </span>
             </div>
           </div>
         </div>
       )}
 
-      {/* 4. Tactical Decision Overlay */}
+      {/* 4. Multi-Event Tactical Decision Overlay */}
       {activeMission && missionFlow === "decision" && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
@@ -2055,47 +2208,71 @@ export default function OperationsPage() {
         }}>
           <div className="panel" style={{ maxWidth: "800px", width: "100%", borderColor: "rgba(0, 255, 204, 0.45)", padding: "40px" }}>
             
-            <div style={{ borderBottom: "2px solid rgba(0,255,204,0.3)", paddingBottom: "16px", marginBottom: "24px" }}>
-              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", letterSpacing: "0.25em", fontWeight: "bold" }}>
-                TACTICAL DECISION PROTOCOL — INITIATE TARGET RESPONSE
+            <div style={{ borderBottom: "2px solid rgba(0,255,204,0.3)", paddingBottom: "16px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+              <div>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", letterSpacing: "0.25em", fontWeight: "bold" }}>
+                  PHALANX EVENT {currentEventIndex + 1} OF {activeMission.events.length}
+                </span>
+                <h2 style={{ fontSize: "24px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em" }}>
+                  {activeMission.events[currentEventIndex]?.title || "DECISION EVENT"}
+                </h2>
+              </div>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#ff4d4d", fontWeight: "bold" }}>
+                BIO-HEALTH: {profile?.health}% HP
               </span>
-              <h2 style={{ fontSize: "24px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em" }}>{activeMission.title}</h2>
             </div>
 
-            <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "32px" }}>
-              {activeMission.scenarios?.[0]?.text || "Tactical coordinates loaded. Awaiting response."}
+            <p style={{ fontSize: "15px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
+              {activeMission.events[currentEventIndex]?.text}
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              {activeMission.scenarios?.[0]?.options?.map((opt: any) => {
-                const isRecommended = opt.class_bonus?.classId === profile?.class;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => handleSelectOption(opt)}
-                    style={{
-                      width: "100%", padding: "20px 24px", background: "#080808",
-                      border: isRecommended ? "2px dashed rgba(0,255,204,0.5)" : "1px solid var(--border)",
-                      borderRadius: "2px", cursor: "pointer", textAlign: "left", transition: "all 0.18s",
-                      display: "flex", flexDirection: "column", gap: "8px"
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", width: "100%", alignItems: "center" }}>
-                      <span style={{ fontFamily: "var(--title-font)", fontSize: "15px", color: "#fff", fontWeight: "bold", letterSpacing: "0.05em" }}>
-                        {opt.text}
-                      </span>
-                      {isRecommended && (
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#00ffcc", background: "rgba(0,255,204,0.06)", border: "1px solid rgba(0,255,204,0.3)", padding: "4px 10px", borderRadius: "2px" }}>
-                          CLASS MATCH (+15% SUCCESS PROBABILITY)
+            {/* Event outcome resolution text */}
+            {eventResolved && eventOutcomeText && (
+              <div style={{
+                background: "rgba(0,0,0,0.6)", border: "1px dashed rgba(0,255,204,0.3)", padding: "16px",
+                marginBottom: "24px", fontFamily: "var(--mono)", fontSize: "13px", color: eventOutcomeText.includes("[SUCCESS]") ? "#00ffcc" : "#ff4d4d"
+              }} className="animate-flicker">
+                {eventOutcomeText}
+              </div>
+            )}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {!eventResolved ? (
+                activeMission.events[currentEventIndex]?.options.map((opt) => {
+                  const isRecommended = opt.class_bonus?.classId === profile?.class;
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => handleSelectOption(opt)}
+                      style={{
+                        width: "100%", padding: "16px 20px", background: "#080808",
+                        border: isRecommended ? "2px dashed rgba(0,255,204,0.5)" : "1px solid var(--border)",
+                        borderRadius: "2px", cursor: "pointer", textAlign: "left", transition: "all 0.18s",
+                        display: "flex", flexDirection: "column", gap: "6px"
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", width: "100%", alignItems: "center" }}>
+                        <span style={{ fontFamily: "var(--title-font)", fontSize: "14.5px", color: "#fff", fontWeight: "bold" }}>
+                          {opt.text}
                         </span>
-                      )}
-                    </div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
-                      Base success probability check: {opt.success_prob}% chance.
-                    </span>
-                  </button>
-                );
-              })}
+                        {isRecommended && (
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "#00ffcc", background: "rgba(0,255,204,0.06)", border: "1px solid rgba(0,255,204,0.3)", padding: "2px 8px" }}>
+                            CLASS BONUS (+15% SUCCESS)
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })
+              ) : (
+                <button
+                  onClick={handleNextEvent}
+                  className="btn btn-primary"
+                  style={{ width: "100%", justifyContent: "center", padding: "14px" }}
+                >
+                  PROCEED TO NEXT PHALANX CONDUIT →
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -2110,34 +2287,25 @@ export default function OperationsPage() {
         }}>
           <div className="panel" style={{
             maxWidth: "760px", width: "100%", padding: "40px",
-            borderColor: missionOutcome === "SUCCESS" ? "rgba(0, 255, 204, 0.45)" : "rgba(255, 77, 77, 0.45)"
+            borderColor: (missionOutcome === "SUCCESS" || missionOutcome === "PARTIAL") ? "rgba(0, 255, 204, 0.45)" : "rgba(255, 77, 77, 0.45)"
           }}>
             
             <div style={{ textAlign: "center", marginBottom: "32px", borderBottom: "1px solid var(--border)", paddingBottom: "24px" }}>
-              <div className={`tag ${missionOutcome === "SUCCESS" ? "tag-green" : "tag-red"}`} style={{ fontSize: "12px", padding: "6px 20px", marginBottom: "12px", letterSpacing: "0.1em" }}>
-                {missionOutcome === "SUCCESS" ? "OPERATION SUCCESSFUL" : "OPERATION FAILED"}
+              <div className={`tag ${(missionOutcome === "SUCCESS" || missionOutcome === "PARTIAL") ? "tag-green" : "tag-red"}`} style={{ fontSize: "12px", padding: "6px 20px", marginBottom: "12px", letterSpacing: "0.1em" }}>
+                {missionOutcome === "SUCCESS" ? "OPERATION SUCCESSFUL" : missionOutcome === "PARTIAL" ? "PARTIAL SUCCESS" : "OPERATION COMPROMISED"}
               </div>
               <h2 style={{ fontSize: "24px", color: "#fff", letterSpacing: "0.05em" }}>
-                {missionOutcome === "SUCCESS" ? "TACTICAL OBJECTIVE SECURED" : "GRID CONDUIT TRACE DETECTED"}
+                {(missionOutcome === "SUCCESS" || missionOutcome === "PARTIAL") ? "TACTICAL OBJECTIVE SECURED" : "GRID CONDUIT TRACE DETECTED"}
               </h2>
             </div>
 
-            <p style={{ fontSize: "14.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
-              {missionOutcome === "SUCCESS" ? selectedOption?.success_text : selectedOption?.failure_text}
-            </p>
-
-            <div style={{ background: "rgba(255, 255, 255, 0.02)", borderLeft: `4px solid ${missionOutcome === "SUCCESS" ? "#00ffcc" : "var(--accent)"}`, padding: "20px", borderRadius: "2px", marginBottom: "32px" }}>
+            <div style={{ background: "rgba(255, 255, 255, 0.02)", borderLeft: `4px solid ${(missionOutcome === "SUCCESS" || missionOutcome === "PARTIAL") ? "#00ffcc" : "var(--accent)"}`, padding: "20px", borderRadius: "2px", marginBottom: "32px" }}>
               <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", fontStyle: "italic", whiteSpace: "pre-line", margin: 0, lineHeight: "1.6" }} className="animate-flicker">
                 {outcomeCommentary}
               </p>
             </div>
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              {levelUpMessage && (
-                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", fontWeight: "bold" }}>
-                  {levelUpMessage}
-                </span>
-              )}
               <button
                 onClick={() => setMissionFlow("rewards")}
                 className="btn btn-primary"
@@ -2166,44 +2334,37 @@ export default function OperationsPage() {
               <h2 style={{ fontSize: "22px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em" }}>OPERATIONAL CONTRACT RESOLVED</h2>
             </div>
 
+            {/* Campaign world shifts notices */}
+            {worldEventsMessage && (
+              <div style={{
+                background: "rgba(0, 255, 204, 0.05)", border: "1px solid #00ffcc", padding: "12px",
+                marginBottom: "20px", fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", textAlign: "center"
+              }}>
+                {worldEventsMessage}
+              </div>
+            )}
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "32px" }} className="ops-grid-2">
               <div style={{ background: "#000", padding: "20px", border: "1px solid var(--border)", textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", display: "block" }}>OPERATIVE EXPERIENCE</span>
                 <span style={{ fontFamily: "var(--title-font)", fontSize: "20px", color: "#00ffcc", fontWeight: "bold", display: "block", marginTop: "6px" }}>
-                  +{outcomeRewards?.xp || 0} XP
+                  +{cumulativeRewards.xp || 0} XP
                 </span>
               </div>
               <div style={{ background: "#000", padding: "20px", border: "1px solid var(--border)", textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", display: "block" }}>CREDITS VALUE</span>
                 <span style={{ fontFamily: "var(--title-font)", fontSize: "20px", color: "#00ffcc", fontWeight: "bold", display: "block", marginTop: "6px" }}>
-                  +{outcomeRewards?.credits || 0} CR
-                </span>
-              </div>
-              
-              <div style={{ background: "#000", border: "1px dashed rgba(255,255,255,0.06)", padding: "16px", gridColumn: "span 2", display: "flex", justifyItems: "center", justifyContent: "center", alignItems: "center" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)" }}>
-                  [ REWARD_SHAPE_EMBLEM_LOCKED ]
+                  +{cumulativeRewards.credits || 0} CR
                 </span>
               </div>
 
-              {outcomeRewards?.resource_qty > 0 && (
+              {Object.keys(cumulativeRewards.resources).length > 0 && (
                 <div style={{ background: "#000", padding: "20px", border: "1px solid var(--border)", textAlign: "center", gridColumn: "span 2" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-dim)", display: "block" }}>RAW MATERIAL RECOVERED</span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "#fff", fontWeight: "bold", display: "block", marginTop: "6px" }}>
-                    +{outcomeRewards?.resource_qty || 0} UNITS OF {outcomeRewards?.resource?.toUpperCase() || "RESOURCES"}
-                  </span>
-                </div>
-              )}
-              {outcomeRewards?.sub_stats && Object.keys(outcomeRewards?.sub_stats || {}).length > 0 && (
-                <div style={{ border: "1px solid var(--border)", padding: "20px", background: "#000", gridColumn: "span 2" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", display: "block", marginBottom: "8px", fontWeight: "bold" }}>
-                    BIO-SCORE SUB-STATS RE-CALIBRATION:
-                  </span>
-                  {Object.keys(outcomeRewards?.sub_stats || {}).map((k) => (
-                    <div key={k} style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "13px", fontFamily: "var(--mono)", borderBottom: "1px dashed rgba(255,255,255,0.03)", padding: "4px 0" }}>
-                      <span style={{ color: "var(--text-dim)" }}>{k.replace("_", " ").toUpperCase()}</span>
-                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>+{outcomeRewards?.sub_stats?.[k]}%</span>
-                    </div>
+                  {Object.keys(cumulativeRewards.resources).map(rk => (
+                    <span key={rk} style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "#fff", fontWeight: "bold", display: "block", marginTop: "4px" }}>
+                      +{cumulativeRewards.resources[rk]} UNITS OF {rk.toUpperCase()}
+                    </span>
                   ))}
                 </div>
               )}
@@ -2215,7 +2376,7 @@ export default function OperationsPage() {
                 className="btn btn-primary"
                 style={{ width: "100%", justifyContent: "center", padding: "14px", fontSize: "12.5px" }}
               >
-                CLAIM RECOVERY CONTRACT & SHIELD UPLINK
+                CLAIM RECOVERY CONTRACT & UPLINK TO MAP
               </button>
             </div>
           </div>

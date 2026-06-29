@@ -1,5 +1,30 @@
 import { DEFAULT_STATS, UserStats } from "../progression";
-import { OperativeProfile, Mission, InventoryItem } from "./types";
+import { OperativeProfile, Mission, InventoryItem, WorldState } from "./types";
+
+export const DEFAULT_WORLD_STATE: WorldState = {
+  unlockedSectors: ["sec-alpha", "sec-beta", "sec-delta", "sec-gamma"],
+  activeAnomalies: {
+    "sec-alpha": ["Toxin Leak"],
+    "sec-beta": ["Gravity Fluctuation"],
+    "sec-delta": ["Sentinel Probe scan"],
+    "sec-epsilon": ["Classified Lock"],
+    "sec-zeta": ["Quantum Freeze"]
+  },
+  factionInfluence: {
+    "sec-alpha": { vanguard: 40, helix: 20 },
+    "sec-beta": { nomads: 50, eclipse: 10 },
+    "sec-delta": { ghost: 60, aegis: 15 },
+    "sec-epsilon": { citadel: 10 },
+    "sec-zeta": { horizon: 30 },
+    "sec-gamma": { helix: 45 },
+    "sec-omega": { vanguard: 20 }
+  },
+  globalAlerts: [
+    "VIRAL OUTBREAK SUSPECTED IN SEC-ALPHA",
+    "EM ANOMALY DETECTED IN SUBSTATION BETA",
+    "SYBIL PORT TRACING COMMENCED IN DELTA"
+  ]
+};
 
 export const DEFAULT_PROFILE: OperativeProfile = {
   name: "OPERATIVE",
@@ -31,7 +56,9 @@ export const DEFAULT_PROFILE: OperativeProfile = {
   },
   achievements: [],
   missionHistory: [],
-  sectorDiscoveries: ["sec-alpha", "sec-beta"]
+  sectorDiscoveries: ["sec-alpha", "sec-beta", "sec-delta"],
+  health: 100,
+  worldState: { ...DEFAULT_WORLD_STATE }
 };
 
 /**
@@ -62,7 +89,9 @@ export function loadProfile(identifier: string): OperativeProfile {
       factionStanding: { ...DEFAULT_PROFILE.factionStanding, ...(parsed.factionStanding || {}) },
       achievements: Array.isArray(parsed.achievements) ? parsed.achievements : [],
       missionHistory: Array.isArray(parsed.missionHistory) ? parsed.missionHistory : [],
-      sectorDiscoveries: Array.isArray(parsed.sectorDiscoveries) ? parsed.sectorDiscoveries : DEFAULT_PROFILE.sectorDiscoveries
+      sectorDiscoveries: Array.isArray(parsed.sectorDiscoveries) ? parsed.sectorDiscoveries : DEFAULT_PROFILE.sectorDiscoveries,
+      health: typeof parsed.health === "number" ? parsed.health : 100,
+      worldState: parsed.worldState ? parsed.worldState : { ...DEFAULT_WORLD_STATE }
     };
 
     return profile;
@@ -81,20 +110,20 @@ export function saveProfile(identifier: string, profile: OperativeProfile): void
 }
 
 /**
- * Claims mission outcome rewards, updates statistics, increments levels, and unlocks achievements.
+ * Claims mission outcome rewards, updates statistics, increments levels, and triggers world progression shifts.
  */
 export function claimMissionRewards(
   profile: OperativeProfile,
   mission: Mission,
-  isSuccess: boolean,
-  outcomeRewards: any
-): { updatedProfile: OperativeProfile; levelUpMessage: string | null } {
+  outcome: "SUCCESS" | "PARTIAL" | "FAILURE" | "CRITICAL_FAILURE",
+  cumulativeRewards: { xp: number; credits: number; resources: Record<string, number>; injury: number; reputationBonus: number },
+  unlockedSectorId?: string
+): { updatedProfile: OperativeProfile; levelUpMessage: string | null; worldEventsMessage: string | null } {
   const updated = { ...profile };
   
-  const xpGain = outcomeRewards?.xp || 0;
-  const creditGain = outcomeRewards?.credits || 0;
-  const resourceName = outcomeRewards?.resource;
-  const resourceQty = outcomeRewards?.resource_qty || 0;
+  const xpGain = cumulativeRewards.xp || 0;
+  const creditGain = cumulativeRewards.credits || 0;
+  const reputationGain = cumulativeRewards.reputationBonus || 0;
 
   // 1. Calculate XP and Level progression
   const newXP = updated.xp + xpGain;
@@ -107,32 +136,31 @@ export function claimMissionRewards(
   updated.xp = newXP;
   updated.level = newLevel;
 
-  // 2. Calibrate sub-stats
+  // Update base stats
   const stats = { ...DEFAULT_STATS, ...updated.stats };
   stats.xp = newXP;
   stats.level = newLevel;
-
-  if (outcomeRewards?.sub_stats) {
-    Object.keys(outcomeRewards.sub_stats).forEach((k) => {
-      const key = k as keyof UserStats;
-      if (stats[key] !== undefined) {
-        stats[key] = Math.min(100, stats[key] + (outcomeRewards.sub_stats[key] || 0));
-      }
-    });
-  }
   updated.stats = stats;
+
+  // 2. Adjust operative health (ensure health bounds 0-100)
+  const isDead = outcome === "FAILURE" || outcome === "CRITICAL_FAILURE";
+  if (isDead) {
+    updated.health = 10; // set low health on evac failure
+  } else {
+    updated.health = Math.max(10, updated.health - cumulativeRewards.injury);
+  }
 
   // 3. Update resources & credits
   updated.credits = (updated.credits || 0) + creditGain;
   const resources = { ...updated.resources };
-  if (resourceName && resourceQty > 0) {
-    resources[resourceName] = (resources[resourceName] || 0) + resourceQty;
-  }
+  Object.keys(cumulativeRewards.resources || {}).forEach((k) => {
+    resources[k] = (resources[k] || 0) + (cumulativeRewards.resources[k] || 0);
+  });
   updated.resources = resources;
 
-  // 4. Update Mission completion records & discoveries
+  // 4. Update Mission completion records
   const completed = new Set(updated.completedMissions);
-  if (isSuccess) {
+  if (outcome === "SUCCESS" || outcome === "PARTIAL") {
     completed.add(mission.id);
   }
   updated.completedMissions = Array.from(completed);
@@ -146,45 +174,77 @@ export function claimMissionRewards(
   updated.missionHistory = [
     {
       missionId: mission.id,
-      outcome: isSuccess ? "SUCCESS" : "FAILURE",
+      outcome: (outcome === "SUCCESS" || outcome === "PARTIAL") ? "SUCCESS" : "FAILURE",
       timestamp: new Date().toISOString()
     },
     ...updated.missionHistory
   ];
 
-  // 6. Update Faction standing & reputation
+  // 6. Update Standing
   const factionId = mission.recommendedFaction?.toLowerCase();
   const standings = { ...updated.factionStanding };
   if (factionId && standings[factionId] !== undefined) {
-    // Standard standing bonus of +10 on success, +3 on failure
-    const standingBonus = isSuccess ? 10 : 3;
+    const standingBonus = outcome === "SUCCESS" ? 10 : outcome === "PARTIAL" ? 5 : 2;
     standings[factionId] = Math.min(100, standings[factionId] + standingBonus);
   }
   updated.factionStanding = standings;
-  updated.reputation = Math.min(1000, updated.reputation + (isSuccess ? 15 : 5));
+  updated.reputation = Math.min(1000, updated.reputation + reputationGain);
 
-  // 7. Check for Achievements unlock
+  // 7. World Progression Shifts
+  const worldState = { ...updated.worldState };
+  const unlocked = new Set(worldState.unlockedSectors);
+  let worldEventsMessage: string | null = null;
+
+  if (outcome === "SUCCESS" || outcome === "PARTIAL") {
+    // Check if mission rewards unlocked a new sector
+    if (unlockedSectorId) {
+      unlocked.add(unlockedSectorId);
+      const newSecName = unlockedSectorId.replace("sec-", "").toUpperCase();
+      worldEventsMessage = `GRID FREQUENCY LOCKED // NEW SECTOR UNLOCKED: SECTOR ${newSecName}`;
+    }
+
+    // Shift faction influence in this sector
+    const influence = { ...worldState.factionInfluence };
+    if (influence[mission.region] && factionId) {
+      const sectorInf = { ...influence[mission.region] };
+      const currentInfluence = sectorInf[factionId] || 0;
+      sectorInf[factionId] = Math.min(100, currentInfluence + 15);
+      influence[mission.region] = sectorInf;
+    }
+    worldState.factionInfluence = influence;
+
+    // Dynamically spawn/clear anomalies & global alerts on successes
+    const activeAnoms = { ...worldState.activeAnomalies };
+    const alerts = [...worldState.globalAlerts];
+
+    if (mission.id === "op-1-sanctuary-search") {
+      // Clear toxin leak in alpha, unlock Epsilon, trigger radiation alarm
+      activeAnoms["sec-alpha"] = [];
+      unlocked.add("sec-epsilon");
+      alerts.push("RADIATION STORM SPREADING TO EPSILON SILOS");
+      worldEventsMessage = "GRID SHIFT // SANCTUARY SECURED // SECTOR EPSILON ONLINE";
+    } else if (mission.id === "op-2-signal-recovery") {
+      // Clear anomaly in beta
+      activeAnoms["sec-beta"] = [];
+      alerts.push("VOLATILE PATHOGEN ANOMALY SPIKING IN GAMMA");
+    }
+
+    worldState.activeAnomalies = activeAnoms;
+    worldState.globalAlerts = alerts.slice(-6); // keep last 6 alerts
+  }
+
+  worldState.unlockedSectors = Array.from(unlocked);
+  updated.worldState = worldState;
+
+  // 8. Achievements check
   const achievements = new Set(updated.achievements);
-  
-  if (updated.missionHistory.length >= 1) {
-    achievements.add("FIRST_CONTACT"); // Completed first mission
-  }
-  if (updated.missionHistory.filter(h => h.outcome === "SUCCESS").length >= 3) {
-    achievements.add("TACTICIAN"); // 3 successful operations
-  }
-  if (newLevel >= 3) {
-    achievements.add("SURVIVALIST"); // clearance level 3
-  }
-  if (factionId && standings[factionId] >= 30) {
-    achievements.add("DIVISION_VETERAN"); // faction standing >= 30
-  }
-  if (updated.sectorDiscoveries.length >= 4) {
-    achievements.add("CARTOGRAPHER"); // Discovered 4 sectors
-  }
-
+  if (updated.missionHistory.length >= 1) achievements.add("FIRST_CONTACT");
+  if (updated.missionHistory.filter(h => h.outcome === "SUCCESS").length >= 3) achievements.add("TACTICIAN");
+  if (newLevel >= 3) achievements.add("SURVIVALIST");
+  if (updated.sectorDiscoveries.length >= 4) achievements.add("CARTOGRAPHER");
   updated.achievements = Array.from(achievements);
 
-  return { updatedProfile: updated, levelUpMessage };
+  return { updatedProfile: updated, levelUpMessage, worldEventsMessage };
 }
 
 /**
