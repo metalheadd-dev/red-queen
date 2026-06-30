@@ -1911,10 +1911,10 @@ export default function OperationsPage() {
 
           {/* TAB 1: COMMAND CENTER (HUD & OPERATIONS) */}
           {activeTab === "center" && (
-            <div style={{ display: "grid", gridTemplateColumns: "7.2fr 2.8fr", gap: "16px", height: "100%", overflow: "hidden" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "7.2fr 2.8fr", gap: "16px", width: "100%" }}>
               
               {/* LEFT COLUMN: HUD, MAP & TELEMETRY */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px", height: "100%", overflow: "hidden" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%" }}>
                 
                 {/* Global Status HUD */}
                 <div className="panel holo-noise" style={{
@@ -1953,7 +1953,7 @@ export default function OperationsPage() {
 
                 {/* Interactive Map */}
                 <div className="panel holo-noise" style={{
-                  position: "relative", flex: 1, minHeight: "350px", background: "#020202",
+                  position: "relative", width: "100%", aspectRatio: "1.48", background: "#020202",
                   border: "2px solid rgba(255, 77, 77, 0.2)", boxShadow: "0 0 30px rgba(0, 0, 0, 0.9)",
                   display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "space-between",
                   overflow: "hidden"
@@ -2064,7 +2064,8 @@ export default function OperationsPage() {
  
                         {/* Locked Hashed Pattern */}
                         <pattern id="lock-hatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-                          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255,255,255,0.04)" strokeWidth="1.5" />
+                          <rect width="8" height="8" fill="rgba(10, 10, 10, 0.45)" />
+                          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255, 255, 255, 0.09)" strokeWidth="1.5" />
                         </pattern>
  
                         {/* Glowing Filters */}
@@ -2240,7 +2241,7 @@ export default function OperationsPage() {
                           INFECTED: `rgba(${hexToRgb(themeColor)}, 0.15)`
                         };
  
-                        const strokeColor = !isUnlocked ? `rgba(${hexToRgb(themeColor)}, 0.20)` : themeColor;
+                        const strokeColor = !isUnlocked ? `rgba(${hexToRgb(themeColor)}, 0.50)` : themeColor;
  
                         return (
                           <g key={sec.id}>
@@ -2249,8 +2250,8 @@ export default function OperationsPage() {
                               className="sector-poly"
                               fill={isSelected ? `rgba(${hexToRgb(themeColor)}, 0.14)` : (isUnlocked ? colorMap[status] : "url(#lock-hatch)")}
                               stroke={isSelected ? "#ffffff" : strokeColor}
-                              strokeWidth={isSelected ? "2.5" : "1.5"}
-                              strokeDasharray={isUnlocked ? "none" : "4,4"}
+                              strokeWidth={isSelected ? "3" : "1.8"}
+                              strokeDasharray={isUnlocked ? "none" : "5,4"}
                               style={{ 
                                 cursor: "pointer", 
                                 filter: isSelected ? glowFilter : "none",
@@ -2269,29 +2270,29 @@ export default function OperationsPage() {
                             {/* Padlock inside locked sectors */}
                             {!isUnlocked && (
                               <g transform={`translate(${sec.labelX - 7}, ${sec.labelY - 26})`} style={{ pointerEvents: "none" }}>
-                                <rect x="0" y="5" width="14" height="9" rx="1" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1" />
-                                <path d="M3 5V3.5a4 4 0 0 1 8 0V5" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1" />
+                                <rect x="0" y="5" width="14" height="9" rx="1" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+                                <path d="M3 5V3.5a4 4 0 0 1 8 0V5" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
                               </g>
                             )}
  
                             {/* Text Backing Card for absolute readability */}
                             <rect
-                              x={sec.labelX - 55}
-                              y={sec.labelY - 10}
-                              width="110"
-                              height="26"
+                              x={sec.labelX - 60}
+                              y={sec.labelY - 12}
+                              width="120"
+                              height="32"
                               rx="2"
-                              fill="rgba(2, 2, 2, 0.78)"
-                              stroke={isSelected ? "rgba(255,255,255,0.15)" : "rgba(255, 255, 255, 0.04)"}
-                              strokeWidth="0.5"
+                              fill="rgba(2, 2, 2, 0.88)"
+                              stroke={isSelected ? "rgba(255,255,255,0.3)" : "rgba(255, 255, 255, 0.12)"}
+                              strokeWidth="0.75"
                               pointerEvents="none"
                             />
  
                             <text
                               x={sec.labelX}
                               y={sec.labelY}
-                              fill={isSelected ? "#fff" : (isUnlocked ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.35)")}
-                              fontSize="9.5px"
+                              fill={isSelected ? "#fff" : (isUnlocked ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.65)")}
+                              fontSize="11px"
                               fontWeight="bold"
                               fontFamily="var(--mono)"
                               textAnchor="middle"
@@ -2302,9 +2303,9 @@ export default function OperationsPage() {
  
                             <text
                               x={sec.labelX}
-                              y={sec.labelY + 12}
-                              fill={!isUnlocked ? "rgba(255,255,255,0.25)" : themeColor}
-                              fontSize="8px"
+                              y={sec.labelY + 14}
+                              fill={!isUnlocked ? "rgba(255,255,255,0.45)" : themeColor}
+                              fontSize="9px"
                               fontFamily="var(--mono)"
                               textAnchor="middle"
                               pointerEvents="none"
@@ -2346,7 +2347,7 @@ export default function OperationsPage() {
               </div>
 
               {/* RIGHT COLUMN: UNIFIED SECTOR DETAILS & MISSIONS */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px", height: "100%", overflow: "hidden" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%" }}>
                 
                 {selectedSector ? (() => {
                   const sectorIsLocked = getSectorStatus(selectedSector) === "LOCKED";
