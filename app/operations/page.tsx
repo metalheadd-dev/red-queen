@@ -647,6 +647,12 @@ export default function OperationsPage() {
     saveProfile(identifier, initialProfile);
     setProfile(initialProfile);
 
+    // Write permanent grant so AccessGuard never re-asks for access code
+    if (preservedAccessType && preservedAccessType !== "None" && typeof window !== "undefined") {
+      const rawWallet = publicKey ? publicKey.toString() : identifier;
+      localStorage.setItem(`rq_invite_grant:${rawWallet}`, preservedAccessType);
+    }
+
     // Immediately persist class/faction/access_type to DB so it survives reconnects
     if (identifier !== "offline-operative") {
       fetch("/api/profile", {

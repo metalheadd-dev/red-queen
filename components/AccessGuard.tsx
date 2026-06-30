@@ -22,108 +22,115 @@ type ProfileData = {
   [key: string]: any;
 };
 
+// ─── Permanent grant key helpers ────────────────────────────────────────────
+// Always keyed by raw publicKey.toString() — never by authIdentifier or session.
+// This survives wallet disconnect / Supabase session expiry / page refresh.
+const GRANT_KEY = (rawWallet: string) => `rq_invite_grant:${rawWallet}`;
+
+function readGrant(rawWallet: string): string | null {
+  if (typeof window === "undefined" || !rawWallet) return null;
+  return localStorage.getItem(GRANT_KEY(rawWallet));
+}
+
+function writeGrant(rawWallet: string, accessType: string) {
+  if (typeof window === "undefined" || !rawWallet) return;
+  localStorage.setItem(GRANT_KEY(rawWallet), accessType);
+}
+
 export default function AccessGuard({ children }: AccessGuardProps) {
   const { connected, publicKey, signMessage } = useWallet();
   const { authIdentifier, session, loading: authLoading, loginWithWallet } = useAuth();
-  
+
   const [profileLoading, setProfileLoading] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [accessGranted, setAccessGranted] = useState<boolean | null>(null);
-  
+
   // Invite Activation state
   const [inviteCode, setInviteCode] = useState("");
   const [activating, setActivating] = useState(false);
   const [verifyStatus, setVerifyStatus] = useState("");
   const [attemptedLogin, setAttemptedLogin] = useState(false);
 
-  const activeIdentifier = authIdentifier || (publicKey ? publicKey.toString() : "");
+  // Raw wallet — always stable, regardless of Supabase session
+  const rawWallet = publicKey ? publicKey.toString() : "";
 
-  const requestSignature = async () => {
-    if (!publicKey || !signMessage) return null;
-    try {
-      const message = "Sign in to Red Queen Node 7.4.1";
-      const encoded = new TextEncoder().encode(message);
-      const signatureBytes = await signMessage(encoded);
-      const bs58 = (await import("bs58")).default;
-      const signatureBase58 = bs58.encode(signatureBytes);
-      
-      const sigData = { signature: signatureBase58, message };
-      localStorage.setItem(`rq_sol_sig:${publicKey.toString()}`, JSON.stringify(sigData));
-      return sigData;
-    } catch (err) {
-      console.error("Failed to sign authentication challenge:", err);
-      return null;
-    }
-  };
+  // Active identifier for API calls (may include session context)
+  const activeIdentifier = authIdentifier || rawWallet;
 
   const getAuthHeaders = useCallback(() => {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json"
-    };
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (session?.access_token) {
       headers["Authorization"] = `Bearer ${session.access_token}`;
     } else if (typeof window !== "undefined" && publicKey) {
-      const savedSig = localStorage.getItem(`rq_sol_sig:${publicKey.toString()}`);
+      const savedSig = localStorage.getItem(`rq_sol_sig:${rawWallet}`);
       if (savedSig) {
         try {
           const { signature, message } = JSON.parse(savedSig);
-          headers["X-Solana-PublicKey"] = publicKey.toString();
+          headers["X-Solana-PublicKey"] = rawWallet;
           headers["X-Solana-Signature"] = signature;
           headers["X-Solana-Message"] = message;
-        } catch (e) {
-          console.error(e);
-        }
+        } catch (e) { /* ignore */ }
       }
     }
     return headers;
-  }, [session, publicKey]);
+  }, [session, publicKey, rawWallet]);
 
-  // Load profile from API and verify access status
-  const checkAccess = useCallback(async (identifier: string, token?: string) => {
-    if (!identifier) return;
+  // ─── Core access check ────────────────────────────────────────────────────
+  const checkAccess = useCallback(async (identifier: string) => {
+    if (!identifier || !rawWallet) return;
     setProfileLoading(true);
     setVerifyStatus("");
+
     try {
+      // STEP 0 — Check permanent localStorage grant first (session-independent)
+      const persistedGrant = readGrant(rawWallet);
+      if (persistedGrant === "Invite" || persistedGrant === "Holder" || persistedGrant === "Admin") {
+        // Load game profile from cache or create minimal stub
+        const cached = localStorage.getItem(`rq_ops_profile:${rawWallet}`) ||
+                       localStorage.getItem(`rq_ops_profile:${identifier}`);
+        const prof = cached ? (() => { try { return JSON.parse(cached); } catch { return null; } })() : null;
+        setProfile(prof || { access_type: persistedGrant, holder_tier: 0, verified_balance: 0 });
+        setAccessGranted(true);
+        setProfileLoading(false);
+        return;
+      }
+
       let prof: any = null;
 
-      // 1. Try to query Database via API using verified headers
+      // STEP 1 — Try DB via API
       try {
         const headers = getAuthHeaders();
-        const res = await fetch(`/api/profile?wallet=${identifier}`, {
-          headers
-        });
+        const res = await fetch(`/api/profile?wallet=${rawWallet}`, { headers });
         if (res.ok) {
           const data = await res.json();
-          if (data && data.profile) {
-            prof = data.profile;
-          }
+          if (data?.profile) prof = data.profile;
         }
       } catch (dbErr) {
-        console.warn("AccessGuard: db lookup failed, trying fallback:", dbErr);
+        console.warn("AccessGuard: db lookup failed:", dbErr);
       }
 
-      // 2. Fallback: Lookup local storage
-      if (!prof && typeof window !== "undefined") {
-        const saved = localStorage.getItem(`rq_ops_profile:${identifier}`);
-        if (saved) {
-          try {
-            prof = JSON.parse(saved);
-          } catch (jsonErr) {
-            console.error("AccessGuard: failed to parse local profile:", jsonErr);
+      // STEP 2 — Fallback: localStorage (try both raw wallet and authIdentifier keys)
+      if (!prof) {
+        const keys = [`rq_ops_profile:${rawWallet}`, `rq_ops_profile:${identifier}`];
+        for (const key of keys) {
+          const saved = localStorage.getItem(key);
+          if (saved) {
+            try { prof = JSON.parse(saved); break; } catch { /* ignore */ }
           }
         }
       }
 
-      // 3. Evaluate Profile permissions
+      // STEP 3 — Evaluate profile permissions
       if (prof) {
-        const hasBalance = (prof.verified_balance || prof.verifiedBalance || 0) >= 1000000 || (prof.holder_tier || prof.holderTier || 0) >= 2;
-        const hasInvite = prof.access_type === "Invite" || prof.accessType === "Invite" || 
-                           prof.access_type === "Holder" || prof.accessType === "Holder" ||
-                           prof.access_type === "Admin" || prof.accessType === "Admin";
+        const hasBalance = (prof.verified_balance || prof.verifiedBalance || 0) >= 1000000
+          || (prof.holder_tier || prof.holderTier || 0) >= 2;
+        const hasInvite = ["Invite", "Holder", "Admin"].some(
+          t => prof.access_type === t || prof.accessType === t
+        );
         if (hasBalance || hasInvite) {
-          if (typeof window !== "undefined") {
-            localStorage.setItem(`rq_ops_profile:${identifier}`, JSON.stringify(prof));
-          }
+          // Write permanent grant so next refresh skips all this
+          writeGrant(rawWallet, prof.access_type || prof.accessType || (hasBalance ? "Holder" : "Invite"));
+          localStorage.setItem(`rq_ops_profile:${rawWallet}`, JSON.stringify(prof));
           setProfile(prof);
           setAccessGranted(true);
           setProfileLoading(false);
@@ -131,56 +138,47 @@ export default function AccessGuard({ children }: AccessGuardProps) {
         }
       }
 
-      // 4. Fallback: directly query Solana Mainnet RPC if it's a connected wallet
-      if (identifier && !identifier.startsWith("email-auth:")) {
+      // STEP 4 — On-chain Solana RPC check
+      if (rawWallet) {
         setVerifyStatus("QUERYING SOLANA MAINNET FOR $THREAT HOLDINGS...");
         try {
           const { Connection, PublicKey } = await import("@solana/web3.js");
           const { getAssociatedTokenAddress } = await import("@solana/spl-token");
-          
           const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://solana-rpc.publicnode.com";
           const connection = new Connection(rpcUrl, "confirmed");
-          const walletPubkey = new PublicKey(identifier);
-          const mintPubkey = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg"); // $THREAT mint
+          const walletPubkey = new PublicKey(rawWallet);
+          const mintPubkey = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg");
           const ata = await getAssociatedTokenAddress(mintPubkey, walletPubkey);
-          
           const balanceResponse = await connection.getTokenAccountBalance(ata);
           const balance = balanceResponse.value.uiAmount || 0;
-          
           if (balance >= 1000000) {
             setVerifyStatus(`VERIFIED: ${balance.toLocaleString()} $THREAT. ACCESS GRANTED.`);
-            const updatedProf = prof ? {
-              ...prof,
+            const updatedProf = {
+              ...(prof || {}),
+              name: prof?.name || "OPERATIVE",
+              faction: prof?.faction || "None",
+              class: prof?.class || "None",
+              role: prof?.role || "None",
+              level: prof?.level || 1,
+              xp: prof?.xp || 0,
+              credits: prof?.credits || 500,
+              reputation: prof?.reputation || 0,
+              health: prof?.health || 100,
               verifiedBalance: balance,
               holderTier: 2,
               holderStatus: "Holder",
-              accessType: "Holder"
-            } : {
-              name: "OPERATIVE",
-              faction: "None",
-              class: "None",
-              role: "None",
-              level: 1,
-              xp: 0,
-              credits: 500,
-              reputation: 0,
-              health: 100,
-              verifiedBalance: balance,
-              holderTier: 2,
-              holderStatus: "Holder",
-              accessType: "Holder"
+              accessType: "Holder",
+              access_type: "Holder",
             };
-
-            if (typeof window !== "undefined") {
-              localStorage.setItem(`rq_ops_profile:${identifier}`, JSON.stringify(updatedProf));
-            }
+            writeGrant(rawWallet, "Holder");
+            localStorage.setItem(`rq_ops_profile:${rawWallet}`, JSON.stringify(updatedProf));
             setProfile(updatedProf);
             setAccessGranted(true);
             setProfileLoading(false);
             return;
           }
         } catch (chainErr) {
-          console.warn("AccessGuard: client-side RPC query failed:", chainErr);
+          console.warn("AccessGuard: RPC check failed:", chainErr);
         }
       }
 
@@ -190,115 +188,60 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       setAccessGranted(false);
     }
     setProfileLoading(false);
-  }, [getAuthHeaders]);
+  }, [getAuthHeaders, rawWallet]);
 
-  // Sync wallet connection to Supabase session when connected
+  // Auto-login with Supabase (once per connect)
   useEffect(() => {
     if (connected && !session && !authLoading && loginWithWallet && !attemptedLogin) {
       setAttemptedLogin(true);
-      loginWithWallet().catch(err => {
-        console.error("Wallet auto-login failed:", err);
-      });
+      loginWithWallet().catch(err => console.error("Wallet auto-login failed:", err));
     }
   }, [connected, session, authLoading, loginWithWallet, attemptedLogin]);
 
-  // Reset login state if wallet is disconnected
   useEffect(() => {
-    if (!connected) {
-      setAttemptedLogin(false);
-    }
+    if (!connected) setAttemptedLogin(false);
   }, [connected]);
 
-  // Effect to verify access whenever session or wallet changes
+  // Run access check whenever wallet connects or session changes
   useEffect(() => {
-    if (connected && activeIdentifier) {
-      checkAccess(activeIdentifier, session?.access_token);
+    if (connected && rawWallet) {
+      checkAccess(activeIdentifier);
     } else {
       setProfile(null);
       setAccessGranted(null);
     }
-  }, [connected, activeIdentifier, session, checkAccess]);
+  }, [connected, rawWallet, session, checkAccess]);
 
-  // Trigger manual verified balance refresh
+  // ─── Manual re-verify $THREAT balance ────────────────────────────────────
   const handleReVerify = async () => {
-    if (!activeIdentifier) return;
+    if (!rawWallet) return;
     setVerifyStatus("QUERYING SOLANA BLOCKCHAIN FOR $THREAT BALANCE...");
-
-    // 1. Direct client-side RPC check if session is missing
-    if (!session) {
-      try {
-        const { Connection, PublicKey } = await import("@solana/web3.js");
-        const { getAssociatedTokenAddress } = await import("@solana/spl-token");
-        
-        const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://solana-rpc.publicnode.com";
-        const connection = new Connection(rpcUrl, "confirmed");
-        const walletPubkey = new PublicKey(activeIdentifier);
-        const mintPubkey = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg");
-        const ata = await getAssociatedTokenAddress(mintPubkey, walletPubkey);
-        
-        const balanceResponse = await connection.getTokenAccountBalance(ata);
-        const balance = balanceResponse.value.uiAmount || 0;
-        
-        if (balance >= 1000000) {
-          setVerifyStatus("ON-CHAIN VERIFICATION SUCCESSFUL.");
-          checkAccess(activeIdentifier, undefined);
-        } else {
-          setVerifyStatus(`VERIFICATION FAILED: Required 1,000,000 $THREAT. Found ${balance.toLocaleString()}`);
-        }
-      } catch (e: any) {
-        setVerifyStatus(`VERIFICATION FAILURE: ${e.message || String(e)}`);
-      }
-      return;
-    }
-
-    // 2. Database API verification check using verified headers
     try {
-      const headers = getAuthHeaders();
-      const res = await fetch("/api/profile/verify-holder", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ wallet_address: activeIdentifier, wallet: activeIdentifier })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setVerifyStatus("ON-CHAIN VERIFICATION RE-RUN SUCCESSFUL.");
-        const saved = typeof window !== "undefined" ? localStorage.getItem(`rq_ops_profile:${activeIdentifier}`) : null;
-        let updatedProf: any = {};
-        if (saved) {
-          try {
-            updatedProf = JSON.parse(saved);
-          } catch (e) {}
-        }
-        updatedProf.verifiedBalance = data.balance || 0;
-        updatedProf.verified_balance = data.balance || 0;
-        updatedProf.holderTier = data.tier || 0;
-        updatedProf.holder_tier = data.tier || 0;
-        if (data.tier >= 2) {
-          updatedProf.accessType = "Holder";
-          updatedProf.access_type = "Holder";
-        }
-        if (typeof window !== "undefined") {
-          localStorage.setItem(`rq_ops_profile:${activeIdentifier}`, JSON.stringify(updatedProf));
-        }
-        if (data.tier >= 2) {
-          setProfile(updatedProf);
-          setAccessGranted(true);
-        } else {
-          checkAccess(activeIdentifier, session?.access_token);
-        }
+      const { Connection, PublicKey } = await import("@solana/web3.js");
+      const { getAssociatedTokenAddress } = await import("@solana/spl-token");
+      const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://solana-rpc.publicnode.com";
+      const connection = new Connection(rpcUrl, "confirmed");
+      const walletPubkey = new PublicKey(rawWallet);
+      const mintPubkey = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg");
+      const ata = await getAssociatedTokenAddress(mintPubkey, walletPubkey);
+      const balanceResponse = await connection.getTokenAccountBalance(ata);
+      const balance = balanceResponse.value.uiAmount || 0;
+      if (balance >= 1000000) {
+        setVerifyStatus("ON-CHAIN VERIFICATION SUCCESSFUL.");
+        writeGrant(rawWallet, "Holder");
+        checkAccess(activeIdentifier);
       } else {
-        setVerifyStatus(`VERIFICATION FAILED: ${data.error || "UNKNOWN ERROR"}`);
+        setVerifyStatus(`VERIFICATION FAILED: Required 1,000,000 $THREAT. Found ${balance.toLocaleString()}`);
       }
-    } catch (e) {
-      setVerifyStatus("VERIFICATION FAILURE: CHECK RPC CONNECTIVITY.");
-      console.error(e);
+    } catch (e: any) {
+      setVerifyStatus(`VERIFICATION FAILURE: ${e.message || String(e)}`);
     }
   };
 
-  // Submit invite code activation using verified headers
+  // ─── Invite activation ────────────────────────────────────────────────────
   const handleActivateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteCode.trim() || !activeIdentifier) return;
+    if (!inviteCode.trim() || !rawWallet) return;
     setActivating(true);
     setVerifyStatus("");
     try {
@@ -306,31 +249,32 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       const res = await fetch("/api/invite/activate", {
         method: "POST",
         headers,
-        body: JSON.stringify({ code: inviteCode, wallet: activeIdentifier })
+        body: JSON.stringify({ code: inviteCode, wallet: rawWallet })
       });
       const data = await res.json();
       if (data.success) {
-        alert("ACCESS GRANTED. INVITATION ACTIVATED.");
-        const saved = typeof window !== "undefined" ? localStorage.getItem(`rq_ops_profile:${activeIdentifier}`) : null;
-        let updatedProf: any = {};
-        if (saved) {
-          try {
-            updatedProf = JSON.parse(saved);
-          } catch (e) {}
-        }
-        updatedProf.accessType = "Invite";
-        updatedProf.access_type = "Invite";
-        if (!updatedProf.name) {
-          updatedProf.name = "OPERATIVE";
-          updatedProf.level = 1;
-          updatedProf.xp = 0;
-          updatedProf.credits = 500;
-          updatedProf.reputation = 0;
-          updatedProf.health = 100;
-        }
-        if (typeof window !== "undefined") {
-          localStorage.setItem(`rq_ops_profile:${activeIdentifier}`, JSON.stringify(updatedProf));
-        }
+        // Write permanent grant — always keyed by raw wallet
+        writeGrant(rawWallet, "Invite");
+
+        // Build profile stub and save it
+        const existing = (() => {
+          const s = localStorage.getItem(`rq_ops_profile:${rawWallet}`);
+          if (s) { try { return JSON.parse(s); } catch { return {}; } }
+          return {};
+        })();
+        const updatedProf = {
+          ...existing,
+          accessType: "Invite",
+          access_type: "Invite",
+          name: existing.name || "OPERATIVE",
+          level: existing.level || 1,
+          xp: existing.xp || 0,
+          credits: existing.credits || 500,
+          reputation: existing.reputation || 0,
+          health: existing.health || 100,
+        };
+        localStorage.setItem(`rq_ops_profile:${rawWallet}`, JSON.stringify(updatedProf));
+
         setProfile(updatedProf);
         setAccessGranted(true);
       } else {
@@ -343,7 +287,8 @@ export default function AccessGuard({ children }: AccessGuardProps) {
     setActivating(false);
   };
 
-  // State 1: Wallet not connected
+  // ─── Render states ────────────────────────────────────────────────────────
+
   if (!connected) {
     return (
       <div style={containerStyle}>
@@ -353,23 +298,20 @@ export default function AccessGuard({ children }: AccessGuardProps) {
             <h1 style={titleStyle}>RED QUEEN ACCESS GATEWAY</h1>
             <p style={subtitleStyle}>SOLVIVAL CORP // BETA PROTOCOLS</p>
           </div>
-          
           <div className="alert warn" style={{ margin: "24px 0" }}>
             <strong style={{ display: "block", marginBottom: "4px" }}>BETA DEPLOYMENT DETECTED</strong>
             Operations is a restricted sector. Unauthenticated access is strictly prohibited.
           </div>
-
           <div style={{ textAlign: "center", margin: "32px 0" }}>
             <WalletMultiButton />
           </div>
-
           <div style={descBoxStyle}>
             <h3 style={{ color: "#fff", fontFamily: "var(--mono)", fontSize: "14px", marginBottom: "8px" }}>
               CLOSED BETA REQUIREMENTS
             </h3>
             <ul style={listStyle}>
               <li>Hold at least <strong>1,000,000 $THREAT</strong> tokens in your Solana wallet.</li>
-              <li>OR activate a valid <strong>Invite Code</strong> issued by Solvival Corp.</li>
+              <li>OR activate a valid <strong>Access Code</strong> issued by Solvival Corp.</li>
             </ul>
           </div>
         </div>
@@ -377,31 +319,24 @@ export default function AccessGuard({ children }: AccessGuardProps) {
     );
   }
 
-  // State 2: Wallet connected but checking database access
   if (authLoading || profileLoading || accessGranted === null) {
     return (
       <div style={containerStyle}>
         <div style={{ textAlign: "center", fontFamily: "var(--mono)", color: "var(--red)" }}>
-          <div className="zombie-container" style={{ marginBottom: "20px" }}>
-            <div className="zombie-art">
-{`   ░░░░░░░░░░
-  ░░  ░░░░  ░░
- ░░░░  ░░  ░░░░
-░░  ░░░░░░░░  ░░`}
-            </div>
-          </div>
           <p style={{ letterSpacing: "0.1em", fontSize: "14px" }}>
             [ SECURING ENCRYPTED ACCESS PORTALS... ]
           </p>
           <div style={progressBarContainerStyle}>
             <div style={progressBarFillStyle} />
           </div>
+          {verifyStatus && (
+            <p style={{ fontSize: "11px", color: "#888", marginTop: "12px" }}>{verifyStatus}</p>
+          )}
         </div>
       </div>
     );
   }
 
-  // State 4: Access Denied
   if (accessGranted === false) {
     return (
       <div style={containerStyle}>
@@ -409,11 +344,11 @@ export default function AccessGuard({ children }: AccessGuardProps) {
           <div style={brandHeaderStyle}>
             <span style={{ color: "var(--red)", fontSize: "36px" }}>⚠️</span>
             <h1 style={{ ...titleStyle, color: "var(--red)" }}>ACCESS RESTRICTED</h1>
-            <p style={subtitleStyle}>IDENTIFIER: {activeIdentifier.slice(0, 8)}...{activeIdentifier.slice(-8)}</p>
+            <p style={subtitleStyle}>IDENTIFIER: {rawWallet.slice(0, 8)}...{rawWallet.slice(-8)}</p>
           </div>
 
           <div className="alert error" style={{ margin: "20px 0" }}>
-            Your account does not meet the necessary holding or invite criteria to enter Operations.
+            Your account does not meet the necessary holding or access code criteria.
           </div>
 
           <div style={descBoxStyle}>
@@ -422,7 +357,7 @@ export default function AccessGuard({ children }: AccessGuardProps) {
               <div>
                 <span style={{ color: "#888" }}>$THREAT Balance:</span>{" "}
                 <strong style={{ color: "var(--red)" }}>
-                  {profile?.verified_balance?.toLocaleString() || 0} / 1,000,000
+                  {(profile?.verified_balance || 0).toLocaleString()} / 1,000,000
                 </strong>
               </div>
               <div>
@@ -440,11 +375,11 @@ export default function AccessGuard({ children }: AccessGuardProps) {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", margin: "24px 0" }}>
             <div style={{ borderRight: "1px solid var(--border)", paddingRight: "16px" }}>
-              <h4 style={{ color: "#fff", fontSize: "14px", margin: "0 0 12px 0" }}>ACTIVATE ACCESS KEY</h4>
+              <h4 style={{ color: "#fff", fontSize: "14px", margin: "0 0 12px 0" }}>ACTIVATE ACCESS CODE</h4>
               <form onSubmit={handleActivateInvite}>
                 <input
                   type="text"
-                  placeholder="ENTER ACCESS KEY"
+                  placeholder="ENTER ACCESS CODE"
                   value={inviteCode}
                   onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                   disabled={activating}
@@ -464,13 +399,9 @@ export default function AccessGuard({ children }: AccessGuardProps) {
             <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <h4 style={{ color: "#fff", fontSize: "14px", margin: "0 0 12px 0" }}>RE-AUDIT WALLET</h4>
               <p style={{ fontSize: "11px", color: "#888", margin: "0 0 12px 0" }}>
-                If you have purchased $THREAT, click below to update your balance.
+                If you have purchased $THREAT, click below to verify your balance.
               </p>
-              <button
-                onClick={handleReVerify}
-                className="btn-sec"
-                style={{ width: "100%" }}
-              >
+              <button onClick={handleReVerify} className="btn-sec" style={{ width: "100%" }}>
                 RE-VERIFY HOLDINGS
               </button>
             </div>
@@ -484,93 +415,45 @@ export default function AccessGuard({ children }: AccessGuardProps) {
     );
   }
 
-  // State 3: Access Granted
   return <>{children}</>;
 }
 
 // ─── STYLES ─────────────────────────────────────────────────────────────────
 const containerStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  minHeight: "100vh",
-  background: "#050505",
-  padding: "20px",
-  boxSizing: "border-box",
+  display: "flex", flexDirection: "column", alignItems: "center",
+  justifyContent: "center", minHeight: "100vh", background: "#050505",
+  padding: "20px", boxSizing: "border-box",
 };
-
 const panelStyle: React.CSSProperties = {
-  width: "100%",
-  maxWidth: "600px",
-  background: "var(--surface)",
-  border: "1px solid var(--border)",
-  padding: "32px",
-  boxSizing: "border-box",
+  width: "100%", maxWidth: "600px", background: "var(--surface)",
+  border: "1px solid var(--border)", padding: "32px", boxSizing: "border-box",
   boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
 };
-
 const brandHeaderStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  textAlign: "center",
+  display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
 };
-
 const titleStyle: React.CSSProperties = {
-  fontSize: "20px",
-  fontFamily: "var(--mono)",
-  letterSpacing: "0.1em",
-  color: "#fff",
-  margin: "16px 0 4px 0",
+  fontSize: "20px", fontFamily: "var(--mono)", letterSpacing: "0.1em",
+  color: "#fff", margin: "16px 0 4px 0",
 };
-
 const subtitleStyle: React.CSSProperties = {
-  fontSize: "10px",
-  fontFamily: "var(--mono)",
-  letterSpacing: "0.2em",
-  color: "#888",
-  margin: 0,
+  fontSize: "10px", fontFamily: "var(--mono)", letterSpacing: "0.2em", color: "#888", margin: 0,
 };
-
 const descBoxStyle: React.CSSProperties = {
-  background: "rgba(0,0,0,0.3)",
-  border: "1px solid var(--border)",
-  padding: "16px",
-  borderRadius: "4px",
+  background: "rgba(0,0,0,0.3)", border: "1px solid var(--border)", padding: "16px", borderRadius: "4px",
 };
-
 const listStyle: React.CSSProperties = {
-  margin: 0,
-  paddingLeft: "20px",
-  fontSize: "12px",
-  lineHeight: "1.6",
-  color: "#bbb",
+  margin: 0, paddingLeft: "20px", fontSize: "12px", lineHeight: "1.6", color: "#bbb",
 };
-
 const inputStyle: React.CSSProperties = {
-  width: "100%",
-  background: "#080808",
-  border: "1px solid var(--border)",
-  color: "#fff",
-  padding: "8px 12px",
-  fontFamily: "var(--mono)",
-  fontSize: "13px",
-  marginBottom: "12px",
-  boxSizing: "border-box",
+  width: "100%", background: "#080808", border: "1px solid var(--border)", color: "#fff",
+  padding: "8px 12px", fontFamily: "var(--mono)", fontSize: "13px",
+  marginBottom: "12px", boxSizing: "border-box",
 };
-
 const progressBarContainerStyle: React.CSSProperties = {
-  width: "200px",
-  height: "4px",
-  background: "#111",
-  margin: "20px auto 0",
-  borderRadius: "2px",
-  overflow: "hidden",
+  width: "200px", height: "4px", background: "#111", margin: "20px auto 0",
+  borderRadius: "2px", overflow: "hidden",
 };
-
 const progressBarFillStyle: React.CSSProperties = {
-  width: "100%",
-  height: "100%",
-  background: "var(--red)",
+  width: "100%", height: "100%", background: "var(--red)",
 };
