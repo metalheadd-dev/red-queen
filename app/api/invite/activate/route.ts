@@ -7,18 +7,21 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   if (!supabase) return Response.json({ error: "DB not configured" }, { status: 500 });
 
+  const body = await req.json().catch(() => ({}));
+  const { code, wallet } = body;
+
   const authIdentifier = await getAuthIdentifier(req);
-  if (!authIdentifier) {
+  const activeIdentifier = authIdentifier || wallet;
+  if (!activeIdentifier) {
     return Response.json({ error: "Unauthorized session" }, { status: 401 });
   }
 
-  const { code } = await req.json();
   if (!code || typeof code !== "string") {
     return Response.json({ error: "Code parameter is required" }, { status: 400 });
   }
 
   const cleanedCode = code.trim();
-  const hashedWallet = getHashedWallet(authIdentifier);
+  const hashedWallet = getHashedWallet(activeIdentifier);
 
   try {
     // 1. Fetch invite code record from Supabase

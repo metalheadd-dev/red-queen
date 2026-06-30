@@ -267,7 +267,7 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       const res = await fetch("/api/profile/verify-holder", {
         method: "POST",
         headers,
-        body: JSON.stringify({ wallet_address: activeIdentifier })
+        body: JSON.stringify({ wallet_address: activeIdentifier, wallet: activeIdentifier })
       });
       const data = await res.json();
       if (data.success) {
@@ -293,7 +293,7 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       const res = await fetch("/api/invite/activate", {
         method: "POST",
         headers,
-        body: JSON.stringify({ code: inviteCode })
+        body: JSON.stringify({ code: inviteCode, wallet: activeIdentifier })
       });
       const data = await res.json();
       if (data.success) {

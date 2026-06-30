@@ -10,18 +10,20 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   if (!supabase) return Response.json({ error: "DB not configured" }, { status: 500 });
 
+  // Parse request body for fallback params
+  const body = await req.json().catch(() => ({}));
+  const customWallet = body.custom_wallet;
+  const reqWallet = body.wallet || body.wallet_address;
+
   // Get active session
   const authIdentifier = await getAuthIdentifier(req);
-  if (!authIdentifier) {
+  const activeIdentifier = authIdentifier || reqWallet;
+  if (!activeIdentifier) {
     return Response.json({ error: "Unauthorized session" }, { status: 401 });
   }
 
-  // Parse optional target wallet (if requested by verified admin)
-  const body = await req.json().catch(() => ({}));
-  const customWallet = body.custom_wallet;
   const isAdmin = await checkAdmin(req);
-  
-  const targetIdentifier = (isAdmin && customWallet) ? customWallet : authIdentifier;
+  const targetIdentifier = (isAdmin && customWallet) ? customWallet : activeIdentifier;
   const hashedWallet = getHashedWallet(targetIdentifier);
 
   try {

@@ -420,7 +420,8 @@ export default function OperationsPage() {
       if (identifier !== "offline-operative") {
         fetch("/api/profile/verify-holder", {
           method: "POST",
-          headers: getHeaders()
+          headers: getHeaders(),
+          body: JSON.stringify({ wallet: identifier })
         })
           .then(vRes => vRes.json())
           .then(vData => {
