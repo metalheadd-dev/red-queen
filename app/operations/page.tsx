@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useAuth } from "@/components/AuthProvider";
@@ -23,7 +23,8 @@ import {
   DEFAULT_CAMPAIGN_STATS,
   generateAICommentary,
   craftItem,
-  upgradeEquipment
+  upgradeEquipment,
+  RedQueenIntelligenceService
 } from "@/lib/game/service";
 
 // Factions details list
@@ -170,6 +171,11 @@ export default function OperationsPage() {
   const [inventorySort, setInventorySort] = useState<string>("power-desc");
   const [inventorySearch, setInventorySearch] = useState<string>("");
   const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null);
+
+  const dailyBriefing = useMemo(() => {
+    if (!profile) return { title: "", content: "CALIBRATING TACTICAL INTERFACE...", warning: false };
+    return RedQueenIntelligenceService.getDailyBriefing(profile, sectors, missions, inventory);
+  }, [profile, sectors, missions, inventory]);
 
   const aiLogsEndRef = useRef<HTMLDivElement>(null);
 
@@ -677,7 +683,14 @@ export default function OperationsPage() {
       setMissionOutcome("FAILURE");
       setMissionFlow("debriefing");
       setOutcomeCommentary(
-        `[RED QUEEN AI WARNING]\n"Operative down. Vital bio-signals reached critical threshold. Automatic evacuation teleport triggered. Telemetry recovery failed."`
+        RedQueenIntelligenceService.getMissionDebriefing(
+          profile,
+          activeMission,
+          "DEFEAT",
+          cumulativeRewards.injury,
+          cumulativeRewards.credits,
+          Object.keys(cumulativeRewards.resources || {}).length
+        )
       );
       return;
     }
@@ -699,9 +712,14 @@ export default function OperationsPage() {
       setMissionOutcome(finalOutcome);
       setMissionFlow("debriefing");
       setOutcomeCommentary(
-        finalOutcome === "SUCCESS"
-          ? `[RED QUEEN AI DEBRIEFING]\n"Target objective secured cleanly. Standing calibrators locked. All parameters green."`
-          : `[RED QUEEN AI DEBRIEFING]\n"Objective achieved but with high stress parameters. Heavy biological impact registered."`
+        RedQueenIntelligenceService.getMissionDebriefing(
+          profile,
+          activeMission,
+          finalOutcome === "SUCCESS" ? "SUCCESS" : "PARTIAL",
+          cumulativeRewards.injury,
+          cumulativeRewards.credits,
+          Object.keys(cumulativeRewards.resources || {}).length
+        )
       );
     }
   };
@@ -2047,8 +2065,8 @@ export default function OperationsPage() {
                       <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block" }}>
                         CAMPAIGN STATUS BRIEFING
                       </span>
-                      <p style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc", lineHeight: "1.3", margin: "2px 0 0 0" }}>
-                        "Sectors outline mapped. Deploy stim-packs in inventory if health falls to critical levels."
+                      <p style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: dailyBriefing.warning ? "var(--accent)" : "#00ffcc", lineHeight: "1.4", margin: "2px 0 0 0", whiteSpace: "pre-wrap" }}>
+                        {dailyBriefing.content}
                       </p>
                     </div>
                   </div>
@@ -2984,25 +3002,36 @@ export default function OperationsPage() {
                 display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "flex-start",
                 alignItems: "stretch", position: "relative", height: "100%", padding: "16px", overflowY: "auto"
               }}>
-                {!selectedInventoryItem ? (
-                  <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center", alignItems: "center", width: "100%" }}>
-                    <svg width="180" height="180" viewBox="0 0 100 100" style={{ opacity: 0.15, position: "absolute" }}>
-                      <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" />
-                      <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" />
-                      <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" strokeWidth="0.5" />
-                      <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="0.5" />
-                    </svg>
-                    
-                    <div style={{ zIndex: 1, textAlign: "center" }} className="animate-flicker">
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.2em", display: "block" }}>
-                        [ BIOMETRIC RADAR GRID ]
-                      </span>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
-                        SIGNAL BOUND SECURED // SLOT DRAG INJECTION READY
-                      </span>
+                {!selectedInventoryItem ? (() => {
+                  const eqSuggestions = profile ? RedQueenIntelligenceService.getEquipmentRecommendations(profile, inventory) : ["Analyzing loadout telemetry..."];
+                  return (
+                    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center", alignItems: "stretch", width: "100%", gap: "16px" }}>
+                      <div style={{ textAlign: "center", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "12px" }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.2em", display: "block" }}>
+                          [ BIOMETRIC RADAR GRID ]
+                        </span>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
+                          SIGNAL BOUND SECURED // SLOT DRAG INJECTION READY
+                        </span>
+                      </div>
+                      
+                      {/* Red Queen Loadout Audit Suggestions */}
+                      <div style={{ background: "rgba(255, 77, 77, 0.02)", border: "1px solid rgba(255, 77, 77, 0.15)", padding: "12px", borderRadius: "2px" }}>
+                        <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.1em", fontWeight: "bold", marginBottom: "8px" }}>
+                          [ RED QUEEN LOADOUT AUDIT ]
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {eqSuggestions.map((sug, idx) => (
+                            <div key={idx} style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: sug.includes("optimal") ? "#00ffcc" : "#ffc72c", display: "flex", gap: "6px", alignItems: "flex-start", lineHeight: "1.4" }}>
+                              <span>▶</span>
+                              <span>{sug}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ) : (() => {
+                  );
+                })() : (() => {
                   const equippedItem = equippedGear[selectedInventoryItem.slot];
                   const isEquipped = selectedInventoryItem.equipped === true;
                   const itemColor = getRarityStyle(selectedInventoryItem.rarity).color;
@@ -3542,8 +3571,10 @@ export default function OperationsPage() {
       {activeMission && missionFlow === "briefing" && (() => {
         const sector = sectors.find(s => s.id === activeMission.region);
         const sectorState = profile ? profile.worldState?.sectorStates?.[activeMission.region] : undefined;
-        const commentary = profile && sector ? generateAICommentary(profile, sector, sectorState, activeMission) : "";
-        const survivalChance = getSurvivalChance(activeMission);
+        const briefing = (profile && sector) ? RedQueenIntelligenceService.getMissionBriefing(profile, sector, sectorState, activeMission, inventory) : { survivalProbability: 50, riskLevel: "Medium", advice: "" };
+        const commentary = briefing.advice;
+        const survivalChance = briefing.survivalProbability;
+        const warnings = profile ? RedQueenIntelligenceService.getWarning(profile, activeMission, sectorState, inventory) : { hasWarning: false, warningMessage: null, alertType: "NONE" };
         return (
           <div style={{
             position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 100000,
@@ -3712,24 +3743,33 @@ export default function OperationsPage() {
                 <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.12em", marginBottom: "4px", fontWeight: "bold" }}>
                   [ RED QUEEN AI COMM LINK UPLINK ]
                 </div>
-                <p style={{ fontFamily: "var(--mono)", fontSize: "11px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.5", margin: 0 }}>
+                <p style={{ fontFamily: "var(--mono)", fontSize: "11px", fontStyle: "italic", color: "var(--text)", lineHeight: "1.5", margin: 0, whiteSpace: "pre-wrap" }}>
                   {commentary}
                 </p>
               </div>
-              {/* Low Health warning banner */}
-              {profile && profile.health < 40 && (
-                <div style={{ background: "rgba(255, 77, 77, 0.08)", border: "1px solid #ff4d4d", padding: "12px", display: "flex", gap: "10px", alignItems: "center" }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" strokeWidth="2">
+
+              {/* Dynamic Warning System banner */}
+              {warnings.hasWarning && (
+                <div style={{
+                  background: warnings.alertType === "CRITICAL" ? "rgba(255, 77, 77, 0.08)" : "rgba(240, 201, 41, 0.08)",
+                  border: warnings.alertType === "CRITICAL" ? "1px solid #ff4d4d" : "1px solid #f0c929",
+                  padding: "12px", display: "flex", gap: "10px", alignItems: "center"
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke={warnings.alertType === "CRITICAL" ? "#ff4d4d" : "#f0c929"} strokeWidth="2">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
                     <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
                   <div>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#ff4d4d", fontWeight: "bold" }}>
-                      [ WARNING: LOW HEALTH DETECTION ]
+                    <div style={{
+                      fontFamily: "var(--mono)", fontSize: "10px",
+                      color: warnings.alertType === "CRITICAL" ? "#ff4d4d" : "#f0c929", fontWeight: "bold"
+                    }}>
+                      [ {warnings.alertType} STATUS DETECTED ]
                     </div>
                     <div style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "2px" }}>
-                      Your current bio-health is at {profile.health}% HP. Embarking on this Operation carries severe risk of operative failure and trauma.
+                      {warnings.warningMessage}
                     </div>
                   </div>
                 </div>

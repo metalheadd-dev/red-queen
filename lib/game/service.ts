@@ -486,7 +486,7 @@ export function calculateCampaignCompletion(worldState: WorldState, totalSectors
 // ─── AI Commentary Generator ──────────────────────────────────────────────────
 export function generateAICommentary(profile: OperativeProfile, sector: Sector, sectorState: SectorState | undefined, mission: Mission): string {
   const factionId = mission.recommendedFaction?.toLowerCase() || "";
-  const factionStanding = factionId ? (profile.factionStanding[factionId] || 0) : 0;
+  const factionStanding = factionId ? (profile.factionStanding?.[factionId] || 0) : 0;
   const status = sectorState ? sectorState.status : "ACTIVE";
   const commentaries: string[] = [];
 
@@ -512,117 +512,579 @@ export function generateAICommentary(profile: OperativeProfile, sector: Sector, 
   return commentaries[Math.floor(Math.random() * commentaries.length)];
 }
 
-// ─── Red Queen AI Integration Service Points ───
-export class RedQueenIntelligenceService {
-  /**
-   * Generates a tactical daily briefing for the player based on global progression, threat levels, and active anomalies.
-   */
-  static getDailyBriefing(profile: OperativeProfile, sectors: Sector[]): { title: string; content: string; warning: boolean } {
-    const activeSectorCount = sectors.filter(s => profile.worldState.unlockedSectors.includes(s.id) || s.id === "sec-alpha").length;
-    const securedCount = Object.values(profile.worldState.sectorStates || {}).filter(s => s.status === "SECURED").length;
-    const isCrisis = profile.health < 40;
-    
-    let content = `DAILY STRATEGIC BRIEFING:\nAll systems nominal. ${activeSectorCount} sectors are currently online. Faction standing calibration completed.`;
-    if (securedCount > 0) {
-      content += ` Campaign progression verified: ${securedCount} zones fully secured.`;
-    }
-    if (isCrisis) {
-      content += ` OPERATIONAL ALERT: Operative vitality below threshold. Medical hub treatment strongly recommended before deployment.`;
+// ─── RED QUEEN MODULAR INTELLIGENCE SYSTEM ──────────────────────────────────
+
+export class CampaignAnalyzer {
+  static analyze(profile: OperativeProfile, sectors: Sector[]): {
+    completionRate: number;
+    unlockedCount: number;
+    securedCount: number;
+    nextRecommendedSector: Sector | null;
+    analysisMessage: string;
+  } {
+    const total = sectors.length;
+    const unlocked = profile.worldState?.unlockedSectors || [];
+    const unlockedCount = sectors.filter(s => unlocked.includes(s.id) || s.id === "sec-alpha").length;
+    const securedCount = Object.values(profile.worldState?.sectorStates || {}).filter(s => s.status === "SECURED").length;
+    const completionRate = total > 0 ? Math.round((securedCount / total) * 100) : 0;
+
+    const lockedSectors = sectors.filter(s => s.id !== "sec-alpha" && !unlocked.includes(s.id));
+    const nextRecommendedSector = lockedSectors.length > 0 ? lockedSectors[0] : null;
+
+    let analysisMessage = `CAMPAIGN MONITOR: Completion rate: ${completionRate}%. Secured zones: ${securedCount}/${total}.`;
+    if (nextRecommendedSector) {
+      analysisMessage += ` Lock detected on sector [${nextRecommendedSector.name.toUpperCase()}]. Complete requirements to unlock access.`;
+    } else {
+      analysisMessage += ` All sectors secured. Red Queen core grid optimal.`;
     }
 
     return {
-      title: `TACTICAL DIRECTIVE: MONITOR STATUS`,
-      content,
-      warning: isCrisis
+      completionRate,
+      unlockedCount,
+      securedCount,
+      nextRecommendedSector,
+      analysisMessage
     };
   }
+}
 
-  /**
-   * Generates a detailed tactical analysis commentary for a mission briefing.
-   */
-  static getMissionBriefingCommentary(profile: OperativeProfile, sector: Sector, sectorState: SectorState | undefined, mission: Mission): string {
-    return generateAICommentary(profile, sector, sectorState, mission);
-  }
-
-  /**
-   * Generates a debriefing evaluation post-operation based on success and events completed.
-   */
-  static getMissionDebriefing(profile: OperativeProfile, mission: Mission, outcome: "SUCCESS" | "DEFEAT", eventsCompleted: number): string {
-    if (outcome === "SUCCESS") {
-      return `RED QUEEN AI DEBRIEFING:\n"Objective secured cleanly in ${mission.region.toUpperCase()}. Operations matrix parameters updated successfully. Well done, operative."`;
-    } else {
-      return `RED QUEEN AI DEBRIEFING:\n"Critical failure detected in ${mission.region.toUpperCase()} at event index ${eventsCompleted}. Bio-status recalibrating. Operative recovery required."`;
-    }
-  }
-
-  /**
-   * Evaluates operative's equipped items and recommends upgrades or swaps from inventory.
-   */
-  static getEquipmentRecommendations(profile: OperativeProfile, inventory: InventoryItem[]): string[] {
-    const recommendations: string[] = [];
-    const unequippedGears = inventory.filter(item => !item.equipped && (item.type === "weapon" || item.type === "armor"));
+export class PlayerAnalyzer {
+  static analyze(profile: OperativeProfile): {
+    isCriticalVitality: boolean;
+    clearanceLevel: number;
+    recentSuccessRate: number;
+    combatStyle: string;
+    dossier: string;
+  } {
+    const isCriticalVitality = profile.health < 40;
+    const clearanceLevel = profile.level;
     
-    const slots: ("Helmet" | "Armor" | "Weapon" | "Utility" | "Medkit" | "Backpack" | "Gadget")[] = 
-      ["Helmet", "Armor", "Weapon", "Utility", "Medkit", "Backpack", "Gadget"];
-      
+    const history = profile.missionHistory || [];
+    const successCount = history.filter(h => h.outcome === "SUCCESS").length;
+    const recentSuccessRate = history.length > 0 ? Math.round((successCount / history.length) * 100) : 100;
+
+    let combatStyle = "Tactical Balanced";
+    if (profile.class === "Assault") combatStyle = "Kinetic breach specialist";
+    else if (profile.class === "Recon") combatStyle = "Stealth tracker and spotter";
+    else if (profile.class === "Engineer") combatStyle = "Grid maintenance worker";
+    else if (profile.class === "Medic") combatStyle = "Pathogen response containment";
+    else if (profile.class === "Scientist") combatStyle = "Data decryption analyst";
+
+    const dossier = `OPERATIVE SUMMARY: Level ${clearanceLevel}. Playstyle: ${combatStyle}. Health: ${profile.health}%. History success index: ${recentSuccessRate}%.`;
+
+    return {
+      isCriticalVitality,
+      clearanceLevel,
+      recentSuccessRate,
+      combatStyle,
+      dossier
+    };
+  }
+}
+
+export class MissionAnalyzer {
+  static analyze(profile: OperativeProfile, sector: Sector, sectorState: SectorState | undefined, mission: Mission): {
+    survivalProbability: number;
+    classMatch: boolean;
+    factionClearanceMet: boolean;
+    environmentalThreat: boolean;
+    riskLevel: "Low" | "Medium" | "High" | "Critical";
+    analysisMessage: string;
+  } {
+    let score = 70;
+
+    const classMatch = profile.class === mission.recommendedClass;
+    if (classMatch) {
+      score += 15;
+    } else {
+      score -= 15;
+    }
+
+    if (profile.health < 40) {
+      score -= 30;
+    } else if (profile.health < 70) {
+      score -= 10;
+    }
+
+    const danger = sectorState?.dangerLevel || "Medium";
+    if (danger === "Severe") score -= 25;
+    else if (danger === "High") score -= 15;
+    else if (danger === "Medium") score -= 5;
+
+    const environmentalThreat = mission.environmentalHazard !== "None";
+    if (environmentalThreat) {
+      score -= 12;
+    }
+
+    const survivalProbability = Math.max(5, Math.min(99, score));
+
+    let riskLevel: "Low" | "Medium" | "High" | "Critical" = "Medium";
+    if (survivalProbability < 30) riskLevel = "Critical";
+    else if (survivalProbability < 55) riskLevel = "High";
+    else if (survivalProbability > 80) riskLevel = "Low";
+
+    const factionId = mission.recommendedFaction?.toLowerCase() || "";
+    const currentRep = factionId ? (profile.factionStanding?.[factionId] || 0) : 0;
+    const factionClearanceMet = currentRep >= 0;
+
+    let analysisMessage = `TACTICAL BRIEFING: Survival probability evaluated at ${survivalProbability}% [${riskLevel.toUpperCase()} RISK].`;
+    if (!classMatch) {
+      analysisMessage += ` Alert: Recommended class is ${mission.recommendedClass.toUpperCase()}. Adjust shielding.`;
+    }
+    if (environmentalThreat) {
+      analysisMessage += ` Environmental warning: ${mission.environmentalHazard.toUpperCase()} active in zone.`;
+    }
+
+    return {
+      survivalProbability,
+      classMatch,
+      factionClearanceMet,
+      environmentalThreat,
+      riskLevel,
+      analysisMessage
+    };
+  }
+}
+
+export class EquipmentAnalyzer {
+  static analyze(profile: OperativeProfile, inventory: InventoryItem[]): {
+    helmetPower: number;
+    armorPower: number;
+    weaponPower: number;
+    isUnderpowered: boolean;
+    missingSlots: string[];
+    betterOptions: { slot: string; item: InventoryItem }[];
+    analysisMessage: string;
+  } {
+    const slots = ["Helmet", "Armor", "Weapon", "Utility", "Medkit", "Backpack", "Gadget"];
+    const missingSlots: string[] = [];
+    const betterOptions: { slot: string; item: InventoryItem }[] = [];
+    
+    let helmetPower = 0;
+    let armorPower = 0;
+    let weaponPower = 0;
+
+    const unequippedItems = inventory.filter(item => !item.equipped);
+
     slots.forEach(slot => {
       const equipped = inventory.find(item => item.equipped && item.slot === slot);
-      const better = unequippedGears
+      if (!equipped) {
+        missingSlots.push(slot);
+      } else {
+        if (slot === "Helmet") helmetPower = equipped.power || 0;
+        if (slot === "Armor") armorPower = equipped.power || 0;
+        if (slot === "Weapon") weaponPower = equipped.power || 0;
+      }
+
+      const better = unequippedItems
         .filter(item => item.slot === slot)
-        .sort((a, b) => b.power - a.power)[0];
-        
-      if (better && (!equipped || better.power > equipped.power)) {
-        recommendations.push(`UPGRADE DETECTED: [${better.name}] in inventory has higher rating than current slot configuration.`);
+        .sort((a, b) => (b.power || 0) - (a.power || 0))[0];
+
+      if (better && (!equipped || (better.power || 0) > (equipped.power || 0))) {
+        betterOptions.push({ slot, item: better });
       }
     });
 
-    if (recommendations.length === 0) {
+    const avgPower = (helmetPower + armorPower + weaponPower) / 3;
+    const isUnderpowered = avgPower < 15;
+
+    let analysisMessage = `EQUIPMENT PROFILE: Current combat rating: ${avgPower.toFixed(1)} power.`;
+    if (missingSlots.length > 0) {
+      analysisMessage += ` Empty slots detected: [${missingSlots.join(", ")}].`;
+    }
+    if (betterOptions.length > 0) {
+      analysisMessage += ` Upgrades available in inventory: [${betterOptions.map(o => o.item.name).join(", ")}].`;
+    }
+
+    return {
+      helmetPower,
+      armorPower,
+      weaponPower,
+      isUnderpowered,
+      missingSlots,
+      betterOptions,
+      analysisMessage
+    };
+  }
+}
+
+export class ResourceAnalyzer {
+  static analyze(profile: OperativeProfile): {
+    credits: number;
+    medkits: number;
+    components: number;
+    shortages: string[];
+    analysisMessage: string;
+  } {
+    const credits = profile.credits || 0;
+    const resources = profile.resources || {};
+    const medkits = resources["Medkit"] || resources["medkit"] || 0;
+    const components = Object.keys(resources)
+      .filter(k => k !== "Medkit" && k !== "medkit")
+      .reduce((sum, k) => sum + (resources[k] || 0), 0);
+
+    const shortages: string[] = [];
+    if (credits < 200) shortages.push("Credits");
+    if (medkits < 2) shortages.push("Medkit");
+    
+    ["metal", "electronics", "energy cells"].forEach(material => {
+      const amt = resources[material] || resources[material.toLowerCase()] || 0;
+      if (amt < 5) shortages.push(material.toUpperCase());
+    });
+
+    let analysisMessage = `SUPPLY MATRIX: Reserves: ${credits} credits, ${medkits} medkits.`;
+    if (shortages.length > 0) {
+      analysisMessage += ` Critical shortage: [${shortages.join(", ")}]. Recommendations: Deploy to high resource sectors.`;
+    }
+
+    return {
+      credits,
+      medkits,
+      components,
+      shortages,
+      analysisMessage
+    };
+  }
+}
+
+export class BIO_SCOREAnalyzer {
+  static analyze(profile: OperativeProfile): {
+    score: number;
+    rating: string;
+    reasons: string[];
+    optimizations: string[];
+  } {
+    const score = calculateBioScore(profile.stats);
+    
+    let rating = "Civilian Margins";
+    let reasons: string[] = [];
+    let optimizations: string[] = [];
+
+    if (score >= 80) {
+      rating = "Director Tier";
+      reasons = ["Highly effective preparedness", "Elite loadout configuration", "Exceptional mission survivability"];
+      optimizations = ["Secure remaining high-danger sectors", "Coordinate token swap systems"];
+    } else if (score >= 50) {
+      rating = "Operative Tier";
+      reasons = ["Good threat index adaptation", "Moderate equipment rating", "Regular mission clears"];
+      optimizations = ["Upgrade primary weapons", "Clear objectives with zero damage"];
+    } else if (score >= 25) {
+      rating = "Scout Tier";
+      reasons = ["Basic response metrics met", "High injury rates on deployments"];
+      optimizations = ["Acquire shields/armor upgrades", "Select class-matching missions"];
+    } else {
+      rating = "Civilian Threat";
+      reasons = ["Critical survival deficit", "No equipped armor protections"];
+      optimizations = ["Equip gear in all slots", "Deploy in low hazard zones to recover"];
+    }
+
+    return {
+      score,
+      rating,
+      reasons,
+      optimizations
+    };
+  }
+}
+
+export class ThreatAnalyzer {
+  static analyze(profile: OperativeProfile, sectors: Sector[]): {
+    highestThreatSector: Sector | null;
+    dangerLevel: string;
+    activeAnomalies: string[];
+    analysisMessage: string;
+  } {
+    let highestThreatSector: Sector | null = null;
+    let highestDanger = 0;
+    
+    const unlocked = profile.worldState?.unlockedSectors || [];
+    sectors.forEach(sec => {
+      if (sec.id === "sec-alpha" || unlocked.includes(sec.id)) {
+        const state = profile.worldState?.sectorStates?.[sec.id];
+        const dangerStr = state?.dangerLevel || "Low";
+        let dangerVal = 1;
+        if (dangerStr === "Severe") dangerVal = 4;
+        else if (dangerStr === "High") dangerVal = 3;
+        else if (dangerStr === "Medium") dangerVal = 2;
+        
+        if (dangerVal > highestDanger) {
+          highestDanger = dangerVal;
+          highestThreatSector = sec;
+        }
+      }
+    });
+
+    const activeAnomalies = profile.worldState?.globalAlerts || [];
+    const dangerLevel = highestDanger === 4 ? "Severe" : highestDanger === 3 ? "High" : highestDanger === 2 ? "Medium" : "Low";
+
+    let analysisMessage = `GLOBAL THREAT LEVEL: ${dangerLevel.toUpperCase()}.`;
+    if (activeAnomalies.length > 0) {
+      analysisMessage += ` Alert: ${activeAnomalies.length} anomalous outbreaks active.`;
+    }
+
+    return {
+      highestThreatSector,
+      dangerLevel,
+      activeAnomalies,
+      analysisMessage
+    };
+  }
+}
+
+export class RecommendationEngine {
+  static getRecommendations(profile: OperativeProfile, sectors: Sector[], missions: Mission[], inventory: InventoryItem[]): {
+    recommendedMission: Mission | null;
+    recommendedGear: InventoryItem | null;
+    reasoning: string;
+  } {
+    const campaign = CampaignAnalyzer.analyze(profile, sectors);
+    const equipment = EquipmentAnalyzer.analyze(profile, inventory);
+
+    const unlockedSectors = profile.worldState?.unlockedSectors || ["sec-alpha"];
+    const availableMissions = missions.filter(m => unlockedSectors.includes(m.region));
+    
+    let recommendedMission: Mission | null = null;
+    if (availableMissions.length > 0) {
+      const classMatch = availableMissions.find(m => m.recommendedClass === profile.class);
+      recommendedMission = classMatch || availableMissions[0];
+    }
+
+    const recommendedGear = equipment.betterOptions.length > 0 ? equipment.betterOptions[0].item : null;
+
+    let reasoning = "";
+    if (recommendedMission) {
+      reasoning += `>> Recommend deployment: [${recommendedMission.title.toUpperCase()}] in ${recommendedMission.region.toUpperCase()}. `;
+      if (recommendedMission.recommendedClass === profile.class) {
+        reasoning += `Synergy: matches your ${profile.class} profile.`;
+      } else {
+        reasoning += `Note: recommended class is ${recommendedMission.recommendedClass.toUpperCase()}.`;
+      }
+    }
+    if (recommendedGear) {
+      reasoning += `\n>> Gear recommendation: Equip [${recommendedGear.name.toUpperCase()}] to increase deflection values.`;
+    }
+
+    return {
+      recommendedMission,
+      recommendedGear,
+      reasoning
+    };
+  }
+}
+
+export class BriefingGenerator {
+  static generate(profile: OperativeProfile, sectors: Sector[], missions: Mission[], inventory: InventoryItem[]): {
+    title: string;
+    content: string;
+    warning: boolean;
+  } {
+    const campaign = CampaignAnalyzer.analyze(profile, sectors);
+    const player = PlayerAnalyzer.analyze(profile);
+    const resources = ResourceAnalyzer.analyze(profile);
+    const equipment = EquipmentAnalyzer.analyze(profile, inventory);
+    const threats = ThreatAnalyzer.analyze(profile, sectors);
+
+    const warning = player.isCriticalVitality || equipment.isUnderpowered || resources.shortages.length > 0;
+
+    let content = `[OK_0x00] ENCRYPTED BRIEFING SECURED.\n\n`;
+    content += `>> ${player.dossier}\n`;
+    content += `>> ${campaign.analysisMessage}\n`;
+    content += `>> ${threats.analysisMessage}\n`;
+    content += `>> ${resources.analysisMessage}\n`;
+    
+    if (warning) {
+      content += `\n[WARN_0x4F] HAZARDS DETECTED:\n`;
+      if (player.isCriticalVitality) {
+        content += `- Vitality is critical (${profile.health}% HP). Damage index extreme.\n`;
+      }
+      if (equipment.isUnderpowered) {
+        content += `- Equipped gear power ratings are below safety threshold.\n`;
+      }
+      if (resources.shortages.length > 0) {
+        content += `- Supply deficit: [${resources.shortages.join(", ")}].\n`;
+      }
+    }
+
+    const recommendations = RecommendationEngine.getRecommendations(profile, sectors, missions, inventory);
+    if (recommendations.reasoning) {
+      content += `\nTACTICAL INSTRUCTIONS:\n${recommendations.reasoning}`;
+    }
+
+    const bio = BIO_SCOREAnalyzer.analyze(profile);
+    content += `\n\n[BIO-SCORE: ${bio.score}%]`;
+
+    return {
+      title: `TACTICAL DIRECTIVE: MONITOR SECTOR NETWORKS`,
+      content,
+      warning
+    };
+  }
+}
+
+export class DebriefGenerator {
+  static generate(profile: OperativeProfile, mission: Mission, outcome: "SUCCESS" | "PARTIAL" | "FAILURE" | "DEFEAT", injury: number, credits: number, lootCount: number): string {
+    const isSuccess = outcome === "SUCCESS" || outcome === "PARTIAL";
+    const bio = BIO_SCOREAnalyzer.analyze(profile);
+
+    let content = ``;
+    if (isSuccess) {
+      content += `[OK_0x00] tactical assessment: objectives secured.\n\n`;
+      content += `>> Region: ${mission.region.toUpperCase()}.\n`;
+      content += `>> Financial credits recovered: +${credits} units.\n`;
+      content += `>> Material salvage items collected: ${lootCount} units.\n`;
+      content += `>> Health injury index registered: -${injury}% HP.\n`;
+      
+      if (injury > 40) {
+        content += `[WARN_0x4F] Alert: sustained severe injury index. Calibration of defensive systems advised.\n`;
+      }
+    } else {
+      content += `[ERR_0x9B] tactical assessment: deployment failed.\n\n`;
+      content += `>> Critical defeat in region ${mission.region.toUpperCase()}.\n`;
+      content += `>> Vital signals crashed. Deflection barrier failed. Injury sustained: -${injury}% HP.\n`;
+      content += `>> Recommendation: Upgrade primary weapons and shields before returning.\n`;
+    }
+
+    content += `\n>> Recalibrating operative metrics.\n`;
+    content += `>> ${bio.rating} status active. Next optimization steps: ${bio.optimizations.join(", ")}.\n\n`;
+    content += `[BIO-SCORE: ${bio.score}%]`;
+
+    return content;
+  }
+}
+
+export class WarningGenerator {
+  static generate(profile: OperativeProfile, mission: Mission, sectorState: SectorState | undefined, inventory: InventoryItem[]): {
+    hasWarning: boolean;
+    warningMessage: string | null;
+    alertType: "WARN" | "CRITICAL" | "NONE";
+  } {
+    const ma = MissionAnalyzer.analyze(profile, mission.region ? { id: mission.region } as Sector : { id: "sec-alpha" } as Sector, sectorState, mission);
+    const eq = EquipmentAnalyzer.analyze(profile, inventory);
+    const res = ResourceAnalyzer.analyze(profile);
+
+    const isLowHp = profile.health < 40;
+    const isUnderpowered = eq.isUnderpowered || ma.survivalProbability < 45;
+    const missingConsumables = res.medkits === 0;
+
+    let hasWarning = false;
+    let warningMessage: string | null = null;
+    let alertType: "WARN" | "CRITICAL" | "NONE" = "NONE";
+
+    if (isLowHp) {
+      hasWarning = true;
+      alertType = "CRITICAL";
+      warningMessage = `[ALERT_0x8C] CRITICAL VITALITY LIMIT: Health index is at ${profile.health}%. Deployment parameters indicate high probability of casualty.`;
+    } else if (isUnderpowered) {
+      hasWarning = true;
+      alertType = "WARN";
+      warningMessage = `[WARN_0x4F] LOADOUT ALERT: Current equipment index is below mission safety threshold. Adjust gear rating immediately.`;
+    } else if (missingConsumables) {
+      hasWarning = true;
+      alertType = "WARN";
+      warningMessage = `[WARN_0x4F] LOGISTICS SHORTAGE: Medical supplies at zero. Prepare medkits before launch.`;
+    }
+
+    return {
+      hasWarning,
+      warningMessage,
+      alertType
+    };
+  }
+}
+
+// ─── Red Queen AI Integration Service Points ───
+export class RedQueenIntelligenceService {
+  static getDailyBriefing(profile: OperativeProfile, sectors: Sector[], missions: Mission[], inventory: InventoryItem[]): { title: string; content: string; warning: boolean } {
+    return BriefingGenerator.generate(profile, sectors, missions, inventory);
+  }
+
+  static getWarning(profile: OperativeProfile, mission: Mission, sectorState: SectorState | undefined, inventory: InventoryItem[]): { hasWarning: boolean; warningMessage: string | null; alertType: "WARN" | "CRITICAL" | "NONE" } {
+    return WarningGenerator.generate(profile, mission, sectorState, inventory);
+  }
+
+  static getMissionBriefing(profile: OperativeProfile, sector: Sector, sectorState: SectorState | undefined, mission: Mission, inventory: InventoryItem[]): { survivalProbability: number; riskLevel: string; advice: string } {
+    const ma = MissionAnalyzer.analyze(profile, sector, sectorState, mission);
+    const eq = EquipmentAnalyzer.analyze(profile, inventory);
+    const res = ResourceAnalyzer.analyze(profile);
+
+    let advice = `ESTIMATED SURVIVAL PROBABILITY: ${ma.survivalProbability}% [${ma.riskLevel.toUpperCase()} RISK]\n\n`;
+    advice += `>> RISK ASSESSMENT: Danger level in ${sector.name.toUpperCase()} is evaluated as ${sectorState?.dangerLevel || "Low"}. `;
+    if (ma.environmentalThreat) {
+      advice += `Environmental hazard [${mission.environmentalHazard.toUpperCase()}] detected. `;
+    }
+    advice += `\n`;
+
+    advice += `>> RECOMMENDED LOADOUT: `;
+    if (ma.classMatch) {
+      advice += `Your class is aligned with the requested ${mission.recommendedClass.toUpperCase()} parameters. `;
+    } else {
+      advice += `Class mismatch. Recommended class: ${mission.recommendedClass.toUpperCase()}. Adjust deflection protocols. `;
+    }
+    if (eq.betterOptions.length > 0) {
+      advice += `Upgrade recommended: Equip [${eq.betterOptions[0].item.name.toUpperCase()}] in your inventory to increase power level. `;
+    } else {
+      advice += `Current loadout rating is optimal. `;
+    }
+    advice += `\n`;
+
+    advice += `>> MEDICAL RECOMMENDATION: `;
+    if (profile.health < 40) {
+      advice += `Urgent. Vitality index is critical (${profile.health}%). Consume medkits to avoid fatal damage thresholds. `;
+    } else {
+      advice += `Vitality standard (${profile.health}%). `;
+    }
+    if (res.medkits === 0) {
+      advice += `Warning: zero medical units detected in storage. `;
+    }
+    advice += `\n`;
+
+    advice += `>> OPERATIONAL NOTES: `;
+    advice += `${ma.analysisMessage}`;
+
+    return {
+      survivalProbability: ma.survivalProbability,
+      riskLevel: ma.riskLevel,
+      advice
+    };
+  }
+
+  static getMissionBriefingCommentary(profile: OperativeProfile, sector: Sector, sectorState: SectorState | undefined, mission: Mission, inventory: InventoryItem[]): string {
+    const brief = this.getMissionBriefing(profile, sector, sectorState, mission, inventory);
+    return brief.advice;
+  }
+
+  static getMissionDebriefing(profile: OperativeProfile, mission: Mission, outcome: "SUCCESS" | "PARTIAL" | "FAILURE" | "DEFEAT", injury: number, credits: number, lootCount: number): string {
+    return DebriefGenerator.generate(profile, mission, outcome, injury, credits, lootCount);
+  }
+
+  static getEquipmentRecommendations(profile: OperativeProfile, inventory: InventoryItem[]): string[] {
+    const eq = EquipmentAnalyzer.analyze(profile, inventory);
+    const recommendations: string[] = [];
+    if (eq.betterOptions.length > 0) {
+      eq.betterOptions.forEach(o => {
+        recommendations.push(`UPGRADE DETECTED: [${o.item.name}] in storage exceeds current equipped rating in slot ${o.slot}.`);
+      });
+    } else {
       recommendations.push("Loadout metrics optimal. No immediate equipment shift recommended.");
     }
     return recommendations;
   }
 
-  /**
-   * Performs an analysis of the operative's BIO SCORE and suggests progression avenues.
-   */
   static analyzeBioScore(profile: OperativeProfile): { bioScore: number; tier: string; suggestion: string } {
-    const bioScore = calculateBioScore(profile.stats);
-    let tier = "Tier I: Standard Operative";
-    let suggestion = "Complete basic operations to increase Level and acquire better tactical gear.";
-    
-    if (bioScore >= 50) {
-      tier = "Tier III: Elite Operative";
-      suggestion = "Deploy to Critical regions and upgrade equipment sockets to maximum efficiency.";
-    } else if (bioScore >= 25) {
-      tier = "Tier II: Advanced Operative";
-      suggestion = "Upgrade weapons and shields to bypass security locks in advanced sectors.";
-    }
-
-    return { bioScore, tier, suggestion };
+    const bio = BIO_SCOREAnalyzer.analyze(profile);
+    return {
+      bioScore: bio.score,
+      tier: bio.rating,
+      suggestion: bio.optimizations.length > 0 ? `Optimizations: ${bio.optimizations.join(", ")}` : "No optimizations required."
+    };
   }
 
-  /**
-   * Generates a campaign completion report and highlights blocked/locked zones.
-   */
   static analyzeCampaignStatus(profile: OperativeProfile, sectors: Sector[]): { completionRate: number; recommendation: string } {
-    const total = sectors.length;
-    const secured = Object.values(profile.worldState?.sectorStates || {}).filter(s => s.status === "SECURED").length;
-    const rate = total > 0 ? Math.round((secured / total) * 100) : 0;
-    
-    let recommendation = "Securing Sector Alpha is the primary campaign gateway.";
-    const lockedSectors = sectors.filter(s => {
-      const state = profile.worldState?.sectorStates?.[s.id];
-      return state ? !state.isUnlocked : s.id !== "sec-alpha";
-    });
-
-    if (lockedSectors.length > 0) {
-      const nextOne = lockedSectors[0];
-      recommendation = `Access block detected on ${nextOne.name}. Fulfill level/bio-score requirements detailed in the Sector Overview.`;
-    } else {
-      recommendation = "All sectors authorized. Secure remaining operations to claim global status.";
-    }
-
-    return { completionRate: rate, recommendation };
+    const campaign = CampaignAnalyzer.analyze(profile, sectors);
+    return {
+      completionRate: campaign.completionRate,
+      recommendation: campaign.analysisMessage
+    };
   }
 }
 
