@@ -200,6 +200,99 @@ export default function HomePage() {
         <p className="hero-subtitle" style={{ maxWidth: "700px" }}>
           Meet Red Queen, an autonomous AI survival agent that monitors emerging threats, assigns missions, and builds your survival profile. Prepare for the future before it arrives.
         </p>
+
+        {/* Play Red Queen: Operations promo section */}
+        <style>{`
+          @keyframes cardGlow {
+            from {
+              border-color: rgba(255, 77, 77, 0.2);
+              box-shadow: 0 0 15px rgba(255, 77, 77, 0.05);
+            }
+            to {
+              border-color: rgba(255, 77, 77, 0.6);
+              box-shadow: 0 0 35px rgba(255, 77, 77, 0.2);
+            }
+          }
+          @keyframes pulseGlow {
+            0%, 100% {
+              text-shadow: 0 0 15px rgba(255, 77, 77, 0.4);
+            }
+            50% {
+              text-shadow: 0 0 30px rgba(255, 77, 77, 0.95);
+            }
+          }
+          @keyframes buttonPulse {
+            0%, 100% {
+              transform: scale(1);
+              box-shadow: 0 0 20px rgba(255, 77, 77, 0.4);
+            }
+            50% {
+              transform: scale(1.04);
+              box-shadow: 0 0 35px rgba(255, 77, 77, 0.7);
+            }
+          }
+        `}</style>
+
+        <div style={{
+          margin: "24px auto 32px auto",
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "20px",
+          zIndex: 10,
+          background: "rgba(255, 77, 77, 0.03)",
+          border: "2px dashed rgba(255, 77, 77, 0.35)",
+          borderRadius: "4px",
+          padding: "32px 48px",
+          boxShadow: "0 0 30px rgba(255, 77, 77, 0.05)",
+          maxWidth: "600px",
+          width: "90%",
+          boxSizing: "border-box",
+          animation: "cardGlow 3s ease-in-out infinite alternate"
+        }}>
+          <h2 style={{
+            fontFamily: "var(--title-font)",
+            fontSize: "clamp(22px, 3.5vw, 32px)",
+            fontWeight: "900",
+            letterSpacing: "0.15em",
+            margin: 0,
+            color: "#fff",
+            textShadow: "0 0 20px rgba(255, 77, 77, 0.6)",
+            animation: "pulseGlow 2s ease-in-out infinite",
+            lineHeight: "1.3"
+          }}>
+            PLAY <span style={{ color: "var(--accent)" }}>RED QUEEN: OPERATIONS</span>
+          </h2>
+          
+          <Link href="/operations" style={{ textDecoration: "none", zIndex: 20 }}>
+            <button className="btn btn-primary" style={{
+              fontSize: "15px",
+              padding: "16px 44px",
+              fontWeight: "900",
+              letterSpacing: "0.2em",
+              border: "none",
+              borderRadius: "4px",
+              background: "linear-gradient(135deg, var(--accent) 0%, #ff1a1a 100%)",
+              boxShadow: "0 0 25px rgba(255, 77, 77, 0.5)",
+              color: "#000",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              animation: "buttonPulse 1.8s infinite"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.05)";
+              e.currentTarget.style.boxShadow = "0 0 35px rgba(255, 77, 77, 0.8)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "0 0 25px rgba(255, 77, 77, 0.5)";
+            }}>
+              JOIN PRIVATE BETA
+            </button>
+          </Link>
+        </div>
+
         <div style={{
           display: "flex",
           gap: "14px",
