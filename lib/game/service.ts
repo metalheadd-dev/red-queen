@@ -789,7 +789,7 @@ export interface LootDropResult {
   credits: number;
 }
 
-export function generateLootDrops(difficulty: string, dangerLevel: string, sectorId: string): LootDropResult {
+export function generateLootDrops(difficulty: string, dangerLevel: string, sectorId: string, resourceDropChanceBoost = 0): LootDropResult {
   const diffMultiplier = 
     difficulty === "Critical" ? 3.5 : 
     difficulty === "Hard" ? 2.2 : 
@@ -826,25 +826,25 @@ export function generateLootDrops(difficulty: string, dangerLevel: string, secto
 
   if (difficulty === "Critical") {
     shouldDrop = true;
-    if (itemRoll < 0.15) rarity = "Legendary";
-    else if (itemRoll < 0.45) rarity = "Epic";
+    if (itemRoll < 0.15 + resourceDropChanceBoost) rarity = "Legendary";
+    else if (itemRoll < 0.45 + resourceDropChanceBoost) rarity = "Epic";
     else rarity = "Rare";
   } else if (difficulty === "Hard") {
     shouldDrop = true;
-    if (itemRoll < 0.05) rarity = "Legendary";
-    else if (itemRoll < 0.20) rarity = "Epic";
-    else if (itemRoll < 0.60) rarity = "Rare";
+    if (itemRoll < 0.05 + resourceDropChanceBoost) rarity = "Legendary";
+    else if (itemRoll < 0.20 + resourceDropChanceBoost) rarity = "Epic";
+    else if (itemRoll < 0.60 + resourceDropChanceBoost) rarity = "Rare";
     else rarity = "Uncommon";
   } else if (difficulty === "Normal") {
-    shouldDrop = itemRoll < 0.60;
-    if (itemRoll < 0.02) rarity = "Epic";
-    else if (itemRoll < 0.15) rarity = "Rare";
-    else if (itemRoll < 0.50) rarity = "Uncommon";
+    shouldDrop = itemRoll < (0.60 + resourceDropChanceBoost);
+    if (itemRoll < 0.02 + resourceDropChanceBoost) rarity = "Epic";
+    else if (itemRoll < 0.15 + resourceDropChanceBoost) rarity = "Rare";
+    else if (itemRoll < 0.50 + resourceDropChanceBoost) rarity = "Uncommon";
     else rarity = "Common";
   } else {
-    shouldDrop = itemRoll < 0.30;
-    if (itemRoll < 0.05) rarity = "Rare";
-    else if (itemRoll < 0.30) rarity = "Uncommon";
+    shouldDrop = itemRoll < (0.30 + resourceDropChanceBoost);
+    if (itemRoll < 0.05 + resourceDropChanceBoost) rarity = "Rare";
+    else if (itemRoll < 0.30 + resourceDropChanceBoost) rarity = "Uncommon";
     else rarity = "Common";
   }
 
@@ -911,7 +911,13 @@ export function claimMissionRewards(
 ): { updatedProfile: OperativeProfile; levelUpMessage: string | null; worldEventsMessage: string | null; lootedItems: InventoryItem[] } {
   const updated = { ...profile };
 
-  const xpGain      = cumulativeRewards.xp      || 0;
+  // Holder tier XP multiplier: Tier 1: +10% (+0.10), Tier 2: +20% (+0.20), Tier 3: +25% (+0.25)
+  let xpBoost = 0;
+  if (profile.holderTier === 1) xpBoost = 0.10;
+  else if (profile.holderTier === 2) xpBoost = 0.20;
+  else if (profile.holderTier === 3) xpBoost = 0.25;
+
+  const xpGain      = Math.round((cumulativeRewards.xp || 0) * (1 + xpBoost));
   let creditGain    = cumulativeRewards.credits  || 0;
   const repGain     = cumulativeRewards.reputationBonus || 0;
   const isSuccess   = outcome === "SUCCESS" || outcome === "PARTIAL";
@@ -942,7 +948,13 @@ export function claimMissionRewards(
   const lootedItems: InventoryItem[] = [];
   if (isSuccess) {
     const sectorDanger = updated.worldState?.sectorStates?.[mission.region]?.dangerLevel || "Medium";
-    const lootResult = generateLootDrops(mission.difficulty, sectorDanger, mission.region);
+
+    // Resource Drop Chance Boost: Tier 2: +5% (0.05), Tier 3: +10% (0.10)
+    let resourceChanceBoost = 0;
+    if (profile.holderTier === 2) resourceChanceBoost = 0.05;
+    else if (profile.holderTier === 3) resourceChanceBoost = 0.10;
+
+    const lootResult = generateLootDrops(mission.difficulty, sectorDanger, mission.region, resourceChanceBoost);
     
     creditGain += lootResult.credits;
     Object.entries(lootResult.resources).forEach(([resName, qty]) => {
@@ -1445,6 +1457,52 @@ export function loadEquippedGear(identifier: string): Record<string, InventoryIt
 export function saveEquippedGear(identifier: string, equippedGear: Record<string, InventoryItem | null>): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(`rq_ops_equipped:${identifier}`, JSON.stringify(equippedGear));
+}
+
+/**
+ * Asynchronously synchronizes the full player profile and inventory to Supabase.
+ */
+export async function syncProfileToSupabase(identifier: string, profile: OperativeProfile, inventory?: InventoryItem[]): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  try {
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        wallet_address: identifier,
+        username: profile.name || "Operative",
+        level: profile.level,
+        xp: profile.xp,
+        health: profile.health,
+        class: profile.class,
+        role: profile.role,
+        faction: profile.faction,
+        credits: profile.credits,
+        reputation: profile.reputation,
+        resources: profile.resources,
+        stats: profile.stats,
+        world_state: profile.worldState,
+        completed_missions: profile.completedMissions,
+        sector_discoveries: profile.sectorDiscoveries,
+        mission_history: profile.missionHistory,
+        achievements: profile.achievements,
+        campaign_stats: profile.campaignStats,
+        operations_archive: profile.operationsArchive,
+        inventory: inventory || [],
+        holder_status: profile.holderStatus,
+        holder_tier: profile.holderTier,
+        verified_balance: profile.verifiedBalance,
+        last_verification: profile.lastVerification,
+        access_type: profile.accessType
+      })
+    });
+    return res.ok;
+  } catch (e) {
+    console.error("[Service] Failed to sync profile to Supabase:", e);
+    return false;
+  }
 }
 
 // ─── Crafting & Upgrade Mechanics Backend Foundation ──────────────────────────

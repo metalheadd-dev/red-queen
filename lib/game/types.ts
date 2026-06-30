@@ -232,4 +232,10 @@ export interface OperativeProfile {
   campaignStats: CampaignStats;
   operationsArchive: ArchiveMissionRecord[];
   totalPlaytimeSeconds: number;
+  // ── Sprint 9 Access Control Additions ───────────────────────────────────
+  holderStatus?: string;
+  holderTier?: number;
+  verifiedBalance?: number;
+  lastVerification?: string | null;
+  accessType?: string;
 }

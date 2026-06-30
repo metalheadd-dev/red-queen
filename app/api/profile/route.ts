@@ -158,11 +158,36 @@ export async function POST(req: Request) {
     .upsert(
       {
         wallet_address: hashedWallet,
-        apocalyptic_name: apocalyptic_name || null,
+        apocalyptic_name: apocalyptic_name || body.username || null,
         chosen_scenarios: updatedScenarios,
         last_interaction: new Date().toISOString(),
         ...(email !== undefined && { email: email || null }),
         ...(linked_wallet_address !== undefined && { linked_wallet_address: linked_wallet_address || null }),
+        
+        // Persistent Gameplay Columns
+        ...(body.level !== undefined && { level: body.level }),
+        ...(body.xp !== undefined && { xp: body.xp }),
+        ...(body.health !== undefined && { health: body.health }),
+        ...(body.class !== undefined && { class: body.class }),
+        ...(body.role !== undefined && { role: body.role }),
+        ...(body.faction !== undefined && { faction: body.faction }),
+        ...(body.credits !== undefined && { credits: body.credits }),
+        ...(body.reputation !== undefined && { reputation: body.reputation }),
+        ...(body.resources !== undefined && { resources: body.resources }),
+        ...(body.stats !== undefined && { stats: body.stats }),
+        ...(body.world_state !== undefined && { world_state: body.world_state }),
+        ...(body.completed_missions !== undefined && { completed_missions: body.completed_missions }),
+        ...(body.sector_discoveries !== undefined && { sector_discoveries: body.sector_discoveries }),
+        ...(body.mission_history !== undefined && { mission_history: body.mission_history }),
+        ...(body.achievements !== undefined && { achievements: body.achievements }),
+        ...(body.campaign_stats !== undefined && { campaign_stats: body.campaign_stats }),
+        ...(body.operations_archive !== undefined && { operations_archive: body.operations_archive }),
+        ...(body.inventory !== undefined && { inventory: body.inventory }),
+        ...(body.holder_status !== undefined && { holder_status: body.holder_status }),
+        ...(body.holder_tier !== undefined && { holder_tier: body.holder_tier }),
+        ...(body.verified_balance !== undefined && { verified_balance: body.verified_balance }),
+        ...(body.last_verification !== undefined && { last_verification: body.last_verification }),
+        ...(body.access_type !== undefined && { access_type: body.access_type }),
       },
       { onConflict: "wallet_address" }
     )

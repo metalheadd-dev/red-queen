@@ -49,10 +49,30 @@ export default function AdminDashboardPage() {
 
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
-  const [activeTab, setActiveTab] = useState<"submissions" | "create" | "manage" | "twitter">("submissions");
+  const [activeTab, setActiveTab] = useState<"submissions" | "create" | "manage" | "twitter" | "invites" | "players" | "holder" | "analytics">("submissions");
   const [tweetText, setTweetText] = useState(
     "gmgn guys. Made several deployments and updates for Red Queen:\n\n1. Live threat telemetry (NOAA space weather, USGS earthquakes, GDELT disease RSS & GDACS) integrated.\n2. Gemini AI dynamically synthesizes the homepage Threat of the Day card with source citations.\n3. Swapped Mapbox GL for open-source MapLibre GL."
   );
+
+  // Invite management states
+  const [invites, setInvites] = useState<any[]>([]);
+  const [loadingInvites, setLoadingInvites] = useState(false);
+  const [newInviteCode, setNewInviteCode] = useState("");
+  const [newInviteMaxUses, setNewInviteMaxUses] = useState("1");
+  const [newInviteNotes, setNewInviteNotes] = useState("");
+  const [newInviteExpiry, setNewInviteExpiry] = useState("");
+  const [generatingInvite, setGeneratingInvite] = useState(false);
+
+  // Player management & Analytics states
+  const [players, setPlayers] = useState<any[]>([]);
+  const [loadingPlayers, setLoadingPlayers] = useState(false);
+  const [analytics, setAnalytics] = useState<any>(null);
+
+  // Holder Audit tool states
+  const [verifyWalletInput, setVerifyWalletInput] = useState("");
+  const [verifyingHolder, setVerifyingHolder] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [verifyingError, setVerifyingError] = useState<string | null>(null);
 
   // Content creation form states
   const [createType, setCreateType] = useState<"task" | "bounty">("task");
@@ -137,6 +157,123 @@ export default function AdminDashboardPage() {
     setLoadingActiveMissions(false);
   }, [isAdmin]);
 
+  const fetchInvites = useCallback(async () => {
+    if (!isAdmin) return;
+    setLoadingInvites(true);
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/invites", {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
+      const data = await res.json();
+      if (data && data.invites) {
+        setInvites(data.invites);
+      }
+    } catch (e) {
+      console.error("Error loading invites:", e);
+    }
+    setLoadingInvites(false);
+  }, [isAdmin, session]);
+
+  const fetchPlayersAndAnalytics = useCallback(async () => {
+    if (!isAdmin) return;
+    setLoadingPlayers(true);
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/players", {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
+      const data = await res.json();
+      if (data && data.players) {
+        setPlayers(data.players);
+      }
+      if (data && data.analytics) {
+        setAnalytics(data.analytics);
+      }
+    } catch (e) {
+      console.error("Error loading players list:", e);
+    }
+    setLoadingPlayers(false);
+  }, [isAdmin, session]);
+
+  const handleGenerateInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGeneratingInvite(true);
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/invites", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({
+          code: newInviteCode || undefined,
+          max_uses: parseInt(newInviteMaxUses) || 1,
+          note: newInviteNotes,
+          expires_at: newInviteExpiry || null
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Invite code generated: ${data.invite.code}`);
+        setNewInviteCode("");
+        setNewInviteMaxUses("1");
+        setNewInviteNotes("");
+        setNewInviteExpiry("");
+        fetchInvites();
+      } else {
+        alert(`Failed: ${data.error}`);
+      }
+    } catch (err: any) {
+      console.error("Failed to generate invite:", err);
+    }
+    setGeneratingInvite(false);
+  };
+
+  const handleToggleInvite = async (id: string, active: boolean) => {
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/invites", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({ id, active })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchInvites();
+      }
+    } catch (err) {
+      console.error("Failed to update invite:", err);
+    }
+  };
+
+  const handleDeleteInvite = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this invite?")) return;
+    try {
+      const token = session?.access_token;
+      const res = await fetch(`/api/admin/invites?id=${id}`, {
+        method: "DELETE",
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchInvites();
+      }
+    } catch (err) {
+      console.error("Failed to delete invite:", err);
+    }
+  };
+
   const handleEditSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItem) return;
@@ -206,6 +343,14 @@ export default function AdminDashboardPage() {
       fetchActiveMissions();
     }
   }, [isAdmin, activeTab, fetchActiveMissions]);
+
+  useEffect(() => {
+    if (isAdmin && activeTab === "invites") {
+      fetchInvites();
+    } else if (isAdmin && (activeTab === "players" || activeTab === "analytics")) {
+      fetchPlayersAndAnalytics();
+    }
+  }, [isAdmin, activeTab, fetchInvites, fetchPlayersAndAnalytics]);
 
   const handleAction = async (submissionId: string, action: "approve" | "reject") => {
     setActioningId(submissionId);
@@ -366,6 +511,54 @@ export default function AdminDashboardPage() {
               }}
             >
               𝕏 / TWITTER COMPOSER
+            </button>
+            <button
+              onClick={() => setActiveTab("invites")}
+              className="btn"
+              style={{
+                fontSize: "12px",
+                fontFamily: "var(--mono)",
+                borderColor: activeTab === "invites" ? "var(--accent)" : "rgba(255,255,255,0.05)",
+                background: activeTab === "invites" ? "rgba(255, 77, 77, 0.05)" : "transparent"
+              }}
+            >
+              INVITE CODES
+            </button>
+            <button
+              onClick={() => setActiveTab("players")}
+              className="btn"
+              style={{
+                fontSize: "12px",
+                fontFamily: "var(--mono)",
+                borderColor: activeTab === "players" ? "var(--accent)" : "rgba(255,255,255,0.05)",
+                background: activeTab === "players" ? "rgba(255, 77, 77, 0.05)" : "transparent"
+              }}
+            >
+              PLAYERS DIRECTORY
+            </button>
+            <button
+              onClick={() => setActiveTab("holder")}
+              className="btn"
+              style={{
+                fontSize: "12px",
+                fontFamily: "var(--mono)",
+                borderColor: activeTab === "holder" ? "var(--accent)" : "rgba(255,255,255,0.05)",
+                background: activeTab === "holder" ? "rgba(255, 77, 77, 0.05)" : "transparent"
+              }}
+            >
+              HOLDER AUDIT TOOLS
+            </button>
+            <button
+              onClick={() => setActiveTab("analytics")}
+              className="btn"
+              style={{
+                fontSize: "12px",
+                fontFamily: "var(--mono)",
+                borderColor: activeTab === "analytics" ? "var(--accent)" : "rgba(255,255,255,0.05)",
+                background: activeTab === "analytics" ? "rgba(255, 77, 77, 0.05)" : "transparent"
+              }}
+            >
+              METRICS & ANALYTICS
             </button>
           </div>
         </div>
@@ -727,7 +920,7 @@ export default function AdminDashboardPage() {
               </button>
             </form>
           </div>
-        ) : (
+        ) : activeTab === "manage" ? (
           // Manage Active Missions View
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
@@ -877,7 +1070,439 @@ export default function AdminDashboardPage() {
               </div>
             )}
           </div>
-        )}
+        ) : activeTab === "twitter" ? (
+          // Twitter Composer Tab
+          <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+            <h2 style={{ fontSize: "18px", fontFamily: "var(--mono)", marginBottom: "20px", color: "var(--text)" }}>
+              [ 𝕏 / TWITTER COMMUNITY ANNOUNCER ]
+            </h2>
+            <div className="panel" style={{ padding: "28px", borderColor: "#1d9bf0" }}>
+              <textarea
+                value={tweetText}
+                onChange={(e) => setTweetText(e.target.value)}
+                rows={6}
+                style={{ width: "100%", background: "#0c0c0c", border: "1px solid var(--border)", color: "#fff", padding: "12px", fontFamily: "var(--mono)", borderRadius: "2px", resize: "vertical" }}
+              />
+              <button
+                onClick={() => {
+                  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
+                }}
+                className="btn btn-primary"
+                style={{ width: "100%", marginTop: "16px", background: "#1d9bf0", borderColor: "#1d9bf0", color: "#fff", fontWeight: "bold" }}
+              >
+                BROADCAST TO TWITTER GRID 🚀
+              </button>
+            </div>
+          </div>
+        ) : activeTab === "invites" ? (
+          // Invite Codes Tab
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "24px", marginBottom: "30px" }}>
+              <div style={{ flex: 1, minWidth: "300px" }}>
+                <h2 style={{ fontSize: "18px", fontFamily: "var(--mono)", marginBottom: "16px", color: "var(--text)" }}>
+                  [ GENERATE NEW ACCESS KEY ]
+                </h2>
+                <form onSubmit={handleGenerateInvite} className="panel" style={{ padding: "20px", background: "rgba(10,10,10,0.3)" }}>
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "6px" }}>CUSTOM CODE (OPTIONAL)</label>
+                    <input
+                      type="text"
+                      placeholder="RQ-AUTO-GEN"
+                      value={newInviteCode}
+                      onChange={(e) => setNewInviteCode(e.target.value.toUpperCase())}
+                      style={{ width: "100%", background: "#0c0c0c", border: "1px solid var(--border)", color: "#fff", padding: "8px 12px", fontFamily: "var(--mono)", borderRadius: "2px" }}
+                    />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                    <div>
+                      <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "6px" }}>MAX USES</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={newInviteMaxUses}
+                        onChange={(e) => setNewInviteMaxUses(e.target.value)}
+                        style={{ width: "100%", background: "#0c0c0c", border: "1px solid var(--border)", color: "#fff", padding: "8px 12px", fontFamily: "var(--mono)", borderRadius: "2px" }}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "6px" }}>EXPIRY DATE (OPTIONAL)</label>
+                      <input
+                        type="datetime-local"
+                        value={newInviteExpiry}
+                        onChange={(e) => setNewInviteExpiry(e.target.value)}
+                        style={{ width: "100%", background: "#0c0c0c", border: "1px solid var(--border)", color: "#fff", padding: "8px 12px", fontFamily: "var(--mono)", borderRadius: "2px" }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: "16px" }}>
+                    <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", marginBottom: "6px" }}>ADMIN NOTE</label>
+                    <input
+                      type="text"
+                      placeholder="Closed beta invite for..."
+                      value={newInviteNotes}
+                      onChange={(e) => setNewInviteNotes(e.target.value)}
+                      style={{ width: "100%", background: "#0c0c0c", border: "1px solid var(--border)", color: "#fff", padding: "8px 12px", fontFamily: "var(--mono)", borderRadius: "2px" }}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={generatingInvite}
+                    className="btn btn-primary"
+                    style={{ width: "100%", padding: "10px", fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold" }}
+                  >
+                    {generatingInvite ? "[ GENERATING... ]" : "[ COMPILE ACCESS CODE ]"}
+                  </button>
+                </form>
+              </div>
+
+              <div style={{ flex: 1.5, minWidth: "400px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                  <h2 style={{ fontSize: "18px", fontFamily: "var(--mono)", margin: 0, color: "var(--text)" }}>
+                    [ REGISTERED ACCESS CODES ]
+                  </h2>
+                  <button onClick={fetchInvites} className="btn" style={{ fontSize: "10px", padding: "4px 8px" }} disabled={loadingInvites}>
+                    REFRESH
+                  </button>
+                </div>
+
+                <div className="panel" style={{ padding: "12px", background: "#080808", overflowX: "auto" }}>
+                  {loadingInvites ? (
+                    <div style={{ textAlign: "center", padding: "20px", fontFamily: "var(--mono)", color: "var(--accent)" }}>
+                      [ RETRIEVING ARCHIVE KEY DATA... ]
+                    </div>
+                  ) : invites.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "20px", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "11px" }}>
+                      NO REGISTERED INVITE CODES FOUND
+                    </div>
+                  ) : (
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "550px" }}>
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid var(--border)", textAlign: "left" }}>
+                          <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>CODE</th>
+                          <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>USES</th>
+                          <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>NOTE</th>
+                          <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>STATUS</th>
+                          <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", textAlign: "right" }}>ACTIONS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {invites.map((invite: any) => (
+                          <tr key={invite.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                            <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", fontWeight: "bold" }}>
+                              {invite.code}
+                            </td>
+                            <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "11px", color: "#fff" }}>
+                              {invite.current_uses} / {invite.max_uses}
+                            </td>
+                            <td style={{ padding: "8px", fontSize: "11px", color: "var(--text-dim)" }}>
+                              {invite.note || "—"}
+                            </td>
+                            <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px" }}>
+                              {invite.active ? (
+                                <span style={{ color: "#00ffcc" }}>ACTIVE</span>
+                              ) : (
+                                <span style={{ color: "var(--accent)" }}>DISABLED</span>
+                              )}
+                            </td>
+                            <td style={{ padding: "8px", textAlign: "right" }}>
+                              <div style={{ display: "inline-flex", gap: "6px" }}>
+                                <button
+                                  onClick={() => handleToggleInvite(invite.id, !invite.active)}
+                                  className="btn"
+                                  style={{ fontSize: "9px", padding: "2px 6px" }}
+                                >
+                                  {invite.active ? "DISABLE" : "ENABLE"}
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteInvite(invite.id)}
+                                  className="btn btn-ghost"
+                                  style={{ fontSize: "9px", padding: "2px 6px", borderColor: "var(--accent)", color: "var(--accent)" }}
+                                >
+                                  DELETE
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : activeTab === "players" ? (
+          // Players Directory Tab
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h2 style={{ fontSize: "18px", fontFamily: "var(--mono)", margin: 0, color: "var(--text)" }}>
+                [ OPERATIVE REGISTRY DIRECTORY ]
+              </h2>
+              <button onClick={fetchPlayersAndAnalytics} className="btn" style={{ fontSize: "10px", padding: "4px 8px" }} disabled={loadingPlayers}>
+                REFRESH
+              </button>
+            </div>
+
+            <div className="panel" style={{ padding: "16px", background: "#080808", overflowX: "auto" }}>
+              {loadingPlayers ? (
+                <div style={{ textAlign: "center", padding: "30px", fontFamily: "var(--mono)", color: "var(--accent)" }}>
+                  [ RETRIEVING OPERATIVE REGISTRIES... ]
+                </div>
+              ) : players.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "20px", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "11px" }}>
+                  NO REGISTERED PLAYERS FOUND IN REGISTRY
+                </div>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "900px" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid var(--border)", textAlign: "left" }}>
+                      <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>HASHED WALLET</th>
+                      <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>CALLSIGN</th>
+                      <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>CLASS/ROLE</th>
+                      <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>LEVEL (XP)</th>
+                      <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>BIO SCORE</th>
+                      <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>$THREAT BAL</th>
+                      <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>ACCESS TYPE</th>
+                      <th style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", textAlign: "right" }}>OVERRIDE ACCESS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {players.map((player: any) => (
+                      <tr key={player.wallet_address} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                        <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>
+                          {player.wallet_address.slice(0, 10)}...{player.wallet_address.slice(-6)}
+                        </td>
+                        <td style={{ padding: "8px", fontSize: "11px", color: "#fff", fontWeight: "bold" }}>
+                          {player.apocalyptic_name || "UNNAMED"}
+                        </td>
+                        <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>
+                          {player.class || "None"} / {player.role || "None"}
+                        </td>
+                        <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)" }}>
+                          Lv {player.level || 1} ({player.xp || 0} XP)
+                        </td>
+                        <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "11px", color: "#ffcc00" }}>
+                          {player.last_bio_score || player.bio_score || "—"}
+                        </td>
+                        <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc" }}>
+                          {(player.verified_balance || 0).toLocaleString()}
+                        </td>
+                        <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "11px", color: player.access_type === "Holder" ? "#00ffcc" : player.access_type === "Invite" ? "#ff4d4d" : "var(--text)" }}>
+                          {player.access_type || "None"}
+                        </td>
+                        <td style={{ padding: "8px", textAlign: "right" }}>
+                          <select
+                            value={player.access_type || "None"}
+                            onChange={async (e) => {
+                              const val = e.target.value;
+                              try {
+                                const token = session?.access_token;
+                                const res = await fetch("/api/admin/players", {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                    ...(token && { Authorization: `Bearer ${token}` })
+                                  },
+                                  body: JSON.stringify({ wallet_address: player.wallet_address, access_type: val })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  fetchPlayersAndAnalytics();
+                                }
+                              } catch (err) {
+                                console.error("Override failed:", err);
+                              }
+                            }}
+                            style={{ background: "#0c0c0c", border: "1px solid var(--border)", color: "#fff", fontFamily: "var(--mono)", fontSize: "10px", padding: "2px 4px" }}
+                          >
+                            <option value="None">None</option>
+                            <option value="Invite">Invite</option>
+                            <option value="Holder">Holder</option>
+                            <option value="Admin">Admin</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        ) : activeTab === "holder" ? (
+          // Holder Audit Tab
+          <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+            <h2 style={{ fontSize: "18px", fontFamily: "var(--mono)", marginBottom: "20px", color: "var(--text)" }}>
+              [ RUN MANUAL $THREAT AUDIT ]
+            </h2>
+
+            <div className="panel" style={{ padding: "28px" }}>
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "8px" }}>TARGET SOLANA PUBLIC KEY</label>
+                <input
+                  type="text"
+                  placeholder="Enter raw Solana wallet address..."
+                  value={verifyWalletInput}
+                  onChange={(e) => setVerifyWalletInput(e.target.value)}
+                  style={{ width: "100%", background: "#0c0c0c", border: "1px solid var(--border)", color: "#fff", padding: "10px 14px", fontFamily: "var(--mono)", fontSize: "12px", borderRadius: "2px" }}
+                />
+              </div>
+
+              <button
+                onClick={async () => {
+                  if (!verifyWalletInput.trim()) return;
+                  setVerifyingHolder(true);
+                  setVerifyResult(null);
+                  setVerifyingError(null);
+                  try {
+                    const token = session?.access_token;
+                    const res = await fetch("/api/profile/verify-holder", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        ...(token && { Authorization: `Bearer ${token}` })
+                      },
+                      body: JSON.stringify({ custom_wallet: verifyWalletInput })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                      setVerifyResult(data);
+                    } else {
+                      setVerifyingError(data.error || "Audit request rejected");
+                    }
+                  } catch (e) {
+                    setVerifyingError("Uplink timeout or connection failure.");
+                  } finally {
+                    setVerifyingHolder(false);
+                  }
+                }}
+                disabled={verifyingHolder || !verifyWalletInput.trim()}
+                className="btn btn-primary"
+                style={{ width: "100%", padding: "12px", fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold" }}
+              >
+                {verifyingHolder ? "[ DECRYPTING BLOCKCHAIN BALANCES... ]" : "[ AUDIT SOLANA WALLET ]"}
+              </button>
+
+              {verifyingError && (
+                <div style={{ color: "var(--accent)", fontFamily: "var(--mono)", fontSize: "11px", marginTop: "16px", textAlign: "center" }}>
+                  ⚠️ {verifyingError}
+                </div>
+              )}
+
+              {verifyResult && (
+                <div style={{ marginTop: "24px", background: "#0c0c0c", border: "1px solid var(--border)", padding: "16px" }}>
+                  <h4 style={{ fontSize: "12px", fontFamily: "var(--mono)", margin: "0 0 12px 0", color: "#00ffcc", borderBottom: "1px solid var(--border)", paddingBottom: "6px" }}>
+                    AUDIT REPORT SUMMARY
+                  </h4>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontFamily: "var(--mono)", fontSize: "11px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ color: "var(--text-muted)" }}>VERIFIED $THREAT:</span>
+                      <span style={{ color: "#fff", fontWeight: "bold" }}>{verifyResult.verified_balance.toLocaleString()} tokens</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ color: "var(--text-muted)" }}>CLEARANCE STATUS:</span>
+                      <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{verifyResult.holder_status}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ color: "var(--text-muted)" }}>BENEFIT TIER:</span>
+                      <span style={{ color: "#ffcc00", fontWeight: "bold" }}>Tier {verifyResult.holder_tier}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ color: "var(--text-muted)" }}>ACCESS CLEARANCE:</span>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{verifyResult.access_type}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : activeTab === "analytics" ? (
+          // Metrics & Analytics Tab
+          <div>
+            <h2 style={{ fontSize: "18px", fontFamily: "var(--mono)", marginBottom: "20px", color: "var(--text)" }}>
+              [ AGGREGATED METRICS & ECOSYSTEM HEALTH ]
+            </h2>
+
+            {analytics ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                  <div className="panel" style={{ padding: "20px", background: "rgba(10,10,10,0.3)" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>TOTAL REGISTRY PARTICIPANTS</span>
+                    <span style={{ fontSize: "28px", fontWeight: "bold", fontFamily: "var(--mono)", color: "#fff", display: "block", marginTop: "8px" }}>
+                      {analytics.totalCount}
+                    </span>
+                  </div>
+                  <div className="panel" style={{ padding: "20px", background: "rgba(10,10,10,0.3)" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>ACTIVE INVITE USERS</span>
+                    <span style={{ fontSize: "28px", fontWeight: "bold", fontFamily: "var(--mono)", color: "#ff4d4d", display: "block", marginTop: "8px" }}>
+                      {analytics.inviteCount}
+                    </span>
+                  </div>
+                  <div className="panel" style={{ padding: "20px", background: "rgba(10,10,10,0.3)" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>VERIFIED HOLDERS (LEVEL 2+)</span>
+                    <span style={{ fontSize: "28px", fontWeight: "bold", fontFamily: "var(--mono)", color: "#00ffcc", display: "block", marginTop: "8px" }}>
+                      {analytics.holderCount}
+                    </span>
+                  </div>
+                  <div className="panel" style={{ padding: "20px", background: "rgba(10,10,10,0.3)" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", display: "block" }}>FOUNDER BADGE HOLDERS (LEVEL 3)</span>
+                    <span style={{ fontSize: "28px", fontWeight: "bold", fontFamily: "var(--mono)", color: "#ffcc00", display: "block", marginTop: "8px" }}>
+                      {analytics.founderCount}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", alignItems: "start", flexWrap: "wrap" }}>
+                  <div className="panel" style={{ padding: "20px" }}>
+                    <h3 style={{ fontSize: "14px", fontFamily: "var(--mono)", margin: "0 0 16px 0", color: "#fff", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "8px" }}>
+                      ECOSYSTEM PERFORMANCE AVERAGES
+                    </h3>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontFamily: "var(--mono)", fontSize: "12px" }}>
+                      <div>
+                        <span style={{ color: "var(--text-muted)" }}>AVERAGE BIO-SCORE EVALUATION:</span>
+                        <div style={{ fontSize: "16px", fontWeight: "bold", color: "#ffcc00", marginTop: "4px" }}>
+                          {analytics.avgBioScore} / 100
+                        </div>
+                      </div>
+                      <div>
+                        <span style={{ color: "var(--text-muted)" }}>AVERAGE SECURED SECTOR COMPLETION:</span>
+                        <div style={{ fontSize: "16px", fontWeight: "bold", color: "#00ffcc", marginTop: "4px" }}>
+                          {analytics.avgCampaignCompletion}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="panel" style={{ padding: "20px" }}>
+                    <h3 style={{ fontSize: "14px", fontFamily: "var(--mono)", margin: "0 0 16px 0", color: "#fff", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "8px" }}>
+                      POPULAR DEFENSE OPERATIONS
+                    </h3>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {analytics.popularOperations.length === 0 ? (
+                        <span style={{ color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "11px" }}>NO OPERATIONS RECORDED YET</span>
+                      ) : (
+                        analytics.popularOperations.map((op: any, i: number) => (
+                          <div key={op.title} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.02)", paddingBottom: "6px" }}>
+                            <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
+                              {i+1}. {op.title}
+                            </span>
+                            <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--accent)", fontWeight: "bold" }}>
+                              {op.count} Runs
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "40px", fontFamily: "var(--mono)", color: "var(--accent)" }}>
+                [ CALCULATING ANALYTIC ALGORITHMS... ]
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
 
       {/* Edit Modal Overlay */}

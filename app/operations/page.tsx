@@ -7,10 +7,11 @@ import Link from "next/link";
 import { DEFAULT_STATS, UserStats, calculateBioScore, getClearanceLevel } from "@/lib/progression";
 
 // Game Types & Data imports
-import { Sector, Mission, InventoryItem, OperativeProfile } from "@/lib/game/types";
+import { Sector, Mission, InventoryItem, OperativeProfile, SectorState, WorldState } from "@/lib/game/types";
 import { INITIAL_SECTORS, INITIAL_MISSIONS, INITIAL_INVENTORY, SECTOR_CONNECTIONS, CRAFTING_RECIPES, UPGRADE_RECIPES } from "@/lib/game/data";
 import {
   loadProfile,
+  DEFAULT_PROFILE,
   saveProfile,
   claimMissionRewards,
   loadInventory,
@@ -59,7 +60,14 @@ const ROLES: Record<string, string[]> = {
 export default function OperationsPage() {
   const { publicKey } = useWallet();
   const { setVisible } = useWalletModal();
-  const { authIdentifier } = useAuth();
+  const { authIdentifier, session } = useAuth();
+
+  // Access Control local states
+  const [inviteCodeInput, setInviteCodeInput] = useState("");
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [isActivatingInvite, setIsActivatingInvite] = useState(false);
+  const [isRefreshingHolder, setIsRefreshingHolder] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   // Helper to map sector name to its ID
   const getSectorIdByName = (name: string) => {
@@ -192,38 +200,176 @@ export default function OperationsPage() {
   }, [aiLogs]);
 
   // Load operative stats and inventory from services
-  const loadGameData = () => {
+  // Load operative stats and inventory from services
+  const loadGameData = async () => {
     setLoading(true);
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
     
-    // Load profile
-    const prof = loadProfile(identifier);
-    setProfile(prof);
-
-    // Load inventory & gear
-    const inv = loadInventory(identifier, INITIAL_INVENTORY);
-    const gear = loadEquippedGear(identifier);
-    
-    // Migration: If any gear is equipped, ensure it exists in the inventory array with equipped: true
-    let updatedInv = [...inv];
-    Object.entries(gear).forEach(([slot, item]) => {
-      if (item) {
-        const baseId = item.id.replace(/-equipped$/, "");
-        const alreadyInInv = updatedInv.some(i => i.id.replace(/-equipped$/, "") === baseId && i.equipped);
-        if (!alreadyInInv) {
-          const equippedItem: InventoryItem = {
-            ...item,
-            id: item.id.endsWith("-equipped") ? item.id : `${item.id}-equipped`,
-            equipped: true,
-            qty: 1
+    try {
+      const authHeaderToken = session?.access_token;
+      const res = await fetch(`/api/profile?wallet=${identifier}`, {
+        headers: {
+          ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
+        }
+      });
+      const data = await res.json();
+      
+      let loadedProfile: OperativeProfile | null = null;
+      let loadedInventory: InventoryItem[] = [];
+      
+      if (data && data.profile) {
+        const db = data.profile;
+        
+        // Self-heal sector states if needed
+        const savedSectorStates = db.world_state?.sectorStates || {};
+        const healedSectorStates: Record<string, SectorState> = {};
+        Object.keys(DEFAULT_WORLD_STATE.sectorStates).forEach(sid => {
+          const defaults = DEFAULT_WORLD_STATE.sectorStates[sid];
+          const existing = savedSectorStates[sid] || {};
+          healedSectorStates[sid] = {
+            ...defaults,
+            ...existing,
+            unlockRequiredSector:  defaults.unlockRequiredSector,
+            unlockRequiredLevel:   defaults.unlockRequiredLevel,
+            unlockRequiredBioScore: defaults.unlockRequiredBioScore,
+            unlockRequiredFaction: defaults.unlockRequiredFaction,
+            stability:             typeof existing.stability === "number" ? existing.stability : (existing.completion || defaults.completion || 0),
+            influence:             existing.influence || { ...(DEFAULT_WORLD_STATE.sectorStates[sid]?.influence || {}) },
+            completedMissions:     Array.isArray(existing.completedMissions) ? existing.completedMissions : [],
+            availableMissions:     Array.isArray(existing.availableMissions) ? existing.availableMissions : [...(defaults.availableMissions || [])],
+            worldEvents:           Array.isArray(existing.worldEvents) ? existing.worldEvents : [...(defaults.worldEvents || [])],
+            contamination:         typeof existing.contamination === "number" ? existing.contamination : (defaults.contamination !== undefined ? defaults.contamination : 15),
+            availableResources:    Array.isArray(existing.availableResources) ? existing.availableResources : [...(defaults.availableResources || [])],
           };
-          updatedInv.push(equippedItem);
+        });
+        
+        const worldState: WorldState = {
+          unlockedSectors:  Array.isArray(db.world_state?.unlockedSectors) ? db.world_state.unlockedSectors : DEFAULT_WORLD_STATE.unlockedSectors,
+          activeAnomalies:  db.world_state?.activeAnomalies  || DEFAULT_WORLD_STATE.activeAnomalies,
+          factionInfluence: db.world_state?.factionInfluence || DEFAULT_WORLD_STATE.factionInfluence,
+          globalAlerts:     Array.isArray(db.world_state?.globalAlerts) ? db.world_state.globalAlerts : DEFAULT_WORLD_STATE.globalAlerts,
+          sectorStates:     healedSectorStates,
+          activeEvents:     Array.isArray(db.world_state?.activeEvents) ? db.world_state.activeEvents : [...DEFAULT_WORLD_STATE.activeEvents],
+          longestStreak:    typeof db.world_state?.longestStreak === "number" ? db.world_state.longestStreak : 0,
+          dynamicMissions:  Array.isArray(db.world_state?.dynamicMissions) ? db.world_state.dynamicMissions : [],
+        };
+
+        loadedProfile = {
+          name: db.apocalyptic_name || "OPERATIVE",
+          faction: db.faction || "None",
+          class: db.class || "None",
+          role: db.role || "None",
+          level: typeof db.level === "number" ? db.level : 1,
+          xp: typeof db.xp === "number" ? db.xp : 0,
+          credits: typeof db.credits === "number" ? db.credits : 500,
+          reputation: typeof db.reputation === "number" ? db.reputation : 0,
+          resources: db.resources || { ...DEFAULT_PROFILE.resources },
+          stats: db.stats || { ...DEFAULT_STATS },
+          completedMissions: Array.isArray(db.completed_missions) ? db.completed_missions : [],
+          factionStanding: db.faction_standing || { ...DEFAULT_PROFILE.factionStanding },
+          achievements: Array.isArray(db.achievements) ? db.achievements : [],
+          missionHistory: Array.isArray(db.mission_history) ? db.mission_history : [],
+          sectorDiscoveries: Array.isArray(db.sector_discoveries) ? db.sector_discoveries : DEFAULT_PROFILE.sectorDiscoveries,
+          health: typeof db.health === "number" ? db.health : 100,
+          worldState,
+          campaignStats: db.campaign_stats || { ...DEFAULT_CAMPAIGN_STATS },
+          operationsArchive: Array.isArray(db.operations_archive) ? db.operations_archive : [],
+          totalPlaytimeSeconds: typeof db.total_playtime_seconds === "number" ? db.total_playtime_seconds : 0,
+          holderStatus: db.holder_status || "Civilian",
+          holderTier: typeof db.holder_tier === "number" ? db.holder_tier : 0,
+          verifiedBalance: typeof db.verified_balance === "number" ? db.verified_balance : 0,
+          lastVerification: db.last_verification || null,
+          accessType: db.access_type || "None"
+        };
+        
+        loadedInventory = Array.isArray(db.inventory) ? db.inventory : [];
+      } else {
+        const prof = loadProfile(identifier);
+        const inv = loadInventory(identifier, INITIAL_INVENTORY);
+        
+        loadedProfile = {
+          ...prof,
+          holderStatus: prof.holderStatus || "Civilian",
+          holderTier: prof.holderTier || 0,
+          verifiedBalance: prof.verifiedBalance || 0,
+          accessType: prof.accessType || "None"
+        };
+        loadedInventory = inv;
+
+        if (identifier !== "offline-operative") {
+          await fetch("/api/profile", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
+            },
+            body: JSON.stringify({
+              wallet_address: identifier,
+              username: loadedProfile.name || "Operative",
+              level: loadedProfile.level,
+              xp: loadedProfile.xp,
+              health: loadedProfile.health,
+              class: loadedProfile.class,
+              role: loadedProfile.role,
+              faction: loadedProfile.faction,
+              credits: loadedProfile.credits,
+              reputation: loadedProfile.reputation,
+              resources: loadedProfile.resources,
+              stats: loadedProfile.stats,
+              world_state: loadedProfile.worldState,
+              completed_missions: loadedProfile.completedMissions,
+              sector_discoveries: loadedProfile.sectorDiscoveries,
+              mission_history: loadedProfile.missionHistory,
+              achievements: loadedProfile.achievements,
+              campaign_stats: loadedProfile.campaignStats,
+              operations_archive: loadedProfile.operationsArchive,
+              inventory: loadedInventory,
+              holder_status: loadedProfile.holderStatus,
+              holder_tier: loadedProfile.holderTier,
+              verified_balance: loadedProfile.verifiedBalance,
+              access_type: loadedProfile.accessType
+            })
+          });
         }
       }
-    });
 
-    setInventory(updatedInv);
-    setLoading(false);
+      setProfile(loadedProfile);
+      setInventory(loadedInventory);
+
+      if (identifier !== "offline-operative") {
+        fetch("/api/profile/verify-holder", {
+          method: "POST",
+          headers: {
+            ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
+          }
+        })
+          .then(vRes => vRes.json())
+          .then(vData => {
+            if (vData && vData.success) {
+              setProfile(prev => {
+                if (!prev) return null;
+                return {
+                  ...prev,
+                  verifiedBalance: vData.verified_balance,
+                  holderTier: vData.holder_tier,
+                  holderStatus: vData.holder_status,
+                  accessType: vData.access_type
+                };
+              });
+            }
+          })
+          .catch(e => console.warn("Failed to auto-verify tokens on load:", e));
+      }
+
+    } catch (err) {
+      console.error("Failed to load operations profile asynchronously:", err);
+      const prof = loadProfile(identifier);
+      const inv = loadInventory(identifier, INITIAL_INVENTORY);
+      setProfile(prof);
+      setInventory(inv);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -267,6 +413,58 @@ export default function OperationsPage() {
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
     saveEquippedGear(identifier, derived);
   }, [inventory, !!profile, authIdentifier, publicKey]);
+
+  // Synchronize player profile and inventory to Supabase on state change (with debounce)
+  useEffect(() => {
+    if (!profile) return;
+    const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+    if (identifier === "offline-operative") return;
+
+    const syncData = async () => {
+      try {
+        const authHeaderToken = session?.access_token;
+        await fetch("/api/profile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
+          },
+          body: JSON.stringify({
+            wallet_address: identifier,
+            username: profile.name || "Operative",
+            level: profile.level,
+            xp: profile.xp,
+            health: profile.health,
+            class: profile.class,
+            role: profile.role,
+            faction: profile.faction,
+            credits: profile.credits,
+            reputation: profile.reputation,
+            resources: profile.resources,
+            stats: profile.stats,
+            world_state: profile.worldState,
+            completed_missions: profile.completedMissions,
+            sector_discoveries: profile.sectorDiscoveries,
+            mission_history: profile.missionHistory,
+            achievements: profile.achievements,
+            campaign_stats: profile.campaignStats,
+            operations_archive: profile.operationsArchive,
+            inventory: inventory,
+            holder_status: profile.holderStatus,
+            holder_tier: profile.holderTier,
+            verified_balance: profile.verifiedBalance,
+            last_verification: profile.lastVerification,
+            access_type: profile.accessType
+          })
+        });
+      } catch (e) {
+        console.error("Failed to auto-save game progress to Supabase:", e);
+      }
+    };
+
+    const timer = setTimeout(syncData, 1000); // 1-second debounce
+    return () => clearTimeout(timer);
+  }, [profile, inventory, authIdentifier, publicKey, session]);
 
   // Handle Onboarding Completion
   const handleOnboardingSubmit = () => {
@@ -1365,6 +1563,189 @@ export default function OperationsPage() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- ACCESS GATING SCREEN ---
+  const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+  const hasAccess = 
+    (profile?.accessType === "Invite" || 
+     profile?.accessType === "Holder" || 
+     (profile?.verifiedBalance || 0) >= 1000000 || 
+     (profile?.holderTier || 0) >= 2 ||
+     identifier === "offline-operative");
+
+  if (profile && profile.name && !hasAccess) {
+    return (
+      <div style={{
+        position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
+        background: "#030303", display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", padding: "20px 24px"
+      }} className="holo-noise">
+        <div className="panel" style={{
+          maxWidth: "480px", width: "100%", padding: "30px", border: "1px solid var(--accent)",
+          background: "#080808", display: "flex", flexDirection: "column", gap: "20px",
+          boxShadow: "0 0 30px rgba(255, 77, 77, 0.15)", borderRadius: "4px"
+        }}>
+          <div style={{ borderBottom: "2px solid var(--accent)", paddingBottom: "12px", textAlign: "center" }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
+              RED QUEEN NETWORK GATE
+            </span>
+            <h2 style={{ fontSize: "20px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em", fontFamily: "var(--title-font)" }}>
+              ACCESS AUTHORIZATION REQUIRED
+            </h2>
+          </div>
+
+          <p style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6", textAlign: "center", margin: 0 }}>
+            Operations terminal access is restricted. To gain entry, you must either hold at least <span style={{ color: "#00ffcc", fontWeight: "bold" }}>1,000,000 $THREAT</span> tokens in your linked wallet or provide a valid activation Invite Code.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", background: "#0c0c0c", border: "1px solid var(--border)", padding: "12px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)" }}>
+              <span style={{ color: "var(--text-muted)" }}>LINKED WALLET:</span>
+              <span style={{ color: "#fff", fontWeight: "bold" }}>
+                {identifier.startsWith("email-auth:") ? "Email Link Profile" : `${identifier.slice(0, 6)}...${identifier.slice(-6)}`}
+              </span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)", marginTop: "4px" }}>
+              <span style={{ color: "var(--text-muted)" }}>VERIFIED $THREAT:</span>
+              <span style={{ color: "#00ffcc", fontWeight: "bold" }}>
+                {(profile.verifiedBalance || 0).toLocaleString()} tokens
+              </span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)", marginTop: "4px" }}>
+              <span style={{ color: "var(--text-muted)" }}>STATUS CLEARANCE:</span>
+              <span style={{ color: "var(--accent)", fontWeight: "bold" }}>
+                {profile.holderStatus || "Civilian"} (Tier {profile.holderTier || 0})
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={async () => {
+              setIsRefreshingHolder(true);
+              setRefreshError(null);
+              try {
+                const authHeaderToken = session?.access_token;
+                const res = await fetch("/api/profile/verify-holder", {
+                  method: "POST",
+                  headers: {
+                    ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
+                  }
+                });
+                const data = await res.json();
+                if (data.success) {
+                  setProfile(prev => {
+                    if (!prev) return null;
+                    return {
+                      ...prev,
+                      verifiedBalance: data.verified_balance,
+                      holderTier: data.holder_tier,
+                      holderStatus: data.holder_status,
+                      accessType: data.access_type
+                    };
+                  });
+                  if (data.holder_tier >= 2) {
+                    alert("ACCESS CLEARANCE GRANTED // HOLDER VERIFIED");
+                  } else {
+                    setRefreshError(`Insufficient holdings. Verified: ${data.verified_balance.toLocaleString()} tokens.`);
+                  }
+                } else {
+                  setRefreshError(data.error || "Verification failed");
+                }
+              } catch (e: any) {
+                setRefreshError("RPC Connection Error. Try again shortly.");
+              } finally {
+                setIsRefreshingHolder(false);
+              }
+            }}
+            disabled={isRefreshingHolder}
+            style={{
+              width: "100%", background: "none", border: "1px solid #00ffcc", color: "#00ffcc",
+              padding: "10px", fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold",
+              cursor: "pointer", borderRadius: "2px", transition: "all 0.2s"
+            }}
+          >
+            {isRefreshingHolder ? "[ RETRIEVING ON-CHAIN METRICS... ]" : "[ RE-VERIFY TOKEN HOLDINGS ]"}
+          </button>
+          {refreshError && (
+            <div style={{ color: "var(--accent)", fontSize: "9.5px", fontFamily: "var(--mono)", textAlign: "center", marginTop: "-6px" }}>
+              {refreshError}
+            </div>
+          )}
+
+          <div style={{ display: "flex", alignItems: "center", margin: "10px 0" }}>
+            <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+            <span style={{ margin: "0 10px", fontSize: "9px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>OR</span>
+            <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>ENTER INVITE CODE</span>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <input
+                type="text"
+                value={inviteCodeInput}
+                onChange={(e) => setInviteCodeInput(e.target.value)}
+                placeholder="RQ-XXXXXXX"
+                style={{
+                  flex: 1, background: "#0c0c0c", border: "1px solid var(--border)",
+                  color: "#fff", padding: "8px 12px", fontFamily: "var(--mono)", fontSize: "12px",
+                  borderRadius: "2px"
+                }}
+              />
+              <button
+                onClick={async () => {
+                  if (!inviteCodeInput.trim()) return;
+                  setIsActivatingInvite(true);
+                  setInviteError(null);
+                  try {
+                    const authHeaderToken = session?.access_token;
+                    const res = await fetch("/api/invite/activate", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
+                      },
+                      body: JSON.stringify({ code: inviteCodeInput })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                      setProfile(prev => {
+                        if (!prev) return null;
+                        return {
+                          ...prev,
+                          accessType: data.access_type
+                        };
+                      });
+                      alert("ACCESS AUTHORIZATION ACTIVATED // TERMINAL UNLOCKED");
+                    } else {
+                      setInviteError(data.error || "Activation rejected");
+                    }
+                  } catch (e) {
+                    setInviteError("Connection lost. Verify your network.");
+                  } finally {
+                    setIsActivatingInvite(false);
+                  }
+                }}
+                disabled={isActivatingInvite || !inviteCodeInput.trim()}
+                style={{
+                  background: "var(--accent)", color: "#000", border: "none",
+                  padding: "8px 16px", fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold",
+                  cursor: "pointer", borderRadius: "2px"
+                }}
+              >
+                {isActivatingInvite ? "[ RUNNING... ]" : "[ ACTIVATE ]"}
+              </button>
+            </div>
+            {inviteError && (
+              <div style={{ color: "var(--accent)", fontSize: "9.5px", fontFamily: "var(--mono)", marginTop: "4px" }}>
+                ⚠️ {inviteError}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -3545,24 +3926,37 @@ export default function OperationsPage() {
                 </button>
                 {(() => {
                   const isHpRestricted = (profile?.health || 100) < 20 && (activeMission.difficulty === "Hard" || activeMission.difficulty === "Critical");
+                  
+                  const todayStr = new Date().toISOString().split("T")[0];
+                  const deploymentsToday = (profile?.missionHistory || []).filter(h => h.timestamp && h.timestamp.startsWith(todayStr)).length;
+                  const limit = (() => {
+                    const tier = profile?.holderTier || 0;
+                    if (tier === 1) return 4;
+                    if (tier === 2) return 5;
+                    if (tier === 3) return 6;
+                    return 3;
+                  })();
+                  const limitReached = deploymentsToday >= limit && identifier !== "offline-operative";
+                  const isBlocked = isHpRestricted || limitReached;
+
                   return (
                     <button
-                      disabled={isHpRestricted}
+                      disabled={isBlocked}
                       onClick={() => {
-                        if (isHpRestricted) return;
+                        if (isBlocked) return;
                         runDeployment(activeMission);
                       }}
                       className="btn btn-primary"
                       style={{
                         padding: "10px 32px",
                         fontSize: "11px",
-                        background: isHpRestricted ? "rgba(255,255,255,0.05)" : "var(--accent)",
-                        color: isHpRestricted ? "var(--text-dim)" : "#000",
-                        border: isHpRestricted ? "1px solid rgba(255,255,255,0.05)" : "none",
-                        cursor: isHpRestricted ? "not-allowed" : "pointer"
+                        background: isBlocked ? "rgba(255,255,255,0.05)" : "var(--accent)",
+                        color: isBlocked ? "var(--text-dim)" : "#000",
+                        border: isBlocked ? "1px solid rgba(255,255,255,0.05)" : "none",
+                        cursor: isBlocked ? "not-allowed" : "pointer"
                       }}
                     >
-                      {isHpRestricted ? "[ DEPLOYMENT REJECTED: HP CRITICAL ]" : "DEPLOY OPERATIVE 🛰️"}
+                      {isHpRestricted ? "[ DEPLOYMENT REJECTED: HP CRITICAL ]" : limitReached ? `[ LIMIT REACHED (${deploymentsToday}/${limit}) ]` : "DEPLOY OPERATIVE 🛰️"}
                     </button>
                   );
                 })()}
