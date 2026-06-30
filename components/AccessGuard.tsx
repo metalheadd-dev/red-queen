@@ -82,40 +82,36 @@ export default function AccessGuard({ children }: AccessGuardProps) {
     setVerifyStatus("");
 
     try {
-      // STEP 0 — Check permanent localStorage grant first (session-independent)
-      const persistedGrant = readGrant(rawWallet);
-      if (persistedGrant === "Invite" || persistedGrant === "Holder" || persistedGrant === "Admin") {
-        // Load game profile from cache or create minimal stub
-        const cached = localStorage.getItem(`rq_ops_profile:${rawWallet}`) ||
-                       localStorage.getItem(`rq_ops_profile:${identifier}`);
-        const prof = cached ? (() => { try { return JSON.parse(cached); } catch { return null; } })() : null;
-        setProfile(prof || { access_type: persistedGrant, holder_tier: 0, verified_balance: 0 });
-        setAccessGranted(true);
-        setProfileLoading(false);
-        return;
-      }
-
       let prof: any = null;
+      let apiSuccess = false;
 
-      // STEP 1 — Try DB via API
+      // STEP 1 — Try DB via API as the primary source of truth
       try {
         const headers = getAuthHeaders();
         const res = await fetch(`/api/profile?wallet=${rawWallet}`, { headers });
         if (res.ok) {
           const data = await res.json();
-          if (data?.profile) prof = data.profile;
+          if (data?.profile) {
+            prof = data.profile;
+            apiSuccess = true;
+          }
         }
       } catch (dbErr) {
-        console.warn("AccessGuard: db lookup failed:", dbErr);
+        console.warn("AccessGuard: db lookup failed, trying fallback:", dbErr);
       }
 
-      // STEP 2 — Fallback: localStorage (try both raw wallet and authIdentifier keys)
-      if (!prof) {
-        const keys = [`rq_ops_profile:${rawWallet}`, `rq_ops_profile:${identifier}`];
-        for (const key of keys) {
-          const saved = localStorage.getItem(key);
+      // STEP 2 — Fallback to LocalStorage cache ONLY if the API/network request failed
+      if (!apiSuccess && !prof) {
+        const cachedGrant = readGrant(rawWallet);
+        if (cachedGrant === "Invite" || cachedGrant === "Holder" || cachedGrant === "Admin") {
+          const saved = localStorage.getItem(`rq_ops_profile:${rawWallet}`) ||
+                        localStorage.getItem(`rq_ops_profile:${identifier}`);
           if (saved) {
-            try { prof = JSON.parse(saved); break; } catch { /* ignore */ }
+            try {
+              prof = JSON.parse(saved);
+            } catch (jsonErr) {
+              console.error("AccessGuard: failed to parse cached profile:", jsonErr);
+            }
           }
         }
       }
@@ -128,9 +124,11 @@ export default function AccessGuard({ children }: AccessGuardProps) {
           t => prof.access_type === t || prof.accessType === t
         );
         if (hasBalance || hasInvite) {
-          // Write permanent grant so next refresh skips all this
-          writeGrant(rawWallet, prof.access_type || prof.accessType || (hasBalance ? "Holder" : "Invite"));
+          // Cache successful verification
+          const currentAccessType = prof.access_type || prof.accessType || (hasBalance ? "Holder" : "Invite");
+          writeGrant(rawWallet, currentAccessType);
           localStorage.setItem(`rq_ops_profile:${rawWallet}`, JSON.stringify(prof));
+          
           setProfile(prof);
           setAccessGranted(true);
           setProfileLoading(false);
@@ -138,7 +136,7 @@ export default function AccessGuard({ children }: AccessGuardProps) {
         }
       }
 
-      // STEP 4 — On-chain Solana RPC check
+      // STEP 4 — On-chain Solana RPC check (if not verified by DB yet)
       if (rawWallet) {
         setVerifyStatus("QUERYING SOLANA MAINNET FOR $THREAT HOLDINGS...");
         try {
@@ -252,37 +250,36 @@ export default function AccessGuard({ children }: AccessGuardProps) {
         body: JSON.stringify({ code: inviteCode, wallet: rawWallet })
       });
       const data = await res.json();
-      if (data.success) {
-        // Write permanent grant — always keyed by raw wallet
-        writeGrant(rawWallet, "Invite");
-
-        // Build profile stub and save it
-        const existing = (() => {
-          const s = localStorage.getItem(`rq_ops_profile:${rawWallet}`);
-          if (s) { try { return JSON.parse(s); } catch { return {}; } }
-          return {};
-        })();
-        const updatedProf = {
-          ...existing,
-          accessType: "Invite",
-          access_type: "Invite",
-          name: existing.name || "OPERATIVE",
-          level: existing.level || 1,
-          xp: existing.xp || 0,
-          credits: existing.credits || 500,
-          reputation: existing.reputation || 0,
-          health: existing.health || 100,
-        };
-        localStorage.setItem(`rq_ops_profile:${rawWallet}`, JSON.stringify(updatedProf));
-
-        setProfile(updatedProf);
-        setAccessGranted(true);
-      } else {
-        alert(`Failed to activate: ${data.error}`);
+      if (!res.ok || !data.success) {
+        alert(`Failed to activate: ${data.error || "Unknown server error"}`);
+        setActivating(false);
+        return;
       }
-    } catch (err) {
+
+      // Immediately reload the player profile from Supabase to verify Access Type == Invite
+      const profileRes = await fetch(`/api/profile?wallet=${rawWallet}`, { headers });
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        const reloadedProf = profileData?.profile;
+        if (reloadedProf && (reloadedProf.access_type === "Invite" || reloadedProf.accessType === "Invite")) {
+          // Write permanent grant cache to LocalStorage
+          writeGrant(rawWallet, "Invite");
+          localStorage.setItem(`rq_ops_profile:${rawWallet}`, JSON.stringify(reloadedProf));
+          
+          setProfile(reloadedProf);
+          setAccessGranted(true);
+          alert("ACCESS GRANTED. INVITATION ACTIVATED.");
+        } else {
+          alert("Verification Failed: Profile could not be verified with Invite access type on Supabase.");
+          setAccessGranted(false);
+        }
+      } else {
+        alert("Verification Failed: Could not reload profile from Supabase.");
+        setAccessGranted(false);
+      }
+    } catch (err: any) {
       console.error(err);
-      alert("Verification Server Error");
+      alert(`Verification Server Error: ${err.message || String(err)}`);
     }
     setActivating(false);
   };

@@ -591,6 +591,58 @@ export default function OperationsPage() {
       try { return JSON.parse(cached)?.accessType || JSON.parse(cached)?.access_type || "None"; } catch { return "None"; }
     })();
 
+    // 1. Generate Starter Inventory & Equipment
+    const startingInventory: InventoryItem[] = INITIAL_INVENTORY.map(item => {
+      // Equip basic starter items by default
+      if (item.id === "inv-basic-helmet" || item.id === "inv-basic-vest" || item.id === "inv-basic-rifle" || item.id === "inv-basic-backpack") {
+        return { ...item, equipped: true };
+      }
+      return item;
+    });
+
+    const derivedEquipped: Record<string, InventoryItem | null> = {
+      Helmet: startingInventory.find(i => i.id === "inv-basic-helmet") || null,
+      Armor: startingInventory.find(i => i.id === "inv-basic-vest") || null,
+      Weapon: startingInventory.find(i => i.id === "inv-basic-rifle") || null,
+      Backpack: startingInventory.find(i => i.id === "inv-basic-backpack") || null,
+      Utility: null,
+      Medkit: null,
+      Gadget: null
+    };
+
+    // 2. Initialize dynamic sector states so Sector Alpha is unlocked, status is AVAILABLE
+    const healedSectorStates: Record<string, SectorState> = {};
+    Object.keys(DEFAULT_WORLD_STATE.sectorStates).forEach(sid => {
+      const defaults = DEFAULT_WORLD_STATE.sectorStates[sid];
+      healedSectorStates[sid] = {
+        ...defaults,
+        status: sid === "sec-alpha" ? "AVAILABLE" : "LOCKED",
+        isUnlocked: sid === "sec-alpha",
+        stability: sid === "sec-alpha" ? 80 : 0,
+        completedMissions: [],
+        availableMissions: sid === "sec-alpha" ? ["op-1-sanctuary-search", "op-6-outpost-breach"] : [],
+        worldEvents: [],
+        contamination: sid === "sec-alpha" ? 25 : 15,
+        availableResources: sid === "sec-alpha" ? ["Medical Supplies", "Credits"] : [],
+      };
+    });
+
+    const initialWorldState: WorldState = {
+      unlockedSectors: ["sec-alpha"],
+      activeAnomalies: {
+        "sec-alpha": ["Toxin Leak"]
+      },
+      factionInfluence: {
+        "sec-alpha": { vanguard: 10 }
+      },
+      globalAlerts: ["VIRAL OUTBREAK SUSPECTED IN SEC-ALPHA // SIGNAL STEADY // UPLINK GREEN"],
+      sectorStates: healedSectorStates,
+      activeEvents: [],
+      longestStreak: 0,
+      dynamicMissions: [],
+      completedOnboarding: true
+    };
+
     const initialProfile: OperativeProfile = {
       name: operativeName.toUpperCase(),
       faction: selectedFaction,
@@ -631,9 +683,9 @@ export default function OperationsPage() {
       },
       achievements: [],
       missionHistory: [],
-      sectorDiscoveries: ["sec-alpha", "sec-beta", "sec-delta"],
+      sectorDiscoveries: ["sec-alpha"],
       health: 100,
-      worldState: { ...DEFAULT_WORLD_STATE },
+      worldState: initialWorldState,
       campaignStats: { ...DEFAULT_CAMPAIGN_STATS },
       operationsArchive: [],
       totalPlaytimeSeconds: 0,
@@ -644,8 +696,16 @@ export default function OperationsPage() {
       verifiedBalance: 0,
     };
     
+    // Save to local storage
     saveProfile(identifier, initialProfile);
+    saveInventory(identifier, startingInventory);
+    saveEquippedGear(identifier, derivedEquipped);
+    
+    // Set react state
     setProfile(initialProfile);
+    setInventory(startingInventory);
+    setEquippedGear(derivedEquipped);
+    setCompletedOnboarding(true);
 
     // Write permanent grant so AccessGuard never re-asks for access code
     if (preservedAccessType && preservedAccessType !== "None" && typeof window !== "undefined") {
@@ -653,7 +713,7 @@ export default function OperationsPage() {
       localStorage.setItem(`rq_invite_grant:${rawWallet}`, preservedAccessType);
     }
 
-    // Immediately persist class/faction/access_type to DB so it survives reconnects
+    // Immediately persist profile, inventory and access_type to DB so it survives reconnects
     if (identifier !== "offline-operative") {
       fetch("/api/profile", {
         method: "POST",
@@ -678,6 +738,7 @@ export default function OperationsPage() {
           achievements: initialProfile.achievements,
           campaign_stats: initialProfile.campaignStats,
           operations_archive: initialProfile.operationsArchive,
+          inventory: startingInventory,
           access_type: preservedAccessType,
         })
       }).catch(e => console.warn("Failed to persist initial profile to DB:", e));
@@ -1406,8 +1467,8 @@ export default function OperationsPage() {
   }
 
   // --- ONBOARDING SELECTION SCREEN ---
-  // Only show AFTER profile has loaded AND class/faction are genuinely missing
-  if (!loading && profile && (profile.class === "None" || profile.faction === "None" || !profile.class || !profile.faction)) {
+  // Only show AFTER profile has loaded AND class/faction are genuinely missing AND intro story completed
+  if (!loading && profile && completedOnboarding && (profile.class === "None" || profile.faction === "None" || !profile.class || !profile.faction)) {
     const selectedFactionDetails = FACTIONS.find(f => f.id === selectedFaction);
     const selectedClassDetails = CLASSES.find(c => c.id === selectedClass);
 
