@@ -38,6 +38,18 @@ export default function AccessGuard({ children }: AccessGuardProps) {
   // Load profile from API and verify access status
   const checkAccess = useCallback(async (identifier: string, token?: string) => {
     if (!identifier) return;
+
+    // ── FAST PATH: check localStorage grant first (avoids API flash) ──────────
+    if (typeof window !== "undefined") {
+      const rawWallet = identifier;
+      const localGrant = localStorage.getItem(`rq_invite_grant:${rawWallet}`);
+      if (localGrant === "Invite" || localGrant === "Admin" || localGrant === "Holder") {
+        setAccessGranted(true);
+        setProfileLoading(false);
+        return; // skip API call entirely — already verified
+      }
+    }
+
     setProfileLoading(true);
     setVerifyStatus("");
     try {
@@ -55,9 +67,13 @@ export default function AccessGuard({ children }: AccessGuardProps) {
         
         // 2. Validate Access Conditions
         const hasBalance = (prof.verified_balance || 0) >= 1000000 || (prof.holder_tier || 0) >= 2;
-        const hasInvite = prof.access_type === "Invite" || prof.access_type === "Holder";
+        const hasInvite = prof.access_type === "Invite" || prof.access_type === "Holder" || prof.access_type === "Admin";
         
         if (hasBalance || hasInvite) {
+          // Persist to localStorage so future loads skip the API
+          if (typeof window !== "undefined") {
+            localStorage.setItem(`rq_invite_grant:${identifier}`, prof.access_type || "Invite");
+          }
           setAccessGranted(true);
         } else {
           setAccessGranted(false);
@@ -80,14 +96,16 @@ export default function AccessGuard({ children }: AccessGuardProps) {
   }, [connected, session, authLoading, loginWithWallet]);
 
   // Effect to verify access whenever session or wallet changes
+  // IMPORTANT: wait until authLoading is false so we have the session token ready
   useEffect(() => {
-    if (connected && authIdentifier) {
+    if (connected && authIdentifier && !authLoading) {
       checkAccess(authIdentifier, session?.access_token);
-    } else {
+    } else if (!connected) {
       setProfile(null);
       setAccessGranted(null);
     }
-  }, [connected, authIdentifier, session, checkAccess]);
+    // Note: intentionally NOT resetting to null when authLoading=true to avoid flash
+  }, [connected, authIdentifier, session, authLoading, checkAccess]);
 
   // Trigger manual verified balance refresh
   const handleReVerify = async () => {
