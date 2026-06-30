@@ -204,6 +204,11 @@ export const DEFAULT_PROFILE: OperativeProfile = {
   campaignStats: { ...DEFAULT_CAMPAIGN_STATS },
   operationsArchive: [],
   totalPlaytimeSeconds: 0,
+  holderStatus: "Civilian",
+  holderTier: 0,
+  verifiedBalance: 0,
+  lastVerification: null,
+  accessType: "None",
 };
 
 // ─── Random Event Spawn ────────────────────────────────────────────────────────
@@ -1178,6 +1183,11 @@ export function loadProfile(identifier: string): OperativeProfile {
       campaignStats,
       operationsArchive,
       totalPlaytimeSeconds: typeof parsed.totalPlaytimeSeconds === "number" ? parsed.totalPlaytimeSeconds : 0,
+      holderStatus:       parsed.holderStatus        || parsed.holder_status      || "Civilian",
+      holderTier:         typeof parsed.holderTier === "number" ? parsed.holderTier : (typeof parsed.holder_tier === "number" ? parsed.holder_tier : 0),
+      verifiedBalance:    typeof parsed.verifiedBalance === "number" ? parsed.verifiedBalance : (typeof parsed.verified_balance === "number" ? parsed.verified_balance : 0),
+      lastVerification:   parsed.lastVerification    || parsed.last_verification  || null,
+      accessType:         parsed.accessType          || parsed.access_type        || "None",
     };
 
     // Auto-unlock sectors on load if requirements are met
