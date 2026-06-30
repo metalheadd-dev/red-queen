@@ -1764,27 +1764,27 @@ export default function OperationsPage() {
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <span style={{ width: "10px", height: "10px", background: getFactionColor(profile?.faction), borderRadius: "50%", boxShadow: `0 0 12px ${getFactionColor(profile?.faction)}` }} />
-            <span style={{ fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "900", letterSpacing: "0.15em", color: "#fff" }}>
+            <span style={{ fontFamily: "var(--title-font)", fontSize: "15px", fontWeight: "900", letterSpacing: "0.15em", color: "#fff" }}>
               {profile?.name} // {profile?.faction?.toUpperCase()}
             </span>
           </div>
           <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
-          <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>
+          <span style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)" }}>
             HP: <span style={{ color: (profile?.health || 100) > 30 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>{profile?.health || 100} / 100</span>
           </span>
           <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
-          <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>
+          <span style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)" }}>
             DISCIPLINE: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile?.class?.toUpperCase()}</span>
           </span>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(0, 255, 204, 0.06)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "4px 10px", borderRadius: "2px" }}>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", fontWeight: "bold", letterSpacing: "0.05em" }}>BIO-SCORE: {currentBioScore}</span>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold", letterSpacing: "0.05em" }}>BIO-SCORE: {currentBioScore}</span>
           </div>
           
           <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255, 77, 77, 0.06)", border: "1px solid rgba(255, 77, 77, 0.2)", padding: "4px 10px", borderRadius: "2px" }}>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.05em" }}>CLEARANCE: {clearanceTier.label}</span>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.05em" }}>CLEARANCE: {clearanceTier.label}</span>
           </div>
 
           <button
@@ -1796,7 +1796,7 @@ export default function OperationsPage() {
               setProfile(null);
             }}
             className="btn btn-ghost"
-            style={{ fontSize: "9px", padding: "4px 10px", borderColor: "rgba(255,0,0,0.2)", color: "#ff4d4d", cursor: "pointer", fontWeight: "bold" }}
+            style={{ fontSize: "11px", padding: "4px 10px", borderColor: "rgba(255,0,0,0.2)", color: "#ff4d4d", cursor: "pointer", fontWeight: "bold" }}
           >
             [ RE-INITIALIZE ]
           </button>
@@ -1811,7 +1811,7 @@ export default function OperationsPage() {
           width: "200px", borderRight: "1px solid var(--border)", background: "#060606",
           padding: "24px 16px", display: "flex", flexDirection: "column", gap: "12px", flexShrink: 0
         }}>
-          <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.2em", marginBottom: "6px", fontWeight: "bold" }}>
+          <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", letterSpacing: "0.2em", marginBottom: "6px", fontWeight: "bold" }}>
             ▶ OPERATIONAL DECKS
           </div>
           
@@ -1822,7 +1822,7 @@ export default function OperationsPage() {
               background: activeTab === "center" ? "rgba(255, 77, 77, 0.06)" : "none",
               color: activeTab === "center" ? "var(--accent)" : "var(--text-dim)",
               borderColor: activeTab === "center" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
-              fontFamily: "var(--title-font)", fontSize: "11px", textAlign: "left", cursor: "pointer",
+              fontFamily: "var(--title-font)", fontSize: "13px", textAlign: "left", cursor: "pointer",
               transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
             }}
           >
@@ -1836,7 +1836,7 @@ export default function OperationsPage() {
               background: activeTab === "profile" ? "rgba(255, 77, 77, 0.06)" : "none",
               color: activeTab === "profile" ? "var(--accent)" : "var(--text-dim)",
               borderColor: activeTab === "profile" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
-              fontFamily: "var(--title-font)", fontSize: "11px", textAlign: "left", cursor: "pointer",
+              fontFamily: "var(--title-font)", fontSize: "13px", textAlign: "left", cursor: "pointer",
               transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
             }}
           >
@@ -1850,7 +1850,7 @@ export default function OperationsPage() {
               background: activeTab === "inventory" ? "rgba(255, 77, 77, 0.06)" : "none",
               color: activeTab === "inventory" ? "var(--accent)" : "var(--text-dim)",
               borderColor: activeTab === "inventory" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
-              fontFamily: "var(--title-font)", fontSize: "11px", textAlign: "left", cursor: "pointer",
+              fontFamily: "var(--title-font)", fontSize: "13px", textAlign: "left", cursor: "pointer",
               transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
             }}
           >
@@ -1862,7 +1862,7 @@ export default function OperationsPage() {
               href="/"
               style={{
                 display: "block", width: "100%", padding: "10px 12px", border: "1px solid var(--border)",
-                background: "none", color: "var(--text-dim)", fontFamily: "var(--title-font)", fontSize: "10px",
+                background: "none", color: "var(--text-dim)", fontFamily: "var(--title-font)", fontSize: "12px",
                 textDecoration: "none", textAlign: "center", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
               }}
             >
@@ -1911,29 +1911,29 @@ export default function OperationsPage() {
                   padding: "10px 14px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "9px"
                 }}>
                   <div>
-                    <span style={{ color: "var(--text-muted)", display: "block", fontSize: "8px", letterSpacing: "0.1em" }}>GLOBAL THREAT LEVEL</span>
-                    <span style={{ color: "var(--accent)", fontWeight: "bold", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px", marginTop: "2px" }}>
+                    <span style={{ color: "rgba(255,255,255,0.65)", display: "block", fontSize: "10px", letterSpacing: "0.1em", fontWeight: "bold" }}>GLOBAL THREAT LEVEL</span>
+                    <span style={{ color: "var(--accent)", fontWeight: "bold", fontSize: "13px", display: "inline-flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
                       <span style={{ width: "6px", height: "6px", background: "var(--accent)", borderRadius: "50%" }} className="animate-pulse" />
                       SEVERE // 78%
                     </span>
                   </div>
                   <div>
-                    <span style={{ color: "var(--text-muted)", display: "block", fontSize: "8px", letterSpacing: "0.1em" }}>WORLD STABILITY</span>
-                    <span style={{ color: "#ff4d4d", fontWeight: "bold", fontSize: "11px", display: "block", marginTop: "2px" }}>34% CRITICAL</span>
+                    <span style={{ color: "rgba(255,255,255,0.65)", display: "block", fontSize: "10px", letterSpacing: "0.1em", fontWeight: "bold" }}>WORLD STABILITY</span>
+                    <span style={{ color: "#ff4d4d", fontWeight: "bold", fontSize: "13px", display: "block", marginTop: "4px" }}>34% CRITICAL</span>
                   </div>
                   <div>
-                    <span style={{ color: "var(--text-muted)", display: "block", fontSize: "8px", letterSpacing: "0.1em" }}>ACTIVE OUTBREAKS</span>
-                    <span style={{ color: "#f0c929", fontWeight: "bold", fontSize: "11px", display: "block", marginTop: "2px" }}>3 SECTORS</span>
+                    <span style={{ color: "rgba(255,255,255,0.65)", display: "block", fontSize: "10px", letterSpacing: "0.1em", fontWeight: "bold" }}>ACTIVE OUTBREAKS</span>
+                    <span style={{ color: "#f0c929", fontWeight: "bold", fontSize: "13px", display: "block", marginTop: "4px" }}>3 SECTORS</span>
                   </div>
                   <div>
-                    <span style={{ color: "var(--text-muted)", display: "block", fontSize: "8px", letterSpacing: "0.1em" }}>CRITICAL ALERTS</span>
-                    <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "10px", display: "block", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span style={{ color: "rgba(255,255,255,0.65)", display: "block", fontSize: "10px", letterSpacing: "0.1em", fontWeight: "bold" }}>CRITICAL ALERTS</span>
+                    <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12px", display: "block", marginTop: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       ALPHA STABLE // DELTA ALERT
                     </span>
                   </div>
                   <div>
-                    <span style={{ color: "var(--text-muted)", display: "block", fontSize: "8px", letterSpacing: "0.1em" }}>CAMPAIGN COMPLETE</span>
-                    <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "11px", display: "block", marginTop: "2px" }}>
+                    <span style={{ color: "rgba(255,255,255,0.65)", display: "block", fontSize: "10px", letterSpacing: "0.1em", fontWeight: "bold" }}>CAMPAIGN COMPLETE</span>
+                    <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "13px", display: "block", marginTop: "4px" }}>
                       {profile ? ((profile.completedMissions?.length || 0) / (missions?.length || 1) * 100).toFixed(1) : 0}%
                     </span>
                   </div>
@@ -1963,11 +1963,11 @@ export default function OperationsPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: "1px dashed rgba(255,255,255,0.06)", padding: "10px 14px", background: "rgba(5,5,5,0.7)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <span style={{ width: "6px", height: "6px", background: "#ff4d4d", borderRadius: "50%" }} className="animate-pulse" />
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
                         OPERATIONAL NETWORK GRID
                       </span>
                     </div>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>
                       GRID SYNCHRONIZATION: ONLINE // SELECT SECTOR
                     </span>
                   </div>
@@ -1977,7 +1977,7 @@ export default function OperationsPage() {
                       <div style={{
                         position: "absolute", top: "12px", left: "50%", transform: "translateX(-50%)",
                         background: "rgba(255, 77, 77, 0.08)", border: "1px solid var(--accent)", padding: "8px 16px",
-                        zIndex: 10, fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)",
+                        zIndex: 10, fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)",
                         boxShadow: "0 0 15px rgba(255,77,77,0.15)", borderRadius: "2px"
                       }}>
                         {mapAlert}
@@ -2305,7 +2305,7 @@ export default function OperationsPage() {
                     </svg>
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", padding: "10px 14px", background: "rgba(5,5,5,0.7)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", borderTop: "1px dashed rgba(255,255,255,0.06)", padding: "10px 14px", background: "rgba(5,5,5,0.7)" }}>
                     <span>ACTIVE TARGETS: {sectors.filter(s => profile?.worldState.unlockedSectors.includes(s.id) || s.id === "sec-alpha").length} / 7 ONLINE</span>
                     <span>INTEL SYNC: COMPLETE // UPLINK GREEN</span>
                   </div>
@@ -2315,17 +2315,17 @@ export default function OperationsPage() {
                 <div className="panel" style={{
                   background: "#080808", border: "1px solid rgba(255, 77, 77, 0.15)",
                   padding: "10px 14px", display: "flex", flexDirection: "column", gap: "6px",
-                  height: "100px", overflow: "hidden"
+                  height: "110px", overflow: "hidden"
                 }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.1em" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#ffffff", fontWeight: "bold", letterSpacing: "0.1em" }}>
                     [ RED QUEEN AI RADAR SCAN DATA LOGS ]
                   </div>
-                  <div style={{ flex: 1, overflowY: "auto", fontFamily: "var(--mono)", fontSize: "8.5px", color: "#666", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <div style={{ flex: 1, overflowY: "auto", fontFamily: "var(--mono)", fontSize: "11px", color: "#b0b0b0", display: "flex", flexDirection: "column", gap: "4px" }}>
                     {profile?.worldState.globalAlerts.map((log, idx) => (
                       <div key={idx} style={{ color: "#ff4d4d" }}>▶ {log}</div>
                     ))}
                     {aiLogs.map((log, idx) => (
-                      <div key={`ai-${idx}`} style={{ color: log.includes("[WARN]") ? "#ff4d4d" : log.includes("[SYS]") ? "#00ffcc" : "#666" }}>{log}</div>
+                      <div key={`ai-${idx}`} style={{ color: log.includes("[WARN]") ? "#ff4d4d" : log.includes("[SYS]") ? "#00ffcc" : "#b0b0b0" }}>{log}</div>
                     ))}
                     <div ref={aiLogsEndRef} />
                   </div>
@@ -2357,11 +2357,11 @@ export default function OperationsPage() {
                       {/* FIXED HEADER: Name & Status */}
                       <div style={{ padding: "16px", borderBottom: "1px dashed rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: "6px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "#ffffff", letterSpacing: "0.15em", fontWeight: "bold" }}>
                             [ SECTOR INTEL OVERVIEW ]
                           </span>
                           <span style={{ 
-                            fontSize: "8px", padding: "2px 6px", fontFamily: "var(--mono)", fontWeight: "bold",
+                            fontSize: "10.5px", padding: "2px 6px", fontFamily: "var(--mono)", fontWeight: "bold",
                             background: sectorIsLocked ? "rgba(255,77,77,0.1)" : `rgba(${hexToRgb(themeColor)}, 0.1)`, 
                             color: sectorIsLocked ? "#ff4d4d" : themeColor, 
                             border: sectorIsLocked ? "1px solid rgba(255,77,77,0.3)" : `1px solid rgba(${hexToRgb(themeColor)}, 0.3)`
@@ -2369,7 +2369,7 @@ export default function OperationsPage() {
                             {status.toUpperCase()}
                           </span>
                         </div>
-                        <h3 style={{ fontSize: "18px", color: "#fff", margin: "4px 0 0 0", fontFamily: "var(--title-font)", fontWeight: "bold", letterSpacing: "0.02em" }}>
+                        <h3 style={{ fontSize: "20px", color: "#fff", margin: "4px 0 0 0", fontFamily: "var(--title-font)", fontWeight: "bold", letterSpacing: "0.02em" }}>
                           {selectedSector.name}
                         </h3>
                       </div>
@@ -2379,7 +2379,7 @@ export default function OperationsPage() {
                         
                         {/* 1. Description */}
                         <div>
-                          <p style={{ fontSize: "10.5px", color: "var(--text-muted)", lineHeight: "1.5", margin: 0 }}>
+                          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.85)", lineHeight: "1.6", margin: 0 }}>
                             {selectedSector.description}
                           </p>
                         </div>
@@ -2387,26 +2387,26 @@ export default function OperationsPage() {
                         {/* 2. Diagnostics Grid (Threat, Stability, Contamination, Influence) */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                           <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", borderRadius: "2px" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>THREAT PROFILE</span>
-                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: danger === "Severe" || danger === "High" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "rgba(255,255,255,0.6)" }}>THREAT PROFILE</span>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: danger === "Severe" || danger === "High" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
                               {danger.toUpperCase()} ({selectedSector.threatType})
                             </div>
                           </div>
                           <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", borderRadius: "2px" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>STABILITY</span>
-                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: stability > 50 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "rgba(255,255,255,0.6)" }}>STABILITY</span>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: stability > 50 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
                               {stability}%
                             </div>
                           </div>
                           <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", borderRadius: "2px" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>CONTAMINATION</span>
-                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: contamination < 40 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "rgba(255,255,255,0.6)" }}>CONTAMINATION</span>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: contamination < 40 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
                               {contamination}%
                             </div>
                           </div>
                           <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", borderRadius: "2px" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>INFLUENCE</span>
-                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#00ffcc", fontWeight: "bold", marginTop: "2px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "rgba(255,255,255,0.6)" }}>INFLUENCE</span>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold", marginTop: "2px" }}>
                               {ownership.toUpperCase()}
                             </div>
                           </div>
@@ -2414,7 +2414,7 @@ export default function OperationsPage() {
 
                         {/* Stabilization index progress bar */}
                         <div>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)", marginBottom: "4px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "4px" }}>
                             <span>STABILIZATION INDEX</span>
                             <span style={{ color: themeColor, fontWeight: "bold" }}>{completion}%</span>
                           </div>
@@ -2425,11 +2425,11 @@ export default function OperationsPage() {
 
                         {/* 3. Resources */}
                         <div>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", display: "block", marginBottom: "4px", letterSpacing: "0.05em" }}>EXPECTED HARVEST PATHWAYS</span>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "rgba(255,255,255,0.6)", display: "block", marginBottom: "4px", letterSpacing: "0.05em" }}>EXPECTED HARVEST PATHWAYS</span>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                             {selectedSector.availableResources.map((res, i) => (
                               <span key={i} style={{
-                                fontSize: "8.5px", fontFamily: "var(--mono)", padding: "2px 6px",
+                                fontSize: "11px", fontFamily: "var(--mono)", padding: "2px 6px",
                                 background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)",
                                 color: "#00ffcc", borderRadius: "2px"
                               }}>
@@ -2441,7 +2441,7 @@ export default function OperationsPage() {
 
                         {/* 4. Requirements checklist */}
                         <div>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", display: "block", marginBottom: "4px", letterSpacing: "0.05em" }}>AUTHORIZATION GATEWAY STATUS</span>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "rgba(255,255,255,0.6)", display: "block", marginBottom: "4px", letterSpacing: "0.05em" }}>AUTHORIZATION GATEWAY STATUS</span>
                           {(() => {
                             let sectorPrereqMet = true;
                             let sectorPrereqName = "";
@@ -2469,21 +2469,21 @@ export default function OperationsPage() {
                             return (
                               <div style={{ display: "flex", flexDirection: "column", gap: "6px", background: "rgba(0,0,0,0.3)", padding: "10px", border: "1px solid rgba(255,255,255,0.02)", borderRadius: "2px" }}>
                                 {sectorState?.unlockRequiredSector && (
-                                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", borderBottom: "1px solid rgba(255,255,255,0.02)", paddingBottom: "4px" }}>
-                                    <span style={{ color: "var(--text-muted)" }}>PREREQUISITE SECTOR:</span>
+                                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontFamily: "var(--mono)", borderBottom: "1px solid rgba(255,255,255,0.02)", paddingBottom: "4px" }}>
+                                    <span style={{ color: "var(--text-dim)" }}>PREREQUISITE SECTOR:</span>
                                     <span style={{ color: sectorPrereqMet ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
                                       {sectorPrereqName} {sectorPrereqMet ? "✓ MET" : "✗ LOCKED"}
                                     </span>
                                   </div>
                                 )}
-                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", borderBottom: "1px solid rgba(255,255,255,0.02)", paddingBottom: "4px" }}>
-                                  <span style={{ color: "var(--text-muted)" }}>OPERATIVE LEVEL REQ:</span>
+                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontFamily: "var(--mono)", borderBottom: "1px solid rgba(255,255,255,0.02)", paddingBottom: "4px" }}>
+                                  <span style={{ color: "var(--text-dim)" }}>OPERATIVE LEVEL REQ:</span>
                                   <span style={{ color: levelPrereqMet ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
                                     Lvl {requiredLevel} {levelPrereqMet ? "✓ MET" : `✗ UNMET (Yours: Lvl ${profile?.level})`}
                                   </span>
                                 </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)" }}>
-                                  <span style={{ color: "var(--text-muted)" }}>BIO-SCORE THRESHOLD:</span>
+                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontFamily: "var(--mono)" }}>
+                                  <span style={{ color: "var(--text-dim)" }}>BIO-SCORE THRESHOLD:</span>
                                   <span style={{ color: bioscorePrereqMet ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
                                     {requiredBioScore}%+ {bioscorePrereqMet ? "✓ MET" : `✗ UNMET (Yours: ${currentBio}%)`}
                                   </span>
@@ -2498,7 +2498,7 @@ export default function OperationsPage() {
 
                         {/* 5. Available Operations */}
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em", fontWeight: "bold" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "#ffffff", letterSpacing: "0.1em", fontWeight: "bold" }}>
                             [ AVAILABLE OPERATIONS ]
                           </span>
 
@@ -2511,10 +2511,10 @@ export default function OperationsPage() {
                                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                                     </svg>
-                                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "#ff4d4d", textTransform: "uppercase", fontWeight: "bold" }}>
+                                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#ff4d4d", textTransform: "uppercase", fontWeight: "bold" }}>
                                       ACCESS RESTRICTED
                                     </span>
-                                    <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", marginTop: "4px" }}>
+                                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-dim)", marginTop: "4px" }}>
                                       Clear authorization requirements in gateway status to connect database.
                                     </span>
                                   </div>
@@ -2546,24 +2546,24 @@ export default function OperationsPage() {
                                           : isCompleted 
                                           ? "1px solid rgba(0, 255, 204, 0.2)" 
                                           : "1px solid var(--border)",
-                                        padding: "10px", borderRadius: "2px", cursor: isLocked ? "not-allowed" : "pointer",
+                                        padding: "12px", borderRadius: "2px", cursor: isLocked ? "not-allowed" : "pointer",
                                         transition: "all 0.15s", display: "flex", gap: "10px", alignItems: "center",
                                         opacity: isLocked ? 0.35 : 1
                                       }}
                                     >
                                       <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                          <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "1px 5px" }}>
+                                          <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "10px", padding: "1px 5px" }}>
                                             {op.difficulty.toUpperCase()}
                                           </span>
-                                          <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>
+                                          <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>
                                             {op.duration}m
                                           </span>
                                         </div>
-                                        <h4 style={{ fontSize: "11px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                        <h4 style={{ fontSize: "13.5px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                           {op.title}
                                         </h4>
-                                        <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
+                                        <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "10.5px", fontFamily: "var(--mono)", color: "var(--text-dim)" }}>
                                           <span>{op.category.toUpperCase()} MISSION</span>
                                           {isLocked && <span style={{ color: "var(--accent)" }}>REQ: Lvl {op.unlockRequirements.level || op.unlockRequirements.bioScore || 1}</span>}
                                         </div>
@@ -2572,7 +2572,7 @@ export default function OperationsPage() {
                                   );
                                 })
                               ) : (
-                                <div style={{ textAlign: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", marginTop: "10px" }}>
+                                <div style={{ textAlign: "center", fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", marginTop: "10px" }}>
                                   NO OPERATIONS IN SECTOR
                                 </div>
                               );
@@ -2588,7 +2588,7 @@ export default function OperationsPage() {
                             disabled
                             className="btn"
                             style={{
-                              width: "100%", justifyContent: "center", fontSize: "11px", padding: "12px",
+                              width: "100%", justifyContent: "center", fontSize: "13px", padding: "12px",
                               background: "rgba(255,77,77,0.05)", color: "#ff4d4d", border: "1px solid rgba(255,77,77,0.2)",
                               cursor: "not-allowed", opacity: 0.5, fontFamily: "var(--mono)", fontWeight: "bold"
                             }}
@@ -2603,7 +2603,7 @@ export default function OperationsPage() {
                             }}
                             className="btn btn-primary animate-pulse"
                             style={{
-                              width: "100%", justifyContent: "center", fontSize: "11px", padding: "12px",
+                              width: "100%", justifyContent: "center", fontSize: "13px", padding: "12px",
                               background: selectedOperation.recommendedClass === profile?.class ? "#00ffcc" : "var(--accent)",
                               color: "#000", fontWeight: "bold", border: "none", boxShadow: `0 0 15px rgba(${selectedOperation.recommendedClass === profile?.class ? "0,255,204" : "255,77,77"}, 0.35)`
                             }}
@@ -2615,8 +2615,8 @@ export default function OperationsPage() {
                             disabled
                             className="btn"
                             style={{
-                              width: "100%", justifyContent: "center", fontSize: "11px", padding: "12px",
-                              background: "rgba(255,255,255,0.02)", color: "var(--text-muted)", border: "1px solid var(--border)",
+                              width: "100%", justifyContent: "center", fontSize: "13px", padding: "12px",
+                              background: "rgba(255,255,255,0.02)", color: "var(--text-dim)", border: "1px solid var(--border)",
                               cursor: "not-allowed", fontFamily: "var(--mono)"
                             }}
                           >
@@ -2628,7 +2628,7 @@ export default function OperationsPage() {
                     </div>
                   );
                 })() : (
-                  <div className="panel" style={{ background: "#080808", border: "1px solid var(--border)", padding: "20px", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--mono)" }}>
+                  <div className="panel" style={{ background: "#080808", border: "1px solid var(--border)", padding: "20px", textAlign: "center", color: "var(--text-dim)", fontFamily: "var(--mono)", fontSize: "13px" }}>
                     NO SECTOR SELECTED
                   </div>
                 )}
