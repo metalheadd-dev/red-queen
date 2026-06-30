@@ -23,7 +23,7 @@ type ProfileData = {
 };
 
 export default function AccessGuard({ children }: AccessGuardProps) {
-  const { connected } = useWallet();
+  const { connected, publicKey } = useWallet();
   const { authIdentifier, session, loading: authLoading, loginWithWallet } = useAuth();
   
   const [profileLoading, setProfileLoading] = useState(false);
@@ -34,37 +34,117 @@ export default function AccessGuard({ children }: AccessGuardProps) {
   const [inviteCode, setInviteCode] = useState("");
   const [activating, setActivating] = useState(false);
   const [verifyStatus, setVerifyStatus] = useState("");
-  
+  const [attemptedLogin, setAttemptedLogin] = useState(false);
+
+  const activeIdentifier = authIdentifier || (publicKey ? publicKey.toString() : "");
+
   // Load profile from API and verify access status
   const checkAccess = useCallback(async (identifier: string, token?: string) => {
     if (!identifier) return;
     setProfileLoading(true);
     setVerifyStatus("");
     try {
-      // 1. Fetch current profile from /api/profile
-      const res = await fetch(`/api/profile?wallet=${identifier}`, {
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` })
+      let prof: any = null;
+
+      // 1. If token is present, try to query Database via API
+      if (token) {
+        try {
+          const res = await fetch(`/api/profile?wallet=${identifier}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.profile) {
+              prof = data.profile;
+            }
+          }
+        } catch (dbErr) {
+          console.warn("AccessGuard: db lookup failed, trying fallback:", dbErr);
         }
-      });
-      const data = await res.json();
-      
-      if (data && data.profile) {
-        const prof = data.profile;
-        setProfile(prof);
-        
-        // 2. Validate Access Conditions
-        const hasBalance = (prof.verified_balance || 0) >= 1000000 || (prof.holder_tier || 0) >= 2;
-        const hasInvite = prof.access_type === "Invite" || prof.access_type === "Holder";
-        
-        if (hasBalance || hasInvite) {
-          setAccessGranted(true);
-        } else {
-          setAccessGranted(false);
-        }
-      } else {
-        setAccessGranted(false);
       }
+
+      // 2. Fallback: Lookup local storage
+      if (!prof && typeof window !== "undefined") {
+        const saved = localStorage.getItem(`rq_ops_profile:${identifier}`);
+        if (saved) {
+          try {
+            prof = JSON.parse(saved);
+          } catch (jsonErr) {
+            console.error("AccessGuard: failed to parse local profile:", jsonErr);
+          }
+        }
+      }
+
+      // 3. Evaluate Profile permissions
+      if (prof) {
+        const hasBalance = (prof.verified_balance || prof.verifiedBalance || 0) >= 1000000 || (prof.holder_tier || prof.holderTier || 0) >= 2;
+        const hasInvite = prof.access_type === "Invite" || prof.accessType === "Invite" || 
+                           prof.access_type === "Holder" || prof.accessType === "Holder" ||
+                           prof.access_type === "Admin" || prof.accessType === "Admin";
+        if (hasBalance || hasInvite) {
+          setProfile(prof);
+          setAccessGranted(true);
+          setProfileLoading(false);
+          return;
+        }
+      }
+
+      // 4. Fallback: directly query Solana Mainnet RPC if it's a connected wallet
+      if (identifier && !identifier.startsWith("email-auth:")) {
+        setVerifyStatus("QUERYING SOLANA MAINNET FOR $THREAT HOLDINGS...");
+        try {
+          const { Connection, PublicKey } = await import("@solana/web3.js");
+          const { getAssociatedTokenAddress } = await import("@solana/spl-token");
+          
+          const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://solana-rpc.publicnode.com";
+          const connection = new Connection(rpcUrl, "confirmed");
+          const walletPubkey = new PublicKey(identifier);
+          const mintPubkey = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg"); // $THREAT mint
+          const ata = await getAssociatedTokenAddress(mintPubkey, walletPubkey);
+          
+          const balanceResponse = await connection.getTokenAccountBalance(ata);
+          const balance = balanceResponse.value.uiAmount || 0;
+          
+          if (balance >= 1000000) {
+            setVerifyStatus(`VERIFIED: ${balance.toLocaleString()} $THREAT. ACCESS GRANTED.`);
+            const updatedProf = prof ? {
+              ...prof,
+              verifiedBalance: balance,
+              holderTier: 2,
+              holderStatus: "Holder",
+              accessType: "Holder"
+            } : {
+              name: "OPERATIVE",
+              faction: "None",
+              class: "None",
+              role: "None",
+              level: 1,
+              xp: 0,
+              credits: 500,
+              reputation: 0,
+              health: 100,
+              verifiedBalance: balance,
+              holderTier: 2,
+              holderStatus: "Holder",
+              accessType: "Holder"
+            };
+
+            if (typeof window !== "undefined") {
+              localStorage.setItem(`rq_ops_profile:${identifier}`, JSON.stringify(updatedProf));
+            }
+            setProfile(updatedProf);
+            setAccessGranted(true);
+            setProfileLoading(false);
+            return;
+          }
+        } catch (chainErr) {
+          console.warn("AccessGuard: client-side RPC query failed:", chainErr);
+        }
+      }
+
+      setAccessGranted(false);
     } catch (e) {
       console.error("Access verification error:", e);
       setAccessGranted(false);
@@ -74,25 +154,64 @@ export default function AccessGuard({ children }: AccessGuardProps) {
 
   // Sync wallet connection to Supabase session when connected
   useEffect(() => {
-    if (connected && !session && !authLoading && loginWithWallet) {
-      loginWithWallet();
+    if (connected && !session && !authLoading && loginWithWallet && !attemptedLogin) {
+      setAttemptedLogin(true);
+      loginWithWallet().catch(err => {
+        console.error("Wallet auto-login failed:", err);
+      });
     }
-  }, [connected, session, authLoading, loginWithWallet]);
+  }, [connected, session, authLoading, loginWithWallet, attemptedLogin]);
+
+  // Reset login state if wallet is disconnected
+  useEffect(() => {
+    if (!connected) {
+      setAttemptedLogin(false);
+    }
+  }, [connected]);
 
   // Effect to verify access whenever session or wallet changes
   useEffect(() => {
-    if (connected && authIdentifier) {
-      checkAccess(authIdentifier, session?.access_token);
+    if (connected && activeIdentifier) {
+      checkAccess(activeIdentifier, session?.access_token);
     } else {
       setProfile(null);
       setAccessGranted(null);
     }
-  }, [connected, authIdentifier, session, checkAccess]);
+  }, [connected, activeIdentifier, session, checkAccess]);
 
   // Trigger manual verified balance refresh
   const handleReVerify = async () => {
-    if (!authIdentifier) return;
+    if (!activeIdentifier) return;
     setVerifyStatus("QUERYING SOLANA BLOCKCHAIN FOR $THREAT BALANCE...");
+
+    // 1. Direct client-side RPC check if session is missing
+    if (!session) {
+      try {
+        const { Connection, PublicKey } = await import("@solana/web3.js");
+        const { getAssociatedTokenAddress } = await import("@solana/spl-token");
+        
+        const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://solana-rpc.publicnode.com";
+        const connection = new Connection(rpcUrl, "confirmed");
+        const walletPubkey = new PublicKey(activeIdentifier);
+        const mintPubkey = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg");
+        const ata = await getAssociatedTokenAddress(mintPubkey, walletPubkey);
+        
+        const balanceResponse = await connection.getTokenAccountBalance(ata);
+        const balance = balanceResponse.value.uiAmount || 0;
+        
+        if (balance >= 1000000) {
+          setVerifyStatus("ON-CHAIN VERIFICATION SUCCESSFUL.");
+          checkAccess(activeIdentifier, undefined);
+        } else {
+          setVerifyStatus(`VERIFICATION FAILED: Required 1,000,000 $THREAT. Found ${balance.toLocaleString()}`);
+        }
+      } catch (e: any) {
+        setVerifyStatus(`VERIFICATION FAILURE: ${e.message || String(e)}`);
+      }
+      return;
+    }
+
+    // 2. Database API verification check
     try {
       const token = session?.access_token;
       const res = await fetch("/api/profile/verify-holder", {
@@ -101,12 +220,12 @@ export default function AccessGuard({ children }: AccessGuardProps) {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` })
         },
-        body: JSON.stringify({ wallet_address: authIdentifier })
+        body: JSON.stringify({ wallet_address: activeIdentifier })
       });
       const data = await res.json();
       if (data.success) {
         setVerifyStatus("ON-CHAIN VERIFICATION RE-RUN SUCCESSFUL.");
-        checkAccess(authIdentifier, token);
+        checkAccess(activeIdentifier, token);
       } else {
         setVerifyStatus(`VERIFICATION FAILED: ${data.error || "UNKNOWN ERROR"}`);
       }
@@ -119,7 +238,7 @@ export default function AccessGuard({ children }: AccessGuardProps) {
   // Submit invite code activation
   const handleActivateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteCode.trim() || !authIdentifier) return;
+    if (!inviteCode.trim() || !activeIdentifier) return;
     setActivating(true);
     setVerifyStatus("");
     try {
@@ -135,7 +254,7 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       const data = await res.json();
       if (data.success) {
         alert("ACCESS GRANTED. INVITATION ACTIVATED.");
-        checkAccess(authIdentifier, token);
+        checkAccess(activeIdentifier, token);
       } else {
         alert(`Failed to activate: ${data.error}`);
       }
@@ -212,7 +331,7 @@ export default function AccessGuard({ children }: AccessGuardProps) {
           <div style={brandHeaderStyle}>
             <span style={{ color: "var(--red)", fontSize: "36px" }}>⚠️</span>
             <h1 style={{ ...titleStyle, color: "var(--red)" }}>ACCESS RESTRICTED</h1>
-            <p style={subtitleStyle}>IDENTIFIER: {authIdentifier.slice(0, 8)}...{authIdentifier.slice(-8)}</p>
+            <p style={subtitleStyle}>IDENTIFIER: {activeIdentifier.slice(0, 8)}...{activeIdentifier.slice(-8)}</p>
           </div>
 
           <div className="alert error" style={{ margin: "20px 0" }}>
