@@ -699,8 +699,7 @@ export default function OperativeProfilePage() {
     : ALL_SCENARIOS.filter((s) => s.cat === activeFilter);
 
   return (
-    <AccessGuard>
-      <div style={{ padding: "60px 0 0", minHeight: "100vh", background: "#050505" }}>
+    <div style={{ padding: "60px 0 0", minHeight: "100vh", background: "#050505" }}>
       {/* Header / Profile Card */}
       <div style={{ borderBottom: "1px solid var(--border)", padding: "40px 24px", background: "var(--surface)" }}>
         <div className="container">
@@ -2047,7 +2046,6 @@ export default function OperativeProfilePage() {
           </div>
         )}
       </div>
-      </div>
-    </AccessGuard>
+    </div>
   );
 }
