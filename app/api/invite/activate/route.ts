@@ -7,21 +7,18 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   if (!supabase) return Response.json({ error: "DB not configured" }, { status: 500 });
 
-  const body = await req.json().catch(() => ({}));
-  const { code, wallet } = body;
-
   const authIdentifier = await getAuthIdentifier(req);
-  const activeIdentifier = wallet || authIdentifier;
-  if (!activeIdentifier) {
-    return Response.json({ error: "Unauthorized session: No wallet or auth identifier provided" }, { status: 401 });
+  if (!authIdentifier) {
+    return Response.json({ error: "Unauthorized session" }, { status: 401 });
   }
 
+  const { code } = await req.json();
   if (!code || typeof code !== "string") {
     return Response.json({ error: "Code parameter is required" }, { status: 400 });
   }
 
   const cleanedCode = code.trim();
-  const hashedWallet = getHashedWallet(activeIdentifier);
+  const hashedWallet = getHashedWallet(authIdentifier);
 
   try {
     // 1. Fetch invite code record from Supabase
@@ -79,22 +76,16 @@ export async function POST(req: Request) {
       .from("invite_usage")
       .insert({
         code_id: invite.id,
-        used_by: activeIdentifier
+        used_by: authIdentifier
       });
 
     // 5. Upgrade user access level permanently
     const { error: userUpdateErr } = await supabase
       .from("users")
-      .upsert(
-        {
-          wallet_address: hashedWallet,
-          access_type: "Invite",
-          invite_activated: true,
-          invite_activated_at: new Date().toISOString(),
-          invite_code_id: invite.id
-        },
-        { onConflict: "wallet_address" }
-      );
+      .update({
+        access_type: "Invite"
+      })
+      .eq("wallet_address", hashedWallet);
 
     if (userUpdateErr) {
       return Response.json({ error: userUpdateErr.message }, { status: 500 });
