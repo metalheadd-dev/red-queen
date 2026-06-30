@@ -336,14 +336,16 @@ export default function OperationsPage() {
         });
         
         const worldState: WorldState = {
-          unlockedSectors:  Array.isArray(db.world_state?.unlockedSectors) ? db.world_state.unlockedSectors : DEFAULT_WORLD_STATE.unlockedSectors,
-          activeAnomalies:  db.world_state?.activeAnomalies  || DEFAULT_WORLD_STATE.activeAnomalies,
-          factionInfluence: db.world_state?.factionInfluence || DEFAULT_WORLD_STATE.factionInfluence,
-          globalAlerts:     Array.isArray(db.world_state?.globalAlerts) ? db.world_state.globalAlerts : DEFAULT_WORLD_STATE.globalAlerts,
-          sectorStates:     healedSectorStates,
-          activeEvents:     Array.isArray(db.world_state?.activeEvents) ? db.world_state.activeEvents : [...DEFAULT_WORLD_STATE.activeEvents],
-          longestStreak:    typeof db.world_state?.longestStreak === "number" ? db.world_state.longestStreak : 0,
-          dynamicMissions:  Array.isArray(db.world_state?.dynamicMissions) ? db.world_state.dynamicMissions : [],
+          unlockedSectors:      Array.isArray(db.world_state?.unlockedSectors) ? db.world_state.unlockedSectors : DEFAULT_WORLD_STATE.unlockedSectors,
+          activeAnomalies:      db.world_state?.activeAnomalies  || DEFAULT_WORLD_STATE.activeAnomalies,
+          factionInfluence:     db.world_state?.factionInfluence || DEFAULT_WORLD_STATE.factionInfluence,
+          globalAlerts:         Array.isArray(db.world_state?.globalAlerts) ? db.world_state.globalAlerts : DEFAULT_WORLD_STATE.globalAlerts,
+          sectorStates:         healedSectorStates,
+          activeEvents:         Array.isArray(db.world_state?.activeEvents) ? db.world_state.activeEvents : [...DEFAULT_WORLD_STATE.activeEvents],
+          longestStreak:        typeof db.world_state?.longestStreak === "number" ? db.world_state.longestStreak : 0,
+          dynamicMissions:      Array.isArray(db.world_state?.dynamicMissions) ? db.world_state.dynamicMissions : [],
+          // CRITICAL: preserve completedOnboarding from DB so returning players skip intro
+          completedOnboarding:  db.world_state?.completedOnboarding === true,
         };
 
         loadedProfile = {
@@ -2291,12 +2293,41 @@ export default function OperationsPage() {
           </div>
 
           <button
-            onClick={() => {
+            onClick={async () => {
+              if (!confirm("REASSIGNMENT: This will reset your Faction, Class, and Role. Your campaign progress will be preserved. Continue?")) return;
               const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+              // Clear local cache
               localStorage.removeItem(`rq_ops_profile:${identifier}`);
               localStorage.removeItem(`rq_ops_inventory:${identifier}`);
               localStorage.removeItem(`rq_ops_equipped:${identifier}`);
-              setProfile(null);
+              // Reset class/role/faction + completedOnboarding in DB so character creation re-runs
+              try {
+                await fetch("/api/profile", {
+                  method: "POST",
+                  headers: getHeaders(),
+                  body: JSON.stringify({
+                    wallet_address: identifier,
+                    class: "None",
+                    role: "None",
+                    faction: "None",
+                    world_state: { ...(profile?.worldState || {}), completedOnboarding: false },
+                  })
+                });
+              } catch (e) { console.warn("Re-initialize DB reset failed:", e); }
+              // Reset local React state — will trigger character creation screen
+              if (profile) {
+                const resetProfile = {
+                  ...profile,
+                  faction: "None",
+                  class: "None",
+                  role: "None",
+                  worldState: { ...(profile.worldState || {}), completedOnboarding: false }
+                };
+                setProfile(resetProfile);
+              }
+              setCompletedOnboarding(false);
+              setGameplayOnboardingStep(1);
+              setActiveTab("center");
             }}
             className="btn btn-ghost"
             style={{ fontSize: "11px", padding: "4px 10px", borderColor: "rgba(255,0,0,0.2)", color: "#ff4d4d", cursor: "pointer", fontWeight: "bold" }}
@@ -4319,7 +4350,7 @@ export default function OperationsPage() {
                     Triggering this process will wipe the onboarding completion flag from your profile record (locally and on Supabase). You will be returned to Screen 1 of the RED QUEEN network initialization protocol immediately.
                   </p>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (!profile) return;
                       const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
                       const updatedWorldState = {
@@ -4328,8 +4359,27 @@ export default function OperationsPage() {
                       };
                       const updatedProfile = {
                         ...profile,
+                        faction: "None",
+                        class: "None",
+                        role: "None",
                         worldState: updatedWorldState
                       };
+                      // Persist to DB so it survives refresh
+                      if (identifier !== "offline-operative") {
+                        try {
+                          await fetch("/api/profile", {
+                            method: "POST",
+                            headers: getHeaders(),
+                            body: JSON.stringify({
+                              wallet_address: identifier,
+                              class: "None",
+                              role: "None",
+                              faction: "None",
+                              world_state: updatedWorldState,
+                            })
+                          });
+                        } catch (e) { console.warn("Failed to persist onboarding reset to DB:", e); }
+                      }
                       setProfile(updatedProfile);
                       setCompletedOnboarding(false);
                       setGameplayOnboardingStep(1);
