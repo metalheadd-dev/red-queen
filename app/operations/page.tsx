@@ -1910,10 +1910,8 @@ export default function OperationsPage() {
 
                 {/* Interactive Map */}
                 <div className="panel holo-noise" style={{
-                  position: "relative", flex: 1, minHeight: "350px", background: "#050505",
+                  position: "relative", flex: 1, minHeight: "350px", background: "#020202",
                   border: "2px solid rgba(255, 77, 77, 0.2)", boxShadow: "0 0 30px rgba(0, 0, 0, 0.9)",
-                  backgroundImage: "url(/tactical_satellite_map_bg.jpg)",
-                  backgroundSize: "cover", backgroundPosition: "center",
                   display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "space-between",
                   overflow: "hidden"
                 }}>
@@ -1921,7 +1919,7 @@ export default function OperationsPage() {
                   <div className="scanline-overlay" />
                   <div style={{
                     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-                    background: "radial-gradient(circle at center, transparent 30%, rgba(3,3,3,0.85) 90%)",
+                    background: "radial-gradient(circle at center, transparent 30%, rgba(2,2,2,0.9) 95%)",
                     pointerEvents: "none"
                   }} />
 
@@ -1955,7 +1953,7 @@ export default function OperationsPage() {
                       </div>
                     )}
 
-                    <svg width="100%" height="100%" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" style={{ position: "absolute", top: 0, left: 0 }}>
+                    <svg width="100%" height="100%" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" style={{ position: "absolute", top: 0, left: 0 }}>
                       <defs>
                         <style>{`
                           @keyframes scanline {
@@ -2052,6 +2050,9 @@ export default function OperationsPage() {
                         </filter>
                       </defs>
 
+                      {/* Dark satellite map background */}
+                      <image href="/tactical_satellite_map_bg.jpg" x="0" y="0" width="1000" height="600" opacity="0.32" />
+
                       <rect width="100%" height="100%" fill="url(#map-grid-3)" />
 
                       {/* Radar sweep elements */}
@@ -2104,7 +2105,7 @@ export default function OperationsPage() {
                           INFECTED: `rgba(${hexToRgb(themeColor)}, 0.12)`
                         };
 
-                        const strokeColor = !isUnlocked ? "rgba(255,255,255,0.08)" : themeColor;
+                        const strokeColor = !isUnlocked ? `rgba(${hexToRgb(themeColor)}, 0.45)` : themeColor;
 
                         return (
                           <g key={sec.id}>
@@ -2114,6 +2115,7 @@ export default function OperationsPage() {
                               fill={isSelected ? `rgba(${hexToRgb(themeColor)}, 0.16)` : (colorMap[status] || "none")}
                               stroke={isSelected ? "#ffffff" : strokeColor}
                               strokeWidth={isSelected ? "2.5" : "1.5"}
+                              strokeDasharray={isUnlocked ? "none" : "4,4"}
                               style={{ 
                                 cursor: "pointer", 
                                 filter: isSelected ? glowFilter : "none",
