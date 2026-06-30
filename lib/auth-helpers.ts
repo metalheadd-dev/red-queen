@@ -47,11 +47,21 @@ export async function getAuthIdentifier(req: Request): Promise<string | null> {
       const web3Identity = user.identities?.find(
         (id: any) => id.provider === "web3" || id.provider === "solana"
       );
-      return (
+      const rawId = (
         web3Identity?.identity_data?.sub ||
         user.user_metadata?.wallet_address ||
         user.id
       );
+      
+      if (rawId && typeof rawId === "string") {
+        if (rawId.includes("web3:solana:")) {
+          return rawId.split("web3:solana:")[1] || rawId;
+        }
+        if (rawId.includes("web3:sol:")) {
+          return rawId.split("web3:sol:")[1] || rawId;
+        }
+      }
+      return rawId;
     }
   } catch (err) {
     console.error("Error verifying auth identifier:", err);

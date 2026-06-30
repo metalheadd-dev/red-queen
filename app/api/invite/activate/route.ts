@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       .from("invite_usage")
       .insert({
         code_id: invite.id,
-        used_by: authIdentifier
+        used_by: activeIdentifier
       });
 
     // 5. Upgrade user access level permanently
