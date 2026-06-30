@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useAuth } from "@/components/AuthProvider";
+import AccessGuard from "@/components/AccessGuard";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { generateApocalypticName } from "@/lib/names";
@@ -697,74 +698,9 @@ export default function OperativeProfilePage() {
     ? ALL_SCENARIOS
     : ALL_SCENARIOS.filter((s) => s.cat === activeFilter);
 
-  if (!wallet) {
-    return (
-      <div style={{ padding: "60px 0 0", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#050505" }}>
-        <div style={{ textAlign: "center", maxWidth: "480px", padding: "48px 24px", border: "1px solid var(--border)", background: "var(--surface)" }}>
-          <div className="tag tag-red" style={{ marginBottom: "24px" }}>IDENTITY VERIFICATION REQUIRED</div>
-          <h1 className="glow-text" style={{ fontSize: "36px", marginBottom: "16px", letterSpacing: "0.05em" }}>
-            CONNECT <span style={{ color: "var(--accent)" }}>IDENTITY</span>
-          </h1>
-          <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", marginBottom: "32px" }}>
-            The RED QUEEN cannot retrieve an anonymous identity dossier. Connect your Solana wallet or log in with your email credentials to decrypt your profile status.
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", justifyContent: "center" }}>
-            <WalletMultiButton style={{
-              background: "var(--accent)",
-              border: "none",
-              color: "#000",
-              fontFamily: "var(--mono)",
-              fontSize: "13px",
-              padding: "12px 28px",
-              height: "auto",
-              lineHeight: "1.5",
-              fontWeight: "bold",
-              cursor: "pointer",
-            }} />
-            {walletObj && !connected && (
-              <button 
-                onClick={handleChangeWallet}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "var(--text-dim)",
-                  textDecoration: "underline",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  fontFamily: "var(--mono)",
-                }}
-              >
-                [CHANGE WALLET]
-              </button>
-            )}
-            
-            <div style={{ borderTop: "1px dashed var(--border)", width: "100%", margin: "8px 0", paddingTop: "12px" }} />
-            
-            <Link 
-              href="/login" 
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: "12px",
-                border: "1px solid var(--accent)",
-                color: "var(--accent)",
-                padding: "10px 24px",
-                textDecoration: "none",
-                borderRadius: "2px",
-                width: "100%",
-                textAlign: "center",
-                boxSizing: "border-box"
-              }}
-            >
-              [ LOG IN TO SECURITY SYSTEM ]
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ padding: "60px 0 0", minHeight: "100vh", background: "#050505" }}>
+    <AccessGuard>
+      <div style={{ padding: "60px 0 0", minHeight: "100vh", background: "#050505" }}>
       {/* Header / Profile Card */}
       <div style={{ borderBottom: "1px solid var(--border)", padding: "40px 24px", background: "var(--surface)" }}>
         <div className="container">
@@ -2111,6 +2047,7 @@ export default function OperativeProfilePage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </AccessGuard>
   );
 }

@@ -4,6 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
+import AccessGuard from "@/components/AccessGuard";
 import { DEFAULT_STATS, UserStats, calculateBioScore, getClearanceLevel } from "@/lib/progression";
 
 // Game Types & Data imports
@@ -61,6 +62,7 @@ export default function OperationsPage() {
   const { publicKey } = useWallet();
   const { setVisible } = useWalletModal();
   const { authIdentifier, session } = useAuth();
+  const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
 
   // Access Control local states
   const [inviteCodeInput, setInviteCodeInput] = useState("");
@@ -1569,195 +1571,13 @@ export default function OperationsPage() {
     );
   }
 
-  // --- ACCESS GATING SCREEN ---
-  const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
-  const hasAccess = 
-    (profile?.accessType === "Invite" || 
-     profile?.accessType === "Holder" || 
-     (profile?.verifiedBalance || 0) >= 1000000 || 
-     (profile?.holderTier || 0) >= 2 ||
-     identifier === "offline-operative");
-
-  if (profile && profile.name && !hasAccess) {
-    return (
-      <div style={{
-        position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
-        background: "#030303", display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", padding: "20px 24px"
-      }} className="holo-noise">
-        <div className="panel" style={{
-          maxWidth: "480px", width: "100%", padding: "30px", border: "1px solid var(--accent)",
-          background: "#080808", display: "flex", flexDirection: "column", gap: "20px",
-          boxShadow: "0 0 30px rgba(255, 77, 77, 0.15)", borderRadius: "4px"
-        }}>
-          <div style={{ borderBottom: "2px solid var(--accent)", paddingBottom: "12px", textAlign: "center" }}>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
-              RED QUEEN NETWORK GATE
-            </span>
-            <h2 style={{ fontSize: "20px", color: "#fff", margin: "6px 0 0 0", letterSpacing: "0.05em", fontFamily: "var(--title-font)" }}>
-              ACCESS AUTHORIZATION REQUIRED
-            </h2>
-          </div>
-
-          <p style={{ fontSize: "12.5px", color: "var(--text-dim)", lineHeight: "1.6", textAlign: "center", margin: 0 }}>
-            Operations terminal access is restricted. To gain entry, you must either hold at least <span style={{ color: "#00ffcc", fontWeight: "bold" }}>1,000,000 $THREAT</span> tokens in your linked wallet or provide a valid activation Invite Code.
-          </p>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px", background: "#0c0c0c", border: "1px solid var(--border)", padding: "12px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)" }}>
-              <span style={{ color: "var(--text-muted)" }}>LINKED WALLET:</span>
-              <span style={{ color: "#fff", fontWeight: "bold" }}>
-                {identifier.startsWith("email-auth:") ? "Email Link Profile" : `${identifier.slice(0, 6)}...${identifier.slice(-6)}`}
-              </span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)", marginTop: "4px" }}>
-              <span style={{ color: "var(--text-muted)" }}>VERIFIED $THREAT:</span>
-              <span style={{ color: "#00ffcc", fontWeight: "bold" }}>
-                {(profile.verifiedBalance || 0).toLocaleString()} tokens
-              </span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)", marginTop: "4px" }}>
-              <span style={{ color: "var(--text-muted)" }}>STATUS CLEARANCE:</span>
-              <span style={{ color: "var(--accent)", fontWeight: "bold" }}>
-                {profile.holderStatus || "Civilian"} (Tier {profile.holderTier || 0})
-              </span>
-            </div>
-          </div>
-
-          <button
-            onClick={async () => {
-              setIsRefreshingHolder(true);
-              setRefreshError(null);
-              try {
-                const authHeaderToken = session?.access_token;
-                const res = await fetch("/api/profile/verify-holder", {
-                  method: "POST",
-                  headers: {
-                    ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
-                  }
-                });
-                const data = await res.json();
-                if (data.success) {
-                  setProfile(prev => {
-                    if (!prev) return null;
-                    return {
-                      ...prev,
-                      verifiedBalance: data.verified_balance,
-                      holderTier: data.holder_tier,
-                      holderStatus: data.holder_status,
-                      accessType: data.access_type
-                    };
-                  });
-                  if (data.holder_tier >= 2) {
-                    alert("ACCESS CLEARANCE GRANTED // HOLDER VERIFIED");
-                  } else {
-                    setRefreshError(`Insufficient holdings. Verified: ${data.verified_balance.toLocaleString()} tokens.`);
-                  }
-                } else {
-                  setRefreshError(data.error || "Verification failed");
-                }
-              } catch (e: any) {
-                setRefreshError("RPC Connection Error. Try again shortly.");
-              } finally {
-                setIsRefreshingHolder(false);
-              }
-            }}
-            disabled={isRefreshingHolder}
-            style={{
-              width: "100%", background: "none", border: "1px solid #00ffcc", color: "#00ffcc",
-              padding: "10px", fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold",
-              cursor: "pointer", borderRadius: "2px", transition: "all 0.2s"
-            }}
-          >
-            {isRefreshingHolder ? "[ RETRIEVING ON-CHAIN METRICS... ]" : "[ RE-VERIFY TOKEN HOLDINGS ]"}
-          </button>
-          {refreshError && (
-            <div style={{ color: "var(--accent)", fontSize: "9.5px", fontFamily: "var(--mono)", textAlign: "center", marginTop: "-6px" }}>
-              {refreshError}
-            </div>
-          )}
-
-          <div style={{ display: "flex", alignItems: "center", margin: "10px 0" }}>
-            <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
-            <span style={{ margin: "0 10px", fontSize: "9px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>OR</span>
-            <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>ENTER INVITE CODE</span>
-            <div style={{ display: "flex", gap: "10px" }}>
-              <input
-                type="text"
-                value={inviteCodeInput}
-                onChange={(e) => setInviteCodeInput(e.target.value)}
-                placeholder="RQ-XXXXXXX"
-                style={{
-                  flex: 1, background: "#0c0c0c", border: "1px solid var(--border)",
-                  color: "#fff", padding: "8px 12px", fontFamily: "var(--mono)", fontSize: "12px",
-                  borderRadius: "2px"
-                }}
-              />
-              <button
-                onClick={async () => {
-                  if (!inviteCodeInput.trim()) return;
-                  setIsActivatingInvite(true);
-                  setInviteError(null);
-                  try {
-                    const authHeaderToken = session?.access_token;
-                    const res = await fetch("/api/invite/activate", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
-                      },
-                      body: JSON.stringify({ code: inviteCodeInput })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                      setProfile(prev => {
-                        if (!prev) return null;
-                        return {
-                          ...prev,
-                          accessType: data.access_type
-                        };
-                      });
-                      alert("ACCESS AUTHORIZATION ACTIVATED // TERMINAL UNLOCKED");
-                    } else {
-                      setInviteError(data.error || "Activation rejected");
-                    }
-                  } catch (e) {
-                    setInviteError("Connection lost. Verify your network.");
-                  } finally {
-                    setIsActivatingInvite(false);
-                  }
-                }}
-                disabled={isActivatingInvite || !inviteCodeInput.trim()}
-                style={{
-                  background: "var(--accent)", color: "#000", border: "none",
-                  padding: "8px 16px", fontFamily: "var(--mono)", fontSize: "11px", fontWeight: "bold",
-                  cursor: "pointer", borderRadius: "2px"
-                }}
-              >
-                {isActivatingInvite ? "[ RUNNING... ]" : "[ ACTIVATE ]"}
-              </button>
-            </div>
-            {inviteError && (
-              <div style={{ color: "var(--accent)", fontSize: "9.5px", fontFamily: "var(--mono)", marginTop: "4px" }}>
-                ⚠️ {inviteError}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // --- IMMERSIVE GAMEPLAY MAIN HUB ---
   return (
-    <div style={{
-      position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
-      background: "#020202", display: "flex", flexDirection: "column", overflow: "hidden"
-    }}>
+    <AccessGuard>
+      <div style={{
+        position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
+        background: "#020202", display: "flex", flexDirection: "column", overflow: "hidden"
+      }}>
       <style>{`
         .ops-grid-3 {
           display: grid;
@@ -4228,6 +4048,7 @@ export default function OperationsPage() {
         </div>
       )}
 
-    </div>
+      </div>
+    </AccessGuard>
   );
 }

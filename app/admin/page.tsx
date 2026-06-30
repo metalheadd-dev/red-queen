@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useWallet } from "@solana/wallet-adapter-react";
+import AccessGuard from "@/components/AccessGuard";
 import Link from "next/link";
 import SolvivalIcon from "@/components/SolvivalIcon";
 
@@ -449,7 +450,8 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", paddingTop: "80px", background: "#030303", color: "#fff" }}>
+    <AccessGuard>
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", paddingTop: "80px", background: "#030303", color: "#fff" }}>
       {/* Header */}
       <div style={{ borderBottom: "1px solid rgba(255, 77, 77, 0.1)", padding: "32px 24px", background: "var(--surface)" }}>
         <div className="container" style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
@@ -1719,6 +1721,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </AccessGuard>
   );
 }
