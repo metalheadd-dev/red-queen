@@ -73,8 +73,9 @@ export const DEFAULT_WORLD_STATE: WorldState = {
       availableResources: ["Medical Supplies", "Credits"],
     },
     "sec-beta": {
-      id: "sec-beta", status: "ACTIVE", dangerLevel: "Medium",
-      ownership: "Nomads", completion: 0, isUnlocked: true,
+      id: "sec-beta", status: "LOCKED", dangerLevel: "Medium",
+      ownership: "Nomads", completion: 0, isUnlocked: false,
+      unlockRequiredSector: "Sector Alpha",
       stability: 0,
       influence: { nomads: 50, eclipse: 10 },
       completedMissions: [],
@@ -84,8 +85,10 @@ export const DEFAULT_WORLD_STATE: WorldState = {
       availableResources: ["Electronics", "Credits"],
     },
     "sec-delta": {
-      id: "sec-delta", status: "ACTIVE", dangerLevel: "High",
-      ownership: "Ghost Division", completion: 0, isUnlocked: true,
+      id: "sec-delta", status: "LOCKED", dangerLevel: "High",
+      ownership: "Ghost Division", completion: 0, isUnlocked: false,
+      unlockRequiredSector: "Sector Beta",
+      unlockRequiredLevel: 2,
       stability: 0,
       influence: { ghost: 60, aegis: 15 },
       completedMissions: [],
@@ -97,8 +100,8 @@ export const DEFAULT_WORLD_STATE: WorldState = {
     "sec-epsilon": {
       id: "sec-epsilon", status: "LOCKED", dangerLevel: "Severe",
       ownership: "Citadel", completion: 0, isUnlocked: false,
-      unlockRequiredSector: "Sector Alpha",
-      unlockRequiredLevel: 2,
+      unlockRequiredSector: "Sector Gamma,Sector Delta",
+      unlockRequiredLevel: 3,
       stability: 0,
       influence: { citadel: 10 },
       completedMissions: [],
@@ -110,7 +113,7 @@ export const DEFAULT_WORLD_STATE: WorldState = {
     "sec-zeta": {
       id: "sec-zeta", status: "LOCKED", dangerLevel: "Severe",
       ownership: "Horizon", completion: 0, isUnlocked: false,
-      unlockRequiredSector: "Sector Gamma",
+      unlockRequiredSector: "Sector Epsilon",
       unlockRequiredBioScore: 30,
       stability: 0,
       influence: { horizon: 30 },
@@ -123,7 +126,7 @@ export const DEFAULT_WORLD_STATE: WorldState = {
     "sec-gamma": {
       id: "sec-gamma", status: "LOCKED", dangerLevel: "Medium",
       ownership: "Helix", completion: 0, isUnlocked: false,
-      unlockRequiredSector: "Sector Delta",
+      unlockRequiredSector: "Sector Beta",
       unlockRequiredBioScore: 15,
       stability: 0,
       influence: { helix: 45 },
@@ -136,7 +139,7 @@ export const DEFAULT_WORLD_STATE: WorldState = {
     "sec-omega": {
       id: "sec-omega", status: "LOCKED", dangerLevel: "Severe",
       ownership: "Citadel", completion: 0, isUnlocked: false,
-      unlockRequiredSector: "Sector Epsilon",
+      unlockRequiredSector: "Sector Zeta",
       unlockRequiredLevel: 5,
       unlockRequiredFaction: "Citadel (Standing ≥ 40)",
       stability: 0,
@@ -281,13 +284,17 @@ export function evaluateSectorUnlock(profile: OperativeProfile, sectorState: Sec
 
   // Check required sector
   if (sectorState.unlockRequiredSector) {
-    const requiredSec = INITIAL_SECTORS.find(
-      s => s.name.toLowerCase() === sectorState.unlockRequiredSector?.toLowerCase() || s.id === sectorState.unlockRequiredSector
-    );
-    if (requiredSec) {
-      const reqState = profile.worldState?.sectorStates?.[requiredSec.id];
-      const isSecured = reqState ? (reqState.status === "SECURED" || reqState.completion >= 100) : false;
-      if (!isSecured) return false;
+    const requiredNames = sectorState.unlockRequiredSector.split(",");
+    for (const name of requiredNames) {
+      const trimmedName = name.trim();
+      const requiredSec = INITIAL_SECTORS.find(
+        s => s.name.toLowerCase() === trimmedName.toLowerCase() || s.id === trimmedName
+      );
+      if (requiredSec) {
+        const reqState = profile.worldState?.sectorStates?.[requiredSec.id];
+        const isSecured = reqState ? (reqState.status === "SECURED" || reqState.completion >= 100) : false;
+        if (!isSecured) return false;
+      }
     }
   }
 

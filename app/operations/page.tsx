@@ -59,6 +59,32 @@ const ROLES: Record<string, string[]> = {
   Specialist: ["Drone Operator", "Infiltrator", "Network Router"]
 };
 
+const getSectorColor = (sectorId: string) => {
+  switch (sectorId) {
+    case "sec-alpha": return "#00ff66";
+    case "sec-beta": return "#ffcc00";
+    case "sec-gamma": return "#0099ff";
+    case "sec-delta": return "#ff3333";
+    case "sec-epsilon": return "#b366ff";
+    case "sec-zeta": return "#00ffff";
+    case "sec-omega": return "#ffffff";
+    default: return "var(--accent)";
+  }
+};
+
+const hexToRgb = (hex: string): string => {
+  const colors: Record<string, string> = {
+    "#00ff66": "0, 255, 102",
+    "#ffcc00": "255, 204, 0",
+    "#0099ff": "0, 153, 255",
+    "#ff3333": "255, 51, 51",
+    "#b366ff": "179, 102, 255",
+    "#00ffff": "0, 255, 255",
+    "#ffffff": "255, 255, 255"
+  };
+  return colors[hex] || "255, 77, 77";
+};
+
 export default function OperationsPage() {
   const { publicKey } = useWallet();
   const { setVisible } = useWalletModal();
@@ -1842,241 +1868,314 @@ export default function OperationsPage() {
 
           {/* TAB 1: COMMAND CENTER (HUD & OPERATIONS) */}
           {activeTab === "center" && (
-            <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "7.2fr 2.8fr", gap: "16px", height: "100%", overflow: "hidden" }}>
               
-              {/* TOP SECTION: EVOLVING WORLD MAP WITH SVG SHAPES */}
-              <div className="panel holo-noise animate-pulse-slow" style={{
-                position: "relative", padding: "12px", height: "55%", minHeight: "300px", background: "#050505",
-                border: "2px solid rgba(255, 77, 77, 0.3)", boxShadow: "0 0 30px rgba(0, 0, 0, 0.9)",
-                display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "space-between",
-                marginBottom: "16px", flexShrink: 0
-              }}>
-                <div style={{ position: "absolute", top: "10px", left: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
-                <div style={{ position: "absolute", top: "10px", right: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
-                <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
-                <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "6px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ width: "6px", height: "6px", background: "#ff4d4d", borderRadius: "50%" }} className="animate-pulse" />
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
-                      CAMPAIGN WORLD MAP OVERVIEW
+              {/* LEFT COLUMN: HUD, MAP & TELEMETRY */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", height: "100%", overflow: "hidden" }}>
+                
+                {/* Global Status HUD */}
+                <div className="panel holo-noise" style={{
+                  display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px",
+                  background: "rgba(8, 8, 8, 0.85)", border: "1px solid rgba(255, 77, 77, 0.15)",
+                  padding: "10px 14px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "9px"
+                }}>
+                  <div>
+                    <span style={{ color: "var(--text-muted)", display: "block", fontSize: "8px", letterSpacing: "0.1em" }}>GLOBAL THREAT LEVEL</span>
+                    <span style={{ color: "var(--accent)", fontWeight: "bold", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px", marginTop: "2px" }}>
+                      <span style={{ width: "6px", height: "6px", background: "var(--accent)", borderRadius: "50%" }} className="animate-pulse" />
+                      SEVERE // 78%
                     </span>
                   </div>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
-                    GRID SWEEPS: CONTINUOUS // SELECT SECTOR TO VIEW INTEL
-                  </span>
+                  <div>
+                    <span style={{ color: "var(--text-muted)", display: "block", fontSize: "8px", letterSpacing: "0.1em" }}>WORLD STABILITY</span>
+                    <span style={{ color: "#ff4d4d", fontWeight: "bold", fontSize: "11px", display: "block", marginTop: "2px" }}>34% CRITICAL</span>
+                  </div>
+                  <div>
+                    <span style={{ color: "var(--text-muted)", display: "block", fontSize: "8px", letterSpacing: "0.1em" }}>ACTIVE OUTBREAKS</span>
+                    <span style={{ color: "#f0c929", fontWeight: "bold", fontSize: "11px", display: "block", marginTop: "2px" }}>3 SECTORS</span>
+                  </div>
+                  <div>
+                    <span style={{ color: "var(--text-muted)", display: "block", fontSize: "8px", letterSpacing: "0.1em" }}>CRITICAL ALERTS</span>
+                    <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "10px", display: "block", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      ALPHA STABLE // DELTA ALERT
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: "var(--text-muted)", display: "block", fontSize: "8px", letterSpacing: "0.1em" }}>CAMPAIGN COMPLETE</span>
+                    <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "11px", display: "block", marginTop: "2px" }}>
+                      {profile ? ((profile.completedMissions?.length || 0) / (missions?.length || 1) * 100).toFixed(1) : 0}%
+                    </span>
+                  </div>
                 </div>
 
-                <div style={{ flex: 1, position: "relative", margin: "6px 0", background: "rgba(0,0,0,0.6)", overflow: "hidden" }}>
-                  {mapAlert && (
-                    <div style={{
-                      position: "absolute", top: "12px", left: "50%", transform: "translateX(-50%)",
-                      background: "rgba(255, 77, 77, 0.08)", border: "1px solid var(--accent)", padding: "8px 16px",
-                      zIndex: 10, fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)",
-                      boxShadow: "0 0 15px rgba(255,77,77,0.15)", borderRadius: "2px"
-                    }}>
-                      {mapAlert}
+                {/* Interactive Map */}
+                <div className="panel holo-noise" style={{
+                  position: "relative", flex: 1, minHeight: "350px", background: "#050505",
+                  border: "2px solid rgba(255, 77, 77, 0.2)", boxShadow: "0 0 30px rgba(0, 0, 0, 0.9)",
+                  backgroundImage: "url(/tactical_satellite_map_bg.jpg)",
+                  backgroundSize: "cover", backgroundPosition: "center",
+                  display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "space-between",
+                  overflow: "hidden"
+                }}>
+                  {/* Scanlines / Fog Overlay */}
+                  <div className="scanline-overlay" />
+                  <div style={{
+                    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                    background: "radial-gradient(circle at center, transparent 30%, rgba(3,3,3,0.85) 90%)",
+                    pointerEvents: "none"
+                  }} />
+
+                  <div style={{ position: "absolute", top: "10px", left: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)", pointerEvents: "none" }} />
+                  <div style={{ position: "absolute", top: "10px", right: "10px", width: "14px", height: "14px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)", pointerEvents: "none" }} />
+                  <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)", pointerEvents: "none" }} />
+                  <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)", pointerEvents: "none" }} />
+
+                  {/* Header info */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: "1px dashed rgba(255,255,255,0.06)", padding: "10px 14px", background: "rgba(5,5,5,0.7)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ width: "6px", height: "6px", background: "#ff4d4d", borderRadius: "50%" }} className="animate-pulse" />
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.2em", fontWeight: "bold" }}>
+                        OPERATIONAL NETWORK GRID
+                      </span>
                     </div>
-                  )}
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
+                      GRID SYNCHRONIZATION: ONLINE // SELECT SECTOR
+                    </span>
+                  </div>
 
-                  <svg width="100%" height="100%" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" style={{ position: "absolute", top: 0, left: 0 }}>
-                    <defs>
-                      <style>{`
-                        @keyframes pulse-warning {
-                          0% { opacity: 0.45; }
-                          50% { opacity: 1; }
-                          100% { opacity: 0.45; }
-                        }
-                        .pulsing-alert {
-                          animation: pulse-warning 1.4s infinite ease-in-out;
-                        }
-                      `}</style>
-                      <pattern id="map-grid-2" width="20" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.015)" strokeWidth="0.5"/>
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#map-grid-2)" />
+                  <div style={{ flex: 1, position: "relative" }}>
+                    {mapAlert && (
+                      <div style={{
+                        position: "absolute", top: "12px", left: "50%", transform: "translateX(-50%)",
+                        background: "rgba(255, 77, 77, 0.08)", border: "1px solid var(--accent)", padding: "8px 16px",
+                        zIndex: 10, fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)",
+                        boxShadow: "0 0 15px rgba(255,77,77,0.15)", borderRadius: "2px"
+                      }}>
+                        {mapAlert}
+                      </div>
+                    )}
 
-                    {/* Radar sweeps */}
-                    <circle cx="500" cy="300" r="100" fill="none" stroke="rgba(255, 77, 77, 0.02)" strokeWidth="0.5" />
-                    <circle cx="500" cy="300" r="220" fill="none" stroke="rgba(255, 77, 77, 0.01)" strokeWidth="0.5" />
-                    
-                    {/* Scanning radar sweep lines */}
-                    <line className="map-scope-circle" x1="500" y1="300" x2="950" y2="300" stroke="rgba(255, 77, 77, 0.04)" strokeWidth="0.5" />
+                    <svg width="100%" height="100%" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" style={{ position: "absolute", top: 0, left: 0 }}>
+                      <defs>
+                        <style>{`
+                          @keyframes scanline {
+                            0% { transform: translateY(-100%); }
+                            100% { transform: translateY(100%); }
+                          }
+                          @keyframes radar-pulse {
+                            0% { r: 50; opacity: 0.1; }
+                            50% { r: 250; opacity: 0.4; }
+                            100% { r: 400; opacity: 0; }
+                          }
+                          .scanline-overlay {
+                            background: linear-gradient(
+                              to bottom,
+                              rgba(255,255,255,0),
+                              rgba(255,77,77,0.04) 50%,
+                              rgba(255,255,255,0)
+                            );
+                            position: absolute;
+                            top: 0; left: 0; right: 0; bottom: 0;
+                            pointer-events: none;
+                            animation: scanline 8s infinite linear;
+                          }
+                          .radar-glow {
+                            animation: radar-pulse 6s infinite ease-out;
+                          }
+                          .sector-poly {
+                            transition: all 0.25s ease;
+                          }
+                          .sector-poly:hover {
+                            fill-opacity: 0.15;
+                          }
+                        `}</style>
+                        
+                        {/* Grid Pattern */}
+                        <pattern id="map-grid-3" width="40" height="40" patternUnits="userSpaceOnUse">
+                          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 77, 77, 0.03)" strokeWidth="0.5"/>
+                        </pattern>
 
-                    {/* Operational Sector links */}
-                    {SECTOR_CONNECTIONS.map((conn, idx) => {
-                      const fromUnlocked = profile?.worldState?.sectorStates?.[conn.from]
-                        ? profile.worldState.sectorStates[conn.from].isUnlocked
-                        : (profile?.worldState?.unlockedSectors?.includes(conn.from) || conn.from === "sec-alpha");
-                      const toUnlocked = profile?.worldState?.sectorStates?.[conn.to]
-                        ? profile.worldState.sectorStates[conn.to].isUnlocked
-                        : (profile?.worldState?.unlockedSectors?.includes(conn.to) || conn.to === "sec-alpha");
-                      const isLineActive = fromUnlocked && toUnlocked;
-                      return (
-                        <line
-                          key={idx}
-                          x1={conn.x1} y1={conn.y1} x2={conn.x2} y2={conn.y2}
-                          stroke={isLineActive ? "rgba(0, 255, 204, 0.25)" : "rgba(255, 255, 255, 0.05)"}
-                          strokeWidth={isLineActive ? "2" : "1"}
-                          strokeDasharray="4,4"
-                        />
-                      );
-                    })}
+                        {/* Locked Hashed Pattern */}
+                        <pattern id="lock-hatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255,255,255,0.04)" strokeWidth="1.5" />
+                        </pattern>
 
-                    {/* Interactive SVG outline polygons representing territories */}
-                    {sectors.map((sec) => {
-                      const isUnlocked = profile?.worldState?.sectorStates?.[sec.id]
-                        ? profile.worldState.sectorStates[sec.id].isUnlocked
-                        : (profile?.worldState?.unlockedSectors?.includes(sec.id) || sec.id === "sec-alpha");
-                      const isSelected = selectedSectorId === sec.id;
-                      const status = getSectorStatus(sec);
-                      const completion = getSectorCompletion(sec.id);
-                      const ownership = profile?.worldState?.sectorStates?.[sec.id]?.ownership || "Neutral";
-                      const activeEvent = profile?.worldState?.activeEvents?.find(evt => evt.region === sec.id);
+                        {/* Glowing Filters */}
+                        <filter id="glow-alpha" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="5" result="blur"/>
+                          <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                        <filter id="glow-beta" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="5" result="blur"/>
+                          <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                        <filter id="glow-gamma" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="5" result="blur"/>
+                          <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                        <filter id="glow-delta" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="5" result="blur"/>
+                          <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                        <filter id="glow-epsilon" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="5" result="blur"/>
+                          <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                        <filter id="glow-zeta" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="5" result="blur"/>
+                          <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                        <filter id="glow-omega" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="5" result="blur"/>
+                          <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                      </defs>
 
-                      const colorMap = {
-                        LOCKED: "rgba(60,60,60,0.15)",
-                        AVAILABLE: "rgba(240, 201, 41, 0.04)",
-                        IN_PROGRESS: "rgba(0, 255, 204, 0.04)",
-                        SECURED: "rgba(0, 255, 204, 0.08)",
-                        DANGEROUS: "rgba(255, 77, 77, 0.06)",
-                        CRITICAL: "rgba(255, 77, 77, 0.12)",
-                        SAFE: "rgba(0, 255, 204, 0.08)",
-                        ACTIVE: "rgba(240, 201, 41, 0.04)",
-                        INFECTED: "rgba(255, 77, 77, 0.15)"
-                      };
-                      const strokeColor = 
-                        !isUnlocked ? "#333333" :
-                        (status === "SECURED" || status === "SAFE") ? "#00ffcc" :
-                        (status === "DANGEROUS" || status === "CRITICAL" || status === "INFECTED") ? "#ff4d4d" : "#f0c929";
+                      <rect width="100%" height="100%" fill="url(#map-grid-3)" />
 
-                      return (
-                        <g key={sec.id}>
-                          <polygon
-                            points={sec.points}
-                            fill={isSelected ? "rgba(255, 77, 77, 0.15)" : colorMap[status] || "none"}
-                            stroke={isSelected ? "var(--accent)" : strokeColor}
-                            strokeWidth={isSelected ? "2.5" : "1.5"}
-                            style={{ cursor: "pointer", transition: "all 0.18s" }}
-                            onClick={() => {
-                              setSelectedSectorId(sec.id);
-                              if (isUnlocked) {
-                                const sectorMissions = missions.filter(m => m.region === sec.id);
-                                const firstAvail = sectorMissions.find(m => !isMissionLocked(m) && !profile?.completedMissions.includes(m.id)) || sectorMissions[0];
-                                if (firstAvail) setSelectedMapSector(firstAvail.id);
-                              }
-                            }}
+                      {/* Radar sweep elements */}
+                      <circle cx="500" cy="300" r="120" fill="none" stroke="rgba(255, 77, 77, 0.03)" strokeWidth="0.5" />
+                      <circle cx="500" cy="300" r="260" fill="none" stroke="rgba(255, 77, 77, 0.02)" strokeWidth="0.5" />
+                      <circle className="radar-glow" cx="500" cy="300" r="50" fill="none" stroke="rgba(255, 77, 77, 0.03)" strokeWidth="1" />
+
+                      {/* Connections */}
+                      {SECTOR_CONNECTIONS.map((conn, idx) => {
+                        const fromUnlocked = profile?.worldState?.sectorStates?.[conn.from]
+                          ? profile.worldState.sectorStates[conn.from].isUnlocked
+                          : (profile?.worldState?.unlockedSectors?.includes(conn.from) || conn.from === "sec-alpha");
+                        const toUnlocked = profile?.worldState?.sectorStates?.[conn.to]
+                          ? profile.worldState.sectorStates[conn.to].isUnlocked
+                          : (profile?.worldState?.unlockedSectors?.includes(conn.to) || conn.to === "sec-alpha");
+                        const isLineActive = fromUnlocked && toUnlocked;
+                        return (
+                          <line
+                            key={idx}
+                            x1={conn.x1} y1={conn.y1} x2={conn.x2} y2={conn.y2}
+                            stroke={isLineActive ? "rgba(0, 255, 204, 0.45)" : "rgba(255, 255, 255, 0.06)"}
+                            strokeWidth={isLineActive ? "2" : "1"}
+                            strokeDasharray={isLineActive ? "none" : "3,3"}
+                            style={{ filter: isLineActive ? "drop-shadow(0 0 3px rgba(0, 255, 204, 0.45))" : "none" }}
                           />
-                          
-                          {/* Pulsing Warning caution icon overlay for sectors experiencing active events */}
-                          {isUnlocked && activeEvent && (
-                            <g className="pulsing-alert" pointerEvents="all">
-                              <text
-                                x={sec.labelX}
-                                y={sec.labelY - 14}
-                                fill="#ff4d4d"
-                                fontSize="14px"
-                                textAnchor="middle"
-                                style={{ cursor: "help" }}
-                              >
-                                ⚠️
-                                <title>{`[ACTIVE EVENT] ${activeEvent.title}\n${activeEvent.description}`}</title>
-                              </text>
-                            </g>
-                          )}
+                        );
+                      })}
 
-                          <text
-                            x={sec.labelX}
-                            y={sec.labelY}
-                            fill={isSelected ? "#fff" : "rgba(255,255,255,0.7)"}
-                            fontSize="11px"
-                            fontWeight="bold"
-                            fontFamily="var(--mono)"
-                            textAnchor="middle"
-                            pointerEvents="none"
-                          >
-                            {sec.name}
-                          </text>
-                          <text
-                            x={sec.labelX}
-                            y={sec.labelY + 12}
-                            fill={strokeColor}
-                            fontSize="8.5px"
-                            fontFamily="var(--mono)"
-                            textAnchor="middle"
-                            pointerEvents="none"
-                          >
-                            {!isUnlocked ? "LOCKED 🔒" : `${completion}% SECURED`}
-                          </text>
+                      {/* Irregular Sector Polygons */}
+                      {sectors.map((sec) => {
+                        const isUnlocked = profile?.worldState?.sectorStates?.[sec.id]
+                          ? profile.worldState.sectorStates[sec.id].isUnlocked
+                          : (profile?.worldState?.unlockedSectors?.includes(sec.id) || sec.id === "sec-alpha");
+                        const isSelected = selectedSectorId === sec.id;
+                        const status = getSectorStatus(sec);
+                        const completion = getSectorCompletion(sec.id);
+                        
+                        const themeColor = getSectorColor(sec.id);
+                        const glowFilter = `url(#glow-${sec.id.replace("sec-", "")})`;
 
-                          {/* Faction Ownership Text Overlay */}
-                          {isUnlocked && (
+                        const colorMap = {
+                          LOCKED: "url(#lock-hatch)",
+                          AVAILABLE: `rgba(${hexToRgb(themeColor)}, 0.03)`,
+                          IN_PROGRESS: `rgba(${hexToRgb(themeColor)}, 0.05)`,
+                          SECURED: `rgba(${hexToRgb(themeColor)}, 0.08)`,
+                          DANGEROUS: `rgba(${hexToRgb(themeColor)}, 0.06)`,
+                          CRITICAL: `rgba(${hexToRgb(themeColor)}, 0.10)`,
+                          SAFE: `rgba(${hexToRgb(themeColor)}, 0.08)`,
+                          ACTIVE: `rgba(${hexToRgb(themeColor)}, 0.04)`,
+                          INFECTED: `rgba(${hexToRgb(themeColor)}, 0.12)`
+                        };
+
+                        const strokeColor = !isUnlocked ? "rgba(255,255,255,0.08)" : themeColor;
+
+                        return (
+                          <g key={sec.id}>
+                            <polygon
+                              points={sec.points}
+                              className="sector-poly"
+                              fill={isSelected ? `rgba(${hexToRgb(themeColor)}, 0.16)` : (colorMap[status] || "none")}
+                              stroke={isSelected ? "#ffffff" : strokeColor}
+                              strokeWidth={isSelected ? "2.5" : "1.5"}
+                              style={{ 
+                                cursor: "pointer", 
+                                filter: isSelected ? glowFilter : "none",
+                                transition: "all 0.25s ease"
+                              }}
+                              onClick={() => {
+                                setSelectedSectorId(sec.id);
+                                if (isUnlocked) {
+                                  const sectorMissions = missions.filter(m => m.region === sec.id);
+                                  const firstAvail = sectorMissions.find(m => !isMissionLocked(m) && !profile?.completedMissions.includes(m.id)) || sectorMissions[0];
+                                  if (firstAvail) setSelectedMapSector(firstAvail.id);
+                                }
+                              }}
+                            />
+
                             <text
                               x={sec.labelX}
-                              y={sec.labelY + 22}
-                              fill="rgba(255, 255, 255, 0.4)"
-                              fontSize="7px"
+                              y={sec.labelY}
+                              fill={isSelected ? "#fff" : "rgba(255,255,255,0.85)"}
+                              fontSize="10px"
+                              fontWeight="bold"
+                              fontFamily="var(--mono)"
+                              textAnchor="middle"
+                              pointerEvents="none"
+                              style={{ textShadow: "0 0 4px rgba(0,0,0,0.9)" }}
+                            >
+                              {sec.name}
+                            </text>
+
+                            <text
+                              x={sec.labelX}
+                              y={sec.labelY + 12}
+                              fill={!isUnlocked ? "rgba(255,255,255,0.3)" : themeColor}
+                              fontSize="8px"
                               fontFamily="var(--mono)"
                               textAnchor="middle"
                               pointerEvents="none"
                             >
-                              {ownership.toUpperCase()}
+                              {!isUnlocked ? "LOCKED 🔒" : `${completion}% SECURED`}
                             </text>
-                          )}
-                        </g>
-                      );
-                    })}
-                  </svg>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "9.5px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "6px" }}>
-                  <span>ACTIVE SECTORS: {sectors.filter(s => profile?.worldState.unlockedSectors.includes(s.id) || s.id === "sec-alpha").length} ONLINE</span>
-                  <span>CAMPAIGN PROGRESS INTEGRATION LOGS [ENGAGED]</span>
-                </div>
-              </div>
-
-              {/* BOTTOM SECTION: 3-COLUMN CONTROL DECK WITH SECTOR OVERVIEW */}
-              <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1.3fr 1.3fr", gap: "16px", overflow: "hidden", minHeight: "180px" }}>
-                
-                {/* Col 1: Hologram Console & Global alerts */}
-                <div className="panel" style={{
-                  background: "#080808", border: "1px solid rgba(255, 77, 77, 0.25)",
-                  position: "relative", padding: "12px", display: "flex", flexDirection: "column", gap: "8px",
-                  overflow: "hidden"
-                }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                    [ RED QUEEN AI DISPATCH SYSTEM ]
-                  </span>
-                  
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                    <div className="holo-noise animate-flicker" style={{
-                      height: "64px", width: "64px", background: "rgba(0,0,0,0.6)",
-                      border: "1px dashed rgba(255, 77, 77, 0.2)", display: "flex",
-                      alignItems: "center", justifyContent: "center", flexShrink: 0
-                    }}>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--accent)", fontWeight: "bold" }}>
-                        [ CORE ]
-                      </span>
-                    </div>
-
-                    <div style={{ flex: 1 }}>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block" }}>
-                        CAMPAIGN STATUS BRIEFING
-                      </span>
-                      <p style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: dailyBriefing.warning ? "var(--accent)" : "#00ffcc", lineHeight: "1.4", margin: "2px 0 0 0", whiteSpace: "pre-wrap" }}>
-                        {dailyBriefing.content}
-                      </p>
-                    </div>
+                          </g>
+                        );
+                      })}
+                    </svg>
                   </div>
 
-                  {/* Scrollable diagnostic log terminal */}
-                  <div style={{
-                    flex: 1, background: "#040404", border: "1px solid #141414", padding: "8px",
-                    fontFamily: "var(--mono)", fontSize: "9px", color: "#666", overflowY: "auto",
-                    display: "flex", flexDirection: "column", gap: "4px"
-                  }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", zIndex: 1, fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", borderTop: "1px dashed rgba(255,255,255,0.06)", padding: "10px 14px", background: "rgba(5,5,5,0.7)" }}>
+                    <span>ACTIVE TARGETS: {sectors.filter(s => profile?.worldState.unlockedSectors.includes(s.id) || s.id === "sec-alpha").length} / 7 ONLINE</span>
+                    <span>INTEL SYNC: COMPLETE // UPLINK GREEN</span>
+                  </div>
+                </div>
+
+                {/* Ticker Logs */}
+                <div className="panel" style={{
+                  background: "#080808", border: "1px solid rgba(255, 77, 77, 0.15)",
+                  padding: "10px 14px", display: "flex", flexDirection: "column", gap: "6px",
+                  height: "100px", overflow: "hidden"
+                }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.1em" }}>
+                    [ RED QUEEN AI RADAR SCAN DATA LOGS ]
+                  </div>
+                  <div style={{ flex: 1, overflowY: "auto", fontFamily: "var(--mono)", fontSize: "8.5px", color: "#666", display: "flex", flexDirection: "column", gap: "4px" }}>
                     {profile?.worldState.globalAlerts.map((log, idx) => (
                       <div key={idx} style={{ color: "#ff4d4d" }}>▶ {log}</div>
                     ))}
@@ -2087,226 +2186,186 @@ export default function OperationsPage() {
                   </div>
                 </div>
 
-                {/* Col 2: Sector Overview panel (intelligence profile) */}
+              </div>
+
+              {/* RIGHT COLUMN: SECTOR DETAILS & MISSIONS */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", height: "100%", overflow: "hidden" }}>
+                
+                {/* 1. Sector Overview Details (Locked vs Unlocked) */}
                 <div className="panel" style={{
                   background: "#080808", border: "1px solid var(--border)",
-                  padding: "14px", display: "flex", flexDirection: "column", gap: "10px", overflow: "hidden"
+                  padding: "16px", display: "flex", flexDirection: "column", gap: "10px", flex: 1.6, overflowY: "auto"
                 }}>
                   {selectedSector ? (() => {
                     const sectorIsLocked = getSectorStatus(selectedSector) === "LOCKED";
                     const sectorState = profile?.worldState?.sectorStates?.[selectedSector.id];
+                    const themeColor = getSectorColor(selectedSector.id);
 
                     if (sectorIsLocked) {
                       return (
-                        <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "8px" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyItems: "center", justifyContent: "center", alignItems: "stretch", textAlign: "center", gap: "12px" }}>
+                          
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "8px" }}>
                             <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
                               [ SECTOR INTEL OVERVIEW ]
                             </span>
                             <span className="tag tag-red" style={{ fontSize: "8px", padding: "2px 6px" }}>LOCKED 🔒</span>
                           </div>
 
-                          <h3 style={{ fontSize: "16px", color: "rgba(255,255,255,0.4)", margin: "2px 0 4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
+                          <h3 style={{ fontSize: "16px", color: "rgba(255,255,255,0.4)", margin: "4px 0", fontFamily: "var(--title-font)", fontWeight: "bold" }}>
                             {selectedSector.name}
                           </h3>
 
-                          <p style={{ fontSize: "10px", color: "var(--text-muted)", lineHeight: "1.4", margin: 0 }}>
-                            {selectedSector.description}
-                          </p>
-
-                          <div style={{ background: "rgba(255, 77, 77, 0.02)", border: "1px solid rgba(255, 77, 77, 0.15)", padding: "12px", marginTop: "8px", borderRadius: "3px" }}>
-                            <style>{`
-                              @keyframes lock-pulse {
-                                0% { transform: scale(1); filter: drop-shadow(0 0 3px rgba(255, 77, 77, 0.4)); }
-                                50% { transform: scale(1.05); filter: drop-shadow(0 0 10px rgba(255, 77, 77, 0.7)); }
-                                100% { transform: scale(1); filter: drop-shadow(0 0 3px rgba(255, 77, 77, 0.4)); }
-                              }
-                            `}</style>
-                            
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "8px auto 16px auto", display: "block", animation: "lock-pulse 2.5s infinite ease-in-out" }}>
+                          {/* Large lock SVG illustration */}
+                          <div style={{ display: "flex", justifyContent: "center", margin: "10px 0" }}>
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: "drop-shadow(0 0 6px rgba(255,77,77,0.4))" }}>
                               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                               <circle cx="12" cy="16" r="1.5" />
                             </svg>
+                          </div>
 
-                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#ff4d4d", fontWeight: "bold", marginBottom: "10px", letterSpacing: "0.1em", textAlign: "center" }}>
-                              [ SECURITY ACCESS BLOCKED ]
+                          <div style={{ background: "rgba(255, 77, 77, 0.02)", border: "1px solid rgba(255, 77, 77, 0.15)", padding: "12px", borderRadius: "2px", textAlign: "left" }}>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#ff4d4d", fontWeight: "bold", marginBottom: "8px", letterSpacing: "0.1em", textAlign: "center" }}>
+                              [ AUTHORIZATION PREREQUISITES UNMET ]
                             </div>
                             
                             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                              {/* Prerequisites validation lists */}
                               {sectorState?.unlockRequiredSector && (() => {
-                                const reqSectorId = getSectorIdByName(sectorState.unlockRequiredSector);
-                                const reqSecState = profile?.worldState?.sectorStates?.[reqSectorId || ""];
-                                const met = reqSecState?.status === "SECURED";
+                                const reqSectorId = sectors.find(s => s.name.toLowerCase() === sectorState.unlockRequiredSector?.toLowerCase() || s.id === sectorState.unlockRequiredSector)?.id;
+                                const reqSecState = reqSectorId ? profile?.worldState?.sectorStates?.[reqSectorId] : null;
+                                const met = reqSecState ? (reqSecState.status === "SECURED" || reqSecState.completion >= 100) : false;
                                 return (
-                                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "9px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "6px" }}>
-                                    <span style={{ color: "var(--text-muted)" }}>SECURE PRE-REQ:</span>
-                                    <span 
-                                      style={{ 
-                                        color: met ? "#00ffcc" : "#f0c929", 
-                                        fontWeight: "bold", 
-                                        textDecoration: reqSectorId ? "underline" : "none", 
-                                        cursor: reqSectorId ? "pointer" : "default" 
-                                      }}
-                                      title={reqSectorId ? "Click to view sector details" : ""}
-                                      onClick={() => {
-                                        if (reqSectorId) setSelectedSectorId(reqSectorId);
-                                      }}
-                                    >
-                                      {sectorState.unlockRequiredSector} {reqSectorId && "🔍"} {met ? "✓ SECURED" : "✗ INCOMPLETE"}
+                                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "4px" }}>
+                                    <span style={{ color: "var(--text-muted)" }}>REQUIRED SECTOR:</span>
+                                    <span style={{ color: met ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                      {sectorState.unlockRequiredSector} {met ? "✓ MET" : "✗ LOCKED"}
                                     </span>
                                   </div>
                                 );
                               })()}
-                              {sectorState?.unlockRequiredLevel && (
-                                <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "9px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "6px" }}>
-                                  <span style={{ color: "var(--text-muted)" }}>MIN LEVEL:</span>
-                                  <span style={{ color: (profile?.level || 1) >= sectorState.unlockRequiredLevel ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
-                                    Lvl {sectorState.unlockRequiredLevel}{" "}
-                                    {(profile?.level || 1) >= sectorState.unlockRequiredLevel ? "✓ MET" : `✗ UNMET (Yours: ${profile?.level || 1})`}
-                                  </span>
-                                </div>
-                              )}
-                              {sectorState?.unlockRequiredBioScore && (
-                                <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "9px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "6px" }}>
-                                  <span style={{ color: "var(--text-muted)" }}>MIN BIO-SCORE:</span>
-                                  <span style={{ color: currentBioScore >= sectorState.unlockRequiredBioScore ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
-                                    {sectorState.unlockRequiredBioScore}{" "}
-                                    {currentBioScore >= sectorState.unlockRequiredBioScore ? "✓ MET" : `✗ UNMET (Yours: ${currentBioScore})`}
-                                  </span>
-                                </div>
-                              )}
-                              {sectorState?.unlockRequiredFaction && (() => {
-                                const clearance = checkFactionClearance(sectorState.unlockRequiredFaction);
-                                return (
-                                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "9px" }}>
-                                    <span style={{ color: "var(--text-muted)" }}>CLEARANCE:</span>
-                                    <span style={{ color: clearance.met ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
-                                      {clearance.factionName} ({clearance.required}){" "}
-                                      {clearance.met ? "✓ MET" : `✗ UNMET (Yours: ${clearance.current})`}
-                                    </span>
-                                  </div>
-                                );
-                              })()}
-                              {!sectorState?.unlockRequiredSector && !sectorState?.unlockRequiredLevel && !sectorState?.unlockRequiredBioScore && !sectorState?.unlockRequiredFaction && (
-                                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", textAlign: "center", display: "block" }}>
-                                  Complete regional campaign milestones to authorize access.
-                                </span>
-                              )}
-                            </div>
-                          </div>
 
-                          <div style={{ marginTop: "auto", fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: "6px" }}>
-                            THREAT CLASS: <span style={{ color: "#ff4d4d", fontWeight: "bold" }}>{selectedSector.threatLevel.toUpperCase()}</span>
-                            {" // "}<span>RESOURCES: {selectedSector.availableResources.join(", ")}</span>
+                              {sectorState?.unlockRequiredLevel && (() => {
+                                const met = (profile?.level || 0) >= sectorState.unlockRequiredLevel;
+                                return (
+                                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "4px" }}>
+                                    <span style={{ color: "var(--text-muted)" }}>REQUIRED LEVEL:</span>
+                                    <span style={{ color: met ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                      Lvl {sectorState.unlockRequiredLevel} {met ? "✓ MET" : `✗ UNMET (Yours: Lvl ${profile?.level})`}
+                                    </span>
+                                  </div>
+                                );
+                              })()}
+
+                              {sectorState?.unlockRequiredBioScore && (() => {
+                                const bio = profile ? calculateBioScore(profile.stats) : 0;
+                                const met = bio >= sectorState.unlockRequiredBioScore;
+                                return (
+                                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "4px" }}>
+                                    <span style={{ color: "var(--text-muted)" }}>REQUIRED BIO-SCORE:</span>
+                                    <span style={{ color: met ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                      {sectorState.unlockRequiredBioScore}% {met ? "✓ MET" : `✗ UNMET (Yours: ${bio}%)`}
+                                    </span>
+                                  </div>
+                                );
+                              })()}
+                            </div>
                           </div>
                         </div>
                       );
                     }
 
+                    // Unlocked layout details
+                    const completion = getSectorCompletion(selectedSector.id);
+                    const stability = sectorState?.stability ?? 0;
+                    const contamination = sectorState?.contamination ?? 0;
+                    const danger = sectorState?.dangerLevel ?? "Low";
+                    const ownership = sectorState?.ownership ?? "Neutral";
+                    const status = getSectorStatus(selectedSector);
+
                     return (
-                      <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
-                        
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                              [ SECTOR INTEL OVERVIEW ]
-                            </span>
-                            <span className={`tag ${getSectorStatus(selectedSector) === "SECURED" ? "tag-green" : "tag-red"}`} style={{ fontSize: "8px", padding: "2px 6px" }}>
-                              {getSectorStatus(selectedSector).toUpperCase()}
-                            </span>
-                          </div>
-
-                          <h3 style={{ fontSize: "16px", color: "#fff", margin: "2px 0 4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
-                            {selectedSector.name}
-                          </h3>
-
-                          <p style={{ fontSize: "10.5px", color: "var(--text-dim)", lineHeight: "1.4", margin: 0, height: "45px", overflowY: "auto" }}>
-                            {selectedSector.description}
-                          </p>
-
-                          <div style={{ display: "flex", flexDirection: "column", gap: "6px", background: "#0c0c0c", padding: "10px", border: "1px solid rgba(255,255,255,0.03)" }}>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "9.5px", fontFamily: "var(--mono)" }}>
-                              <div>
-                                <span style={{ color: "var(--text-muted)" }}>THREAT LEVEL:</span>
-                                <div style={{ color: selectedSector.threatLevel === "Severe" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
-                                  {selectedSector.threatLevel.toUpperCase()}
-                                </div>
-                              </div>
-                              <div>
-                                <span style={{ color: "var(--text-muted)" }}>ANOMALIES:</span>
-                                <div style={{ color: "#fff", fontWeight: "bold", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                  {profile?.worldState.activeAnomalies[selectedSector.id]?.join(", ") || "None"}
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {/* Contamination meter */}
-                            <div style={{ fontSize: "8.5px", fontFamily: "var(--mono)" }}>
-                              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", color: "#ff4d4d", marginBottom: "2px" }}>
-                                <span>CONTAMINATION INDEX:</span>
-                                <span>{sectorState?.contamination ?? 15}%</span>
-                              </div>
-                              <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.03)", borderRadius: "1px", overflow: "hidden" }}>
-                                <div style={{ width: `${sectorState?.contamination ?? 15}%`, height: "100%", background: "#ff4d4d" }} />
-                              </div>
-                            </div>
-                            
-                            {/* Stability meter */}
-                            <div style={{ fontSize: "8.5px", fontFamily: "var(--mono)" }}>
-                              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", color: "#00ffcc", marginBottom: "2px" }}>
-                                <span>GRID STABILITY:</span>
-                                <span>{sectorState?.stability ?? 0}%</span>
-                              </div>
-                              <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.03)", borderRadius: "1px", overflow: "hidden" }}>
-                                <div style={{ width: `${sectorState?.stability ?? 0}%`, height: "100%", background: "#00ffcc" }} />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Faction Presence indicators */}
-                          <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)" }}>FACTION INFLUENCE INDEX:</span>
-                            {Object.keys(profile?.worldState.factionInfluence[selectedSector.id] || {}).map((fid) => {
-                              const score = profile?.worldState.factionInfluence[selectedSector.id]?.[fid] || 0;
-                              const facName = FACTIONS.find(f => f.id === fid)?.name || fid.toUpperCase();
-                              const facColor = getFactionColor(fid);
-                              return (
-                                <div key={fid}>
-                                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", color: facColor }}>
-                                    <span>{facName}</span>
-                                    <span>{score}%</span>
-                                  </div>
-                                  <div style={{ width: "100%", height: "3px", background: "rgba(255,255,255,0.03)", borderRadius: "1px", overflow: "hidden" }}>
-                                    <div style={{ width: `${score}%`, height: "100%", background: facColor }} />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "6px", display: "flex", justifyItems: "center", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", textTransform: "uppercase" }}>
-                            RESOURCES: {(sectorState?.availableResources || selectedSector.availableResources || []).join(", ")}
+                      <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "8px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "6px" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
+                            [ SECTOR DIAGNOSTICS ]
+                          </span>
+                          <span style={{ 
+                            fontSize: "8.5px", padding: "2px 6px", fontFamily: "var(--mono)",
+                            background: `rgba(${hexToRgb(themeColor)}, 0.1)`, 
+                            color: themeColor, 
+                            border: `1px solid rgba(${hexToRgb(themeColor)}, 0.3)`
+                          }}>
+                            {status.toUpperCase()}
                           </span>
                         </div>
 
+                        <h3 style={{ fontSize: "16px", color: "#fff", margin: "2px 0", fontFamily: "var(--title-font)", fontWeight: "bold" }}>
+                          {selectedSector.name}
+                        </h3>
+
+                        <p style={{ fontSize: "10.5px", color: "var(--text-muted)", lineHeight: "1.4", margin: 0 }}>
+                          {selectedSector.description}
+                        </p>
+
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "4px" }}>
+                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>THREAT PROFILE</span>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: danger === "Severe" || danger === "High" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
+                              {danger.toUpperCase()} ({selectedSector.threatType})
+                            </div>
+                          </div>
+                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>INFLUENCE</span>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", fontWeight: "bold", marginTop: "2px" }}>
+                              {ownership.toUpperCase()}
+                            </div>
+                          </div>
+                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>STABILITY</span>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: stability > 50 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
+                              {stability}%
+                            </div>
+                          </div>
+                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>CONTAMINATION</span>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: contamination < 40 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
+                              {contamination}%
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Campaign Progress Gauge bar */}
+                        <div style={{ marginTop: "4px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)", marginBottom: "4px" }}>
+                            <span>SECTOR STABILIZATION INDEX</span>
+                            <span>{completion}%</span>
+                          </div>
+                          <div style={{ height: "4px", background: "rgba(255,255,255,0.05)", borderRadius: "2px", overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${completion}%`, background: themeColor, transition: "width 0.4s ease-out" }} />
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", background: "rgba(0,0,0,0.3)", padding: "8px", border: "1px solid rgba(255,255,255,0.02)", borderRadius: "2px", marginTop: "4px" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", letterSpacing: "0.05em" }}>RECOMMENDED GEAR SPECIFICATIONS</span>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "#f0c929" }}>
+                            ▷ Recommended Level: Lvl {selectedSector.id === "sec-alpha" ? 1 : selectedSector.id === "sec-beta" ? 2 : selectedSector.id === "sec-delta" ? 3 : 4}
+                          </span>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "#f0c929" }}>
+                            ▷ Recommended BIO-SCORE: {selectedSector.id === "sec-alpha" ? "10%+" : selectedSector.id === "sec-beta" ? "20%+" : "35%+"}
+                          </span>
+                        </div>
                       </div>
                     );
-                  })() : (
-                    <div style={{ display: "flex", justifyItems: "center", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>AWAITING SECTOR INTERACTION...</span>
-                    </div>
-                  )}
+                  })() : null}
                 </div>
 
-                {/* Col 3: Available Operations list inside selected Sector */}
+                {/* 2. Sector Operations list */}
                 <div className="panel" style={{
                   background: "#080808", border: "1px solid var(--border)",
-                  padding: "14px", display: "flex", flexDirection: "column", gap: "10px", overflow: "hidden"
+                  padding: "16px", display: "flex", flexDirection: "column", gap: "10px", flex: 1, overflow: "hidden"
                 }}>
-                  <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
+                  <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "6px" }}>
                     <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em", fontWeight: "bold" }}>
                       [ AVAILABLE OPERATIONS ]
                     </span>
@@ -2326,7 +2385,7 @@ export default function OperationsPage() {
                               ACCESS RESTRICTED
                             </span>
                             <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "6px" }}>
-                              Satisfy all sector authorization requirements detailed in the Overview to unlock operations.
+                              Satisfy all sector requirements in diagnostics to unlock operations.
                             </span>
                           </div>
                         );
@@ -2403,12 +2462,12 @@ export default function OperationsPage() {
                       }}
                       className="btn btn-primary"
                       style={{
-                        width: "100%", justifyContent: "center", fontSize: "11px", padding: "8px",
+                        width: "100%", justifyContent: "center", fontSize: "11px", padding: "10px",
                         background: selectedOperation.recommendedClass === profile?.class ? "#00ffcc" : "var(--accent)",
-                        color: "#000"
+                        color: "#000", fontWeight: "bold", border: "none"
                       }}
                     >
-                      DEPLOY TO SECTOR 🛰️
+                      PREPARE MISSION BRIEFING 🛰️
                     </button>
                   )}
                 </div>
