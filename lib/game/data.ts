@@ -22,9 +22,9 @@ export const INITIAL_SECTORS: Sector[] = [
     threatType: "Bio-Toxins",
     availableResources: ["Medical Supplies", "Credits"],
     description: "Ruined medical depots in suburban zone containing vital civilian caches. Pathogen contamination remains high.",
-    points: "50,50 250,50 280,240 80,260",
-    labelX: 150,
-    labelY: 130,
+    points: "50,50 110,40 180,45 250,55 280,120 270,200 220,230 140,250 80,260 40,160",
+    labelX: 160,
+    labelY: 140,
     connectedSectors: ["sec-beta", "sec-delta"]
   },
   {
@@ -35,9 +35,9 @@ export const INITIAL_SECTORS: Sector[] = [
     threatType: "EM Anomalies",
     availableResources: ["Electronics", "Credits"],
     description: "High-voltage transmission substation generating localized magnetic storms and gravity drops.",
-    points: "280,30 520,30 480,210 290,190",
-    labelX: 380,
-    labelY: 100,
+    points: "290,30 360,25 430,30 510,40 500,90 470,150 430,200 350,195 290,140 275,80",
+    labelX: 390,
+    labelY: 105,
     connectedSectors: ["sec-alpha", "sec-epsilon", "sec-zeta"]
   },
   {
@@ -48,9 +48,9 @@ export const INITIAL_SECTORS: Sector[] = [
     threatType: "Sybil Trackers",
     availableResources: ["Research Data", "Credits"],
     description: "Decentralized database center currently seized by rogue Sybil tracer drones monitoring connection signatures.",
-    points: "80,280 270,260 250,420 60,400",
-    labelX: 150,
-    labelY: 330,
+    points: "80,280 150,270 230,265 260,310 245,370 210,410 140,415 80,400 65,340",
+    labelX: 160,
+    labelY: 335,
     connectedSectors: ["sec-alpha", "sec-epsilon", "sec-gamma"]
   },
   {
@@ -61,8 +61,8 @@ export const INITIAL_SECTORS: Sector[] = [
     threatType: "Radiation Storm",
     availableResources: ["Research Data", "Metal"],
     description: "Underground military server warehouses protected by thick reinforced bulkhead gates.",
-    points: "290,210 560,230 500,410 310,390",
-    labelX: 410,
+    points: "295,210 370,200 450,215 520,225 540,290 510,360 470,405 380,410 320,380 290,290",
+    labelX: 415,
     labelY: 300,
     connectedSectors: ["sec-beta", "sec-delta", "sec-zeta", "sec-omega"]
   },
@@ -74,9 +74,9 @@ export const INITIAL_SECTORS: Sector[] = [
     threatType: "Gravity Drops",
     availableResources: ["Deuterium Cells", "Research Data"],
     description: "Abandoned reactor core suffering from gravity waves and spatial compression faults.",
-    points: "540,50 780,60 840,240 580,240",
-    labelX: 650,
-    labelY: 140,
+    points: "540,50 630,45 720,55 800,60 840,110 820,180 760,230 680,240 580,230 550,130",
+    labelX: 680,
+    labelY: 135,
     connectedSectors: ["sec-beta", "sec-epsilon", "sec-omega"]
   },
   {
@@ -87,8 +87,8 @@ export const INITIAL_SECTORS: Sector[] = [
     threatType: "Pathogen Leak",
     availableResources: ["Titanite Scrap", "Credits"],
     description: "Volatile orbital fallout telemetry station currently leaking biological hazards.",
-    points: "70,440 270,440 230,580 50,560",
-    labelX: 150,
+    points: "70,440 130,435 200,440 260,450 245,500 215,570 140,580 60,560 50,500",
+    labelX: 155,
     labelY: 500,
     connectedSectors: ["sec-delta", "sec-omega"]
   },
@@ -100,8 +100,8 @@ export const INITIAL_SECTORS: Sector[] = [
     threatType: "Quantum Feedback",
     availableResources: ["Energy Cells", "Credits"],
     description: "Deep subterranean quantum relay substation undergoing temporal sync delays and firewall shifts.",
-    points: "520,430 850,430 800,580 480,570",
-    labelX: 650,
+    points: "520,430 610,425 720,430 810,435 845,490 810,570 720,580 600,575 510,530 490,480",
+    labelX: 660,
     labelY: 500,
     connectedSectors: ["sec-epsilon", "sec-gamma", "sec-zeta"]
   }

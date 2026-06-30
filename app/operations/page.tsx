@@ -158,6 +158,37 @@ export default function OperationsPage() {
   const [selectedSectorId, setSelectedSectorId] = useState<string>("sec-alpha");
   const [selectedMapSector, setSelectedMapSector] = useState<string>("op-1-sanctuary-search");
   const [mapAlert, setMapAlert] = useState<string | null>(null);
+  const [globalEvents, setGlobalEvents] = useState<Array<{
+    id: string;
+    type: 'OUTBREAK' | 'STORM' | 'RESEARCH_SIGNAL' | 'EMERGENCY_BEACON' | 'CONFLICT';
+    name: string;
+    x: number;
+    y: number;
+    radius: number;
+    color: string;
+    details: string;
+  }>>([
+    {
+      id: "evt-outbreak-delta",
+      type: "OUTBREAK",
+      name: "PATHOGEN SPIKE",
+      x: 210,
+      y: 350,
+      radius: 40,
+      color: "#ff4d4d",
+      details: "Mutated bio-hazard bloom detected. Bio-Score evaluation locked."
+    },
+    {
+      id: "evt-beacon-beta",
+      type: "EMERGENCY_BEACON",
+      name: "SOS UPLINK",
+      x: 430,
+      y: 130,
+      radius: 20,
+      color: "#f0c929",
+      details: "Distress frequency active. Recommended level 2+."
+    }
+  ]);
 
   // Active Mission Simulation flow states
   const [activeMission, setActiveMission] = useState<Mission | null>(null);
@@ -1965,6 +1996,22 @@ export default function OperationsPage() {
                             50% { r: 250; opacity: 0.4; }
                             100% { r: 400; opacity: 0; }
                           }
+                          @keyframes line-flow {
+                            to { stroke-dashoffset: -20; }
+                          }
+                          @keyframes signal-ping {
+                            0% { r: 2; opacity: 1; }
+                            50% { r: 10; opacity: 0.5; }
+                            100% { r: 18; opacity: 0; }
+                          }
+                          @keyframes scan-sweep {
+                            0% { transform: translateX(0px); }
+                            100% { transform: translateX(1000px); }
+                          }
+                          @keyframes slow-rotate {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                          }
                           .scanline-overlay {
                             background: linear-gradient(
                               to bottom,
@@ -1980,11 +2027,21 @@ export default function OperationsPage() {
                           .radar-glow {
                             animation: radar-pulse 6s infinite ease-out;
                           }
+                          .progression-line {
+                            stroke-dasharray: 6, 4;
+                            animation: line-flow 1.5s infinite linear;
+                          }
+                          .threat-ping {
+                            animation: signal-ping 2.5s infinite ease-out;
+                          }
+                          .sweeping-beam {
+                            animation: scan-sweep 12s infinite linear;
+                          }
                           .sector-poly {
                             transition: all 0.25s ease;
                           }
                           .sector-poly:hover {
-                            fill-opacity: 0.15;
+                            fill-opacity: 0.22 !important;
                           }
                         `}</style>
                         
@@ -1992,12 +2049,12 @@ export default function OperationsPage() {
                         <pattern id="map-grid-3" width="40" height="40" patternUnits="userSpaceOnUse">
                           <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 77, 77, 0.03)" strokeWidth="0.5"/>
                         </pattern>
-
+ 
                         {/* Locked Hashed Pattern */}
                         <pattern id="lock-hatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
                           <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255,255,255,0.04)" strokeWidth="1.5" />
                         </pattern>
-
+ 
                         {/* Glowing Filters */}
                         <filter id="glow-alpha" x="-20%" y="-20%" width="140%" height="140%">
                           <feGaussianBlur stdDeviation="5" result="blur"/>
@@ -2049,19 +2106,56 @@ export default function OperationsPage() {
                           </feMerge>
                         </filter>
                       </defs>
-
-                      {/* Dark satellite map background */}
-                      <image href="/tactical_satellite_map_bg.jpg" x="0" y="0" width="1000" height="600" opacity="0.32" />
-
+ 
+                      {/* Satellite map background - visibility increased by 30-40% */}
+                      <image href="/tactical_satellite_map_bg.jpg" x="0" y="0" width="1000" height="600" opacity="0.55" style={{ filter: "brightness(0.9) contrast(1.15)" }} />
+ 
                       <rect width="100%" height="100%" fill="url(#map-grid-3)" />
-
+ 
                       {/* Radar sweep elements */}
                       <circle cx="500" cy="300" r="120" fill="none" stroke="rgba(255, 77, 77, 0.03)" strokeWidth="0.5" />
                       <circle cx="500" cy="300" r="260" fill="none" stroke="rgba(255, 77, 77, 0.02)" strokeWidth="0.5" />
                       <circle className="radar-glow" cx="500" cy="300" r="50" fill="none" stroke="rgba(255, 77, 77, 0.03)" strokeWidth="1" />
-
-                      {/* Connections */}
-                      {SECTOR_CONNECTIONS.map((conn, idx) => {
+ 
+                      {/* Rotating Radar Sweep Line */}
+                      <line
+                        x1="500" y1="300" x2="500" y2="0"
+                        stroke="rgba(255, 77, 77, 0.04)"
+                        strokeWidth="1"
+                        style={{
+                          transformOrigin: "500px 300px",
+                          animation: "slow-rotate 14s infinite linear",
+                          pointerEvents: "none"
+                        }}
+                      />
+ 
+                      {/* Scanning Sweep Beam */}
+                      <line className="sweeping-beam" x1="0" y1="0" x2="0" y2="600" stroke="rgba(0, 255, 204, 0.15)" strokeWidth="1.5" style={{ pointerEvents: "none" }} />
+ 
+                      {/* Blinking threat / telemetry pings */}
+                      {[
+                        { id: "ping-1", x: 240, y: 120 },
+                        { id: "ping-2", x: 480, y: 240 },
+                        { id: "ping-3", x: 720, y: 180 },
+                        { id: "ping-4", x: 380, y: 480 },
+                        { id: "ping-5", x: 810, y: 490 }
+                      ].map((pt) => (
+                        <g key={pt.id} style={{ pointerEvents: "none" }}>
+                          <circle cx={pt.x} cy={pt.y} r="2.5" fill="#ff4d4d" />
+                          <circle className="threat-ping" cx={pt.x} cy={pt.y} r="10" fill="none" stroke="#ff4d4d" strokeWidth="1" />
+                        </g>
+                      ))}
+ 
+                      {/* Campaign progression animated connection lines */}
+                      {[
+                        { from: "sec-alpha", to: "sec-beta", x1: 160, y1: 140, x2: 390, y2: 105 },
+                        { from: "sec-beta", to: "sec-delta", x1: 390, y1: 105, x2: 160, y2: 335 },
+                        { from: "sec-beta", to: "sec-gamma", x1: 390, y1: 105, x2: 155, y2: 500 },
+                        { from: "sec-delta", to: "sec-epsilon", x1: 160, y1: 335, x2: 415, y2: 300 },
+                        { from: "sec-gamma", to: "sec-epsilon", x1: 155, y1: 500, x2: 415, y2: 300 },
+                        { from: "sec-epsilon", to: "sec-zeta", x1: 415, y1: 300, x2: 680, y2: 135 },
+                        { from: "sec-zeta", to: "sec-omega", x1: 680, y1: 135, x2: 660, y2: 500 }
+                      ].map((conn, idx) => {
                         const fromUnlocked = profile?.worldState?.sectorStates?.[conn.from]
                           ? profile.worldState.sectorStates[conn.from].isUnlocked
                           : (profile?.worldState?.unlockedSectors?.includes(conn.from) || conn.from === "sec-alpha");
@@ -2070,17 +2164,46 @@ export default function OperationsPage() {
                           : (profile?.worldState?.unlockedSectors?.includes(conn.to) || conn.to === "sec-alpha");
                         const isLineActive = fromUnlocked && toUnlocked;
                         return (
-                          <line
-                            key={idx}
-                            x1={conn.x1} y1={conn.y1} x2={conn.x2} y2={conn.y2}
-                            stroke={isLineActive ? "rgba(0, 255, 204, 0.45)" : "rgba(255, 255, 255, 0.06)"}
-                            strokeWidth={isLineActive ? "2" : "1"}
-                            strokeDasharray={isLineActive ? "none" : "3,3"}
-                            style={{ filter: isLineActive ? "drop-shadow(0 0 3px rgba(0, 255, 204, 0.45))" : "none" }}
-                          />
+                          <g key={idx}>
+                            {/* Glow backdrop line */}
+                            <line
+                              x1={conn.x1} y1={conn.y1} x2={conn.x2} y2={conn.y2}
+                              stroke={isLineActive ? "rgba(0, 255, 204, 0.12)" : "rgba(255, 255, 255, 0.02)"}
+                              strokeWidth={isLineActive ? "4" : "1"}
+                            />
+                            {/* Inner flowing animated path */}
+                            <line
+                              className={isLineActive ? "progression-line" : ""}
+                              x1={conn.x1} y1={conn.y1} x2={conn.x2} y2={conn.y2}
+                              stroke={isLineActive ? "rgba(0, 255, 204, 0.75)" : "rgba(255, 255, 255, 0.12)"}
+                              strokeWidth={isLineActive ? "1.5" : "1"}
+                              strokeDasharray={isLineActive ? "6, 4" : "3, 3"}
+                              style={{ 
+                                filter: isLineActive ? "drop-shadow(0 0 3px rgba(0, 255, 204, 0.6))" : "none",
+                              }}
+                            />
+                          </g>
                         );
                       })}
-
+ 
+                      {/* Reusable Global Events Layer */}
+                      {globalEvents.map((evt) => (
+                        <g key={evt.id} style={{ cursor: "pointer" }} onClick={() => alert(`[GLOBAL EVENT] ${evt.name}\nType: ${evt.type}\nDetails: ${evt.details}`)}>
+                          <circle cx={evt.x} cy={evt.y} r={evt.radius} fill="none" stroke={evt.color} strokeWidth="1" strokeDasharray="3,3" opacity="0.3">
+                            <animate attributeName="r" values={`${evt.radius};${evt.radius + 8};${evt.radius}`} dur="3s" repeatCount="indefinite" />
+                          </circle>
+                          <circle cx={evt.x} cy={evt.y} r="5" fill={evt.color} />
+                          <circle cx={evt.x} cy={evt.y} r="10" fill="none" stroke={evt.color} strokeWidth="1" opacity="0.6">
+                            <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2.5s" repeatCount="indefinite" />
+                          </circle>
+                          {/* Label backing card */}
+                          <rect x={evt.x - 35} y={evt.y - 22} width="70" height="11" rx="1.5" fill="rgba(2,2,2,0.85)" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                          <text x={evt.x} y={evt.y - 14} fill={evt.color} fontSize="6.5px" fontFamily="var(--mono)" textAnchor="middle" fontWeight="bold">
+                            ⚠️ {evt.name}
+                          </text>
+                        </g>
+                      ))}
+ 
                       {/* Irregular Sector Polygons */}
                       {sectors.map((sec) => {
                         const isUnlocked = profile?.worldState?.sectorStates?.[sec.id]
@@ -2092,27 +2215,27 @@ export default function OperationsPage() {
                         
                         const themeColor = getSectorColor(sec.id);
                         const glowFilter = `url(#glow-${sec.id.replace("sec-", "")})`;
-
+ 
                         const colorMap = {
                           LOCKED: "url(#lock-hatch)",
-                          AVAILABLE: `rgba(${hexToRgb(themeColor)}, 0.03)`,
-                          IN_PROGRESS: `rgba(${hexToRgb(themeColor)}, 0.05)`,
-                          SECURED: `rgba(${hexToRgb(themeColor)}, 0.08)`,
-                          DANGEROUS: `rgba(${hexToRgb(themeColor)}, 0.06)`,
-                          CRITICAL: `rgba(${hexToRgb(themeColor)}, 0.10)`,
-                          SAFE: `rgba(${hexToRgb(themeColor)}, 0.08)`,
-                          ACTIVE: `rgba(${hexToRgb(themeColor)}, 0.04)`,
-                          INFECTED: `rgba(${hexToRgb(themeColor)}, 0.12)`
+                          AVAILABLE: `rgba(${hexToRgb(themeColor)}, 0.10)`,
+                          IN_PROGRESS: `rgba(${hexToRgb(themeColor)}, 0.12)`,
+                          SECURED: `rgba(${hexToRgb(themeColor)}, 0.12)`,
+                          DANGEROUS: `rgba(${hexToRgb(themeColor)}, 0.12)`,
+                          CRITICAL: `rgba(${hexToRgb(themeColor)}, 0.14)`,
+                          SAFE: `rgba(${hexToRgb(themeColor)}, 0.12)`,
+                          ACTIVE: `rgba(${hexToRgb(themeColor)}, 0.10)`,
+                          INFECTED: `rgba(${hexToRgb(themeColor)}, 0.15)`
                         };
-
-                        const strokeColor = !isUnlocked ? `rgba(${hexToRgb(themeColor)}, 0.45)` : themeColor;
-
+ 
+                        const strokeColor = !isUnlocked ? `rgba(${hexToRgb(themeColor)}, 0.20)` : themeColor;
+ 
                         return (
                           <g key={sec.id}>
                             <polygon
                               points={sec.points}
                               className="sector-poly"
-                              fill={isSelected ? `rgba(${hexToRgb(themeColor)}, 0.16)` : (colorMap[status] || "none")}
+                              fill={isSelected ? `rgba(${hexToRgb(themeColor)}, 0.14)` : (isUnlocked ? colorMap[status] : "url(#lock-hatch)")}
                               stroke={isSelected ? "#ffffff" : strokeColor}
                               strokeWidth={isSelected ? "2.5" : "1.5"}
                               strokeDasharray={isUnlocked ? "none" : "4,4"}
@@ -2130,31 +2253,51 @@ export default function OperationsPage() {
                                 }
                               }}
                             />
-
+ 
+                            {/* Padlock inside locked sectors */}
+                            {!isUnlocked && (
+                              <g transform={`translate(${sec.labelX - 7}, ${sec.labelY - 26})`} style={{ pointerEvents: "none" }}>
+                                <rect x="0" y="5" width="14" height="9" rx="1" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1" />
+                                <path d="M3 5V3.5a4 4 0 0 1 8 0V5" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1" />
+                              </g>
+                            )}
+ 
+                            {/* Text Backing Card for absolute readability */}
+                            <rect
+                              x={sec.labelX - 55}
+                              y={sec.labelY - 10}
+                              width="110"
+                              height="26"
+                              rx="2"
+                              fill="rgba(2, 2, 2, 0.78)"
+                              stroke={isSelected ? "rgba(255,255,255,0.15)" : "rgba(255, 255, 255, 0.04)"}
+                              strokeWidth="0.5"
+                              pointerEvents="none"
+                            />
+ 
                             <text
                               x={sec.labelX}
                               y={sec.labelY}
-                              fill={isSelected ? "#fff" : "rgba(255,255,255,0.85)"}
-                              fontSize="10px"
+                              fill={isSelected ? "#fff" : (isUnlocked ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.35)")}
+                              fontSize="9.5px"
                               fontWeight="bold"
                               fontFamily="var(--mono)"
                               textAnchor="middle"
                               pointerEvents="none"
-                              style={{ textShadow: "0 0 4px rgba(0,0,0,0.9)" }}
                             >
                               {sec.name}
                             </text>
-
+ 
                             <text
                               x={sec.labelX}
                               y={sec.labelY + 12}
-                              fill={!isUnlocked ? "rgba(255,255,255,0.3)" : themeColor}
+                              fill={!isUnlocked ? "rgba(255,255,255,0.25)" : themeColor}
                               fontSize="8px"
                               fontFamily="var(--mono)"
                               textAnchor="middle"
                               pointerEvents="none"
                             >
-                              {!isUnlocked ? "LOCKED 🔒" : `${completion}% SECURED`}
+                              {!isUnlocked ? "LOCKED" : `${completion}% ${status}`}
                             </text>
                           </g>
                         );
@@ -2190,290 +2333,305 @@ export default function OperationsPage() {
 
               </div>
 
-              {/* RIGHT COLUMN: SECTOR DETAILS & MISSIONS */}
+              {/* RIGHT COLUMN: UNIFIED SECTOR DETAILS & MISSIONS */}
               <div style={{ display: "flex", flexDirection: "column", gap: "16px", height: "100%", overflow: "hidden" }}>
                 
-                {/* 1. Sector Overview Details (Locked vs Unlocked) */}
-                <div className="panel" style={{
-                  background: "#080808", border: "1px solid var(--border)",
-                  padding: "16px", display: "flex", flexDirection: "column", gap: "10px", flex: 1.6, overflowY: "auto"
-                }}>
-                  {selectedSector ? (() => {
-                    const sectorIsLocked = getSectorStatus(selectedSector) === "LOCKED";
-                    const sectorState = profile?.worldState?.sectorStates?.[selectedSector.id];
-                    const themeColor = getSectorColor(selectedSector.id);
+                {selectedSector ? (() => {
+                  const sectorIsLocked = getSectorStatus(selectedSector) === "LOCKED";
+                  const sectorState = profile?.worldState?.sectorStates?.[selectedSector.id];
+                  const themeColor = getSectorColor(selectedSector.id);
+                  const completion = getSectorCompletion(selectedSector.id);
+                  const stability = sectorState?.stability ?? 0;
+                  const contamination = sectorState?.contamination ?? 0;
+                  const danger = sectorState?.dangerLevel ?? "Low";
+                  const ownership = sectorState?.ownership ?? "Neutral";
+                  const status = getSectorStatus(selectedSector);
 
-                    if (sectorIsLocked) {
-                      return (
-                        <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyItems: "center", justifyContent: "center", alignItems: "stretch", textAlign: "center", gap: "12px" }}>
-                          
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "8px" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                              [ SECTOR INTEL OVERVIEW ]
-                            </span>
-                            <span className="tag tag-red" style={{ fontSize: "8px", padding: "2px 6px" }}>LOCKED 🔒</span>
-                          </div>
-
-                          <h3 style={{ fontSize: "16px", color: "rgba(255,255,255,0.4)", margin: "4px 0", fontFamily: "var(--title-font)", fontWeight: "bold" }}>
-                            {selectedSector.name}
-                          </h3>
-
-                          {/* Large lock SVG illustration */}
-                          <div style={{ display: "flex", justifyContent: "center", margin: "10px 0" }}>
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: "drop-shadow(0 0 6px rgba(255,77,77,0.4))" }}>
-                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                              <circle cx="12" cy="16" r="1.5" />
-                            </svg>
-                          </div>
-
-                          <div style={{ background: "rgba(255, 77, 77, 0.02)", border: "1px solid rgba(255, 77, 77, 0.15)", padding: "12px", borderRadius: "2px", textAlign: "left" }}>
-                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#ff4d4d", fontWeight: "bold", marginBottom: "8px", letterSpacing: "0.1em", textAlign: "center" }}>
-                              [ AUTHORIZATION PREREQUISITES UNMET ]
-                            </div>
-                            
-                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                              {/* Prerequisites validation lists */}
-                              {sectorState?.unlockRequiredSector && (() => {
-                                const reqSectorId = sectors.find(s => s.name.toLowerCase() === sectorState.unlockRequiredSector?.toLowerCase() || s.id === sectorState.unlockRequiredSector)?.id;
-                                const reqSecState = reqSectorId ? profile?.worldState?.sectorStates?.[reqSectorId] : null;
-                                const met = reqSecState ? (reqSecState.status === "SECURED" || reqSecState.completion >= 100) : false;
-                                return (
-                                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "4px" }}>
-                                    <span style={{ color: "var(--text-muted)" }}>REQUIRED SECTOR:</span>
-                                    <span style={{ color: met ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
-                                      {sectorState.unlockRequiredSector} {met ? "✓ MET" : "✗ LOCKED"}
-                                    </span>
-                                  </div>
-                                );
-                              })()}
-
-                              {sectorState?.unlockRequiredLevel && (() => {
-                                const met = (profile?.level || 0) >= sectorState.unlockRequiredLevel;
-                                return (
-                                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "4px" }}>
-                                    <span style={{ color: "var(--text-muted)" }}>REQUIRED LEVEL:</span>
-                                    <span style={{ color: met ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
-                                      Lvl {sectorState.unlockRequiredLevel} {met ? "✓ MET" : `✗ UNMET (Yours: Lvl ${profile?.level})`}
-                                    </span>
-                                  </div>
-                                );
-                              })()}
-
-                              {sectorState?.unlockRequiredBioScore && (() => {
-                                const bio = profile ? calculateBioScore(profile.stats) : 0;
-                                const met = bio >= sectorState.unlockRequiredBioScore;
-                                return (
-                                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "4px" }}>
-                                    <span style={{ color: "var(--text-muted)" }}>REQUIRED BIO-SCORE:</span>
-                                    <span style={{ color: met ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
-                                      {sectorState.unlockRequiredBioScore}% {met ? "✓ MET" : `✗ UNMET (Yours: ${bio}%)`}
-                                    </span>
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    // Unlocked layout details
-                    const completion = getSectorCompletion(selectedSector.id);
-                    const stability = sectorState?.stability ?? 0;
-                    const contamination = sectorState?.contamination ?? 0;
-                    const danger = sectorState?.dangerLevel ?? "Low";
-                    const ownership = sectorState?.ownership ?? "Neutral";
-                    const status = getSectorStatus(selectedSector);
-
-                    return (
-                      <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "8px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "6px" }}>
+                  return (
+                    <div className="panel" style={{
+                      background: "#080808", border: "1px solid var(--border)",
+                      display: "flex", flexDirection: "column", height: "100%", overflow: "hidden",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.8)"
+                    }}>
+                      
+                      {/* FIXED HEADER: Name & Status */}
+                      <div style={{ padding: "16px", borderBottom: "1px dashed rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                            [ SECTOR DIAGNOSTICS ]
+                            [ SECTOR INTEL OVERVIEW ]
                           </span>
                           <span style={{ 
-                            fontSize: "8.5px", padding: "2px 6px", fontFamily: "var(--mono)",
-                            background: `rgba(${hexToRgb(themeColor)}, 0.1)`, 
-                            color: themeColor, 
-                            border: `1px solid rgba(${hexToRgb(themeColor)}, 0.3)`
+                            fontSize: "8px", padding: "2px 6px", fontFamily: "var(--mono)", fontWeight: "bold",
+                            background: sectorIsLocked ? "rgba(255,77,77,0.1)" : `rgba(${hexToRgb(themeColor)}, 0.1)`, 
+                            color: sectorIsLocked ? "#ff4d4d" : themeColor, 
+                            border: sectorIsLocked ? "1px solid rgba(255,77,77,0.3)" : `1px solid rgba(${hexToRgb(themeColor)}, 0.3)`
                           }}>
                             {status.toUpperCase()}
                           </span>
                         </div>
-
-                        <h3 style={{ fontSize: "16px", color: "#fff", margin: "2px 0", fontFamily: "var(--title-font)", fontWeight: "bold" }}>
+                        <h3 style={{ fontSize: "18px", color: "#fff", margin: "4px 0 0 0", fontFamily: "var(--title-font)", fontWeight: "bold", letterSpacing: "0.02em" }}>
                           {selectedSector.name}
                         </h3>
+                      </div>
 
-                        <p style={{ fontSize: "10.5px", color: "var(--text-muted)", lineHeight: "1.4", margin: 0 }}>
-                          {selectedSector.description}
-                        </p>
+                      {/* SCROLLABLE CONTENT BODY */}
+                      <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                        
+                        {/* 1. Description */}
+                        <div>
+                          <p style={{ fontSize: "10.5px", color: "var(--text-muted)", lineHeight: "1.5", margin: 0 }}>
+                            {selectedSector.description}
+                          </p>
+                        </div>
 
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "4px" }}>
-                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px" }}>
+                        {/* 2. Diagnostics Grid (Threat, Stability, Contamination, Influence) */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", borderRadius: "2px" }}>
                             <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>THREAT PROFILE</span>
-                            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: danger === "Severe" || danger === "High" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: danger === "Severe" || danger === "High" ? "#ff4d4d" : "#f0c929", fontWeight: "bold", marginTop: "2px" }}>
                               {danger.toUpperCase()} ({selectedSector.threatType})
                             </div>
                           </div>
-                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>INFLUENCE</span>
-                            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", fontWeight: "bold", marginTop: "2px" }}>
-                              {ownership.toUpperCase()}
-                            </div>
-                          </div>
-                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px" }}>
+                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", borderRadius: "2px" }}>
                             <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>STABILITY</span>
-                            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: stability > 50 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: stability > 50 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
                               {stability}%
                             </div>
                           </div>
-                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px" }}>
+                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", borderRadius: "2px" }}>
                             <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>CONTAMINATION</span>
-                            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: contamination < 40 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: contamination < 40 ? "#00ffcc" : "#ff4d4d", fontWeight: "bold", marginTop: "2px" }}>
                               {contamination}%
+                            </div>
+                          </div>
+                          <div style={{ background: "#050505", border: "1px solid rgba(255,255,255,0.03)", padding: "8px", borderRadius: "2px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)" }}>INFLUENCE</span>
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: "#00ffcc", fontWeight: "bold", marginTop: "2px" }}>
+                              {ownership.toUpperCase()}
                             </div>
                           </div>
                         </div>
 
-                        {/* Campaign Progress Gauge bar */}
-                        <div style={{ marginTop: "4px" }}>
+                        {/* Stabilization index progress bar */}
+                        <div>
                           <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)", marginBottom: "4px" }}>
-                            <span>SECTOR STABILIZATION INDEX</span>
-                            <span>{completion}%</span>
+                            <span>STABILIZATION INDEX</span>
+                            <span style={{ color: themeColor, fontWeight: "bold" }}>{completion}%</span>
                           </div>
                           <div style={{ height: "4px", background: "rgba(255,255,255,0.05)", borderRadius: "2px", overflow: "hidden" }}>
                             <div style={{ height: "100%", width: `${completion}%`, background: themeColor, transition: "width 0.4s ease-out" }} />
                           </div>
                         </div>
 
-                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", background: "rgba(0,0,0,0.3)", padding: "8px", border: "1px solid rgba(255,255,255,0.02)", borderRadius: "2px", marginTop: "4px" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", letterSpacing: "0.05em" }}>RECOMMENDED GEAR SPECIFICATIONS</span>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "#f0c929" }}>
-                            ▷ Recommended Level: Lvl {selectedSector.id === "sec-alpha" ? 1 : selectedSector.id === "sec-beta" ? 2 : selectedSector.id === "sec-delta" ? 3 : 4}
-                          </span>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "#f0c929" }}>
-                            ▷ Recommended BIO-SCORE: {selectedSector.id === "sec-alpha" ? "10%+" : selectedSector.id === "sec-beta" ? "20%+" : "35%+"}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })() : null}
-                </div>
-
-                {/* 2. Sector Operations list */}
-                <div className="panel" style={{
-                  background: "#080808", border: "1px solid var(--border)",
-                  padding: "16px", display: "flex", flexDirection: "column", gap: "10px", flex: 1, overflow: "hidden"
-                }}>
-                  <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "6px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em", fontWeight: "bold" }}>
-                      [ AVAILABLE OPERATIONS ]
-                    </span>
-                  </div>
-
-                  <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", paddingRight: "4px" }}>
-                    {(() => {
-                      const selectedSectorIsLocked = selectedSector ? getSectorStatus(selectedSector) === "LOCKED" : false;
-                      if (selectedSectorIsLocked) {
-                        return (
-                          <div style={{ display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center", alignItems: "center", height: "100%", padding: "20px", textAlign: "center" }}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" strokeWidth="1.5" style={{ marginBottom: "12px" }}>
-                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                            </svg>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#ff4d4d", textTransform: "uppercase", fontWeight: "bold" }}>
-                              ACCESS RESTRICTED
-                            </span>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "6px" }}>
-                              Satisfy all sector requirements in diagnostics to unlock operations.
-                            </span>
+                        {/* 3. Resources */}
+                        <div>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", display: "block", marginBottom: "4px", letterSpacing: "0.05em" }}>EXPECTED HARVEST PATHWAYS</span>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                            {selectedSector.availableResources.map((res, i) => (
+                              <span key={i} style={{
+                                fontSize: "8.5px", fontFamily: "var(--mono)", padding: "2px 6px",
+                                background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)",
+                                color: "#00ffcc", borderRadius: "2px"
+                              }}>
+                                ▷ {res.toUpperCase()}
+                              </span>
+                            ))}
                           </div>
-                        );
-                      }
+                        </div>
 
-                      return selectedSectorMissions.length > 0 ? (
-                        selectedSectorMissions.map((op) => {
-                          const isSelected = selectedMapSector === op.id;
-                          const isLocked = isMissionLocked(op);
-                          const isCompleted = profile?.completedMissions.includes(op.id);
-                          
-                          return (
-                            <div
-                              key={op.id}
-                              onClick={() => {
-                                if (!isLocked) setSelectedMapSector(op.id);
-                              }}
-                              style={{
-                                background: isCompleted 
-                                  ? "rgba(0, 255, 204, 0.02)" 
-                                  : isSelected 
-                                  ? "rgba(255, 77, 77, 0.04)" 
-                                  : isLocked 
-                                  ? "rgba(255,255,255,0.01)" 
-                                  : "#0c0c0c",
-                                border: isSelected 
-                                  ? "1.5px solid var(--accent)" 
-                                  : isCompleted 
-                                  ? "1px solid rgba(0, 255, 204, 0.2)" 
-                                  : "1px solid var(--border)",
-                                padding: "10px", borderRadius: "2px", cursor: isLocked ? "not-allowed" : "pointer",
-                                transition: "all 0.15s", display: "flex", gap: "10px", alignItems: "center",
-                                opacity: isLocked ? 0.35 : 1
-                              }}
-                            >
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                  <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "1px 5px" }}>
-                                    {op.difficulty.toUpperCase()}
-                                  </span>
-                                  <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>
-                                    {op.duration}m
+                        {/* 4. Requirements checklist */}
+                        <div>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", display: "block", marginBottom: "4px", letterSpacing: "0.05em" }}>AUTHORIZATION GATEWAY STATUS</span>
+                          {(() => {
+                            let sectorPrereqMet = true;
+                            let sectorPrereqName = "";
+                            if (sectorState?.unlockRequiredSector) {
+                              sectorPrereqName = sectorState.unlockRequiredSector;
+                              const reqSectorId = sectors.find(s => s.name.toLowerCase() === sectorState.unlockRequiredSector?.toLowerCase() || s.id === sectorState.unlockRequiredSector)?.id;
+                              const reqSecState = reqSectorId ? profile?.worldState?.sectorStates?.[reqSectorId] : null;
+                              sectorPrereqMet = reqSecState ? (reqSecState.status === "SECURED" || reqSecState.completion >= 100) : false;
+                            }
+
+                            let requiredLevel = 1;
+                            if (selectedSector.id === "sec-alpha") requiredLevel = 1;
+                            else if (selectedSector.id === "sec-beta") requiredLevel = 2;
+                            else if (selectedSector.id === "sec-delta") requiredLevel = 3;
+                            else requiredLevel = 4;
+                            const levelPrereqMet = (profile?.level || 0) >= requiredLevel;
+
+                            let requiredBioScore = 10;
+                            if (selectedSector.id === "sec-alpha") requiredBioScore = 10;
+                            else if (selectedSector.id === "sec-beta") requiredBioScore = 20;
+                            else requiredBioScore = 35;
+                            const currentBio = profile ? calculateBioScore(profile.stats) : 0;
+                            const bioscorePrereqMet = currentBio >= requiredBioScore;
+
+                            return (
+                              <div style={{ display: "flex", flexDirection: "column", gap: "6px", background: "rgba(0,0,0,0.3)", padding: "10px", border: "1px solid rgba(255,255,255,0.02)", borderRadius: "2px" }}>
+                                {sectorState?.unlockRequiredSector && (
+                                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", borderBottom: "1px solid rgba(255,255,255,0.02)", paddingBottom: "4px" }}>
+                                    <span style={{ color: "var(--text-muted)" }}>PREREQUISITE SECTOR:</span>
+                                    <span style={{ color: sectorPrereqMet ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                      {sectorPrereqName} {sectorPrereqMet ? "✓ MET" : "✗ LOCKED"}
+                                    </span>
+                                  </div>
+                                )}
+                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)", borderBottom: "1px solid rgba(255,255,255,0.02)", paddingBottom: "4px" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>OPERATIVE LEVEL REQ:</span>
+                                  <span style={{ color: levelPrereqMet ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                    Lvl {requiredLevel} {levelPrereqMet ? "✓ MET" : `✗ UNMET (Yours: Lvl ${profile?.level})`}
                                   </span>
                                 </div>
-                                <h4 style={{ fontSize: "11px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                  {op.title}
-                                </h4>
-                                <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
-                                  <span>{op.category.toUpperCase()} MISSION</span>
-                                  {isLocked && <span style={{ color: "var(--accent)" }}>REQ: Lvl {op.unlockRequirements.level || op.unlockRequirements.bioScore || 1}</span>}
+                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "8.5px", fontFamily: "var(--mono)" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>BIO-SCORE THRESHOLD:</span>
+                                  <span style={{ color: bioscorePrereqMet ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                    {requiredBioScore}%+ {bioscorePrereqMet ? "✓ MET" : `✗ UNMET (Yours: ${currentBio}%)`}
+                                  </span>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div style={{ textAlign: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", marginTop: "20px" }}>
-                          NO OPERATIONS IN SECTOR
+                            );
+                          })()}
                         </div>
-                      );
-                    })()}
+
+                        {/* Divider */}
+                        <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.06)" }} />
+
+                        {/* 5. Available Operations */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em", fontWeight: "bold" }}>
+                            [ AVAILABLE OPERATIONS ]
+                          </span>
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            {(() => {
+                              if (sectorIsLocked) {
+                                return (
+                                  <div style={{ display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center", alignItems: "center", padding: "16px", textAlign: "center", background: "rgba(255,77,77,0.01)", border: "1px solid rgba(255,77,77,0.1)", borderRadius: "2px" }}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" strokeWidth="1.5" style={{ marginBottom: "8px" }}>
+                                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                    </svg>
+                                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "#ff4d4d", textTransform: "uppercase", fontWeight: "bold" }}>
+                                      ACCESS RESTRICTED
+                                    </span>
+                                    <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", marginTop: "4px" }}>
+                                      Clear authorization requirements in gateway status to connect database.
+                                    </span>
+                                  </div>
+                                );
+                              }
+
+                              return selectedSectorMissions.length > 0 ? (
+                                selectedSectorMissions.map((op) => {
+                                  const isSelected = selectedMapSector === op.id;
+                                  const isLocked = isMissionLocked(op);
+                                  const isCompleted = profile?.completedMissions.includes(op.id);
+                                  
+                                  return (
+                                    <div
+                                      key={op.id}
+                                      onClick={() => {
+                                        if (!isLocked) setSelectedMapSector(op.id);
+                                      }}
+                                      style={{
+                                        background: isCompleted 
+                                          ? "rgba(0, 255, 204, 0.02)" 
+                                          : isSelected 
+                                          ? "rgba(255, 77, 77, 0.04)" 
+                                          : isLocked 
+                                          ? "rgba(255,255,255,0.01)" 
+                                          : "#0c0c0c",
+                                        border: isSelected 
+                                          ? "1.5px solid var(--accent)" 
+                                          : isCompleted 
+                                          ? "1px solid rgba(0, 255, 204, 0.2)" 
+                                          : "1px solid var(--border)",
+                                        padding: "10px", borderRadius: "2px", cursor: isLocked ? "not-allowed" : "pointer",
+                                        transition: "all 0.15s", display: "flex", gap: "10px", alignItems: "center",
+                                        opacity: isLocked ? 0.35 : 1
+                                      }}
+                                    >
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                          <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "1px 5px" }}>
+                                            {op.difficulty.toUpperCase()}
+                                          </span>
+                                          <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>
+                                            {op.duration}m
+                                          </span>
+                                        </div>
+                                        <h4 style={{ fontSize: "11px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                          {op.title}
+                                        </h4>
+                                        <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
+                                          <span>{op.category.toUpperCase()} MISSION</span>
+                                          {isLocked && <span style={{ color: "var(--accent)" }}>REQ: Lvl {op.unlockRequirements.level || op.unlockRequirements.bioScore || 1}</span>}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <div style={{ textAlign: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", marginTop: "10px" }}>
+                                  NO OPERATIONS IN SECTOR
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* FIXED FOOTER: Deploy Button */}
+                      <div style={{ padding: "16px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(5,5,5,0.8)" }}>
+                        {sectorIsLocked ? (
+                          <button
+                            disabled
+                            className="btn"
+                            style={{
+                              width: "100%", justifyContent: "center", fontSize: "11px", padding: "12px",
+                              background: "rgba(255,77,77,0.05)", color: "#ff4d4d", border: "1px solid rgba(255,77,77,0.2)",
+                              cursor: "not-allowed", opacity: 0.5, fontFamily: "var(--mono)", fontWeight: "bold"
+                            }}
+                          >
+                            ACCESS DENIED // PREREQUISITES UNMET 🔒
+                          </button>
+                        ) : selectedOperation && selectedOperation.region === selectedSectorId ? (
+                          <button
+                            onClick={() => {
+                              setActiveMission(selectedOperation);
+                              setMissionFlow("briefing");
+                            }}
+                            className="btn btn-primary animate-pulse"
+                            style={{
+                              width: "100%", justifyContent: "center", fontSize: "11px", padding: "12px",
+                              background: selectedOperation.recommendedClass === profile?.class ? "#00ffcc" : "var(--accent)",
+                              color: "#000", fontWeight: "bold", border: "none", boxShadow: `0 0 15px rgba(${selectedOperation.recommendedClass === profile?.class ? "0,255,204" : "255,77,77"}, 0.35)`
+                            }}
+                          >
+                            LAUNCH OPERATION: {selectedOperation.title.toUpperCase()} 🛰️
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="btn"
+                            style={{
+                              width: "100%", justifyContent: "center", fontSize: "11px", padding: "12px",
+                              background: "rgba(255,255,255,0.02)", color: "var(--text-muted)", border: "1px solid var(--border)",
+                              cursor: "not-allowed", fontFamily: "var(--mono)"
+                            }}
+                          >
+                            SELECT OPERATION TO DEPLOY ▷
+                          </button>
+                        )}
+                      </div>
+
+                    </div>
+                  );
+                })() : (
+                  <div className="panel" style={{ background: "#080808", border: "1px solid var(--border)", padding: "20px", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--mono)" }}>
+                    NO SECTOR SELECTED
                   </div>
-
-                  {selectedOperation && selectedOperation.region === selectedSectorId && !(selectedSector && getSectorStatus(selectedSector) === "LOCKED") && (
-                    <button
-                      onClick={() => {
-                        const sector = sectors.find(s => s.id === selectedOperation.region);
-                        if (sector && getSectorStatus(sector) === "LOCKED") {
-                          alert("ACCESS DENIED // REGIONAL TRANSMISSION PATHWAY IS OFFLINE");
-                          return;
-                        }
-                        setActiveMission(selectedOperation);
-                        setMissionFlow("briefing");
-                      }}
-                      className="btn btn-primary"
-                      style={{
-                        width: "100%", justifyContent: "center", fontSize: "11px", padding: "10px",
-                        background: selectedOperation.recommendedClass === profile?.class ? "#00ffcc" : "var(--accent)",
-                        color: "#000", fontWeight: "bold", border: "none"
-                      }}
-                    >
-                      PREPARE MISSION BRIEFING 🛰️
-                    </button>
-                  )}
-                </div>
-
+                )}
               </div>
 
             </div>
