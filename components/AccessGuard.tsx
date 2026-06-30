@@ -36,24 +36,14 @@ export default function AccessGuard({ children }: AccessGuardProps) {
   const [verifyStatus, setVerifyStatus] = useState("");
   
   // Load profile from API and verify access status
+  // Supabase is always the source of truth. localStorage is written as cache only — never used to grant access.
   const checkAccess = useCallback(async (identifier: string, token?: string) => {
     if (!identifier) return;
-
-    // ── FAST PATH: check localStorage grant first (avoids API flash) ──────────
-    if (typeof window !== "undefined") {
-      const rawWallet = identifier;
-      const localGrant = localStorage.getItem(`rq_invite_grant:${rawWallet}`);
-      if (localGrant === "Invite" || localGrant === "Admin" || localGrant === "Holder") {
-        setAccessGranted(true);
-        setProfileLoading(false);
-        return; // skip API call entirely — already verified
-      }
-    }
 
     setProfileLoading(true);
     setVerifyStatus("");
     try {
-      // 1. Fetch current profile from /api/profile
+      // Always verify against Supabase
       const res = await fetch(`/api/profile?wallet=${identifier}`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
@@ -65,12 +55,12 @@ export default function AccessGuard({ children }: AccessGuardProps) {
         const prof = data.profile;
         setProfile(prof);
         
-        // 2. Validate Access Conditions
+        // Validate Access Conditions from Supabase data
         const hasBalance = (prof.verified_balance || 0) >= 1000000 || (prof.holder_tier || 0) >= 2;
         const hasInvite = prof.access_type === "Invite" || prof.access_type === "Holder" || prof.access_type === "Admin";
         
         if (hasBalance || hasInvite) {
-          // Persist to localStorage so future loads skip the API
+          // Write to localStorage as cache only — not used to grant access on its own
           if (typeof window !== "undefined") {
             localStorage.setItem(`rq_invite_grant:${identifier}`, prof.access_type || "Invite");
           }
