@@ -288,8 +288,15 @@ export default function OperationsPage() {
     setLoading(true);
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
     
+    // Grab any existing access_type from local cache before overwriting
+    const cachedAccessType = (() => {
+      if (typeof window === "undefined") return "None";
+      const cached = localStorage.getItem(`rq_ops_profile:${identifier}`);
+      if (!cached) return "None";
+      try { return JSON.parse(cached)?.accessType || JSON.parse(cached)?.access_type || "None"; } catch { return "None"; }
+    })();
+
     try {
-      const authHeaderToken = session?.access_token;
       const headers = getHeaders();
       const res = await fetch(`/api/profile?wallet=${identifier}`, {
         headers
@@ -361,7 +368,13 @@ export default function OperationsPage() {
           holderTier: typeof db.holder_tier === "number" ? db.holder_tier : 0,
           verifiedBalance: typeof db.verified_balance === "number" ? db.verified_balance : 0,
           lastVerification: db.last_verification || null,
-          accessType: db.access_type || "None"
+          // Preserve invite/admin access_type from DB OR local cache — never downgrade to None
+          accessType: (() => {
+            const dbType = db.access_type || "None";
+            if (dbType === "Invite" || dbType === "Admin") return dbType;
+            if (cachedAccessType === "Invite" || cachedAccessType === "Admin") return cachedAccessType;
+            return dbType;
+          })()
         };
         
         loadedInventory = Array.isArray(db.inventory) ? db.inventory : [];
@@ -568,6 +581,16 @@ export default function OperationsPage() {
     if (!operativeName || !selectedFaction || !selectedClass || !selectedRole) return;
     
     const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+
+    // Preserve existing access_type from profile or local cache
+    const preservedAccessType = (() => {
+      if (profile?.accessType && profile.accessType !== "None") return profile.accessType;
+      if (typeof window === "undefined") return "None";
+      const cached = localStorage.getItem(`rq_ops_profile:${identifier}`);
+      if (!cached) return "None";
+      try { return JSON.parse(cached)?.accessType || JSON.parse(cached)?.access_type || "None"; } catch { return "None"; }
+    })();
+
     const initialProfile: OperativeProfile = {
       name: operativeName.toUpperCase(),
       faction: selectedFaction,
@@ -614,10 +637,45 @@ export default function OperationsPage() {
       campaignStats: { ...DEFAULT_CAMPAIGN_STATS },
       operationsArchive: [],
       totalPlaytimeSeconds: 0,
+      // Always carry forward the verified invite/holder access type
+      accessType: preservedAccessType,
+      holderStatus: "Civilian",
+      holderTier: 0,
+      verifiedBalance: 0,
     };
     
     saveProfile(identifier, initialProfile);
     setProfile(initialProfile);
+
+    // Immediately persist class/faction/access_type to DB so it survives reconnects
+    if (identifier !== "offline-operative") {
+      fetch("/api/profile", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          wallet_address: identifier,
+          username: initialProfile.name,
+          level: initialProfile.level,
+          xp: initialProfile.xp,
+          health: initialProfile.health,
+          class: initialProfile.class,
+          role: initialProfile.role,
+          faction: initialProfile.faction,
+          credits: initialProfile.credits,
+          reputation: initialProfile.reputation,
+          resources: initialProfile.resources,
+          stats: initialProfile.stats,
+          world_state: initialProfile.worldState,
+          completed_missions: initialProfile.completedMissions,
+          sector_discoveries: initialProfile.sectorDiscoveries,
+          mission_history: initialProfile.missionHistory,
+          achievements: initialProfile.achievements,
+          campaign_stats: initialProfile.campaignStats,
+          operations_archive: initialProfile.operationsArchive,
+          access_type: preservedAccessType,
+        })
+      }).catch(e => console.warn("Failed to persist initial profile to DB:", e));
+    }
   };
 
   // Deployment sequences tickers
@@ -1342,7 +1400,8 @@ export default function OperationsPage() {
   }
 
   // --- ONBOARDING SELECTION SCREEN ---
-  if (!profile || profile.class === "None" || profile.faction === "None" || !profile.class || !profile.faction) {
+  // Only show AFTER profile has loaded AND class/faction are genuinely missing
+  if (!loading && profile && (profile.class === "None" || profile.faction === "None" || !profile.class || !profile.faction)) {
     const selectedFactionDetails = FACTIONS.find(f => f.id === selectedFaction);
     const selectedClassDetails = CLASSES.find(c => c.id === selectedClass);
 
@@ -2052,7 +2111,7 @@ export default function OperationsPage() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ width: "10px", height: "10px", background: getFactionColor(profile?.faction), borderRadius: "50%", boxShadow: `0 0 12px ${getFactionColor(profile?.faction)}` }} />
+            <span style={{ width: "10px", height: "10px", background: getFactionColor(profile?.faction || ""), borderRadius: "50%", boxShadow: `0 0 12px ${getFactionColor(profile?.faction || "")}` }} />
             <span style={{ fontFamily: "var(--title-font)", fontSize: "15px", fontWeight: "900", letterSpacing: "0.15em", color: "#fff" }}>
               {profile?.name} // {profile?.faction?.toUpperCase()}
             </span>
@@ -2179,7 +2238,7 @@ export default function OperationsPage() {
         </aside>
 
         {/* Content Pane - Viewport bound game HUD structure */}
-        <main style={{ flex: 1, padding: "20px", background: "#030303", display: "flex", flexDirection: "column", height: "100%", boxSizing: "border-box", overflow: "hidden" }}>
+        <main style={{ flex: 1, padding: "20px", background: "#030303", display: "flex", flexDirection: "column", height: "100%", boxSizing: "border-box", overflowY: "auto" }}>
           
           {/* Critical Vitality Warning Banner */}
           {profile && profile.health < 30 && (
