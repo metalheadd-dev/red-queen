@@ -72,8 +72,14 @@ export async function POST(req: Request) {
 
     // 3. Determine if they unlock access via holdings
     let newAccessType = userProfile.access_type || "None";
-    if (tier >= 2) {
-      newAccessType = "Holder";
+    if (newAccessType !== "Invite" && newAccessType !== "Admin") {
+      if (tier >= 2) {
+        newAccessType = "Holder";
+      } else {
+        if (newAccessType === "Holder") {
+          newAccessType = "None";
+        }
+      }
     }
 
     // 4. Update operative records in Supabase

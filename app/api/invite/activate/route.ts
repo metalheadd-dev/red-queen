@@ -85,10 +85,13 @@ export async function POST(req: Request) {
     // 5. Upgrade user access level permanently
     const { error: userUpdateErr } = await supabase
       .from("users")
-      .update({
-        access_type: "Invite"
-      })
-      .eq("wallet_address", hashedWallet);
+      .upsert(
+        {
+          wallet_address: hashedWallet,
+          access_type: "Invite"
+        },
+        { onConflict: "wallet_address" }
+      );
 
     if (userUpdateErr) {
       return Response.json({ error: userUpdateErr.message }, { status: 500 });

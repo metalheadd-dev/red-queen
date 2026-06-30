@@ -121,6 +121,9 @@ export default function AccessGuard({ children }: AccessGuardProps) {
                            prof.access_type === "Holder" || prof.accessType === "Holder" ||
                            prof.access_type === "Admin" || prof.accessType === "Admin";
         if (hasBalance || hasInvite) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem(`rq_ops_profile:${identifier}`, JSON.stringify(prof));
+          }
           setProfile(prof);
           setAccessGranted(true);
           setProfileLoading(false);
