@@ -280,14 +280,7 @@ export default function OperationsPage() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (aiLogsEndRef.current) {
-      const container = aiLogsEndRef.current.parentElement;
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
-    }
-  }, [aiLogs]);
+
 
   // Load operative stats and inventory from services
   // Load operative stats and inventory from services
