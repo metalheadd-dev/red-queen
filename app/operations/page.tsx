@@ -390,7 +390,15 @@ export default function OperationsPage() {
           holderStatus: prof.holderStatus || "Civilian",
           holderTier: prof.holderTier || 0,
           verifiedBalance: prof.verifiedBalance || 0,
-          accessType: prof.accessType || "None"
+          accessType: (() => {
+            const cached = prof.accessType || "None";
+            if (cached === "Invite" || cached === "Admin") return cached;
+            if (typeof window !== "undefined") {
+              const localGrant = localStorage.getItem(`rq_invite_grant:${identifier}`);
+              if (localGrant === "Invite" || localGrant === "Admin") return localGrant;
+            }
+            return cached;
+          })()
         };
         loadedInventory = inv;
 
@@ -589,6 +597,10 @@ export default function OperationsPage() {
     const preservedAccessType = (() => {
       if (profile?.accessType && profile.accessType !== "None") return profile.accessType;
       if (typeof window === "undefined") return "None";
+      
+      const localGrant = localStorage.getItem(`rq_invite_grant:${identifier}`);
+      if (localGrant === "Invite" || localGrant === "Admin") return localGrant;
+
       const cached = localStorage.getItem(`rq_ops_profile:${identifier}`);
       if (!cached) return "None";
       try { return JSON.parse(cached)?.accessType || JSON.parse(cached)?.access_type || "None"; } catch { return "None"; }

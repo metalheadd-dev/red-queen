@@ -135,6 +135,9 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       const data = await res.json();
       if (data.success) {
         alert("ACCESS GRANTED. INVITATION ACTIVATED.");
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`rq_invite_grant:${authIdentifier}`, "Invite");
+        }
         checkAccess(authIdentifier, token);
       } else {
         alert(`Failed to activate: ${data.error}`);

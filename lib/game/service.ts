@@ -1187,7 +1187,15 @@ export function loadProfile(identifier: string): OperativeProfile {
       holderTier:         typeof parsed.holderTier === "number" ? parsed.holderTier : (typeof parsed.holder_tier === "number" ? parsed.holder_tier : 0),
       verifiedBalance:    typeof parsed.verifiedBalance === "number" ? parsed.verifiedBalance : (typeof parsed.verified_balance === "number" ? parsed.verified_balance : 0),
       lastVerification:   parsed.lastVerification    || parsed.last_verification  || null,
-      accessType:         parsed.accessType          || parsed.access_type        || "None",
+      accessType: (() => {
+        const cached = parsed.accessType || parsed.access_type || "None";
+        if (cached === "Invite" || cached === "Admin") return cached;
+        if (typeof window !== "undefined") {
+          const localGrant = localStorage.getItem(`rq_invite_grant:${identifier}`);
+          if (localGrant === "Invite" || localGrant === "Admin") return localGrant;
+        }
+        return cached;
+      })(),
     };
 
     // Auto-unlock sectors on load if requirements are met
