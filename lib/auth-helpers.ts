@@ -6,6 +6,31 @@ import { supabase } from "./supabase";
  */
 export async function getAuthIdentifier(req: Request): Promise<string | null> {
   if (!supabase) return null;
+
+  // 1. Check for Solana signature credentials in headers
+  const solanaPublicKey = req.headers.get("X-Solana-PublicKey");
+  const solanaSignature = req.headers.get("X-Solana-Signature");
+  const solanaMessage = req.headers.get("X-Solana-Message");
+
+  if (solanaPublicKey && solanaSignature && solanaMessage) {
+    try {
+      const nacl = require("tweetnacl");
+      const bs58 = require("bs58");
+
+      const msgBytes = new TextEncoder().encode(solanaMessage);
+      const sigBytes = bs58.decode(solanaSignature);
+      const pkBytes = bs58.decode(solanaPublicKey);
+
+      const verified = nacl.sign.detached.verify(msgBytes, sigBytes, pkBytes);
+      if (verified && solanaMessage === "Sign in to Red Queen Node 7.4.1") {
+        return solanaPublicKey;
+      }
+    } catch (e) {
+      console.error("Solana signature verification failed in API helper:", e);
+    }
+  }
+
+  // 2. Fallback to standard Supabase session token verification
   const authHeader = req.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;

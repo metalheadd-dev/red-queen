@@ -441,15 +441,32 @@ export default function OperativeProfilePage() {
     }
   }, [wallet]);
 
+  const getHeaders = useCallback(() => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json"
+    };
+    if (session?.access_token) {
+      headers["Authorization"] = `Bearer ${session.access_token}`;
+    } else if (typeof window !== "undefined" && wallet) {
+      const savedSig = localStorage.getItem(`rq_sol_sig:${wallet}`);
+      if (savedSig) {
+        try {
+          const { signature, message } = JSON.parse(savedSig);
+          headers["X-Solana-PublicKey"] = wallet;
+          headers["X-Solana-Signature"] = signature;
+          headers["X-Solana-Message"] = message;
+        } catch (e) {}
+      }
+    }
+    return headers;
+  }, [session, wallet]);
+
   const fetchProfile = useCallback(async () => {
     if (!wallet) return;
     setLoading(true);
     try {
-      const token = session?.access_token;
       const res = await fetch(`/api/profile?wallet=${wallet}`, {
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` })
-        }
+        headers: getHeaders()
       });
       const data = await res.json();
       if (data.profile) {
@@ -463,17 +480,14 @@ export default function OperativeProfilePage() {
       setCustomName(generatedName);
     }
     setLoading(false);
-  }, [wallet, generatedName, session]);
+  }, [wallet, generatedName, session, getHeaders]);
 
   const fetchHistory = useCallback(async () => {
     if (!wallet) return;
     setLoadingHistory(true);
     try {
-      const token = session?.access_token;
       const res = await fetch(`/api/history?wallet=${wallet}`, {
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` })
-        }
+        headers: getHeaders()
       });
       const data = await res.json();
       if (data.history) {
@@ -483,17 +497,14 @@ export default function OperativeProfilePage() {
       console.error("Failed to load history:", e);
     }
     setLoadingHistory(false);
-  }, [wallet, session]);
+  }, [wallet, session, getHeaders]);
 
   const fetchUserQuests = useCallback(async () => {
     if (!wallet) return;
     setLoadingQuests(true);
     try {
-      const token = session?.access_token;
       const res = await fetch("/api/quests/user", {
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` })
-        }
+        headers: getHeaders()
       });
       const data = await res.json();
       if (data.userQuests) {
@@ -503,7 +514,7 @@ export default function OperativeProfilePage() {
       console.error("Failed to fetch user quests:", e);
     }
     setLoadingQuests(false);
-  }, [wallet, session]);
+  }, [wallet, session, getHeaders]);
 
   const handleSubmitQuest = async (questId: string) => {
     const link = proofInputs[questId] || "";
@@ -514,13 +525,9 @@ export default function OperativeProfilePage() {
 
     setSubmittingQuest(questId);
     try {
-      const token = session?.access_token;
       const res = await fetch("/api/quests/submit", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` })
-        },
+        headers: getHeaders(),
         body: JSON.stringify({ questId, proofLink: link })
       });
       const data = await res.json();
@@ -584,10 +591,7 @@ export default function OperativeProfilePage() {
       const token = session?.access_token;
       const res = await fetch("/api/profile", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` })
-        },
+        headers: getHeaders(),
         body: JSON.stringify({
           wallet_address: authIdentifier,
           linked_wallet_address: solanaWalletAddress,
@@ -629,10 +633,7 @@ export default function OperativeProfilePage() {
       const token = session?.access_token;
       const res = await fetch("/api/profile", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` })
-        },
+        headers: getHeaders(),
         body: JSON.stringify({
           wallet_address: wallet,
           apocalyptic_name: customName || generatedName,
@@ -662,10 +663,7 @@ export default function OperativeProfilePage() {
       const token = session?.access_token;
       const res = await fetch("/api/profile", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` })
-        },
+        headers: getHeaders(),
         body: JSON.stringify({
           wallet_address: wallet,
           apocalyptic_name: nameToSave || generatedName,

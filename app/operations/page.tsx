@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useAuth } from "@/components/AuthProvider";
@@ -234,6 +234,26 @@ export default function OperationsPage() {
     return RedQueenIntelligenceService.getDailyBriefing(profile, sectors, missions, inventory);
   }, [profile, sectors, missions, inventory]);
 
+  const getHeaders = useCallback(() => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json"
+    };
+    if (session?.access_token) {
+      headers["Authorization"] = `Bearer ${session.access_token}`;
+    } else if (typeof window !== "undefined" && publicKey) {
+      const saved = localStorage.getItem(`rq_sol_sig:${publicKey.toString()}`);
+      if (saved) {
+        try {
+          const { signature, message } = JSON.parse(saved);
+          headers["X-Solana-PublicKey"] = publicKey.toString();
+          headers["X-Solana-Signature"] = signature;
+          headers["X-Solana-Message"] = message;
+        } catch (e) {}
+      }
+    }
+    return headers;
+  }, [session, publicKey]);
+
   const aiLogsEndRef = useRef<HTMLDivElement>(null);
 
   // AI telemetry diagnostics simulator
@@ -272,10 +292,9 @@ export default function OperationsPage() {
     
     try {
       const authHeaderToken = session?.access_token;
+      const headers = getHeaders();
       const res = await fetch(`/api/profile?wallet=${identifier}`, {
-        headers: {
-          ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
-        }
+        headers
       });
       const data = await res.json();
       
@@ -364,10 +383,7 @@ export default function OperationsPage() {
         if (identifier !== "offline-operative") {
           await fetch("/api/profile", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
-            },
+            headers: getHeaders(),
             body: JSON.stringify({
               wallet_address: identifier,
               username: loadedProfile.name || "Operative",
@@ -404,9 +420,7 @@ export default function OperationsPage() {
       if (identifier !== "offline-operative") {
         fetch("/api/profile/verify-holder", {
           method: "POST",
-          headers: {
-            ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
-          }
+          headers: getHeaders()
         })
           .then(vRes => vRes.json())
           .then(vData => {
@@ -490,10 +504,7 @@ export default function OperationsPage() {
         const authHeaderToken = session?.access_token;
         await fetch("/api/profile", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(authHeaderToken && { "Authorization": `Bearer ${authHeaderToken}` })
-          },
+          headers: getHeaders(),
           body: JSON.stringify({
             wallet_address: identifier,
             username: profile.name || "Operative",

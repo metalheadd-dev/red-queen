@@ -1934,11 +1934,26 @@ export function saveEquippedGear(identifier: string, equippedGear: Record<string
 export async function syncProfileToSupabase(identifier: string, profile: OperativeProfile, inventory?: InventoryItem[]): Promise<boolean> {
   if (typeof window === "undefined") return false;
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (identifier) {
+      const savedSig = localStorage.getItem(`rq_sol_sig:${identifier}`);
+      if (savedSig) {
+        try {
+          const { signature, message } = JSON.parse(savedSig);
+          headers["X-Solana-PublicKey"] = identifier;
+          headers["X-Solana-Signature"] = signature;
+          headers["X-Solana-Message"] = message;
+        } catch (e) {
+          console.error("Failed to inject Solana signature headers in service sync:", e);
+        }
+      }
+    }
+
     const res = await fetch("/api/profile", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({
         wallet_address: identifier,
         username: profile.name || "Operative",

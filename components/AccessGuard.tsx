@@ -23,7 +23,7 @@ type ProfileData = {
 };
 
 export default function AccessGuard({ children }: AccessGuardProps) {
-  const { connected, publicKey } = useWallet();
+  const { connected, publicKey, signMessage } = useWallet();
   const { authIdentifier, session, loading: authLoading, loginWithWallet } = useAuth();
   
   const [profileLoading, setProfileLoading] = useState(false);
@@ -38,6 +38,46 @@ export default function AccessGuard({ children }: AccessGuardProps) {
 
   const activeIdentifier = authIdentifier || (publicKey ? publicKey.toString() : "");
 
+  const requestSignature = async () => {
+    if (!publicKey || !signMessage) return null;
+    try {
+      const message = "Sign in to Red Queen Node 7.4.1";
+      const encoded = new TextEncoder().encode(message);
+      const signatureBytes = await signMessage(encoded);
+      const bs58 = (await import("bs58")).default;
+      const signatureBase58 = bs58.encode(signatureBytes);
+      
+      const sigData = { signature: signatureBase58, message };
+      localStorage.setItem(`rq_sol_sig:${publicKey.toString()}`, JSON.stringify(sigData));
+      return sigData;
+    } catch (err) {
+      console.error("Failed to sign authentication challenge:", err);
+      return null;
+    }
+  };
+
+  const getAuthHeaders = useCallback(() => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json"
+    };
+    if (session?.access_token) {
+      headers["Authorization"] = `Bearer ${session.access_token}`;
+    } else if (typeof window !== "undefined" && publicKey) {
+      const savedSig = localStorage.getItem(`rq_sol_sig:${publicKey.toString()}`);
+      if (savedSig) {
+        try {
+          const { signature, message } = JSON.parse(savedSig);
+          headers["X-Solana-PublicKey"] = publicKey.toString();
+          headers["X-Solana-Signature"] = signature;
+          headers["X-Solana-Message"] = message;
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return headers;
+  }, [session, publicKey]);
+
   // Load profile from API and verify access status
   const checkAccess = useCallback(async (identifier: string, token?: string) => {
     if (!identifier) return;
@@ -46,23 +86,20 @@ export default function AccessGuard({ children }: AccessGuardProps) {
     try {
       let prof: any = null;
 
-      // 1. If token is present, try to query Database via API
-      if (token) {
-        try {
-          const res = await fetch(`/api/profile?wallet=${identifier}`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data && data.profile) {
-              prof = data.profile;
-            }
+      // 1. Try to query Database via API using verified headers
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`/api/profile?wallet=${identifier}`, {
+          headers
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.profile) {
+            prof = data.profile;
           }
-        } catch (dbErr) {
-          console.warn("AccessGuard: db lookup failed, trying fallback:", dbErr);
         }
+      } catch (dbErr) {
+        console.warn("AccessGuard: db lookup failed, trying fallback:", dbErr);
       }
 
       // 2. Fallback: Lookup local storage
@@ -150,7 +187,7 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       setAccessGranted(false);
     }
     setProfileLoading(false);
-  }, []);
+  }, [getAuthHeaders]);
 
   // Sync wallet connection to Supabase session when connected
   useEffect(() => {
@@ -172,12 +209,25 @@ export default function AccessGuard({ children }: AccessGuardProps) {
   // Effect to verify access whenever session or wallet changes
   useEffect(() => {
     if (connected && activeIdentifier) {
+      if (publicKey && !session) {
+        const saved = localStorage.getItem(`rq_sol_sig:${publicKey.toString()}`);
+        if (!saved && signMessage) {
+          requestSignature().then((sig) => {
+            if (sig) {
+              checkAccess(activeIdentifier, undefined);
+            } else {
+              setAccessGranted(false);
+            }
+          });
+          return;
+        }
+      }
       checkAccess(activeIdentifier, session?.access_token);
     } else {
       setProfile(null);
       setAccessGranted(null);
     }
-  }, [connected, activeIdentifier, session, checkAccess]);
+  }, [connected, activeIdentifier, session, checkAccess, publicKey, signMessage]);
 
   // Trigger manual verified balance refresh
   const handleReVerify = async () => {
@@ -211,21 +261,18 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       return;
     }
 
-    // 2. Database API verification check
+    // 2. Database API verification check using verified headers
     try {
-      const token = session?.access_token;
+      const headers = getAuthHeaders();
       const res = await fetch("/api/profile/verify-holder", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` })
-        },
+        headers,
         body: JSON.stringify({ wallet_address: activeIdentifier })
       });
       const data = await res.json();
       if (data.success) {
         setVerifyStatus("ON-CHAIN VERIFICATION RE-RUN SUCCESSFUL.");
-        checkAccess(activeIdentifier, token);
+        checkAccess(activeIdentifier, session?.access_token);
       } else {
         setVerifyStatus(`VERIFICATION FAILED: ${data.error || "UNKNOWN ERROR"}`);
       }
@@ -235,26 +282,23 @@ export default function AccessGuard({ children }: AccessGuardProps) {
     }
   };
 
-  // Submit invite code activation
+  // Submit invite code activation using verified headers
   const handleActivateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteCode.trim() || !activeIdentifier) return;
     setActivating(true);
     setVerifyStatus("");
     try {
-      const token = session?.access_token;
+      const headers = getAuthHeaders();
       const res = await fetch("/api/invite/activate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` })
-        },
+        headers,
         body: JSON.stringify({ code: inviteCode })
       });
       const data = await res.json();
       if (data.success) {
         alert("ACCESS GRANTED. INVITATION ACTIVATED.");
-        checkAccess(activeIdentifier, token);
+        checkAccess(activeIdentifier, session?.access_token);
       } else {
         alert(`Failed to activate: ${data.error}`);
       }
