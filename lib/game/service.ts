@@ -512,6 +512,120 @@ export function generateAICommentary(profile: OperativeProfile, sector: Sector, 
   return commentaries[Math.floor(Math.random() * commentaries.length)];
 }
 
+// ─── Red Queen AI Integration Service Points ───
+export class RedQueenIntelligenceService {
+  /**
+   * Generates a tactical daily briefing for the player based on global progression, threat levels, and active anomalies.
+   */
+  static getDailyBriefing(profile: OperativeProfile, sectors: Sector[]): { title: string; content: string; warning: boolean } {
+    const activeSectorCount = sectors.filter(s => profile.worldState.unlockedSectors.includes(s.id) || s.id === "sec-alpha").length;
+    const securedCount = Object.values(profile.worldState.sectorStates || {}).filter(s => s.status === "SECURED").length;
+    const isCrisis = profile.health < 40;
+    
+    let content = `DAILY STRATEGIC BRIEFING:\nAll systems nominal. ${activeSectorCount} sectors are currently online. Faction standing calibration completed.`;
+    if (securedCount > 0) {
+      content += ` Campaign progression verified: ${securedCount} zones fully secured.`;
+    }
+    if (isCrisis) {
+      content += ` OPERATIONAL ALERT: Operative vitality below threshold. Medical hub treatment strongly recommended before deployment.`;
+    }
+
+    return {
+      title: `TACTICAL DIRECTIVE: MONITOR STATUS`,
+      content,
+      warning: isCrisis
+    };
+  }
+
+  /**
+   * Generates a detailed tactical analysis commentary for a mission briefing.
+   */
+  static getMissionBriefingCommentary(profile: OperativeProfile, sector: Sector, sectorState: SectorState | undefined, mission: Mission): string {
+    return generateAICommentary(profile, sector, sectorState, mission);
+  }
+
+  /**
+   * Generates a debriefing evaluation post-operation based on success and events completed.
+   */
+  static getMissionDebriefing(profile: OperativeProfile, mission: Mission, outcome: "SUCCESS" | "DEFEAT", eventsCompleted: number): string {
+    if (outcome === "SUCCESS") {
+      return `RED QUEEN AI DEBRIEFING:\n"Objective secured cleanly in ${mission.region.toUpperCase()}. Operations matrix parameters updated successfully. Well done, operative."`;
+    } else {
+      return `RED QUEEN AI DEBRIEFING:\n"Critical failure detected in ${mission.region.toUpperCase()} at event index ${eventsCompleted}. Bio-status recalibrating. Operative recovery required."`;
+    }
+  }
+
+  /**
+   * Evaluates operative's equipped items and recommends upgrades or swaps from inventory.
+   */
+  static getEquipmentRecommendations(profile: OperativeProfile, inventory: InventoryItem[]): string[] {
+    const recommendations: string[] = [];
+    const unequippedGears = inventory.filter(item => !item.equipped && (item.type === "weapon" || item.type === "armor"));
+    
+    const slots: ("Helmet" | "Armor" | "Weapon" | "Utility" | "Medkit" | "Backpack" | "Gadget")[] = 
+      ["Helmet", "Armor", "Weapon", "Utility", "Medkit", "Backpack", "Gadget"];
+      
+    slots.forEach(slot => {
+      const equipped = inventory.find(item => item.equipped && item.slot === slot);
+      const better = unequippedGears
+        .filter(item => item.slot === slot)
+        .sort((a, b) => b.power - a.power)[0];
+        
+      if (better && (!equipped || better.power > equipped.power)) {
+        recommendations.push(`UPGRADE DETECTED: [${better.name}] in inventory has higher rating than current slot configuration.`);
+      }
+    });
+
+    if (recommendations.length === 0) {
+      recommendations.push("Loadout metrics optimal. No immediate equipment shift recommended.");
+    }
+    return recommendations;
+  }
+
+  /**
+   * Performs an analysis of the operative's BIO SCORE and suggests progression avenues.
+   */
+  static analyzeBioScore(profile: OperativeProfile): { bioScore: number; tier: string; suggestion: string } {
+    const bioScore = calculateBioScore(profile.stats);
+    let tier = "Tier I: Standard Operative";
+    let suggestion = "Complete basic operations to increase Level and acquire better tactical gear.";
+    
+    if (bioScore >= 50) {
+      tier = "Tier III: Elite Operative";
+      suggestion = "Deploy to Critical regions and upgrade equipment sockets to maximum efficiency.";
+    } else if (bioScore >= 25) {
+      tier = "Tier II: Advanced Operative";
+      suggestion = "Upgrade weapons and shields to bypass security locks in advanced sectors.";
+    }
+
+    return { bioScore, tier, suggestion };
+  }
+
+  /**
+   * Generates a campaign completion report and highlights blocked/locked zones.
+   */
+  static analyzeCampaignStatus(profile: OperativeProfile, sectors: Sector[]): { completionRate: number; recommendation: string } {
+    const total = sectors.length;
+    const secured = Object.values(profile.worldState?.sectorStates || {}).filter(s => s.status === "SECURED").length;
+    const rate = total > 0 ? Math.round((secured / total) * 100) : 0;
+    
+    let recommendation = "Securing Sector Alpha is the primary campaign gateway.";
+    const lockedSectors = sectors.filter(s => {
+      const state = profile.worldState?.sectorStates?.[s.id];
+      return state ? !state.isUnlocked : s.id !== "sec-alpha";
+    });
+
+    if (lockedSectors.length > 0) {
+      const nextOne = lockedSectors[0];
+      recommendation = `Access block detected on ${nextOne.name}. Fulfill level/bio-score requirements detailed in the Sector Overview.`;
+    } else {
+      recommendation = "All sectors authorized. Secure remaining operations to claim global status.";
+    }
+
+    return { completionRate: rate, recommendation };
+  }
+}
+
 // ─── Profile Loader (Self-Healing) ────────────────────────────────────────────
 export function loadProfile(identifier: string): OperativeProfile {
   if (typeof window === "undefined") return { ...DEFAULT_PROFILE };

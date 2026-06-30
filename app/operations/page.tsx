@@ -327,6 +327,14 @@ export default function OperationsPage() {
 
   // Deployment sequences tickers
   const runDeployment = (op: Mission) => {
+    const sector = sectors.find(s => s.id === op.region);
+    if (!sector || getSectorStatus(sector) === "LOCKED") {
+      alert("DEPLOYMENT COMPROMISED // TARGET ZONE SECURITY GATE IS OFFLINE");
+      setActiveMission(null);
+      setMissionFlow(null);
+      return;
+    }
+
     setMissionFlow("deployment");
     setDeploymentProgress(0);
     setDeploymentLogs([]);
@@ -554,6 +562,41 @@ export default function OperationsPage() {
     setMissionOutcome(null);
   };
 
+  const getItemMetadata = (item: InventoryItem) => {
+    const baseId = item.id.replace(/-equipped$/, "");
+    
+    // Acquired From logic
+    let acquiredFrom = "Operational Scavenge // Mission Rewards";
+    if (item.type === "weapon" || item.type === "armor") {
+      acquiredFrom = "Sector Operations // Faction Armoury";
+    } else if (item.category === "Medical") {
+      acquiredFrom = "Sector Alpha / Gamma Medical Depots";
+    } else if (item.category === "Materials") {
+      acquiredFrom = "Sectors Beta, Delta, Epsilon Scrap Hubs";
+    }
+
+    // Crafting Usage logic
+    const craftedIn = CRAFTING_RECIPES.filter(r => 
+      r.ingredients.some(ing => ing.itemId === baseId)
+    ).map(r => r.name);
+    
+    const upgradedIn = UPGRADE_RECIPES.filter(r => 
+      r.ingredients.some(ing => ing.itemId === baseId) || r.targetItemId === baseId
+    ).map(r => r.name);
+
+    const allUsages = Array.from(new Set([...craftedIn, ...upgradedIn]));
+    const craftingUsage = allUsages.length > 0 ? allUsages.join(", ") : "None (End Item)";
+
+    return {
+      acquiredFrom,
+      craftingUsage,
+      category: item.category || item.type.toUpperCase(),
+      slot: item.slot || "None",
+      requiredLevel: item.itemLevel || 1,
+      status: item.equipped ? "EQUIPPED" : "UNASSIGNED"
+    };
+  };
+
   const equipItemInInventory = (inv: InventoryItem[], itemIdToEquip: string, itemSlot: string, isEquippedAlready: boolean): InventoryItem[] => {
     let nextInv = inv.map(i => ({ ...i }));
     
@@ -643,9 +686,20 @@ export default function OperationsPage() {
   // Check if item meets class and faction reputation requirements
   const canEquipItem = (item: InventoryItem) => {
     if (!profile) return { can: false, reason: "No profile loaded" };
+
+    // Slot compatibility checks
+    if (item.type === "material") {
+      return { can: false, reason: "Material items cannot be equipped" };
+    }
+    if (item.type === "consumable") {
+      return { can: false, reason: "Consumable items cannot occupy equipment slots" };
+    }
+    if (!item.slot || item.slot === "None") {
+      return { can: false, reason: "This item does not have a valid equipment slot" };
+    }
     
     // Class check
-    if (item.classRequirement !== "None" && item.classRequirement !== profile.class) {
+    if (item.classRequirement && item.classRequirement !== "None" && item.classRequirement !== profile.class) {
       return { can: false, reason: `Requires Class: ${item.classRequirement}` };
     }
 
@@ -2040,66 +2094,94 @@ export default function OperationsPage() {
                   </div>
 
                   <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", paddingRight: "4px" }}>
-                    {selectedSectorMissions.length > 0 ? (
-                      selectedSectorMissions.map((op) => {
-                        const isSelected = selectedMapSector === op.id;
-                        const isLocked = isMissionLocked(op);
-                        const isCompleted = profile?.completedMissions.includes(op.id);
-                        
+                    {(() => {
+                      const selectedSectorIsLocked = selectedSector ? getSectorStatus(selectedSector) === "LOCKED" : false;
+                      if (selectedSectorIsLocked) {
                         return (
-                          <div
-                            key={op.id}
-                            onClick={() => {
-                              if (!isLocked) setSelectedMapSector(op.id);
-                            }}
-                            style={{
-                              background: isCompleted 
-                                ? "rgba(0, 255, 204, 0.02)" 
-                                : isSelected 
-                                ? "rgba(255, 77, 77, 0.04)" 
-                                : isLocked 
-                                ? "rgba(255,255,255,0.01)" 
-                                : "#0c0c0c",
-                              border: isSelected 
-                                ? "1.5px solid var(--accent)" 
-                                : isCompleted 
-                                ? "1px solid rgba(0, 255, 204, 0.2)" 
-                                : "1px solid var(--border)",
-                              padding: "10px", borderRadius: "2px", cursor: isLocked ? "not-allowed" : "pointer",
-                              transition: "all 0.15s", display: "flex", gap: "10px", alignItems: "center",
-                              opacity: isLocked ? 0.35 : 1
-                            }}
-                          >
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "1px 5px" }}>
-                                  {op.difficulty.toUpperCase()}
-                                </span>
-                                <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>
-                                  {op.duration}m
-                                </span>
-                              </div>
-                              <h4 style={{ fontSize: "11px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                {op.title}
-                              </h4>
-                              <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
-                                <span>{op.category.toUpperCase()} MISSION</span>
-                                {isLocked && <span style={{ color: "var(--accent)" }}>REQ: Lvl {op.unlockRequirements.level || op.unlockRequirements.bioScore || 1}</span>}
-                              </div>
-                            </div>
+                          <div style={{ display: "flex", flexDirection: "column", justifyItems: "center", justifyContent: "center", alignItems: "center", height: "100%", padding: "20px", textAlign: "center" }}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" strokeWidth="1.5" style={{ marginBottom: "12px" }}>
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#ff4d4d", textTransform: "uppercase", fontWeight: "bold" }}>
+                              ACCESS RESTRICTED
+                            </span>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "6px" }}>
+                              Satisfy all sector authorization requirements detailed in the Overview to unlock operations.
+                            </span>
                           </div>
                         );
-                      })
-                    ) : (
-                      <div style={{ textAlign: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", marginTop: "20px" }}>
-                        NO OPERATIONS IN SECTOR
-                      </div>
-                    )}
+                      }
+
+                      return selectedSectorMissions.length > 0 ? (
+                        selectedSectorMissions.map((op) => {
+                          const isSelected = selectedMapSector === op.id;
+                          const isLocked = isMissionLocked(op);
+                          const isCompleted = profile?.completedMissions.includes(op.id);
+                          
+                          return (
+                            <div
+                              key={op.id}
+                              onClick={() => {
+                                if (!isLocked) setSelectedMapSector(op.id);
+                              }}
+                              style={{
+                                background: isCompleted 
+                                  ? "rgba(0, 255, 204, 0.02)" 
+                                  : isSelected 
+                                  ? "rgba(255, 77, 77, 0.04)" 
+                                  : isLocked 
+                                  ? "rgba(255,255,255,0.01)" 
+                                  : "#0c0c0c",
+                                border: isSelected 
+                                  ? "1.5px solid var(--accent)" 
+                                  : isCompleted 
+                                  ? "1px solid rgba(0, 255, 204, 0.2)" 
+                                  : "1px solid var(--border)",
+                                padding: "10px", borderRadius: "2px", cursor: isLocked ? "not-allowed" : "pointer",
+                                transition: "all 0.15s", display: "flex", gap: "10px", alignItems: "center",
+                                opacity: isLocked ? 0.35 : 1
+                              }}
+                            >
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                  <span className={`tag ${op.difficulty === "Easy" ? "tag-green" : op.difficulty === "Normal" ? "tag-yellow" : "tag-red"}`} style={{ fontSize: "8px", padding: "1px 5px" }}>
+                                    {op.difficulty.toUpperCase()}
+                                  </span>
+                                  <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>
+                                    {op.duration}m
+                                  </span>
+                                </div>
+                                <h4 style={{ fontSize: "11px", color: "#fff", margin: "4px 0 2px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                  {op.title}
+                                </h4>
+                                <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", fontSize: "8px", fontFamily: "var(--mono)", color: "var(--text-muted)" }}>
+                                  <span>{op.category.toUpperCase()} MISSION</span>
+                                  {isLocked && <span style={{ color: "var(--accent)" }}>REQ: Lvl {op.unlockRequirements.level || op.unlockRequirements.bioScore || 1}</span>}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div style={{ textAlign: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", marginTop: "20px" }}>
+                          NO OPERATIONS IN SECTOR
+                        </div>
+                      );
+                    })()}
                   </div>
 
-                  {selectedOperation && selectedOperation.region === selectedSectorId && (
+                  {selectedOperation && selectedOperation.region === selectedSectorId && !(selectedSector && getSectorStatus(selectedSector) === "LOCKED") && (
                     <button
-                      onClick={() => { setActiveMission(selectedOperation); setMissionFlow("briefing"); }}
+                      onClick={() => {
+                        const sector = sectors.find(s => s.id === selectedOperation.region);
+                        if (sector && getSectorStatus(sector) === "LOCKED") {
+                          alert("ACCESS DENIED // REGIONAL TRANSMISSION PATHWAY IS OFFLINE");
+                          return;
+                        }
+                        setActiveMission(selectedOperation);
+                        setMissionFlow("briefing");
+                      }}
                       className="btn btn-primary"
                       style={{
                         width: "100%", justifyContent: "center", fontSize: "11px", padding: "8px",
@@ -2759,6 +2841,45 @@ export default function OperationsPage() {
                             {selectedInventoryItem.desc}
                           </p>
 
+                          {(() => {
+                            const meta = getItemMetadata(selectedInventoryItem);
+                            return (
+                              <div style={{ display: "flex", flexDirection: "column", gap: "5px", background: "#0c0c0c", border: "1px solid var(--border)", padding: "10px", margin: "10px 0", fontSize: "9px", fontFamily: "var(--mono)" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>SLOT:</span>
+                                  <span style={{ color: "#fff", fontWeight: "bold" }}>{meta.slot.toUpperCase()}</span>
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>CATEGORY:</span>
+                                  <span style={{ color: "#fff", fontWeight: "bold" }}>{meta.category.toUpperCase()}</span>
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>RARITY:</span>
+                                  <span style={{ color: itemColor, fontWeight: "bold" }}>{selectedInventoryItem.rarity.toUpperCase()}</span>
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>REQUIRED LEVEL:</span>
+                                  <span style={{ color: (profile?.level || 1) >= meta.requiredLevel ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                    Lvl {meta.requiredLevel}
+                                  </span>
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>STATUS:</span>
+                                  <span style={{ color: "#00ffcc", fontWeight: "bold" }}>EQUIPPED</span>
+                                </div>
+                                <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", marginTop: "4px", paddingTop: "4px" }} />
+                                <div>
+                                  <span style={{ color: "var(--text-muted)" }}>ACQUIRED FROM:</span>
+                                  <div style={{ color: "#fff", marginTop: "2px" }}>{meta.acquiredFrom}</div>
+                                </div>
+                                <div style={{ marginTop: "4px" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>CRAFTING USAGE:</span>
+                                  <div style={{ color: "#f0c929", marginTop: "2px" }}>{meta.craftingUsage}</div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+
                           <div style={{ borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "8px" }}>
                             <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>STAT MODULE MATRIX</span>
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -2818,6 +2939,49 @@ export default function OperationsPage() {
                               COMPARE SLOTS: {selectedInventoryItem.slot.toUpperCase()} // LEVEL {selectedInventoryItem.itemLevel}
                             </span>
                           </div>
+
+                          <p style={{ fontSize: "10.5px", color: "var(--text-muted)", lineHeight: "1.4", margin: "4px 0 12px 0" }}>
+                            {selectedInventoryItem.desc}
+                          </p>
+
+                          {(() => {
+                            const meta = getItemMetadata(selectedInventoryItem);
+                            return (
+                              <div style={{ display: "flex", flexDirection: "column", gap: "5px", background: "#0c0c0c", border: "1px solid var(--border)", padding: "10px", margin: "10px 0", fontSize: "9px", fontFamily: "var(--mono)" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>SLOT:</span>
+                                  <span style={{ color: "#fff", fontWeight: "bold" }}>{meta.slot.toUpperCase()}</span>
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>CATEGORY:</span>
+                                  <span style={{ color: "#fff", fontWeight: "bold" }}>{meta.category.toUpperCase()}</span>
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>RARITY:</span>
+                                  <span style={{ color: itemColor, fontWeight: "bold" }}>{selectedInventoryItem.rarity.toUpperCase()}</span>
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>REQUIRED LEVEL:</span>
+                                  <span style={{ color: (profile?.level || 1) >= meta.requiredLevel ? "#00ffcc" : "#ff4d4d", fontWeight: "bold" }}>
+                                    Lvl {meta.requiredLevel}
+                                  </span>
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>STATUS:</span>
+                                  <span style={{ color: "var(--accent)", fontWeight: "bold" }}>UNASSIGNED</span>
+                                </div>
+                                <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", marginTop: "4px", paddingTop: "4px" }} />
+                                <div>
+                                  <span style={{ color: "var(--text-muted)" }}>ACQUIRED FROM:</span>
+                                  <div style={{ color: "#fff", marginTop: "2px" }}>{meta.acquiredFrom}</div>
+                                </div>
+                                <div style={{ marginTop: "4px" }}>
+                                  <span style={{ color: "var(--text-muted)" }}>CRAFTING USAGE:</span>
+                                  <div style={{ color: "#f0c929", marginTop: "2px" }}>{meta.craftingUsage}</div>
+                                </div>
+                              </div>
+                            );
+                          })()}
 
                           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
                             <div style={{ background: "rgba(255,255,255,0.01)", border: "1px dashed rgba(255,255,255,0.05)", padding: "6px 8px" }}>
@@ -3351,6 +3515,24 @@ export default function OperationsPage() {
                   {commentary}
                 </p>
               </div>
+              {/* Low Health warning banner */}
+              {profile && profile.health < 40 && (
+                <div style={{ background: "rgba(255, 77, 77, 0.08)", border: "1px solid #ff4d4d", padding: "12px", display: "flex", gap: "10px", alignItems: "center" }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" strokeWidth="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  <div>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#ff4d4d", fontWeight: "bold" }}>
+                      [ WARNING: LOW HEALTH DETECTION ]
+                    </div>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "2px" }}>
+                      Your current bio-health is at {profile.health}% HP. Embarking on this Operation carries severe risk of operative failure and trauma.
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Actions Footer */}
               <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", marginTop: "6px" }}>
