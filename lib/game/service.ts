@@ -168,9 +168,9 @@ export const DEFAULT_WORLD_STATE: WorldState = {
 // ─── Default Operative Profile ────────────────────────────────────────────────
 export const DEFAULT_PROFILE: OperativeProfile = {
   name: "OPERATIVE",
-  faction: "vanguard",
-  class: "Assault",
-  role: "Breach Specialist",
+  faction: "None",
+  class: "None",
+  role: "None",
   level: 1,
   xp: 0,
   credits: 150,

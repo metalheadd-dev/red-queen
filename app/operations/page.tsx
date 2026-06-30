@@ -145,6 +145,9 @@ export default function OperationsPage() {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [operativeName, setOperativeName] = useState("");
+  const [reassignFaction, setReassignFaction] = useState("vanguard");
+  const [reassignClass, setReassignClass] = useState("Assault");
+  const [reassignRole, setReassignRole] = useState("Breach Specialist");
 
   // Reusable Data Models driven states
   const [sectors, setSectors] = useState<Sector[]>(INITIAL_SECTORS);
@@ -742,6 +745,75 @@ export default function OperationsPage() {
           access_type: preservedAccessType,
         })
       }).catch(e => console.warn("Failed to persist initial profile to DB:", e));
+    }
+  };
+
+  // Sync reassignment options when profile loads
+  useEffect(() => {
+    if (profile) {
+      if (profile.faction && profile.faction !== "None") setReassignFaction(profile.faction);
+      if (profile.class && profile.class !== "None") setReassignClass(profile.class);
+      if (profile.role && profile.role !== "None") setReassignRole(profile.role);
+    }
+  }, [profile]);
+
+  const handleConfirmReassignment = async () => {
+    if (!profile) return;
+    const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+    
+    const updatedProfile = {
+      ...profile,
+      faction: reassignFaction,
+      class: reassignClass,
+      role: reassignRole,
+    };
+    
+    setProfile(updatedProfile);
+    saveProfile(identifier, updatedProfile);
+    
+    setAiLogs(prev => [...prev, `[SYS] CONFIRMING REASSIGNMENT // FACTION: ${reassignFaction.toUpperCase()} // CLASS: ${reassignClass.toUpperCase()} // ROLE: ${reassignRole}`]);
+    
+    if (identifier !== "offline-operative") {
+      try {
+        const res = await fetch("/api/profile", {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({
+            wallet_address: identifier,
+            username: updatedProfile.name,
+            level: updatedProfile.level,
+            xp: updatedProfile.xp,
+            health: updatedProfile.health,
+            class: updatedProfile.class,
+            role: updatedProfile.role,
+            faction: updatedProfile.faction,
+            credits: updatedProfile.credits,
+            reputation: updatedProfile.reputation,
+            resources: updatedProfile.resources,
+            stats: updatedProfile.stats,
+            world_state: updatedProfile.worldState,
+            completed_missions: updatedProfile.completedMissions,
+            sector_discoveries: updatedProfile.sectorDiscoveries,
+            mission_history: updatedProfile.missionHistory,
+            achievements: updatedProfile.achievements,
+            campaign_stats: updatedProfile.campaignStats,
+            operations_archive: updatedProfile.operationsArchive,
+            inventory: inventory,
+            access_type: updatedProfile.accessType,
+          })
+        });
+        if (res.ok) {
+          alert("REASSIGNMENT SUCCESSFUL // PROFILE SYNCHRONIZED WITH SUPABASE");
+          loadGameData();
+        } else {
+          alert("Reassignment Error: Failed to save changes to Supabase.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Reassignment Error: Connection failed.");
+      }
+    } else {
+      alert("Offline Mode: Reassignment updated locally.");
     }
   };
 
@@ -4260,6 +4332,76 @@ export default function OperationsPage() {
                     }}
                   >
                     RESET & REPLAY ONBOARDING
+                  </button>
+                </div>
+
+                <div style={{ background: "rgba(0, 255, 204, 0.03)", border: "1px solid rgba(0, 255, 204, 0.15)", padding: "20px", borderRadius: "4px" }}>
+                  <h3 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "#00ffcc", margin: "0 0 10px 0", fontWeight: "bold" }}>
+                    OPERATIVE REASSIGNMENT MATRIX
+                  </h3>
+                  <p style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "rgba(255,255,255,0.7)", margin: "0 0 16px 0", lineHeight: "1.6" }}>
+                    Reassign your division alliance, operative class, and tactical role profile. All changes will sync to Supabase.
+                  </p>
+                  
+                  {/* Faction Select */}
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#888", display: "block", marginBottom: "4px" }}>CHOOSE DIVISION FACTION:</label>
+                    <select 
+                      value={reassignFaction} 
+                      onChange={(e) => setReassignFaction(e.target.value)}
+                      style={{ background: "#0c0c0c", color: "#fff", border: "1px solid var(--border)", padding: "8px 12px", fontFamily: "var(--mono)", fontSize: "12.5px", width: "100%" }}
+                    >
+                      {FACTIONS.map(f => <option key={f.id} value={f.id}>{f.name.toUpperCase()} - {f.desc}</option>)}
+                    </select>
+                  </div>
+
+                  {/* Class Select */}
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#888", display: "block", marginBottom: "4px" }}>CHOOSE OPERATIVE CLASS:</label>
+                    <select 
+                      value={reassignClass} 
+                      onChange={(e) => {
+                        setReassignClass(e.target.value);
+                        // Auto recommend a role based on class
+                        if (e.target.value === "Assault") setReassignRole("Breach Specialist");
+                        else if (e.target.value === "Medic") setReassignRole("Field Medic");
+                        else if (e.target.value === "Recon") setReassignRole("Recon Scout");
+                        else if (e.target.value === "Specialist") setReassignRole("Tech Specialist");
+                        else if (e.target.value === "Scientist") setReassignRole("Field Scientist");
+                        else if (e.target.value === "Engineer") setReassignRole("Combat Engineer");
+                      }}
+                      style={{ background: "#0c0c0c", color: "#fff", border: "1px solid var(--border)", padding: "8px 12px", fontFamily: "var(--mono)", fontSize: "12.5px", width: "100%" }}
+                    >
+                      {CLASSES.map(c => <option key={c.id} value={c.id}>{c.name.toUpperCase()} - {c.desc}</option>)}
+                    </select>
+                  </div>
+
+                  {/* Role Select */}
+                  <div style={{ marginBottom: "16px" }}>
+                    <label style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#888", display: "block", marginBottom: "4px" }}>CHOOSE TACTICAL ROLE:</label>
+                    <select 
+                      value={reassignRole} 
+                      onChange={(e) => setReassignRole(e.target.value)}
+                      style={{ background: "#0c0c0c", color: "#fff", border: "1px solid var(--border)", padding: "8px 12px", fontFamily: "var(--mono)", fontSize: "12.5px", width: "100%" }}
+                    >
+                      <option value="Breach Specialist">Breach Specialist</option>
+                      <option value="Field Medic">Field Medic</option>
+                      <option value="Recon Scout">Recon Scout</option>
+                      <option value="Tech Specialist">Tech Specialist</option>
+                      <option value="Field Scientist">Field Scientist</option>
+                      <option value="Combat Engineer">Combat Engineer</option>
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={handleConfirmReassignment}
+                    style={{
+                      background: "#00ffcc", color: "#000", border: "none", padding: "12px 20px",
+                      fontFamily: "var(--title-font)", fontSize: "12px", fontWeight: "bold", cursor: "pointer",
+                      borderRadius: "2px", letterSpacing: "0.05em"
+                    }}
+                  >
+                    CONFIRM REASSIGNMENT & SYNC PROFILE
                   </button>
                 </div>
               </div>

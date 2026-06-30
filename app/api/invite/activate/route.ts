@@ -88,7 +88,10 @@ export async function POST(req: Request) {
       .upsert(
         {
           wallet_address: hashedWallet,
-          access_type: "Invite"
+          access_type: "Invite",
+          invite_activated: true,
+          invite_activated_at: new Date().toISOString(),
+          invite_code_id: invite.id
         },
         { onConflict: "wallet_address" }
       );

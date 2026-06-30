@@ -181,6 +181,9 @@ export async function POST(req: Request) {
         ...(body.verified_balance !== undefined && { verified_balance: body.verified_balance }),
         ...(body.last_verification !== undefined && { last_verification: body.last_verification }),
         ...(body.access_type !== undefined && { access_type: body.access_type }),
+        ...(body.invite_activated !== undefined && { invite_activated: body.invite_activated }),
+        ...(body.invite_activated_at !== undefined && { invite_activated_at: body.invite_activated_at }),
+        ...(body.invite_code_id !== undefined && { invite_code_id: body.invite_code_id }),
       },
       { onConflict: "wallet_address" }
     )
