@@ -272,7 +272,30 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       const data = await res.json();
       if (data.success) {
         setVerifyStatus("ON-CHAIN VERIFICATION RE-RUN SUCCESSFUL.");
-        checkAccess(activeIdentifier, session?.access_token);
+        const saved = typeof window !== "undefined" ? localStorage.getItem(`rq_ops_profile:${activeIdentifier}`) : null;
+        let updatedProf: any = {};
+        if (saved) {
+          try {
+            updatedProf = JSON.parse(saved);
+          } catch (e) {}
+        }
+        updatedProf.verifiedBalance = data.balance || 0;
+        updatedProf.verified_balance = data.balance || 0;
+        updatedProf.holderTier = data.tier || 0;
+        updatedProf.holder_tier = data.tier || 0;
+        if (data.tier >= 2) {
+          updatedProf.accessType = "Holder";
+          updatedProf.access_type = "Holder";
+        }
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`rq_ops_profile:${activeIdentifier}`, JSON.stringify(updatedProf));
+        }
+        if (data.tier >= 2) {
+          setProfile(updatedProf);
+          setAccessGranted(true);
+        } else {
+          checkAccess(activeIdentifier, session?.access_token);
+        }
       } else {
         setVerifyStatus(`VERIFICATION FAILED: ${data.error || "UNKNOWN ERROR"}`);
       }
@@ -298,7 +321,28 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       const data = await res.json();
       if (data.success) {
         alert("ACCESS GRANTED. INVITATION ACTIVATED.");
-        checkAccess(activeIdentifier, session?.access_token);
+        const saved = typeof window !== "undefined" ? localStorage.getItem(`rq_ops_profile:${activeIdentifier}`) : null;
+        let updatedProf: any = {};
+        if (saved) {
+          try {
+            updatedProf = JSON.parse(saved);
+          } catch (e) {}
+        }
+        updatedProf.accessType = "Invite";
+        updatedProf.access_type = "Invite";
+        if (!updatedProf.name) {
+          updatedProf.name = "OPERATIVE";
+          updatedProf.level = 1;
+          updatedProf.xp = 0;
+          updatedProf.credits = 500;
+          updatedProf.reputation = 0;
+          updatedProf.health = 100;
+        }
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`rq_ops_profile:${activeIdentifier}`, JSON.stringify(updatedProf));
+        }
+        setProfile(updatedProf);
+        setAccessGranted(true);
       } else {
         alert(`Failed to activate: ${data.error}`);
       }
