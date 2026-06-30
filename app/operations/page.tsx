@@ -1349,7 +1349,7 @@ export default function OperationsPage() {
   }
 
   // --- ONBOARDING SELECTION SCREEN ---
-  if (!profile) {
+  if (!profile || profile.class === "None" || profile.faction === "None" || !profile.class || !profile.faction) {
     const selectedFactionDetails = FACTIONS.find(f => f.id === selectedFaction);
     const selectedClassDetails = CLASSES.find(c => c.id === selectedClass);
 
