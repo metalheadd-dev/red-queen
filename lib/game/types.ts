@@ -72,6 +72,7 @@ export interface WorldState {
   activeEvents: DynamicCampaignEvent[];
   longestStreak: number;
   dynamicMissions: Mission[];  // Auto-generated repeatable operations
+  completedOnboarding?: boolean;
 }
 
 // ─── Sector (Static Definition) ──────────────────────────────────────────────

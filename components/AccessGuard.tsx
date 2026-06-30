@@ -209,25 +209,12 @@ export default function AccessGuard({ children }: AccessGuardProps) {
   // Effect to verify access whenever session or wallet changes
   useEffect(() => {
     if (connected && activeIdentifier) {
-      if (publicKey && !session) {
-        const saved = localStorage.getItem(`rq_sol_sig:${publicKey.toString()}`);
-        if (!saved && signMessage) {
-          requestSignature().then((sig) => {
-            if (sig) {
-              checkAccess(activeIdentifier, undefined);
-            } else {
-              setAccessGranted(false);
-            }
-          });
-          return;
-        }
-      }
       checkAccess(activeIdentifier, session?.access_token);
     } else {
       setProfile(null);
       setAccessGranted(null);
     }
-  }, [connected, activeIdentifier, session, checkAccess, publicKey, signMessage]);
+  }, [connected, activeIdentifier, session, checkAccess]);
 
   // Trigger manual verified balance refresh
   const handleReVerify = async () => {

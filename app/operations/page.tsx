@@ -152,7 +152,9 @@ export default function OperationsPage() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [equippedGear, setEquippedGear] = useState<Record<string, InventoryItem | null>>({});
   const [loadingOps, setLoadingOps] = useState(false);
-  const [activeTab, setActiveTab] = useState<"center" | "profile" | "inventory">("center");
+  const [activeTab, setActiveTab] = useState<"center" | "profile" | "inventory" | "settings">("center");
+  const [completedOnboarding, setCompletedOnboarding] = useState<boolean>(true);
+  const [gameplayOnboardingStep, setGameplayOnboardingStep] = useState<number>(1);
 
   // Map and Selected Sector selection
   const [selectedSectorId, setSelectedSectorId] = useState<string>("sec-alpha");
@@ -280,7 +282,10 @@ export default function OperationsPage() {
 
   useEffect(() => {
     if (aiLogsEndRef.current) {
-      aiLogsEndRef.current.scrollIntoView({ behavior: "smooth" });
+      const container = aiLogsEndRef.current.parentElement;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
     }
   }, [aiLogs]);
 
@@ -415,6 +420,7 @@ export default function OperationsPage() {
       }
 
       setProfile(loadedProfile);
+      setCompletedOnboarding(loadedProfile.worldState?.completedOnboarding || false);
       setInventory(loadedInventory);
 
       if (identifier !== "offline-operative") {
@@ -446,10 +452,31 @@ export default function OperationsPage() {
       const prof = loadProfile(identifier);
       const inv = loadInventory(identifier, INITIAL_INVENTORY);
       setProfile(prof);
+      setCompletedOnboarding(prof.worldState?.completedOnboarding || false);
       setInventory(inv);
     } finally {
       setLoading(false);
     }
+  };
+
+  const finishOnboarding = () => {
+    if (!profile) return;
+    const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+    const updatedWorldState = {
+      ...profile.worldState,
+      completedOnboarding: true
+    };
+    const updatedProfile = {
+      ...profile,
+      worldState: updatedWorldState
+    };
+    setProfile(updatedProfile);
+    setCompletedOnboarding(true);
+    
+    // Save to local storage
+    saveProfile(identifier, updatedProfile);
+    
+    setAiLogs(prev => [...prev, "[SYS] OPERATOR INITIALIZATION COMPLETE // CONNECTED TO RED QUEEN HUB"]);
   };
 
   useEffect(() => {
@@ -1661,6 +1688,263 @@ export default function OperationsPage() {
   // --- IMMERSIVE GAMEPLAY MAIN HUB ---
   return (
     <AccessGuard>
+      {!completedOnboarding && profile && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 999999,
+          background: "#020202", display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "40px", boxSizing: "border-box", overflowY: "auto"
+        }}>
+          {/* Retro scanlines */}
+          <div className="crt-scanlines" />
+          
+          {/* Onboarding Panel card */}
+          <div className="panel holo-noise animate-flicker" style={{
+            maxWidth: "800px", width: "100%", background: "#050505", border: "2px solid var(--accent)",
+            boxShadow: "0 0 40px rgba(255, 77, 77, 0.15)", borderRadius: "4px", padding: "40px",
+            position: "relative", boxSizing: "border-box"
+          }}>
+            {/* Accent corners */}
+            <div style={{ position: "absolute", top: "12px", left: "12px", width: "20px", height: "20px", borderTop: "3px solid var(--accent)", borderLeft: "3px solid var(--accent)" }} />
+            <div style={{ position: "absolute", top: "12px", right: "12px", width: "20px", height: "20px", borderTop: "3px solid var(--accent)", borderRight: "3px solid var(--accent)" }} />
+            <div style={{ position: "absolute", bottom: "12px", left: "12px", width: "20px", height: "20px", borderBottom: "3px solid var(--accent)", borderLeft: "3px solid var(--accent)" }} />
+            <div style={{ position: "absolute", bottom: "12px", right: "12px", width: "20px", height: "20px", borderBottom: "3px solid var(--accent)", borderRight: "3px solid var(--accent)" }} />
+
+            {/* Steps tracker indicator */}
+            <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "30px" }}>
+              {[1, 2, 3, 4].map(step => (
+                <div key={step} style={{
+                  width: "40px", height: "4px",
+                  background: gameplayOnboardingStep >= step ? "var(--accent)" : "rgba(255,255,255,0.08)",
+                  transition: "all 0.3s"
+                }} />
+              ))}
+            </div>
+
+            {gameplayOnboardingStep === 1 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "16px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.2em", display: "block", marginBottom: "6px" }}>
+                    SOLVIVAL CORPORATION // AUTONOMOUS SURVIVAL NETWORK
+                  </span>
+                  <h1 style={{ fontFamily: "var(--title-font)", fontSize: "28px", color: "#fff", fontWeight: "900", letterSpacing: "0.1em", margin: 0 }}>
+                    RED QUEEN INITIALIZATION
+                  </h1>
+                </div>
+
+                <div style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "rgba(255,255,255,0.85)", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <p style={{ margin: 0, color: "#00ffcc", fontWeight: "bold" }}>▶ Identity confirmed.</p>
+                  <p style={{ margin: 0, color: "#00ffcc", fontWeight: "bold" }}>▶ Operator profile synchronized.</p>
+                  <p style={{ margin: 0, color: "#00ffcc", fontWeight: "bold" }}>▶ Secure uplink established.</p>
+                  <p style={{ margin: 0, marginTop: "10px" }}>
+                    You are entering the <strong>RED QUEEN Operational Network</strong>.
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    This system monitors global threats, coordinates recovery operations and evaluates every decision made by active Operatives.
+                  </p>
+                  <p style={{ margin: 0, color: "var(--accent)", fontWeight: "bold" }}>
+                    Your survival is no longer a personal matter. It is now part of humanity's recovery protocol.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setGameplayOnboardingStep(2)}
+                  className="btn btn-primary"
+                  style={{
+                    padding: "16px 24px", fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold",
+                    background: "var(--accent)", color: "#000", border: "none", cursor: "pointer", letterSpacing: "0.1em",
+                    marginTop: "20px"
+                  }}
+                >
+                  INITIALIZE SYSTEM
+                </button>
+              </div>
+            )}
+
+            {gameplayOnboardingStep === 2 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "16px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.2em", display: "block", marginBottom: "6px" }}>
+                    SIMULATION TELEMETRY ARCHIVES
+                  </span>
+                  <h1 style={{ fontFamily: "var(--title-font)", fontSize: "28px", color: "#fff", fontWeight: "900", letterSpacing: "0.1em", margin: 0 }}>
+                    GLOBAL STATUS REPORT
+                  </h1>
+                </div>
+
+                <div style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "rgba(255,255,255,0.85)", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <p style={{ margin: 0 }}>
+                    The world did not collapse overnight. Years of pandemics, infrastructure failures, environmental disasters and unidentified biological anomalies slowly pushed civilization beyond recovery.
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    Entire regions disappeared from communication. Governments lost operational control.
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    To coordinate humanity's survival, Solvival Corporation activated <strong>RED QUEEN</strong> — an autonomous strategic intelligence responsible for monitoring global threats and directing recovery operations.
+                  </p>
+                  <p style={{ margin: 0, color: "#00ffcc", fontWeight: "bold" }}>
+                    Every successful mission restores another piece of the world. Every failed mission allows the threat to spread.
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", gap: "16px", marginTop: "20px" }}>
+                  <button
+                    onClick={() => setGameplayOnboardingStep(1)}
+                    style={{
+                      padding: "16px 24px", fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold",
+                      background: "none", color: "var(--text-dim)", border: "1px solid var(--border)", cursor: "pointer",
+                      letterSpacing: "0.1em"
+                    }}
+                  >
+                    BACK
+                  </button>
+                  <button
+                    onClick={() => setGameplayOnboardingStep(3)}
+                    className="btn btn-primary"
+                    style={{
+                      flex: 1, padding: "16px 24px", fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold",
+                      background: "var(--accent)", color: "#000", border: "none", cursor: "pointer", letterSpacing: "0.1em"
+                    }}
+                  >
+                    CONTINUE
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {gameplayOnboardingStep === 3 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "16px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.2em", display: "block", marginBottom: "6px" }}>
+                    OPERATOR CLEARANCE & ROLE DEFINITIONS
+                  </span>
+                  <h1 style={{ fontFamily: "var(--title-font)", fontSize: "28px", color: "#fff", fontWeight: "900", letterSpacing: "0.1em", margin: 0 }}>
+                    OPERATIVE DOSSIER
+                  </h1>
+                </div>
+
+                <div style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "rgba(255,255,255,0.85)", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <p style={{ margin: 0 }}>
+                    You are not a soldier. You are an <strong>Operative</strong>.
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    Your responsibility is to enter unstable sectors, recover strategic resources, contain anomalies, secure survivors and reconnect humanity's operational network.
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    RED QUEEN evaluates every operation. Your decisions permanently affect the campaign.
+                  </p>
+                  <p style={{ margin: 0, color: "#00ffcc", fontWeight: "bold" }}>
+                    Every recovered sector brings civilization one step closer to rebuilding.
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", gap: "16px", marginTop: "20px" }}>
+                  <button
+                    onClick={() => setGameplayOnboardingStep(2)}
+                    style={{
+                      padding: "16px 24px", fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold",
+                      background: "none", color: "var(--text-dim)", border: "1px solid var(--border)", cursor: "pointer",
+                      letterSpacing: "0.1em"
+                    }}
+                  >
+                    BACK
+                  </button>
+                  <button
+                    onClick={() => setGameplayOnboardingStep(4)}
+                    className="btn btn-primary"
+                    style={{
+                      flex: 1, padding: "16px 24px", fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold",
+                      background: "var(--accent)", color: "#000", border: "none", cursor: "pointer", letterSpacing: "0.1em"
+                    }}
+                  >
+                    MISSION PROTOCOL
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {gameplayOnboardingStep === 4 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "16px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.2em", display: "block", marginBottom: "6px" }}>
+                    TACTICAL ENGAGEMENT MATRIX
+                  </span>
+                  <h1 style={{ fontFamily: "var(--title-font)", fontSize: "28px", color: "#fff", fontWeight: "900", letterSpacing: "0.1em", margin: 0 }}>
+                    HOW TO PLAY
+                  </h1>
+                </div>
+
+                {/* Cards Grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.06)", padding: "16px", borderRadius: "2px" }}>
+                    <div style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", marginBottom: "6px" }}>
+                      01 / SELECT A SECTOR
+                    </div>
+                    <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: "1.5" }}>
+                      Choose an available operational sector from the Tactical Map. Each sector contains different threats, objectives and rewards.
+                    </p>
+                  </div>
+                  
+                  <div style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.06)", padding: "16px", borderRadius: "2px" }}>
+                    <div style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", marginBottom: "6px" }}>
+                      02 / REVIEW INTELLIGENCE
+                    </div>
+                    <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: "1.5" }}>
+                      Study environmental conditions, faction activity, contamination and mission objectives before deployment.
+                    </p>
+                  </div>
+
+                  <div style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.06)", padding: "16px", borderRadius: "2px" }}>
+                    <div style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", marginBottom: "6px" }}>
+                      03 / COMPLETE OPERATIONS
+                    </div>
+                    <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: "1.5" }}>
+                      Finish mission objectives, survive the deployment and recover valuable resources.
+                    </p>
+                  </div>
+
+                  <div style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.06)", padding: "16px", borderRadius: "2px" }}>
+                    <div style={{ fontFamily: "var(--title-font)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold", marginBottom: "6px" }}>
+                      04 / UPGRADE YOUR OPERATIVE
+                    </div>
+                    <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: "1.5" }}>
+                      Earn XP, improve your equipment, increase your BIO-SCORE and unlock new sectors.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: "center", padding: "10px", background: "rgba(0, 255, 204, 0.05)", border: "1px dashed rgba(0, 255, 204, 0.3)", borderRadius: "2px", marginTop: "10px" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "#00ffcc", fontWeight: "bold" }}>
+                    Every completed mission permanently changes the campaign world.
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", gap: "16px", marginTop: "20px" }}>
+                  <button
+                    onClick={() => setGameplayOnboardingStep(3)}
+                    style={{
+                      padding: "16px 24px", fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold",
+                      background: "none", color: "var(--text-dim)", border: "1px solid var(--border)", cursor: "pointer",
+                      letterSpacing: "0.1em"
+                    }}
+                  >
+                    BACK
+                  </button>
+                  <button
+                    onClick={finishOnboarding}
+                    className="btn btn-primary"
+                    style={{
+                      flex: 1, padding: "16px 24px", fontFamily: "var(--title-font)", fontSize: "14px", fontWeight: "bold",
+                      background: "var(--accent)", color: "#000", border: "none", cursor: "pointer", letterSpacing: "0.1em"
+                    }}
+                  >
+                    ENTER COMMAND HUB
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <div style={{
         position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 99999,
         background: "#020202", display: "flex", flexDirection: "column", overflow: "hidden"
@@ -1788,6 +2072,10 @@ export default function OperationsPage() {
           <span style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)" }}>
             DISCIPLINE: <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{profile?.class?.toUpperCase()}</span>
           </span>
+          <span style={{ color: "rgba(255,255,255,0.15)", fontFamily: "var(--mono)", fontSize: "14px" }}>|</span>
+          <span style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)" }}>
+            CREDITS: <span style={{ color: "#f0c929", fontWeight: "bold" }}>{profile?.credits || 0} CR</span>
+          </span>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
@@ -1867,6 +2155,20 @@ export default function OperationsPage() {
             }}
           >
             📦 EQUIPMENT DECK
+          </button>
+
+          <button
+            onClick={() => setActiveTab("settings")}
+            style={{
+              width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
+              background: activeTab === "settings" ? "rgba(255, 77, 77, 0.06)" : "none",
+              color: activeTab === "settings" ? "var(--accent)" : "var(--text-dim)",
+              borderColor: activeTab === "settings" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
+              fontFamily: "var(--title-font)", fontSize: "13px", textAlign: "left", cursor: "pointer",
+              transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
+            }}
+          >
+            ⚙️ SETTINGS
           </button>
 
           <div style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "16px" }}>
@@ -2665,7 +2967,7 @@ export default function OperationsPage() {
                 <div style={{ position: "absolute", bottom: "10px", left: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
                 <div style={{ position: "absolute", bottom: "10px", right: "10px", width: "14px", height: "14px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
                 
-                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", letterSpacing: "0.2em" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-muted)", letterSpacing: "0.2em" }}>
                   [ OPERATIVE PORTRAIT DOSSIER ]
                 </span>
 
@@ -2678,34 +2980,34 @@ export default function OperationsPage() {
                   <div style={{ position: "absolute", top: "40%", left: "40%", width: "20%", height: "20%", border: "1px dashed rgba(255,77,77,0.25)", borderRadius: "50%" }} />
                   
                   <div style={{ zIndex: 1, textAlign: "center" }} className="animate-flicker">
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", fontWeight: "bold" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--accent)", fontWeight: "bold" }}>
                       [ BIOMETRIC ENVELOPE SECURED ]
                     </div>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-muted)", marginTop: "4px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>
                       RECONNAISSANCE IMAGERY PENDING
                     </div>
                   </div>
                 </div>
 
                 {/* Identity Stamps & Reputation stats */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px", overflowY: "auto", maxHeight: "350px", paddingRight: "4px" }}>
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>FACTION ALLIANCE:</span>
-                    <span style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: getFactionColor(profile?.faction || ""), fontWeight: "bold" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", maxHeight: "350px", paddingRight: "4px" }}>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>FACTION ALLIANCE:</span>
+                    <span style={{ fontFamily: "var(--title-font)", fontSize: "13.5px", color: getFactionColor(profile?.faction || ""), fontWeight: "bold" }}>
                       {profile?.faction?.toUpperCase()}
                     </span>
                   </div>
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>REPUTATION:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc", fontWeight: "bold" }}>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>REPUTATION:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#00ffcc", fontWeight: "bold" }}>
                       {profile?.reputation || 0} pts
                     </span>
                   </div>
                   
                   {/* Playtime */}
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>CAMPAIGN PLAYTIME:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#fff" }}>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>CAMPAIGN PLAYTIME:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#fff" }}>
                       {(() => {
                         const s = profile?.totalPlaytimeSeconds || 0;
                         const hours = Math.floor(s / 3600);
@@ -2717,9 +3019,9 @@ export default function OperationsPage() {
                   </div>
 
                   {/* Campaign Completion */}
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>CAMPAIGN SECURED:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", fontWeight: "bold" }}>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>CAMPAIGN SECURED:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", fontWeight: "bold" }}>
                       {(() => {
                         if (!profile?.worldState?.sectorStates) return "0%";
                         const sectors = Object.values(profile.worldState.sectorStates);
@@ -2731,46 +3033,46 @@ export default function OperationsPage() {
                   </div>
 
                   {/* Deployments & Outcomes */}
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>OPERATIONS RECORD:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#fff" }}>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>OPERATIONS RECORD:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#fff" }}>
                       {profile?.campaignStats?.operationsCompleted || 0} Successful / {profile?.campaignStats?.operationsFailed || 0} Failed
                     </span>
                   </div>
 
                   {/* Civilians & Anomalies */}
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>CIVILIANS EXTRACTED:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", fontWeight: "bold" }}>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>CIVILIANS EXTRACTED:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#00ffcc", fontWeight: "bold" }}>
                       👥 {profile?.campaignStats?.civiliansExtracted || 0} survivors
                     </span>
                   </div>
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>ANOMALIES RECORDED:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#f0c929", fontWeight: "bold" }}>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>ANOMALIES RECORDED:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "#f0c929", fontWeight: "bold" }}>
                       🌀 {profile?.campaignStats?.anomaliesDiscovered || 0} discovered
                     </span>
                   </div>
-                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "4px" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)" }}>RESEARCH ACQUIRED:</span>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#a855f7", fontWeight: "bold" }}>
+                  <div style={{ display: "flex", justifyItems: "center", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.05)", paddingBottom: "6px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)" }}>RESEARCH ACQUIRED:</span>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#a855f7", fontWeight: "bold" }}>
                       🔬 {profile?.campaignStats?.researchDataCollected || 0} points
                     </span>
                   </div>
                   
                   {/* Resources grid */}
-                  <div style={{ marginTop: "4px", border: "1px solid rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.3)", padding: "8px" }}>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", letterSpacing: "0.1em", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "4px", marginBottom: "6px" }}>
+                  <div style={{ marginTop: "6px", border: "1px solid rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.3)", padding: "10px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-muted)", letterSpacing: "0.1em", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "4px", marginBottom: "8px" }}>
                       [ TOTAL DEPLOYMENT MATERIAL HARVEST ]
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
                       {(() => {
                         const res = profile?.campaignStats?.totalResourcesRecovered || {};
                         const keys = ["Metal", "Electronics", "Medical Supplies", "Energy Cells", "Components"];
                         return keys.map(k => {
                           const val = res[k] || 0;
                           return (
-                            <div key={k} style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px" }}>
+                            <div key={k} style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "11px" }}>
                               <span style={{ color: "var(--text-dim)" }}>{k.toUpperCase()}:</span>
                               <span style={{ color: val > 0 ? "#00ffcc" : "var(--text-muted)", fontWeight: "bold" }}>{val}</span>
                             </div>
@@ -2781,11 +3083,11 @@ export default function OperationsPage() {
                   </div>
                   
                   {/* Tactical stats grid */}
-                  <div style={{ marginTop: "8px", border: "1px solid rgba(255, 77, 77, 0.15)", background: "rgba(255, 77, 77, 0.01)", padding: "8px" }}>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--accent)", letterSpacing: "0.1em", borderBottom: "1px solid rgba(255, 77, 77, 0.15)", paddingBottom: "4px", marginBottom: "6px", fontWeight: "bold" }}>
+                  <div style={{ marginTop: "10px", border: "1px solid rgba(255, 77, 77, 0.15)", background: "rgba(255, 77, 77, 0.01)", padding: "10px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--accent)", letterSpacing: "0.1em", borderBottom: "1px solid rgba(255, 77, 77, 0.15)", paddingBottom: "4px", marginBottom: "8px", fontWeight: "bold" }}>
                       [ ACTIVE TACTICAL MODULE METRICS ]
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                       {[
                         { label: "MAX VITALITY HP", val: `${tacticalStats.maxHp} HP`, bonus: tacticalStats.maxHp > 100 ? `(+${tacticalStats.maxHp - 100})` : "" },
                         { label: "SHIELD ARMOR", val: `${tacticalStats.armor}%`, bonus: tacticalStats.armor > 0 ? `(+${tacticalStats.armor}%)` : "", color: "#0ea5e9" },
@@ -2796,10 +3098,10 @@ export default function OperationsPage() {
                         { label: "MEDICAL EFFICIENCY", val: `${tacticalStats.medEfficiency}%`, bonus: tacticalStats.medEfficiency > 100 ? `(+${tacticalStats.medEfficiency - 100}%)` : "", color: "#ff4d4d" },
                         { label: "RESEARCH EFFICIENCY", val: `${tacticalStats.resEfficiency}%`, bonus: tacticalStats.resEfficiency > 100 ? `(+${tacticalStats.resEfficiency - 100}%)` : "", color: "#a855f7" }
                       ].map(stat => (
-                        <div key={stat.label} style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "8.5px" }}>
+                        <div key={stat.label} style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: "11px" }}>
                           <span style={{ color: "var(--text-dim)" }}>{stat.label}:</span>
                           <span style={{ color: stat.color || "#fff", fontWeight: "bold" }}>
-                            {stat.val} <span style={{ color: "#22c55e", fontSize: "7.5px", marginLeft: "2px" }}>{stat.bonus}</span>
+                            {stat.val} <span style={{ color: "#22c55e", fontSize: "9.5px", marginLeft: "2px" }}>{stat.bonus}</span>
                           </span>
                         </div>
                       ))}
@@ -2807,14 +3109,14 @@ export default function OperationsPage() {
                   </div>
 
                   {/* Medical Stabilization Hub */}
-                  <div style={{ marginTop: "8px", border: "1px solid rgba(0, 255, 204, 0.2)", background: "rgba(0, 255, 204, 0.02)", padding: "8px" }}>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "#00ffcc", letterSpacing: "0.1em", borderBottom: "1px solid rgba(0, 255, 204, 0.2)", paddingBottom: "4px", marginBottom: "6px", fontWeight: "bold" }}>
+                  <div style={{ marginTop: "10px", border: "1px solid rgba(0, 255, 204, 0.2)", background: "rgba(0, 255, 204, 0.02)", padding: "10px" }}>
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#00ffcc", letterSpacing: "0.1em", borderBottom: "1px solid rgba(0, 255, 204, 0.2)", paddingBottom: "4px", marginBottom: "8px", fontWeight: "bold" }}>
                       [ MEDICAL STATION STABILIZATION HUB ]
                     </div>
-                    <p style={{ fontFamily: "var(--mono)", fontSize: "7.5px", color: "var(--text-muted)", margin: "0 0 6px 0", lineHeight: "1.3" }}>
+                    <p style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", margin: "0 0 8px 0", lineHeight: "1.4" }}>
                       Restore biometric integrity index using Division credits.
                     </p>
-                    <div style={{ display: "flex", gap: "6px" }}>
+                    <div style={{ display: "flex", gap: "8px" }}>
                       <button
                         onClick={() => {
                           if (!profile) return;
@@ -2835,7 +3137,7 @@ export default function OperationsPage() {
                         }}
                         style={{
                           flex: 1, background: "transparent", border: "1px solid #00ffcc", color: "#00ffcc",
-                          fontSize: "7.5px", padding: "4px", cursor: "pointer", fontFamily: "var(--mono)"
+                          fontSize: "10.5px", padding: "6px", cursor: "pointer", fontFamily: "var(--mono)"
                         }}
                       >
                         [ STIM REGEN (+30 HP) // 25 CR ]
@@ -2859,7 +3161,7 @@ export default function OperationsPage() {
                         }}
                         style={{
                           flex: 1, background: "transparent", border: "1px solid #00ffcc", color: "#00ffcc",
-                          fontSize: "7.5px", padding: "4px", cursor: "pointer", fontFamily: "var(--mono)"
+                          fontSize: "10.5px", padding: "6px", cursor: "pointer", fontFamily: "var(--mono)"
                         }}
                       >
                         [ FULL CELL CURE (100% HP) // 75 CR ]
@@ -3166,7 +3468,7 @@ export default function OperationsPage() {
               
               {/* Left Column: Equipped Gear Slots */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "4px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", letterSpacing: "0.15em", fontWeight: "bold", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "4px" }}>
                   [ EQUIPPED GEAR ]
                 </div>
 
@@ -3201,24 +3503,24 @@ export default function OperationsPage() {
                       </div>
                       
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block" }}>{s.label}</span>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)", display: "block" }}>{s.label}</span>
                         {item ? (
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <span style={{ fontFamily: "var(--title-font)", fontSize: "11px", color: "#fff", fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            <span style={{ fontFamily: "var(--title-font)", fontSize: "13px", color: "#fff", fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                               {item.name}
                             </span>
                             <button
                               onClick={() => handleUnequip(s.slot)}
                               style={{
                                 background: "none", border: "none", color: "#ff4d4d", cursor: "pointer",
-                                fontSize: "9px", fontFamily: "var(--mono)", padding: 0
+                                fontSize: "11px", fontFamily: "var(--mono)", padding: 0
                               }}
                             >
                               [ REMOVE ]
                             </button>
                           </div>
                         ) : (
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--accent)", display: "block", fontWeight: "bold", animation: "blink 1.8s infinite" }}>
                             SLOT EMPTY // UPLINK PENDING
                           </span>
                         )}
@@ -3239,22 +3541,22 @@ export default function OperationsPage() {
                   return (
                     <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center", alignItems: "stretch", width: "100%", gap: "16px" }}>
                       <div style={{ textAlign: "center", borderBottom: "1px dashed rgba(255,255,255,0.06)", paddingBottom: "12px" }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.2em", display: "block" }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", fontWeight: "bold", letterSpacing: "0.2em", display: "block" }}>
                           [ BIOMETRIC RADAR GRID ]
                         </span>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
                           SIGNAL BOUND SECURED // SLOT DRAG INJECTION READY
                         </span>
                       </div>
                       
                       {/* Red Queen Loadout Audit Suggestions */}
                       <div style={{ background: "rgba(255, 77, 77, 0.02)", border: "1px solid rgba(255, 77, 77, 0.15)", padding: "12px", borderRadius: "2px" }}>
-                        <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.1em", fontWeight: "bold", marginBottom: "8px" }}>
+                        <div style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--accent)", letterSpacing: "0.1em", fontWeight: "bold", marginBottom: "8px" }}>
                           [ RED QUEEN LOADOUT AUDIT ]
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                           {eqSuggestions.map((sug, idx) => (
-                            <div key={idx} style={{ fontFamily: "var(--mono)", fontSize: "9.5px", color: sug.includes("optimal") ? "#00ffcc" : "#ffc72c", display: "flex", gap: "6px", alignItems: "flex-start", lineHeight: "1.4" }}>
+                            <div key={idx} style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: sug.includes("optimal") ? "#00ffcc" : "#ffc72c", display: "flex", gap: "6px", alignItems: "flex-start", lineHeight: "1.4" }}>
                               <span>▶</span>
                               <span>{sug}</span>
                             </div>
@@ -3273,40 +3575,40 @@ export default function OperationsPage() {
                       <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between", gap: "12px", zIndex: 1 }}>
                         <div>
                           <div style={{ borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "8px", marginBottom: "8px" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>
                               [ INSPECTING LOADOUT SLOTS // EQUIPPED ]
                             </span>
-                            <h3 style={{ fontFamily: "var(--title-font)", fontSize: "16px", color: itemColor, margin: "4px 0 2px 0", fontWeight: "bold" }}>
+                            <h3 style={{ fontFamily: "var(--title-font)", fontSize: "17px", color: itemColor, margin: "4px 0 2px 0", fontWeight: "bold" }}>
                               {selectedInventoryItem.name}
                             </h3>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-muted)" }}>
                               {selectedInventoryItem.rarity.toUpperCase()} {selectedInventoryItem.slot.toUpperCase()} // LVL {selectedInventoryItem.itemLevel}
                             </span>
                           </div>
 
                           <div style={{ display: "flex", justifyContent: "space-between", background: "#0c0c0c", padding: "8px 12px", border: "1px solid var(--border)", marginBottom: "12px" }}>
                             <div>
-                              <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>RATING POWER</span>
-                              <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "#00ffcc", fontWeight: "bold" }}>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-muted)" }}>RATING POWER</span>
+                              <div style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "#00ffcc", fontWeight: "bold" }}>
                                 {selectedInventoryItem.power}
                               </div>
                             </div>
                             <div style={{ textAlign: "right" }}>
-                              <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)" }}>INTEGRITY QUALITY</span>
-                              <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "#fff", fontWeight: "bold" }}>
+                              <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-muted)" }}>INTEGRITY QUALITY</span>
+                              <div style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
                                 {selectedInventoryItem.quality}%
                               </div>
                             </div>
                           </div>
 
-                          <p style={{ fontSize: "10.5px", color: "var(--text-muted)", lineHeight: "1.4", margin: "0 0 12px 0" }}>
+                          <p style={{ fontSize: "12.5px", color: "var(--text-muted)", lineHeight: "1.5", margin: "0 0 12px 0" }}>
                             {selectedInventoryItem.desc}
                           </p>
 
                           {(() => {
                             const meta = getItemMetadata(selectedInventoryItem);
                             return (
-                              <div style={{ display: "flex", flexDirection: "column", gap: "5px", background: "#0c0c0c", border: "1px solid var(--border)", padding: "10px", margin: "10px 0", fontSize: "9px", fontFamily: "var(--mono)" }}>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "6px", background: "#0c0c0c", border: "1px solid var(--border)", padding: "10px", margin: "10px 0", fontSize: "11.5px", fontFamily: "var(--mono)" }}>
                                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                                   <span style={{ color: "var(--text-muted)" }}>SLOT:</span>
                                   <span style={{ color: "#fff", fontWeight: "bold" }}>{meta.slot.toUpperCase()}</span>
@@ -3343,10 +3645,10 @@ export default function OperationsPage() {
                           })()}
 
                           <div style={{ borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "8px" }}>
-                            <span style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>STAT MODULE MATRIX</span>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>STAT MODULE MATRIX</span>
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                               {Object.entries(selectedInventoryItem.stats || {}).map(([key, val]) => (
-                                <div key={key} style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontFamily: "var(--mono)", padding: "2px 0" }}>
+                                <div key={key} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontFamily: "var(--mono)", padding: "2px 0" }}>
                                   <span style={{ color: "var(--text-dim)", textTransform: "uppercase" }}>{key}</span>
                                   <span style={{ color: "#fff", fontWeight: "bold" }}>{val}</span>
                                 </div>
@@ -3360,7 +3662,7 @@ export default function OperationsPage() {
                             onClick={() => { handleUnequip(selectedInventoryItem.slot); setSelectedInventoryItem(null); }}
                             style={{
                               flex: 1, background: "rgba(255, 77, 77, 0.1)", border: "1px solid var(--accent)",
-                              color: "var(--accent)", padding: "8px", fontFamily: "var(--mono)", fontSize: "10px",
+                              color: "var(--accent)", padding: "8px", fontFamily: "var(--mono)", fontSize: "12px",
                               fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
                             }}
                           >
@@ -3370,7 +3672,7 @@ export default function OperationsPage() {
                             onClick={() => setSelectedInventoryItem(null)}
                             style={{
                               flex: 1, background: "none", border: "1px solid var(--border)",
-                              color: "var(--text-dim)", padding: "8px", fontFamily: "var(--mono)", fontSize: "10px",
+                              color: "var(--text-dim)", padding: "8px", fontFamily: "var(--mono)", fontSize: "12px",
                               fontWeight: "bold", cursor: "pointer", borderRadius: "2px"
                             }}
                           >
@@ -3791,6 +4093,57 @@ export default function OperationsPage() {
 
               </div>
 
+            </div>
+          )}
+
+          {activeTab === "settings" && (
+            <div className="panel" style={{ border: "1px solid var(--border)", padding: "40px", height: "100%", overflowY: "auto" }}>
+              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "16px", marginBottom: "24px" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.2em", display: "block", marginBottom: "6px" }}>
+                  SYSTEM SETTINGS & RESET CONTROL
+                </span>
+                <h1 style={{ fontFamily: "var(--title-font)", fontSize: "28px", color: "#fff", fontWeight: "900", letterSpacing: "0.1em", margin: 0 }}>
+                  OPERATIONAL CONTROL PANEL
+                </h1>
+              </div>
+
+              <div style={{ maxWidth: "600px", display: "flex", flexDirection: "column", gap: "24px" }}>
+                <div style={{ background: "rgba(255, 77, 77, 0.05)", border: "1px solid rgba(255, 77, 77, 0.2)", padding: "20px", borderRadius: "4px" }}>
+                  <h3 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--accent)", margin: "0 0 10px 0", fontWeight: "bold" }}>
+                    REPLAY SYSTEM ONBOARDING
+                  </h3>
+                  <p style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "rgba(255,255,255,0.7)", margin: "0 0 16px 0", lineHeight: "1.6" }}>
+                    Triggering this process will wipe the onboarding completion flag from your profile record (locally and on Supabase). You will be returned to Screen 1 of the RED QUEEN network initialization protocol immediately.
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (!profile) return;
+                      const identifier = authIdentifier || (publicKey ? publicKey.toString() : "offline-operative");
+                      const updatedWorldState = {
+                        ...profile.worldState,
+                        completedOnboarding: false
+                      };
+                      const updatedProfile = {
+                        ...profile,
+                        worldState: updatedWorldState
+                      };
+                      setProfile(updatedProfile);
+                      setCompletedOnboarding(false);
+                      setGameplayOnboardingStep(1);
+                      setActiveTab("center");
+                      saveProfile(identifier, updatedProfile);
+                      setAiLogs(prev => [...prev, "[SYS] ONBOARDING FLOW MANUALLY RE-INITIALIZED BY OPERATOR"]);
+                    }}
+                    style={{
+                      background: "var(--accent)", color: "#000", border: "none", padding: "12px 20px",
+                      fontFamily: "var(--title-font)", fontSize: "12px", fontWeight: "bold", cursor: "pointer",
+                      borderRadius: "2px", letterSpacing: "0.05em"
+                    }}
+                  >
+                    RESET & REPLAY ONBOARDING
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

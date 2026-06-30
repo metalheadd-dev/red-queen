@@ -33,14 +33,29 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const [loading, setLoading] = useState(true);
 
   // Computed virtual address identifier used to query databases
-  const authIdentifier = user
-    ? (user.email
-        ? `email-auth:${user.id}`
-        : (user.user_metadata?.wallet_address ||
-           user.identities?.find((id) => id.provider === "web3" || id.provider === "solana")?.identity_data?.sub ||
-           user.identities?.[0]?.identity_data?.sub ||
-           user.id))
-    : "";
+  const getSanitizedAuthIdentifier = () => {
+    if (!user) return "";
+    const rawId = user.email
+      ? `email-auth:${user.id}`
+      : (user.user_metadata?.wallet_address ||
+         user.identities?.find((id) => id.provider === "web3" || id.provider === "solana")?.identity_data?.sub ||
+         user.identities?.[0]?.identity_data?.sub ||
+         user.id);
+    
+    if (!rawId) return "";
+    if (rawId.startsWith("email-auth:")) return rawId;
+    
+    // Clean wallet prefixes
+    if (rawId.includes("web3:solana:")) {
+      return rawId.split("web3:solana:")[1] || rawId;
+    }
+    if (rawId.includes("web3:sol:")) {
+      return rawId.split("web3:sol:")[1] || rawId;
+    }
+    return rawId;
+  };
+
+  const authIdentifier = getSanitizedAuthIdentifier();
 
   useEffect(() => {
     if (!supabaseClient) {
