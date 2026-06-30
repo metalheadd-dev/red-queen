@@ -11,9 +11,9 @@ export async function POST(req: Request) {
   const { code, wallet } = body;
 
   const authIdentifier = await getAuthIdentifier(req);
-  const activeIdentifier = authIdentifier || wallet;
+  const activeIdentifier = wallet || authIdentifier;
   if (!activeIdentifier) {
-    return Response.json({ error: "Unauthorized session" }, { status: 401 });
+    return Response.json({ error: "Unauthorized session: No wallet or auth identifier provided" }, { status: 401 });
   }
 
   if (!code || typeof code !== "string") {
