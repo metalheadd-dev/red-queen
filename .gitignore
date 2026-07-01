@@ -48,5 +48,21 @@ whitepaper.md
 MILESTONE_2_REPORT.md
 PRODUCTION_MILESTONE_REPORT.md
 
+# internal AI agent config and persona files (never publish)
+AGENTS.md
+MEMORY.md
+SOUL.md
 
+# internal game documentation (never publish)
+GAME DOCS/
 
+# database migration scripts (never publish)
+supabase_migration.sql
+*.sql
+
+# internal dev reports (never publish)
+*_REPORT.md
+*_HOTFIX_REPORT.md
+
+# debug and scratch scripts (never publish)
+scratch/
