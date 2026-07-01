@@ -36,44 +36,55 @@ export default function AccessGuard({ children }: AccessGuardProps) {
   const [verifyStatus, setVerifyStatus] = useState("");
   
   // Load profile from API and verify access status
-  // Supabase is always the source of truth. localStorage is written as cache only — never used to grant access.
+  // Supabase is always the source of truth.
+  //
+  // ╔══════════════════════════════════════════════════════════════╗
+  // ║  DEMO MODE: All authenticated players are granted access.   ║
+  // ║  Closed Beta gating (Holder Tier / Invite Code) is          ║
+  // ║  preserved below in comments for future re-activation.      ║
+  // ╚══════════════════════════════════════════════════════════════╝
   const checkAccess = useCallback(async (identifier: string, token?: string) => {
     if (!identifier) return;
 
     setProfileLoading(true);
     setVerifyStatus("");
     try {
-      // Always verify against Supabase
+      // Fetch profile from Supabase (used by the game, not for access gating in demo)
       const res = await fetch(`/api/profile?wallet=${identifier}`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }
       });
       const data = await res.json();
-      
       if (data && data.profile) {
-        const prof = data.profile;
-        setProfile(prof);
-        
-        // Validate Access Conditions from Supabase data
-        const hasBalance = (prof.verified_balance || 0) >= 1000000 || (prof.holder_tier || 0) >= 2;
-        const hasInvite = prof.access_type === "Invite" || prof.access_type === "Holder" || prof.access_type === "Admin";
-        
-        if (hasBalance || hasInvite) {
-          // Write to localStorage as cache only — not used to grant access on its own
-          if (typeof window !== "undefined") {
-            localStorage.setItem(`rq_invite_grant:${identifier}`, prof.access_type || "Invite");
-          }
-          setAccessGranted(true);
-        } else {
-          setAccessGranted(false);
-        }
-      } else {
-        setAccessGranted(false);
+        setProfile(data.profile);
       }
+
+      // ── DEMO MODE: grant access to every authenticated player ──────────────
+      setAccessGranted(true);
+
+      // ── CLOSED BETA GATING (disabled for demo — uncomment to re-enable) ────
+      // if (data && data.profile) {
+      //   const prof = data.profile;
+      //   const hasBalance = (prof.verified_balance || 0) >= 1000000 || (prof.holder_tier || 0) >= 2;
+      //   const hasInvite = prof.access_type === "Invite" || prof.access_type === "Holder" || prof.access_type === "Admin";
+      //   if (hasBalance || hasInvite) {
+      //     if (typeof window !== "undefined") {
+      //       localStorage.setItem(`rq_invite_grant:${identifier}`, prof.access_type || "Invite");
+      //     }
+      //     setAccessGranted(true);
+      //   } else {
+      //     setAccessGranted(false);
+      //   }
+      // } else {
+      //   setAccessGranted(false);
+      // }
+      // ────────────────────────────────────────────────────────────────────────
+
     } catch (e) {
       console.error("Access verification error:", e);
-      setAccessGranted(false);
+      // Even on error, grant access in demo mode — don't block players
+      setAccessGranted(true);
     }
     setProfileLoading(false);
   }, []);
@@ -157,20 +168,20 @@ export default function AccessGuard({ children }: AccessGuardProps) {
     setActivating(false);
   };
 
-  // State 1: Wallet not connected
+  // State 1: Not authenticated
   if (!connected) {
     return (
       <div style={containerStyle}>
         <div style={panelStyle}>
           <div style={brandHeaderStyle}>
             <SolvivalIcon size={48} />
-            <h1 style={titleStyle}>RED QUEEN ACCESS GATEWAY</h1>
-            <p style={subtitleStyle}>SOLVIVAL CORP // BETA PROTOCOLS</p>
+            <h1 style={titleStyle}>RED QUEEN: OPERATIONS</h1>
+            <p style={subtitleStyle}>SOLVIVAL CORP // PUBLIC DEMO</p>
           </div>
           
           <div className="alert warn" style={{ margin: "24px 0" }}>
-            <strong style={{ display: "block", marginBottom: "4px" }}>BETA DEPLOYMENT DETECTED</strong>
-            Operations is a restricted sector. Unauthenticated access is strictly prohibited.
+            <strong style={{ display: "block", marginBottom: "4px" }}>AUTHENTICATION REQUIRED</strong>
+            Connect your wallet or sign in to access Red Queen: Operations.
           </div>
 
           <div style={{ textAlign: "center", margin: "32px 0" }}>
@@ -179,11 +190,11 @@ export default function AccessGuard({ children }: AccessGuardProps) {
 
           <div style={descBoxStyle}>
             <h3 style={{ color: "#fff", fontFamily: "var(--mono)", fontSize: "14px", marginBottom: "8px" }}>
-              CLOSED BETA REQUIREMENTS
+              PUBLIC DEMO — FREE ACCESS
             </h3>
             <ul style={listStyle}>
-              <li>Hold at least <strong>1,000,000 $THREAT</strong> tokens in your Solana wallet.</li>
-              <li>OR activate a valid <strong>Invite Code</strong> issued by Solvival Corp.</li>
+              <li>Connect your Solana wallet to enter immediately.</li>
+              <li>All progress is saved to your account automatically.</li>
             </ul>
           </div>
         </div>
