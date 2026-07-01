@@ -10,6 +10,7 @@ interface AuthContextType {
   authIdentifier: string;
   loginWithEmail: (email: string, password: string) => Promise<{ error: any }>;
   signUpWithEmail: (email: string, password: string) => Promise<{ user: User | null; error: any }>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
   loginWithWallet: () => Promise<{ error: any }>;
   logout: () => Promise<{ error: any }>;
 }
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   authIdentifier: "",
   loginWithEmail: async () => ({ error: "Auth client not initialized" }),
   signUpWithEmail: async () => ({ user: null, error: "Auth client not initialized" }),
+  resetPassword: async () => ({ error: "Auth client not initialized" }),
   loginWithWallet: async () => ({ error: "Auth client not initialized" }),
   logout: async () => ({ error: "Auth client not initialized" }),
 });
@@ -113,6 +115,18 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
   };
 
+  const resetPassword = async (email: string) => {
+    if (!supabaseClient) return { error: new Error("Supabase client is not configured.") };
+    try {
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth/reset-password` : undefined,
+      });
+      return { error };
+    } catch (err: any) {
+      return { error: err };
+    }
+  };
+
   const loginWithWallet = async () => {
     if (!supabaseClient) return { error: new Error("Supabase client is not configured. Add NEXT_PUBLIC_SUPABASE_ANON_KEY.") };
     try {
@@ -148,6 +162,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         authIdentifier,
         loginWithEmail,
         signUpWithEmail,
+        resetPassword,
         loginWithWallet,
         logout,
       }}

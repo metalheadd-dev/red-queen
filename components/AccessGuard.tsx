@@ -24,16 +24,24 @@ type ProfileData = {
 
 export default function AccessGuard({ children }: AccessGuardProps) {
   const { connected } = useWallet();
-  const { authIdentifier, session, loading: authLoading, loginWithWallet } = useAuth();
+  const { authIdentifier, session, loading: authLoading, loginWithWallet, loginWithEmail, signUpWithEmail, resetPassword } = useAuth();
   
   const [profileLoading, setProfileLoading] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [accessGranted, setAccessGranted] = useState<boolean | null>(null);
   
-  // Invite Activation state
+  // Invite Activation state (preserved for future closed beta)
   const [inviteCode, setInviteCode] = useState("");
   const [activating, setActivating] = useState(false);
   const [verifyStatus, setVerifyStatus] = useState("");
+
+  // Email auth state
+  const [emailMode, setEmailMode] = useState<"login" | "register" | "forgot">("login");
+  const [emailInput, setEmailInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [emailSuccess, setEmailSuccess] = useState("");
   
   // Load profile from API and verify access status
   // Supabase is always the source of truth.
@@ -96,12 +104,12 @@ export default function AccessGuard({ children }: AccessGuardProps) {
     }
   }, [connected, session, authLoading, loginWithWallet]);
 
-  // Effect to verify access whenever session or wallet changes
+  // Effect to verify access whenever the authenticated identity changes (wallet OR email)
   // IMPORTANT: wait until authLoading is false so we have the session token ready
   useEffect(() => {
-    if (connected && authIdentifier && !authLoading) {
+    if (authIdentifier && !authLoading) {
       checkAccess(authIdentifier, session?.access_token);
-    } else if (!connected) {
+    } else if (!authIdentifier && !authLoading) {
       setProfile(null);
       setAccessGranted(null);
     }
@@ -168,35 +176,129 @@ export default function AccessGuard({ children }: AccessGuardProps) {
     setActivating(false);
   };
 
-  // State 1: Not authenticated
-  if (!connected) {
+  // State 1: Not authenticated (no wallet connected AND no email session)
+  if (!authIdentifier && !authLoading) {
+    const handleEmailSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setEmailError("");
+      setEmailSuccess("");
+      setEmailLoading(true);
+
+      if (emailMode === "login") {
+        const { error } = await loginWithEmail(emailInput, passwordInput);
+        if (error) setEmailError(error.message || "Login failed. Check your credentials.");
+      } else if (emailMode === "register") {
+        const { error } = await signUpWithEmail(emailInput, passwordInput);
+        if (error) setEmailError(error.message || "Registration failed.");
+        else setEmailSuccess("Account created! Check your email to confirm, then log in.");
+      } else if (emailMode === "forgot") {
+        const { error } = await resetPassword(emailInput);
+        if (error) setEmailError(error.message || "Failed to send reset email.");
+        else setEmailSuccess("Password reset email sent. Check your inbox.");
+      }
+
+      setEmailLoading(false);
+    };
+
     return (
       <div style={containerStyle}>
-        <div style={panelStyle}>
+        <div style={{ ...panelStyle, maxWidth: "520px" }}>
           <div style={brandHeaderStyle}>
             <SolvivalIcon size={48} />
             <h1 style={titleStyle}>RED QUEEN: OPERATIONS</h1>
             <p style={subtitleStyle}>SOLVIVAL CORP // PUBLIC DEMO</p>
           </div>
-          
-          <div className="alert warn" style={{ margin: "24px 0" }}>
-            <strong style={{ display: "block", marginBottom: "4px" }}>AUTHENTICATION REQUIRED</strong>
-            Connect your wallet or sign in to access Red Queen: Operations.
-          </div>
 
-          <div style={{ textAlign: "center", margin: "32px 0" }}>
+          {/* ── WALLET LOGIN ─────────────────────────────── */}
+          <div style={{ margin: "24px 0 0", textAlign: "center" }}>
+            <p style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#888", marginBottom: "10px", letterSpacing: "0.1em" }}>CONNECT SOLANA WALLET</p>
             <WalletMultiButton />
           </div>
 
-          <div style={descBoxStyle}>
-            <h3 style={{ color: "#fff", fontFamily: "var(--mono)", fontSize: "14px", marginBottom: "8px" }}>
-              PUBLIC DEMO — FREE ACCESS
-            </h3>
-            <ul style={listStyle}>
-              <li>Connect your Solana wallet to enter immediately.</li>
-              <li>All progress is saved to your account automatically.</li>
-            </ul>
+          {/* ── DIVIDER ──────────────────────────────────── */}
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "20px 0" }}>
+            <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
+            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#555", letterSpacing: "0.15em" }}>OR</span>
+            <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
           </div>
+
+          {/* ── EMAIL AUTH TABS ──────────────────────────── */}
+          <div style={{ display: "flex", gap: "0", marginBottom: "16px", borderBottom: "1px solid var(--border)" }}>
+            {(["login", "register"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => { setEmailMode(mode); setEmailError(""); setEmailSuccess(""); }}
+                style={{
+                  flex: 1, padding: "8px", background: "none", border: "none",
+                  borderBottom: emailMode === mode ? "2px solid var(--accent)" : "2px solid transparent",
+                  color: emailMode === mode ? "var(--accent)" : "#555",
+                  fontFamily: "var(--mono)", fontSize: "11px", letterSpacing: "0.12em",
+                  cursor: "pointer", textTransform: "uppercase", fontWeight: "bold",
+                  transition: "all 0.15s"
+                }}
+              >
+                {mode === "login" ? "LOGIN" : "CREATE ACCOUNT"}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={handleEmailSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <input
+              type="email"
+              placeholder="EMAIL ADDRESS"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              required
+              style={inputStyle}
+            />
+            {emailMode !== "forgot" && (
+              <input
+                type="password"
+                placeholder="PASSWORD"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                required
+                style={inputStyle}
+              />
+            )}
+
+            {emailError && (
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", padding: "8px", border: "1px solid rgba(255,77,77,0.3)", background: "rgba(255,77,77,0.05)" }}>
+                {emailError}
+              </div>
+            )}
+            {emailSuccess && (
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc", padding: "8px", border: "1px solid rgba(0,255,204,0.3)", background: "rgba(0,255,204,0.05)" }}>
+                {emailSuccess}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={emailLoading}
+              className="btn"
+              style={{ width: "100%", marginTop: "4px" }}
+            >
+              {emailLoading ? "PROCESSING..." : emailMode === "login" ? "LOGIN" : emailMode === "register" ? "CREATE ACCOUNT" : "SEND RESET LINK"}
+            </button>
+          </form>
+
+          {emailMode !== "forgot" && (
+            <button
+              onClick={() => { setEmailMode("forgot"); setEmailError(""); setEmailSuccess(""); }}
+              style={{ background: "none", border: "none", color: "#555", fontFamily: "var(--mono)", fontSize: "10px", cursor: "pointer", marginTop: "10px", textDecoration: "underline", padding: 0 }}
+            >
+              Forgot password?
+            </button>
+          )}
+          {emailMode === "forgot" && (
+            <button
+              onClick={() => { setEmailMode("login"); setEmailError(""); setEmailSuccess(""); }}
+              style={{ background: "none", border: "none", color: "#555", fontFamily: "var(--mono)", fontSize: "10px", cursor: "pointer", marginTop: "10px", textDecoration: "underline", padding: 0 }}
+            >
+              ← Back to login
+            </button>
+          )}
         </div>
       </div>
     );
