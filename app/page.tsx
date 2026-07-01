@@ -288,7 +288,7 @@ export default function HomePage() {
               e.currentTarget.style.transform = "scale(1)";
               e.currentTarget.style.boxShadow = "0 0 25px rgba(255, 77, 77, 0.5)";
             }}>
-              JOIN PRIVATE BETA
+              BECOME SOLVIVOR
             </button>
           </Link>
         </div>
