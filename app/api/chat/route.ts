@@ -119,6 +119,15 @@ export async function POST(req: Request) {
   * Adaptability: ${stats.adaptability}
   * Resourcefulness: ${stats.resourcefulness}
   * Surveillance Resistance: ${stats.surveillance_resistance}
+- Active Class: ${userProfile.class || "None"}
+- Active Role: ${userProfile.role || "None"}
+- Division Faction: ${userProfile.faction || "None"}
+- Tactical Level: ${userProfile.level || 1}
+- Experience (XP): ${userProfile.xp || 0}
+- Operational Health: ${userProfile.health || 100}%
+- Credits: ${userProfile.credits || 0}
+- Reputation: ${userProfile.reputation || 0}
+- Completed Missions: ${Array.isArray(userProfile.completed_missions) ? userProfile.completed_missions.length : 0}
 - Last Interaction Log: ${userProfile.last_interaction || "First Uplink Established"}
 ` : `
 - Hashed Identity: ${hashedWallet}
@@ -126,6 +135,10 @@ export async function POST(req: Request) {
 - Chosen Threat Focus Areas: None selected yet
 - Active Bio-Score: PENDING EVALUATION (0%)
 - Sub-Stats: All at 0
+- Active Class: None
+- Active Role: None
+- Division Faction: None
+- Tactical Level: 1
 `;
 
     const systemInstruction = `${SOUL_PROMPT}
@@ -143,7 +156,8 @@ RE-ACTIVATION RULES & PARANOIA:
    - "[SYSTEM NOTICE: Threat exposure elevated]"
    - "[SYSTEM NOTICE: You previously ignored surveillance warnings]"
    - "[SYSTEM NOTICE: Threat interaction history updated]"
-   Keep these warnings naturally placed in your response text. Maintain your signature cold, observant, slightly dangerous, and warnings-heavy Red Queen voice.`;
+   Keep these warnings naturally placed in your response text. Maintain your signature cold, observant, slightly dangerous, and warnings-heavy Red Queen voice.
+4. If they have a Class, Role, or Faction assigned (other than 'None'), reference their specific tactical division and specialized training in your communications. For example, speak of their Faction's strategic initiatives, or comment on their class capabilities (e.g., Assault breaching protocols, Medic stim routing, Recon surveillance bypasses) or active role. Treat their gameplay level and Bio-Score progress with appropriate gravity.`;
 
     const apiMessages = [
       { role: "system", content: systemInstruction },
