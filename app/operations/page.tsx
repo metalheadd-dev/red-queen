@@ -156,7 +156,7 @@ export default function OperationsPage() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [equippedGear, setEquippedGear] = useState<Record<string, InventoryItem | null>>({});
   const [loadingOps, setLoadingOps] = useState(false);
-  const [activeTab, setActiveTab] = useState<"center" | "profile" | "inventory" | "settings">("center");
+  const [activeTab, setActiveTab] = useState<"center" | "profile" | "inventory" | "settings" | "manual">("center");
   const [completedOnboarding, setCompletedOnboarding] = useState<boolean>(true);
   const [gameplayOnboardingStep, setGameplayOnboardingStep] = useState<number>(1);
 
