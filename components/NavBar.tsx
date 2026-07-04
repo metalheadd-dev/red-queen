@@ -35,6 +35,7 @@ export default function NavBar() {
     { href: "/threat-vector", label: "THREAT VECTORS", subtitle: "Interactive database of monitored digital and societal threats" },
     { href: "/solvivors", label: "SOLVIVORS", subtitle: "Classified news, operational briefs, bounties, and media archives" },
     { href: "/survival-kit", label: "SURVIVAL KIT", subtitle: "Digital survival documentation and threat response protocols" },
+    { href: "/operations/docs", label: "OPERATIONS MANUAL", subtitle: "Simulator gameplay guide and schematics manual" },
   ];
 
   const legalLinks = [

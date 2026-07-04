@@ -2334,6 +2334,14 @@ export default function OperationsPage() {
           >
             [ RE-INITIALIZE ]
           </button>
+          
+          <Link
+            href="/operations/docs"
+            className="btn btn-outline"
+            style={{ fontSize: "11px", padding: "4px 10px", borderColor: "rgba(0,255,204,0.3)", color: "#00ffcc", cursor: "pointer", fontWeight: "bold", textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+          >
+            [ DOCS 🗎 ]
+          </Link>
         </div>
       </header>
 
