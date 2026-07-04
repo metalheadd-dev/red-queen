@@ -5,6 +5,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import AccessGuard from "@/components/AccessGuard";
+import OperationsManualView from "@/components/OperationsManualView";
 import { DEFAULT_STATS, UserStats, calculateBioScore, getClearanceLevel } from "@/lib/progression";
 
 // Game Types & Data imports
@@ -2334,14 +2335,6 @@ export default function OperationsPage() {
           >
             [ RE-INITIALIZE ]
           </button>
-          
-          <Link
-            href="/operations/docs"
-            className="btn btn-outline"
-            style={{ fontSize: "11px", padding: "4px 10px", borderColor: "rgba(0,255,204,0.3)", color: "#00ffcc", cursor: "pointer", fontWeight: "bold", textDecoration: "none", display: "inline-flex", alignItems: "center" }}
-          >
-            [ DOCS 🗎 ]
-          </Link>
         </div>
       </header>
 
@@ -2411,6 +2404,20 @@ export default function OperationsPage() {
             }}
           >
             ⚙️ SETTINGS
+          </button>
+
+          <button
+            onClick={() => setActiveTab("manual")}
+            style={{
+              width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
+              background: activeTab === "manual" ? "rgba(255, 77, 77, 0.06)" : "none",
+              color: activeTab === "manual" ? "var(--accent)" : "var(--text-dim)",
+              borderColor: activeTab === "manual" ? "rgba(255, 77, 77, 0.3)" : "var(--border)",
+              fontFamily: "var(--title-font)", fontSize: "13px", textAlign: "left", cursor: "pointer",
+              transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em"
+            }}
+          >
+            📖 SYSTEM GUIDE
           </button>
 
           <div style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "16px" }}>
@@ -4475,6 +4482,12 @@ export default function OperationsPage() {
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "manual" && (
+            <div style={{ height: "100%", overflow: "hidden" }}>
+              <OperationsManualView />
             </div>
           )}
 
