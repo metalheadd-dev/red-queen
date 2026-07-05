@@ -178,7 +178,8 @@ export default function OperationsPage() {
     let currentLogIndex = 0;
     const interval = setInterval(() => {
       if (currentLogIndex < logs.length) {
-        setBootLogs(prev => [...prev, logs[currentLogIndex]]);
+        const logLine = logs[currentLogIndex];
+        setBootLogs(prev => [...prev, logLine]);
         try {
           mainframeAudio.playTick();
         } catch (e) {}
@@ -1962,8 +1963,8 @@ export default function OperationsPage() {
         {/* Boot Logs */}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "600px", width: "100%" }}>
           {bootLogs.map((log, idx) => (
-            <div key={idx} style={{ fontSize: "14px", borderLeft: "2px solid #00ffcc", paddingLeft: "12px", color: log.startsWith("[OK]") ? "#00ffcc" : "#fff" }}>
-              {log}
+            <div key={idx} style={{ fontSize: "14px", borderLeft: "2px solid #00ffcc", paddingLeft: "12px", color: (log && log.startsWith("[OK]")) ? "#00ffcc" : "#fff" }}>
+              {log || ""}
             </div>
           ))}
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
