@@ -482,6 +482,24 @@ export default function CombatSimulationPage() {
       return;
     }
 
+    // ATTACK: only one attack action allowed per round
+    if (type === "attack") {
+      const alreadyHasAttack = playerPlanActions.some(a => a.type === "attack");
+      if (alreadyHasAttack) {
+        alert("TACTICAL LIMIT: You can only queue one attack action per round.");
+        return;
+      }
+    }
+
+    // DEFEND: only one defend per specific zone (subChoice is the zone key)
+    if (type === "defend") {
+      const alreadyDefendingZone = playerPlanActions.some(a => a.type === "defend" && a.subChoice === subChoice);
+      if (alreadyDefendingZone) {
+        alert(`TACTICAL LIMIT: You are already defending ${subChoice} this round.`);
+        return;
+      }
+    }
+
     // Guard consumable inventory limits in plan
     if (type === "consumable") {
       const alreadyQueuedCount = playerPlanActions.filter(a => a.subChoice === subChoice).length;
@@ -1683,13 +1701,12 @@ export default function CombatSimulationPage() {
 
                       <button
                         onClick={commitTacticalPlan}
-                        disabled={playerPlanActions.length === 0}
                         className="btn"
                         style={{
-                          background: playerPlanActions.length === 0 ? "rgba(255,255,255,0.02)" : "rgba(0,255,204,0.2)",
-                          border: playerPlanActions.length === 0 ? "1px solid rgba(255,255,255,0.06)" : "1px solid var(--accent)",
-                          color: playerPlanActions.length === 0 ? "var(--text-dim)" : "var(--accent)",
-                          fontFamily: "var(--mono)", fontSize: "11px", padding: "10px", cursor: playerPlanActions.length === 0 ? "not-allowed" : "pointer", borderRadius: "2px", fontWeight: "bold"
+                          background: "rgba(0,255,204,0.2)",
+                          border: "1px solid var(--accent)",
+                          color: "var(--accent)",
+                          fontFamily: "var(--mono)", fontSize: "11px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
                         }}
                       >
                         🚀 COMMIT PLAN

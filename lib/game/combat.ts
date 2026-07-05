@@ -537,27 +537,26 @@ export function resolveCombatPlans(
   // 3. Attacks & Specials
 
   const resolvePhase = (actionFilter: (act: TacticalAction) => boolean) => {
-    const maxLen = Math.max(pActions.length, oActions.length);
+    const filteredP = pActions.filter(actionFilter);
+    const filteredO = oActions.filter(actionFilter);
+    const maxLen = Math.max(filteredP.length, filteredO.length);
     for (let i = 0; i < maxLen; i++) {
       if (player.hp <= 0 || opponent.hp <= 0) break;
 
-      // Player Action
-      if (i < pActions.length && actionFilter(pActions[i])) {
-        const act = pActions[i];
+      // Player Action first (player acts simultaneously/slightly before)
+      if (i < filteredP.length) {
+        const act = filteredP[i];
         const res = resolveSingleAction(player, opponent, act, player, opponent, round);
         roundLogs.push(res);
-        pActions.splice(i, 1);
-        oActions.length > pActions.length ? i-- : null; // adjust index as item is consumed
       }
 
       if (player.hp <= 0 || opponent.hp <= 0) break;
 
       // Opponent Action
-      if (i < oActions.length && actionFilter(oActions[i])) {
-        const act = oActions[i];
+      if (i < filteredO.length) {
+        const act = filteredO[i];
         const res = resolveSingleAction(opponent, player, act, player, opponent, round);
         roundLogs.push(res);
-        oActions.splice(i, 1);
       }
     }
   };
