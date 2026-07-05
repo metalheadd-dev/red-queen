@@ -1955,7 +1955,7 @@ export default function OperationsPage() {
         
         {/* Terminal Header */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-          <div style={{ width: "12px", height: "12px", background: "#00ffcc", borderRadius: "50%", animation: "boot-blink 1s ease-in-out infinite" }} />
+          <div style={{ width: "12px", height: "12px", background: "#00ffcc", borderRadius: "50%", animation: "alert-blink 1.5s ease-in-out infinite" }} />
           <span style={{ fontSize: "16px", fontWeight: "bold", letterSpacing: "0.15em" }}>RED QUEEN SECURE BOOT MATRIX</span>
         </div>
 
@@ -1968,25 +1968,9 @@ export default function OperationsPage() {
           ))}
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <span style={{ color: "#00ffcc" }}>&gt;</span>
-            <span style={{ width: "8px", height: "15px", background: "#00ffcc", animation: "boot-blink 0.8s steps(2, start) infinite" }} />
+            <span style={{ width: "8px", height: "15px", background: "#00ffcc", animation: "alert-blink 1s steps(2, start) infinite" }} />
           </div>
         </div>
-
-        <style jsx>{`
-          @keyframes boot-blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.15; }
-          }
-          .crt-scanlines {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
-            background-size: 100% 3px;
-            z-index: 999999;
-            pointer-events: none;
-            opacity: 0.4;
-          }
-        `}</style>
       </div>
     );
   }

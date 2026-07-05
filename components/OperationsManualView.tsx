@@ -65,7 +65,7 @@ export default function OperationsManualView() {
         <div style={{ flex: 1, padding: "32px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "24px" }} className="custom-scrollbar">
           
           {subTab === "section1" && (
-            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ animation: "fade-in 0.25s ease-out forwards", display: "flex", flexDirection: "column", gap: "20px" }}>
               <h3 style={{ margin: "0 0 12px 0", color: "#fff", fontFamily: "var(--title-font)", fontSize: "18px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "8px" }}>
                 ## SECTION 1: LORE & STRATEGIC OVERVIEW
               </h3>
@@ -100,7 +100,7 @@ export default function OperationsManualView() {
           )}
 
           {subTab === "section2" && (
-            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ animation: "fade-in 0.25s ease-out forwards", display: "flex", flexDirection: "column", gap: "20px" }}>
               <h3 style={{ margin: "0 0 12px 0", color: "#fff", fontFamily: "var(--title-font)", fontSize: "18px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "8px" }}>
                 ## SECTION 2: CHARACTERS, CLASSES & ROLES
               </h3>
@@ -165,7 +165,7 @@ export default function OperationsManualView() {
           )}
 
           {subTab === "section3" && (
-            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ animation: "fade-in 0.25s ease-out forwards", display: "flex", flexDirection: "column", gap: "20px" }}>
               <h3 style={{ margin: "0 0 12px 0", color: "#fff", fontFamily: "var(--title-font)", fontSize: "18px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "8px" }}>
                 ## SECTION 3: SYSTEM METRICS & CURRENCIES
               </h3>
@@ -251,7 +251,7 @@ export default function OperationsManualView() {
           )}
 
           {subTab === "section4" && (
-            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ animation: "fade-in 0.25s ease-out forwards", display: "flex", flexDirection: "column", gap: "20px" }}>
               <h3 style={{ margin: "0 0 12px 0", color: "#fff", fontFamily: "var(--title-font)", fontSize: "18px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "8px" }}>
                 ## SECTION 4: THE USER INTERFACE DECKS (TABS)
               </h3>
@@ -306,7 +306,7 @@ export default function OperationsManualView() {
           )}
 
           {subTab === "section5" && (
-            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ animation: "fade-in 0.25s ease-out forwards", display: "flex", flexDirection: "column", gap: "20px" }}>
               <h3 style={{ margin: "0 0 12px 0", color: "#fff", fontFamily: "var(--title-font)", fontSize: "18px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "8px" }}>
                 ## SECTION 5: GAME ITEMS, RESOURCES & BLUEPRINTS
               </h3>
@@ -360,7 +360,7 @@ export default function OperationsManualView() {
           )}
 
           {subTab === "section6" && (
-            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ animation: "fade-in 0.25s ease-out forwards", display: "flex", flexDirection: "column", gap: "20px" }}>
               <h3 style={{ margin: "0 0 12px 0", color: "#fff", fontFamily: "var(--title-font)", fontSize: "18px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "8px" }}>
                 ## SECTION 6: $THREAT TOKEN UTILITY
               </h3>
@@ -391,7 +391,7 @@ export default function OperationsManualView() {
           )}
 
           {subTab === "section7" && (
-            <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ animation: "fade-in 0.25s ease-out forwards", display: "flex", flexDirection: "column", gap: "20px" }}>
               <h3 style={{ margin: "0 0 12px 0", color: "#fff", fontFamily: "var(--title-font)", fontSize: "18px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "8px" }}>
                 ## SECTION 7: RED QUEEN AI & OPERATIONAL INTELLIGENCE
               </h3>
@@ -474,26 +474,6 @@ export default function OperationsManualView() {
 
         </div>
       </div>
-
-      <style jsx>{`
-        .animation-fade-in {
-          animation: fade 0.2s ease-out forwards;
-        }
-        @keyframes fade {
-          from { opacity: 0; transform: translateY(4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255,255,255,0.01);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,0.1);
-          border-radius: 3px;
-        }
-      `}</style>
     </div>
   );
 }
