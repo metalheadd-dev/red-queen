@@ -17,9 +17,11 @@ import {
   BattleResult,
   CombatantState,
   StatusEffect,
-  executeCombatAction,
-  tickStatusEffects,
-  calculateEnemyAIDecision,
+  TacticalAction,
+  TacticalPlan,
+  calculateEnemyTacticalPlan,
+  resolveCombatPlans,
+  getRedQueenTacticalAdvice,
   hasStatus
 } from "@/lib/game/combat";
 
@@ -67,6 +69,8 @@ export default function CombatSimulationPage() {
   const [opponentEffects, setOpponentEffects] = useState<StatusEffect[]>([]);
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
   const [isSimulationConcluded, setIsSimulationConcluded] = useState(false);
+  const [playerPlanActions, setPlayerPlanActions] = useState<TacticalAction[]>([]);
+  const [playerAp, setPlayerAp] = useState(100);
 
   const logEndRef = useRef<HTMLDivElement>(null);
 
@@ -333,6 +337,8 @@ export default function CombatSimulationPage() {
     setOpponentEffects([]);
     setActiveSubmenu(null);
     setIsSimulationConcluded(false);
+    setPlayerPlanActions([]);
+    setPlayerAp(100);
     setBattleResult(null);
 
     setCombatLogs([
@@ -343,7 +349,7 @@ export default function CombatSimulationPage() {
         damageDealt: 0,
         shieldDamage: 0,
         healingDone: 0,
-        logText: "Tactical Evaluation Matrix activated. Red Queen Online. Commencing Simulation.",
+        logText: "Tactical Evaluation Matrix activated. Red Queen Online. Enter Planning Phase.",
         playerHp: pMaxHpVal,
         playerShield: pShieldMaxVal,
         opponentHp: oMaxHpVal,
@@ -469,10 +475,51 @@ export default function CombatSimulationPage() {
     updateProfileOnServer(updatedProfile, inventory);
   };
 
-  const handlePlayerChoice = (actionType: string, subChoice: string) => {
+  // Add action to the planned queue
+  const addTacticalAction = (type: string, name: string, subChoice: string, cost: number) => {
+    if (playerAp < cost) {
+      alert(`INSUFFICIENT ACTION POINTS. REQUIRED: ${cost} AP, CURRENT: ${playerAp} AP.`);
+      return;
+    }
+
+    // Guard consumable inventory limits in plan
+    if (type === "consumable") {
+      const alreadyQueuedCount = playerPlanActions.filter(a => a.subChoice === subChoice).length;
+      const invItem = inventory.find(i => i.name === subChoice || i.id === subChoice);
+      const available = invItem ? invItem.qty : 0;
+      if (alreadyQueuedCount >= available) {
+        alert(`INSUFFICIENT STOCK IN INVENTORY TO QUEUE ANOTHER ${subChoice.toUpperCase()}.`);
+        return;
+      }
+    }
+
+    try { mainframeAudio.playBeep(); } catch(e){}
+
+    const newAct: TacticalAction = {
+      id: `act-${Date.now()}-${playerPlanActions.length}`,
+      type: type as any,
+      name,
+      subChoice,
+      apCost: cost
+    };
+
+    setPlayerPlanActions(prev => [...prev, newAct]);
+    setPlayerAp(prev => prev - cost);
+    setActiveSubmenu(null);
+  };
+
+  // Remove action from the planned queue
+  const removeTacticalAction = (id: string, cost: number) => {
+    try { mainframeAudio.playBeep(); } catch(e){}
+    setPlayerPlanActions(prev => prev.filter(a => a.id !== id));
+    setPlayerAp(prev => Math.min(100, prev + cost));
+  };
+
+  // Resolve player tactical plan vs enemy AI plan
+  const commitTacticalPlan = () => {
     if (!profile || !activeOpponent || isSimulationConcluded) return;
 
-    try { mainframeAudio.playTick(); } catch(e){}
+    try { mainframeAudio.playSweep(); } catch(e){}
 
     const pLevel = profile.level || 1;
     const pBio = profile.stats ? (profile.stats.threat_awareness + profile.stats.operational_discipline + profile.stats.psychological_stability) / 3 * 10 : 50;
@@ -508,7 +555,9 @@ export default function CombatSimulationPage() {
       maxShield: pShieldMaxVal,
       weaponPower: pWeaponPower,
       armorPower: pArmorPower,
-      statusEffects: [...playerEffects]
+      statusEffects: [...playerEffects],
+      ap: playerAp,
+      maxAp: 100
     };
 
     const opponentState: CombatantState = {
@@ -522,124 +571,85 @@ export default function CombatSimulationPage() {
       maxShield: oShieldMaxVal,
       weaponPower: Math.round(45 + oEqPower * 0.04),
       armorPower: Math.round(45 + oEqPower * 0.04),
-      statusEffects: [...opponentEffects]
+      statusEffects: [...opponentEffects],
+      ap: 100,
+      maxAp: 100
     };
 
-    const nextLogs: BattleLogEntry[] = [];
+    // 1. Deduct consumables from inventory profile immediately upon resolution commit
+    let nextInv = [...inventory];
+    playerPlanActions.forEach(act => {
+      if (act.type === "consumable") {
+        nextInv = nextInv.map(item => {
+          if (item.name === act.subChoice || item.id === act.subChoice) {
+            return { ...item, qty: item.qty - 1 };
+          }
+          return item;
+        }).filter(item => item.qty > 0);
+      }
+    });
 
-    // Deduct consumable quantity if consumed
-    if (actionType === "consumable") {
-      let nextInv = inventory.map(item => {
-        if (item.name === subChoice || item.id === subChoice) {
-          return { ...item, qty: item.qty - 1 };
-        }
-        return item;
-      }).filter(item => item.qty > 0);
-      
+    if (nextInv.length !== inventory.length || nextInv.some((item, idx) => item.qty !== inventory[idx]?.qty)) {
       setInventory(nextInv);
       const updatedProfile = { ...profile, inventory: nextInv };
       setProfile(updatedProfile);
       updateProfileOnServer(updatedProfile, nextInv);
     }
 
-    // A. Player Turn Ticks
-    const playerTicks = tickStatusEffects(playerState);
-    playerTicks.forEach(tText => {
-      nextLogs.push({
-        round: combatRound,
-        attacker: "opponent",
-        actionName: "DOT Ticks",
-        damageDealt: 0,
-        shieldDamage: 0,
-        healingDone: 0,
-        logText: tText,
-        playerHp: playerState.hp,
-        playerShield: playerState.shield,
-        opponentHp: opponentState.hp,
-        opponentShield: opponentState.shield
-      });
-    });
+    // 2. Generate opponent AI Tactical Plan
+    const opponentPlan = calculateEnemyTacticalPlan(opponentState, playerState);
 
-    if (playerState.hp <= 0) {
-      setPlayerHp(0);
-      setCombatLogs(prev => [...prev, ...nextLogs]);
-      handleBattleConclusion("DEFEAT", combatRound);
-      return;
-    }
+    // 3. Resolve round plans
+    const roundResolutionLogs = resolveCombatPlans(
+      playerState,
+      opponentState,
+      { actions: playerPlanActions, totalApSpent: 100 - playerAp },
+      opponentPlan,
+      combatRound
+    );
 
-    // B. Player Execute choice
-    const pRes = executeCombatAction(playerState, opponentState, actionType as any, subChoice);
-    nextLogs.push({
+    // Add round summary separator
+    const headerLog: BattleLogEntry = {
       round: combatRound,
       attacker: "player",
-      actionName: subChoice,
-      damageDealt: pRes.damageDealt,
-      shieldDamage: pRes.shieldDamage,
-      healingDone: pRes.healingDone,
-      logText: pRes.logText,
-      playerHp: playerState.hp,
-      playerShield: playerState.shield,
-      opponentHp: opponentState.hp,
-      opponentShield: opponentState.shield
-    });
+      actionName: "SYSTEM SUMMARY",
+      damageDealt: 0,
+      shieldDamage: 0,
+      healingDone: 0,
+      logText: `--- RESOLVING ROUND ${combatRound} TACTICAL PLANS ---`,
+      playerHp: playerHp,
+      playerShield: playerShield,
+      opponentHp: opponentHp,
+      opponentShield: opponentShield
+    };
 
-    if (opponentState.hp <= 0) {
-      setOpponentHp(0);
-      setCombatLogs(prev => [...prev, ...nextLogs]);
-      handleBattleConclusion("VICTORY", combatRound);
-      return;
-    }
+    const finalLogs = [headerLog, ...roundResolutionLogs];
 
-    // C. Enemy Turn Ticks
-    const oppTicks = tickStatusEffects(opponentState);
-    oppTicks.forEach(oText => {
-      nextLogs.push({
-        round: combatRound,
-        attacker: "player",
-        actionName: "DOT Ticks",
-        damageDealt: 0,
-        shieldDamage: 0,
-        healingDone: 0,
-        logText: oText,
-        playerHp: playerState.hp,
-        playerShield: playerState.shield,
-        opponentHp: opponentState.hp,
-        opponentShield: opponentState.shield
-      });
-    });
-
-    if (opponentState.hp <= 0) {
-      setOpponentHp(0);
-      setCombatLogs(prev => [...prev, ...nextLogs]);
-      handleBattleConclusion("VICTORY", combatRound);
-      return;
-    }
-
-    // D. Enemy AI Choice
-    const aiChoice = calculateEnemyAIDecision(opponentState, playerState);
-    const oRes = executeCombatAction(opponentState, playerState, aiChoice.action, aiChoice.subChoice);
-    nextLogs.push({
-      round: combatRound,
-      attacker: "opponent",
-      actionName: aiChoice.subChoice,
-      damageDealt: oRes.damageDealt,
-      shieldDamage: oRes.shieldDamage,
-      healingDone: oRes.healingDone,
-      logText: oRes.logText,
-      playerHp: playerState.hp,
-      playerShield: playerState.shield,
-      opponentHp: opponentState.hp,
-      opponentShield: opponentState.shield
-    });
-
-    if (playerState.hp <= 0) {
+    // Check battle conclusion conditions
+    if (playerState.hp <= 0 && opponentState.hp <= 0) {
+      // Double knockout - defeat or victory? Favor defeat for survival stakes.
       setPlayerHp(0);
-      setCombatLogs(prev => [...prev, ...nextLogs]);
+      setOpponentHp(0);
+      setCombatLogs(prev => [...prev, ...finalLogs]);
       handleBattleConclusion("DEFEAT", combatRound);
       return;
     }
 
-    // E. Update States
+    if (playerState.hp <= 0) {
+      setPlayerHp(0);
+      setCombatLogs(prev => [...prev, ...finalLogs]);
+      handleBattleConclusion("DEFEAT", combatRound);
+      return;
+    }
+
+    if (opponentState.hp <= 0) {
+      setOpponentHp(0);
+      setCombatLogs(prev => [...prev, ...finalLogs]);
+      handleBattleConclusion("VICTORY", combatRound);
+      return;
+    }
+
+    // Update states for next planning turn
     setPlayerHp(playerState.hp);
     setPlayerShield(playerState.shield);
     setOpponentHp(opponentState.hp);
@@ -647,10 +657,10 @@ export default function CombatSimulationPage() {
     setPlayerEffects(playerState.statusEffects);
     setOpponentEffects(opponentState.statusEffects);
     setCombatRound(prev => prev + 1);
+    setPlayerPlanActions([]);
+    setPlayerAp(100);
 
-    // F. Append Logs
-    setCombatLogs(prev => [...prev, ...nextLogs]);
-    setActiveSubmenu(null);
+    setCombatLogs(prev => [...prev, ...finalLogs]);
   };
 
   // Scroll active combat logs automatically
@@ -725,6 +735,53 @@ export default function CombatSimulationPage() {
     pMaxHp,
     activeOppHp,
     activeOpponent ? Math.round(140 + activeOpponent.level * 14 + activeOpponent.bioScore * 0.75) : 100
+  );
+
+  const rqTactical = getRedQueenTacticalAdvice(
+    {
+      name: profile?.name || "Operative",
+      level: profile?.level || 1,
+      class: profile?.class || "Assault",
+      role: profile?.role || "Vanguard",
+      hp: activePlayerHp,
+      maxHp: pMaxHp,
+      shield: activePlayerShield,
+      maxShield: pShieldMax,
+      weaponPower: 50,
+      armorPower: 50,
+      statusEffects: playerEffects,
+      ap: playerAp,
+      maxAp: 100
+    },
+    activeOpponent ? {
+      name: activeOpponent.name,
+      level: activeOpponent.level,
+      class: activeOpponent.class,
+      role: activeOpponent.role,
+      hp: activeOppHp,
+      maxHp: Math.round(140 + activeOpponent.level * 14 + activeOpponent.bioScore * 0.75),
+      shield: activeOppShield,
+      maxShield: Math.round(80 + activeOpponent.equipmentPower * 0.05),
+      weaponPower: 50,
+      armorPower: 50,
+      statusEffects: opponentEffects,
+      ap: 100,
+      maxAp: 100
+    } : {
+      name: "Opponent",
+      level: 1,
+      class: "Assault",
+      role: "Vanguard",
+      hp: 100,
+      maxHp: 100,
+      shield: 50,
+      maxShield: 50,
+      weaponPower: 50,
+      armorPower: 50,
+      statusEffects: [],
+      ap: 100,
+      maxAp: 100
+    }
   );
 
   return (
@@ -1506,12 +1563,55 @@ export default function CombatSimulationPage() {
                     
                     {/* Primary options header */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "8px" }}>
-                      <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", fontWeight: "bold" }}>
-                        SELECT TACTICAL DEPLOYMENT ACTION
-                      </span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", fontWeight: "bold" }}>
+                          SELECT TACTICAL ACTIONS // AP AVAILABLE:
+                        </span>
+                        <div style={{ background: "rgba(0,255,204,0.1)", border: "1px solid var(--accent)", color: "var(--accent)", fontSize: "11px", fontFamily: "var(--mono)", padding: "2px 8px", borderRadius: "2px", fontWeight: "bold" }}>
+                          {playerAp} / 100 AP
+                        </div>
+                      </div>
                       <span style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)" }}>
                         DECISION VECTOR // ROUND {combatRound}
                       </span>
+                    </div>
+
+                    {/* Active Plan Queue */}
+                    <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "12px", borderRadius: "2px" }}>
+                      <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px", fontWeight: "bold" }}>
+                        QUEUED TACTICAL PLAN (CLICK ACTION TO REMOVE / REFUND AP):
+                      </div>
+                      {playerPlanActions.length === 0 ? (
+                        <div style={{ fontSize: "11.5px", color: "var(--text-dim)", fontStyle: "italic", fontFamily: "var(--mono)" }}>
+                          Queue is empty. Select actions below to construct your tactical plan.
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                          {playerPlanActions.map((act) => (
+                            <button
+                              key={act.id}
+                              onClick={() => removeTacticalAction(act.id, act.apCost)}
+                              className="btn btn-ghost"
+                              style={{
+                                background: "rgba(0,255,204,0.05)",
+                                border: "1px solid rgba(0,255,204,0.3)",
+                                color: "#fff",
+                                padding: "6px 12px",
+                                fontSize: "11px",
+                                fontFamily: "var(--mono)",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                cursor: "pointer",
+                                borderRadius: "1px"
+                              }}
+                            >
+                              <span>{act.name}</span>
+                              <span style={{ color: "var(--accent)", fontSize: "9px" }}>({act.apCost} AP) ✕</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Primary Button Grid */}
@@ -1523,7 +1623,7 @@ export default function CombatSimulationPage() {
                           background: activeSubmenu === "attack" ? "rgba(0,255,204,0.12)" : "rgba(255,255,255,0.02)",
                           border: activeSubmenu === "attack" ? "1px solid var(--accent)" : "1px solid var(--border)",
                           color: activeSubmenu === "attack" ? "var(--accent)" : "#fff",
-                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
+                          fontFamily: "var(--mono)", fontSize: "11px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
                         }}
                       >
                         ⚔️ ATTACK
@@ -1536,7 +1636,7 @@ export default function CombatSimulationPage() {
                           background: activeSubmenu === "defend" ? "rgba(0,255,204,0.12)" : "rgba(255,255,255,0.02)",
                           border: activeSubmenu === "defend" ? "1px solid var(--accent)" : "1px solid var(--border)",
                           color: activeSubmenu === "defend" ? "var(--accent)" : "#fff",
-                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
+                          fontFamily: "var(--mono)", fontSize: "11px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
                         }}
                       >
                         🛡️ DEFEND
@@ -1549,7 +1649,7 @@ export default function CombatSimulationPage() {
                           background: activeSubmenu === "consumable" ? "rgba(0,255,204,0.12)" : "rgba(255,255,255,0.02)",
                           border: activeSubmenu === "consumable" ? "1px solid var(--accent)" : "1px solid var(--border)",
                           color: activeSubmenu === "consumable" ? "var(--accent)" : "#fff",
-                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
+                          fontFamily: "var(--mono)", fontSize: "11px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
                         }}
                       >
                         🎒 CONSUMABLE
@@ -1562,7 +1662,7 @@ export default function CombatSimulationPage() {
                           background: activeSubmenu === "gadget" ? "rgba(0,255,204,0.12)" : "rgba(255,255,255,0.02)",
                           border: activeSubmenu === "gadget" ? "1px solid var(--accent)" : "1px solid var(--border)",
                           color: activeSubmenu === "gadget" ? "var(--accent)" : "#fff",
-                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
+                          fontFamily: "var(--mono)", fontSize: "11px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
                         }}
                       >
                         ⚙️ GADGET
@@ -1575,21 +1675,24 @@ export default function CombatSimulationPage() {
                           background: activeSubmenu === "special" ? "rgba(0,255,204,0.12)" : "rgba(255,255,255,0.02)",
                           border: activeSubmenu === "special" ? "1px solid var(--accent)" : "1px solid var(--border)",
                           color: activeSubmenu === "special" ? "var(--accent)" : "#fff",
-                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
+                          fontFamily: "var(--mono)", fontSize: "11px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
                         }}
                       >
                         ⚡ ABILITY
                       </button>
 
                       <button
-                        onClick={() => handlePlayerChoice("skip", "Recalibrate")}
+                        onClick={commitTacticalPlan}
+                        disabled={playerPlanActions.length === 0}
                         className="btn"
                         style={{
-                          background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", color: "var(--text-dim)",
-                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px"
+                          background: playerPlanActions.length === 0 ? "rgba(255,255,255,0.02)" : "rgba(0,255,204,0.2)",
+                          border: playerPlanActions.length === 0 ? "1px solid rgba(255,255,255,0.06)" : "1px solid var(--accent)",
+                          color: playerPlanActions.length === 0 ? "var(--text-dim)" : "var(--accent)",
+                          fontFamily: "var(--mono)", fontSize: "11px", padding: "10px", cursor: playerPlanActions.length === 0 ? "not-allowed" : "pointer", borderRadius: "2px", fontWeight: "bold"
                         }}
                       >
-                        ⏭️ SKIP
+                        🚀 COMMIT PLAN
                       </button>
                     </div>
 
@@ -1602,14 +1705,14 @@ export default function CombatSimulationPage() {
                           <div>
                             <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px" }}>SELECT ATTACK TARGET VECTOR:</div>
                             <div style={{ display: "flex", gap: "10px" }}>
-                              <button onClick={() => handlePlayerChoice("attack", "Head")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(255,77,77,0.3)", padding: "8px", fontSize: "11px", color: "#ff4d4d", fontFamily: "var(--mono)" }}>
-                                TARGET HEAD (55% Acc // 1.8x Dmg)
+                              <button onClick={() => addTacticalAction("attack", "Attack Head", "Head", 40)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(255,77,77,0.3)", padding: "8px", fontSize: "11px", color: "#ff4d4d", fontFamily: "var(--mono)", cursor: "pointer" }}>
+                                TARGET HEAD (40 AP // 55% Acc // 1.8x Dmg)
                               </button>
-                              <button onClick={() => handlePlayerChoice("attack", "Torso")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                                TARGET TORSO (90% Acc // 1.0x Dmg)
+                              <button onClick={() => addTacticalAction("attack", "Attack Torso", "Torso", 30)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", cursor: "pointer" }}>
+                                TARGET TORSO (30 AP // 90% Acc // 1.0x Dmg)
                               </button>
-                              <button onClick={() => handlePlayerChoice("attack", "Legs")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(255,255,255,0.15)", padding: "8px", fontSize: "11px", color: "#fff", fontFamily: "var(--mono)" }}>
-                                TARGET LEGS (80% Acc // 0.7x Dmg + Suppressed chance)
+                              <button onClick={() => addTacticalAction("attack", "Attack Legs", "Legs", 30)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(255,255,255,0.15)", padding: "8px", fontSize: "11px", color: "#fff", fontFamily: "var(--mono)", cursor: "pointer" }}>
+                                TARGET LEGS (30 AP // 80% Acc // 0.7x Dmg + Suppressed chance)
                               </button>
                             </div>
                           </div>
@@ -1619,21 +1722,27 @@ export default function CombatSimulationPage() {
                         {activeSubmenu === "defend" && (
                           <div>
                             <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px" }}>SELECT DEFENSIVE ACTION MATRIX:</div>
-                            <div style={{ display: "flex", gap: "10px" }}>
-                              <button onClick={() => handlePlayerChoice("defend", "Take Cover")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
-                                TAKE COVER (Mitigate 50% dmg for 1 turn)
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                              <button onClick={() => addTacticalAction("defend", "Protect Head", "Protect Head", 20)} className="btn btn-ghost" style={{ border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}>
+                                PROTECT HEAD (20 AP)
                               </button>
-                              <button onClick={() => handlePlayerChoice("defend", "Brace")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
-                                BRACE FOR IMPACT (+40% Defense for 2 turns)
+                              <button onClick={() => addTacticalAction("defend", "Protect Torso", "Protect Torso", 20)} className="btn btn-ghost" style={{ border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}>
+                                PROTECT TORSO (20 AP)
                               </button>
-                              <button onClick={() => handlePlayerChoice("defend", "Shield")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
-                                REGEN SHIELDS (Restore 40 Shield Points)
+                              <button onClick={() => addTacticalAction("defend", "Protect Legs", "Protect Legs", 20)} className="btn btn-ghost" style={{ border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}>
+                                PROTECT LEGS (20 AP)
                               </button>
-                              <button onClick={() => handlePlayerChoice("defend", "Dodge")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
-                                PREDICTIVE EVADE (+40% Dodge for 1 turn)
+                              <button onClick={() => addTacticalAction("defend", "Shield Stance", "Shield", 30)} className="btn btn-ghost" style={{ border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}>
+                                SHIELD STANCE (30 AP)
                               </button>
-                              <button onClick={() => handlePlayerChoice("defend", "Counter Stance")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                                COUNTER POSTURE (Dodge & counter attack)
+                              <button onClick={() => addTacticalAction("defend", "Take Cover", "Cover", 25)} className="btn btn-ghost" style={{ border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}>
+                                COVER (25 AP)
+                              </button>
+                              <button onClick={() => addTacticalAction("defend", "Brace Plating", "Brace", 25)} className="btn btn-ghost" style={{ border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}>
+                                BRACE (25 AP)
+                              </button>
+                              <button onClick={() => addTacticalAction("defend", "Counter Position", "Counter Position", 30)} className="btn btn-ghost" style={{ border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", cursor: "pointer" }}>
+                                COUNTER POSITION (30 AP)
                               </button>
                             </div>
                           </div>
@@ -1649,16 +1758,20 @@ export default function CombatSimulationPage() {
                               </div>
                             ) : (
                               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                                {inventory.filter(i => i.name.includes("Medkit") || i.name.includes("Stim") || i.name.includes("Cell") || i.name.includes("Plasma") || i.name.includes("Supplies") || i.name.includes("Deuterium")).map(item => (
-                                  <button
-                                    key={item.id}
-                                    onClick={() => handlePlayerChoice("consumable", item.name)}
-                                    className="btn btn-ghost"
-                                    style={{ border: "1px solid var(--border)", padding: "8px 14px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}
-                                  >
-                                    📦 {item.name.toUpperCase()} (Qty: {item.qty})
-                                  </button>
-                                ))}
+                                {inventory.filter(i => i.name.includes("Medkit") || i.name.includes("Stim") || i.name.includes("Cell") || i.name.includes("Plasma") || i.name.includes("Supplies") || i.name.includes("Deuterium")).map(item => {
+                                  let apCost = 20;
+                                  if (item.name.includes("Stim")) apCost = 25;
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      onClick={() => addTacticalAction("consumable", `Use ${item.name}`, item.name, apCost)}
+                                      className="btn btn-ghost"
+                                      style={{ border: "1px solid var(--border)", padding: "8px 14px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}
+                                    >
+                                      📦 {item.name.toUpperCase()} (Cost: {apCost} AP // Qty: {item.qty})
+                                    </button>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
@@ -1669,17 +1782,17 @@ export default function CombatSimulationPage() {
                           <div>
                             <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px" }}>DEPLOY GADGET MODULE:</div>
                             <div style={{ display: "flex", gap: "10px" }}>
-                              <button onClick={() => handlePlayerChoice("gadget", "EMP")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
-                                EMP PULSE (Disable hostile systems for 2 turns)
+                              <button onClick={() => addTacticalAction("gadget", "EMP Pulse", "EMP", 30)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}>
+                                EMP PULSE (30 AP)
                               </button>
-                              <button onClick={() => handlePlayerChoice("gadget", "Drone")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
-                                ANOMALY DRONE (Deal 30 Dmg + Apply Bleeding)
+                              <button onClick={() => addTacticalAction("gadget", "Anomaly Drone", "Drone", 25)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}>
+                                ANOMALY DRONE (25 AP)
                               </button>
-                              <button onClick={() => handlePlayerChoice("gadget", "Scanner")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
-                                TACTICAL SCANNER (Break Armor; Scan vulnerabilities)
+                              <button onClick={() => addTacticalAction("gadget", "Tactical Scanner", "Scanner", 15)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}>
+                                SCANNER (15 AP)
                               </button>
-                              <button onClick={() => handlePlayerChoice("gadget", "Decoy")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
-                                HOLOGRAPHIC DECOY (Force hostile miss next turn)
+                              <button onClick={() => addTacticalAction("gadget", "Decoy Hologram", "Decoy", 20)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff", cursor: "pointer" }}>
+                                DECOY (20 AP)
                               </button>
                             </div>
                           </div>
@@ -1688,26 +1801,26 @@ export default function CombatSimulationPage() {
                         {/* E. Special Abilities */}
                         {activeSubmenu === "special" && (
                           <div>
-                            <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px" }}>DEPLOY ROLE-SPECIFIC ABILITY:</div>
+                            <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px" }}>DEPLOY ROLE-SPECIFIC ABILITY (35 AP):</div>
                             <div style={{ display: "flex", gap: "10px" }}>
                               {profile.class === "Medic" && (
-                                <button onClick={() => handlePlayerChoice("special", "Helix Emergency Heal")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                                  HELIX INOCULATION (Heal 45 HP + Remove Bleed/Poison)
+                                <button onClick={() => addTacticalAction("special", "Helix Inoculation", "Helix Emergency Heal", 35)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", cursor: "pointer" }}>
+                                  HELIX INOCULATION (Heal 45 HP + Remove Poison/Bleed)
                                 </button>
                               )}
                               {profile.class === "Engineer" && (
-                                <button onClick={() => handlePlayerChoice("special", "Deploy Defense Turret")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                                  DEPLOY AUTO-TURRET (Deals 20 automatic DoT for 3 rounds)
+                                <button onClick={() => addTacticalAction("special", "Deploy Defense Turret", "Deploy Defense Turret", 35)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", cursor: "pointer" }}>
+                                  DEPLOY AUTO-TURRET (20 automatic DoT for 3 rounds)
                                 </button>
                               )}
                               {profile.class === "Recon" && (
-                                <button onClick={() => handlePlayerChoice("special", "Critical scan")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                                <button onClick={() => addTacticalAction("special", "Critical scan", "Critical scan", 35)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", cursor: "pointer" }}>
                                   VULNERABILITY SCAN (Guarantees Critical Hit next turn)
                                 </button>
                               )}
                               {profile.class !== "Medic" && profile.class !== "Engineer" && profile.class !== "Recon" && (
-                                <button onClick={() => handlePlayerChoice("special", "Suppressive Storm")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                                  SUPPRESSIVE STORM BURST (Deal 40 Dmg + Suppress hostile for 2 turns)
+                                <button onClick={() => addTacticalAction("special", "Suppressive Storm", "Suppressive Storm", 35)} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", cursor: "pointer" }}>
+                                  SUPPRESSIVE STORM (Deal 40 Dmg + Suppressed)
                                 </button>
                               )}
                             </div>
@@ -1729,10 +1842,10 @@ export default function CombatSimulationPage() {
                     <div>
                       <div style={{ fontSize: "9px", color: "var(--accent)", fontFamily: "var(--mono)" }}>RED QUEEN LIVE ANALYSIS</div>
                       <p style={{ fontSize: "12.5px", color: "#fff", margin: "4px 0 0 0", lineHeight: "1.5" }}>
-                        "{rqLive.comment}"
+                        "{rqTactical.advice}"
                       </p>
-                      <div style={{ fontSize: "11px", color: "var(--text-dim)", marginTop: "6px", fontStyle: "italic" }}>
-                        Recommendation: {rqLive.recommendation}
+                      <div style={{ fontSize: "11.5px", color: "var(--accent)", marginTop: "6px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>
+                        Tactical Scan: <span style={{ color: "#ff4d4d" }}>{rqTactical.prediction}</span>
                       </div>
                     </div>
                   </div>

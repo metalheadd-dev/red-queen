@@ -13,6 +13,19 @@ export interface AIOpponent {
   avatarSeed: number;
 }
 
+export interface TacticalAction {
+  id: string;
+  type: "attack" | "defend" | "consumable" | "gadget" | "special" | "skip";
+  name: string;
+  subChoice: string;
+  apCost: number;
+}
+
+export interface TacticalPlan {
+  actions: TacticalAction[];
+  totalApSpent: number;
+}
+
 export interface BattleLogEntry {
   round: number;
   attacker: "player" | "opponent";
@@ -40,7 +53,7 @@ export interface BattleResult {
 }
 
 export interface StatusEffect {
-  name: "Bleeding" | "Burning" | "EMP Disabled" | "Poison" | "Armor Broken" | "Suppressed" | "Cover" | "Brace" | "DodgeBuff" | "CounterStance" | "Stimmed" | "DecoyActive" | "TurretActive";
+  name: "Bleeding" | "Burning" | "EMP Disabled" | "Poison" | "Armor Broken" | "Suppressed" | "Cover" | "Brace" | "DodgeBuff" | "CounterStance" | "Stimmed" | "DecoyActive" | "TurretActive" | "ProtectHead" | "ProtectTorso" | "ProtectLegs";
   duration: number;
   value?: number;
 }
@@ -57,15 +70,8 @@ export interface CombatantState {
   weaponPower: number;
   armorPower: number;
   statusEffects: StatusEffect[];
-}
-
-export interface CombatTurnResult {
-  damageDealt: number;
-  shieldDamage: number;
-  healingDone: number;
-  logText: string;
-  criticalHit: boolean;
-  dodgeTriggered: boolean;
+  ap: number;
+  maxAp: number;
 }
 
 const FACTIONS = ["Ghost Division", "Aegis", "Nomads", "Eclipse", "Horizon", "Citadel", "Vanguard"];
@@ -133,23 +139,14 @@ export function generateAIOpponent(playerLevel: number, playerBioScore: number, 
   };
 }
 
-/**
- * Check if a status effect is active on a combatant
- */
 export function hasStatus(combatant: CombatantState, name: StatusEffect["name"]): boolean {
   return combatant.statusEffects.some(s => s.name === name && s.duration > 0);
 }
 
-/**
- * Remove a status effect
- */
 export function removeStatus(combatant: CombatantState, name: StatusEffect["name"]) {
   combatant.statusEffects = combatant.statusEffects.filter(s => s.name !== name);
 }
 
-/**
- * Apply a status effect (refreshes duration if already active)
- */
 export function applyStatus(combatant: CombatantState, name: StatusEffect["name"], duration: number, value?: number) {
   const existing = combatant.statusEffects.find(s => s.name === name);
   if (existing) {
@@ -161,8 +158,7 @@ export function applyStatus(combatant: CombatantState, name: StatusEffect["name"
 }
 
 /**
- * Ticks status effects down at the start of a combatant's turn.
- * Applies damage over time (DoT) and returns the tick log messages.
+ * Tick status effects down, applying DoTs
  */
 export function tickStatusEffects(combatant: CombatantState): string[] {
   const tickLogs: string[] = [];
@@ -203,143 +199,139 @@ export function tickStatusEffects(combatant: CombatantState): string[] {
 }
 
 /**
- * Execute a turn action for a combatant.
- * Updates state for both attacker and target.
+ * Execute a single Tactical Action during simultaneous resolution
  */
-export function executeCombatAction(
+export function resolveSingleAction(
   attacker: CombatantState,
   target: CombatantState,
-  actionType: "attack" | "defend" | "consumable" | "gadget" | "special" | "skip",
-  subChoice: string
-): CombatTurnResult {
+  action: TacticalAction,
+  playerStateForHpSync: CombatantState,
+  oppStateForHpSync: CombatantState,
+  round: number
+): BattleLogEntry {
   let damageDealt = 0;
   let shieldDamage = 0;
   let healingDone = 0;
-  let criticalHit = false;
-  let dodgeTriggered = false;
   let logText = "";
 
-  // 1. SKIP ACTION
-  if (actionType === "skip") {
+  const subChoice = action.subChoice;
+
+  // check EMP Status
+  if ((action.type === "special" || action.type === "gadget") && hasStatus(attacker, "EMP Disabled")) {
+    logText = `${attacker.name} attempted to use ${action.name}, but active EMP disables prevent it.`;
     return {
+      round,
+      attacker: attacker.name === playerStateForHpSync.name ? "player" : "opponent",
+      actionName: action.name,
       damageDealt: 0,
       shieldDamage: 0,
       healingDone: 0,
-      criticalHit: false,
-      dodgeTriggered: false,
-      logText: `${attacker.name} skipped their turn to recalibrate systems.`
+      logText,
+      playerHp: playerStateForHpSync.hp,
+      playerShield: playerStateForHpSync.shield,
+      opponentHp: oppStateForHpSync.hp,
+      opponentShield: oppStateForHpSync.shield
     };
   }
 
-  // Check if disabled by EMP
-  if ((actionType === "special" || actionType === "gadget") && hasStatus(attacker, "EMP Disabled")) {
-    return {
-      damageDealt: 0,
-      shieldDamage: 0,
-      healingDone: 0,
-      criticalHit: false,
-      dodgeTriggered: false,
-      logText: `${attacker.name} attempted to deploy a system, but active EMP disables prevent it.`
-    };
-  }
-
-  // 2. DEFEND ACTION
-  if (actionType === "defend") {
-    if (subChoice === "Take Cover") {
+  // 1. Defenses Focus
+  if (action.type === "defend") {
+    if (subChoice === "Protect Head") {
+      applyStatus(attacker, "ProtectHead", 1);
+      logText = `${attacker.name} shields their head vectors, guarding against headshots.`;
+    } else if (subChoice === "Protect Torso") {
+      applyStatus(attacker, "ProtectTorso", 1);
+      logText = `${attacker.name} focuses core armor defense matrices onto their Torso.`;
+    } else if (subChoice === "Protect Legs") {
+      applyStatus(attacker, "ProtectLegs", 1);
+      logText = `${attacker.name} takes a low stance, protecting their legs against suppression.`;
+    } else if (subChoice === "Cover") {
       applyStatus(attacker, "Cover", 1);
-      logText = `${attacker.name} slides into cover, mitigating incoming attacks by 50%.`;
+      logText = `${attacker.name} slides behind local cover barriers.`;
     } else if (subChoice === "Brace") {
       applyStatus(attacker, "Brace", 2);
-      logText = `${attacker.name} braces for impact, boosting structural armor defense by 40%.`;
+      logText = `${attacker.name} braces for impact, strengthening structural plating.`;
     } else if (subChoice === "Shield") {
-      const shieldRestore = Math.min(attacker.maxShield - attacker.shield, 40);
-      attacker.shield += shieldRestore;
-      healingDone = shieldRestore;
-      logText = `${attacker.name} recalibrates volumetric shield generators, restoring ${shieldRestore} Shield points.`;
+      const restore = Math.min(attacker.maxShield - attacker.shield, 40);
+      attacker.shield += restore;
+      healingDone = restore;
+      logText = `${attacker.name} triggers Shield Stance, recharging shield systems by +40.`;
     } else if (subChoice === "Dodge") {
       applyStatus(attacker, "DodgeBuff", 1);
-      logText = `${attacker.name} initiates predictive evade patterns, increasing dodge chance by 40%.`;
-    } else if (subChoice === "Counter Stance") {
+      logText = `${attacker.name} initiates defensive maneuvers, increasing evade vectors.`;
+    } else if (subChoice === "Counter Position") {
       applyStatus(attacker, "CounterStance", 1);
-      logText = `${attacker.name} enters a high-reflex counter posture, ready to deflect and strike back.`;
+      logText = `${attacker.name} enters reflex counter stance, ready to return fire.`;
     }
-    return { damageDealt, shieldDamage, healingDone, criticalHit, dodgeTriggered, logText };
   }
 
-  // 3. CONSUMABLES
-  if (actionType === "consumable") {
+  // 2. Consumables
+  else if (action.type === "consumable") {
     if (subChoice.includes("Medkit") || subChoice.includes("Trauma")) {
-      const healBase = 55;
-      const finalHeal = hasStatus(attacker, "Poison") ? Math.round(healBase * 0.5) : healBase;
-      const healed = Math.min(attacker.maxHp - attacker.hp, finalHeal);
+      const heal = hasStatus(attacker, "Poison") ? 27 : 55;
+      const healed = Math.min(attacker.maxHp - attacker.hp, heal);
       attacker.hp += healed;
       healingDone = healed;
       removeStatus(attacker, "Bleeding");
-      logText = `${attacker.name} consumes Field Medkit, restoring ${healed} HP and sealing bleeding wounds.`;
+      logText = `${attacker.name} injects Field Medkit, healing +${healed} HP and stopping bleeding.`;
     } else if (subChoice.includes("Stim")) {
       applyStatus(attacker, "Stimmed", 2);
-      logText = `${attacker.name} self-injects Combat Stim, boosting next physical attacks by +30%.`;
+      logText = `${attacker.name} utilizes Stim Pack, raising attack power by +30% for 2 rounds.`;
     } else if (subChoice.includes("Cell") || subChoice.includes("Plasma")) {
-      const shieldRestore = Math.min(attacker.maxShield - attacker.shield, 60);
-      attacker.shield += shieldRestore;
-      healingDone = shieldRestore;
-      logText = `${attacker.name} loads Plasma Energy Cell, recharging ${shieldRestore} Shield points.`;
+      const shield = Math.min(attacker.maxShield - attacker.shield, 60);
+      attacker.shield += shield;
+      healingDone = shield;
+      logText = `${attacker.name} uses Energy Cell, replenishing +${shield} Shield.`;
     } else {
-      // Fallback consume
-      const heal = Math.min(attacker.maxHp - attacker.hp, 30);
-      attacker.hp += heal;
-      healingDone = heal;
-      logText = `${attacker.name} consumed survival rations, restoring ${heal} HP.`;
+      const healed = Math.min(attacker.maxHp - attacker.hp, 30);
+      attacker.hp += healed;
+      healingDone = healed;
+      logText = `${attacker.name} uses survival rations, restoring +${healed} HP.`;
     }
-    return { damageDealt, shieldDamage, healingDone, criticalHit, dodgeTriggered, logText };
   }
 
-  // 4. GADGETS
-  if (actionType === "gadget") {
+  // 3. Gadgets
+  else if (action.type === "gadget") {
     if (subChoice === "EMP") {
       applyStatus(target, "EMP Disabled", 2);
-      logText = `${attacker.name} triggers EMP pulse. ${target.name}'s electronics are disabled for 2 turns.`;
+      logText = `${attacker.name} fires EMP core, jamming target's systems for 2 rounds.`;
     } else if (subChoice === "Drone") {
       damageDealt = 30;
       applyStatus(target, "Bleeding", 3);
-      
-      // Calculate shield split
       if (target.shield > 0) {
         shieldDamage = Math.min(target.shield, damageDealt);
         target.shield -= shieldDamage;
-        const remaining = Math.max(0, damageDealt - shieldDamage);
-        target.hp = Math.max(0, target.hp - remaining);
+        const rem = Math.max(0, damageDealt - shieldDamage);
+        target.hp = Math.max(0, target.hp - rem);
       } else {
         target.hp = Math.max(0, target.hp - damageDealt);
       }
-      logText = `${attacker.name} deploys Anomaly Drone. Deals 30 damage and applies Bleeding status to ${target.name}.`;
+      logText = `${attacker.name} deploys Recon Drone, dealing 30 damage and applying Bleeding.`;
     } else if (subChoice === "Scanner") {
       applyStatus(target, "Armor Broken", 3);
-      logText = `${attacker.name} runs volumetric tactical scan on ${target.name}, breaking armor profiles for 3 turns.`;
+      logText = `${attacker.name} scans target vulnerabilities, breaking armor arrays for 3 rounds.`;
     } else if (subChoice === "Decoy") {
       applyStatus(attacker, "DecoyActive", 1);
-      logText = `${attacker.name} throws a holographic signature decoy, misdirecting target's next combat scan.`;
+      logText = `${attacker.name} drops decoy signature drone to scramble incoming attacks.`;
     }
-    return { damageDealt, shieldDamage, healingDone, criticalHit, dodgeTriggered, logText };
   }
 
-  // 5. ROLE SPECIAL ABILITIES
-  if (actionType === "special") {
+  // 4. Special Abilities
+  else if (action.type === "special") {
     if (attacker.class === "Medic") {
-      const healAmount = Math.min(attacker.maxHp - attacker.hp, 45);
-      attacker.hp += healAmount;
-      healingDone = healAmount;
+      const heal = Math.min(attacker.maxHp - attacker.hp, 45);
+      attacker.hp += heal;
+      healingDone = heal;
       removeStatus(attacker, "Bleeding");
       removeStatus(attacker, "Poison");
-      logText = `${attacker.name} activates Helix Inoculation, restoring ${healAmount} HP and neutralizing toxic/bleed elements.`;
+      logText = `${attacker.name} deploys Helix Heal, restoring +${heal} HP and purging toxins.`;
     } else if (attacker.class === "Engineer") {
       applyStatus(target, "TurretActive", 3);
-      logText = `${attacker.name} deploys micro Kinetic Auto-Turret, locking targeting protocols onto ${target.name}.`;
+      logText = `${attacker.name} deploys automated Kinetic Auto-Turret targeting opponent.`;
     } else if (attacker.class === "Recon") {
-      applyStatus(attacker, "Stimmed", 1, 2.0); // 100% critical damage boost next turn
-      logText = `${attacker.name} initiates Critical Vulnerability Scan, identifying target weaknesses for next strike.`;
+      applyStatus(attacker, "Stimmed", 1, 2.0);
+      logText = `${attacker.name} executes Critical Vulnerability Scan to expose critical weakpoints.`;
     } else {
-      // Assault or default
       damageDealt = 40;
       applyStatus(target, "Suppressed", 2);
       if (target.shield > 0) {
@@ -350,193 +342,369 @@ export function executeCombatAction(
       } else {
         target.hp = Math.max(0, target.hp - damageDealt);
       }
-      logText = `${attacker.name} deploys Suppressive Storm. Inflicts 40 damage and Suppresses ${target.name} for 2 turns.`;
+      logText = `${attacker.name} triggers Suppressive Storm, dealing 40 damage and Suppressing opponent.`;
     }
-    return { damageDealt, shieldDamage, healingDone, criticalHit, dodgeTriggered, logText };
   }
 
-  // 6. ATTACK ACTIONS (Head, Torso, Legs)
-  if (actionType === "attack") {
+  // 5. Attacks (Head, Torso, Legs)
+  else if (action.type === "attack") {
+    // Decoy redirect
     if (hasStatus(target, "DecoyActive")) {
       removeStatus(target, "DecoyActive");
+      logText = `${attacker.name}'s attack targeting Hostile ${subChoice} is diverted by Decoy signature and misses!`;
       return {
+        round,
+        attacker: attacker.name === playerStateForHpSync.name ? "player" : "opponent",
+        actionName: action.name,
         damageDealt: 0,
         shieldDamage: 0,
         healingDone: 0,
-        criticalHit: false,
-        dodgeTriggered: true,
-        logText: `${attacker.name}'s strike is misdirected by the holographic Decoy and misses completely!`
+        logText,
+        playerHp: playerStateForHpSync.hp,
+        playerShield: playerStateForHpSync.shield,
+        opponentHp: oppStateForHpSync.hp,
+        opponentShield: oppStateForHpSync.shield
       };
     }
 
-    let baseAcc = 0.9;
-    let dmgMult = 1.0;
-    let applyLegsSuppressed = false;
-
-    if (subChoice === "Head") {
-      baseAcc = 0.55;
-      dmgMult = 1.8;
-    } else if (subChoice === "Legs") {
-      baseAcc = 0.8;
-      dmgMult = 0.7;
-      applyLegsSuppressed = Math.random() < 0.6;
-    }
-
-    let accuracy = baseAcc;
+    let accuracy = subChoice === "Head" ? 0.55 : subChoice === "Legs" ? 0.8 : 0.9;
     if (hasStatus(attacker, "Suppressed")) accuracy -= 0.2;
     if (hasStatus(attacker, "Burning")) accuracy -= 0.15;
-
     accuracy = Math.min(0.99, Math.max(0.1, accuracy));
 
     const isHit = Math.random() < accuracy;
     if (!isHit) {
+      logText = `${attacker.name} attacks Hostile ${subChoice}, but misses the vector targets.`;
       return {
+        round,
+        attacker: attacker.name === playerStateForHpSync.name ? "player" : "opponent",
+        actionName: action.name,
         damageDealt: 0,
         shieldDamage: 0,
         healingDone: 0,
-        criticalHit: false,
-        dodgeTriggered: false,
-        logText: `${attacker.name} initiated strike targeting Hostile ${subChoice}, but missed the targeting vectors.`
+        logText,
+        playerHp: playerStateForHpSync.hp,
+        playerShield: playerStateForHpSync.shield,
+        opponentHp: oppStateForHpSync.hp,
+        opponentShield: oppStateForHpSync.shield
       };
     }
 
-    let dodgeChance = 0.04;
-    if (hasStatus(target, "DodgeBuff")) dodgeChance += 0.4;
-    if (hasStatus(target, "Suppressed")) dodgeChance = 0.01;
-    
-    const isDodge = Math.random() < dodgeChance;
+    // Dodge check
+    let dodge = 0.04;
+    if (hasStatus(target, "DodgeBuff")) dodge += 0.4;
+    if (hasStatus(target, "Suppressed")) dodge = 0.01;
+    const isDodge = Math.random() < dodge;
     if (isDodge) {
       if (hasStatus(target, "CounterStance")) {
         removeStatus(target, "CounterStance");
-        const counterDmg = 35;
-        attacker.hp = Math.max(0, attacker.hp - counterDmg);
-        return {
-          damageDealt: 0,
-          shieldDamage: 0,
-          healingDone: 0,
-          criticalHit: false,
-          dodgeTriggered: true,
-          logText: `${target.name} dodges the attack and deploys Counter strike, inflicting 35 damage back onto ${attacker.name}!`
-        };
+        attacker.hp = Math.max(0, attacker.hp - 35);
+        logText = `${target.name} evades attack and fires Counter strike, dealing 35 damage back onto ${attacker.name}!`;
+      } else {
+        logText = `${target.name} evades attack targeting Hostile ${subChoice}.`;
       }
       return {
+        round,
+        attacker: attacker.name === playerStateForHpSync.name ? "player" : "opponent",
+        actionName: action.name,
         damageDealt: 0,
         shieldDamage: 0,
         healingDone: 0,
-        criticalHit: false,
-        dodgeTriggered: true,
-        logText: `${target.name} successfully dodged incoming threat vectors from ${attacker.name}.`
+        logText,
+        playerHp: playerStateForHpSync.hp,
+        playerShield: playerStateForHpSync.shield,
+        opponentHp: oppStateForHpSync.hp,
+        opponentShield: oppStateForHpSync.shield
       };
     }
 
-    let rawDmg = Math.round(15 + attacker.weaponPower * 0.25 + attacker.level * 2);
-    rawDmg = Math.round(rawDmg * dmgMult);
+    // Base damage calculation
+    let dmg = Math.round(15 + attacker.weaponPower * 0.25 + attacker.level * 2);
+    let dmgMult = subChoice === "Head" ? 1.8 : subChoice === "Legs" ? 0.7 : 1.0;
+
+    // PREDICTION COUNTERS DETECTED:
+    let predictionCountered = false;
+    if (subChoice === "Head" && hasStatus(target, "ProtectHead")) {
+      dmgMult = 0.35; // 65% reduction
+      predictionCountered = true;
+    } else if (subChoice === "Torso" && hasStatus(target, "ProtectTorso")) {
+      dmgMult = 0.4; // 60% reduction
+      predictionCountered = true;
+    } else if (subChoice === "Legs" && hasStatus(target, "ProtectLegs")) {
+      dmgMult = 0.3; // 70% reduction
+      predictionCountered = true;
+    }
+
+    dmg = Math.round(dmg * dmgMult);
 
     if (hasStatus(attacker, "Stimmed")) {
-      const mod = attacker.statusEffects.find(s => s.name === "Stimmed")?.value || 1.3;
-      rawDmg = Math.round(rawDmg * mod);
+      const val = attacker.statusEffects.find(s => s.name === "Stimmed")?.value || 1.3;
+      dmg = Math.round(dmg * val);
       removeStatus(attacker, "Stimmed");
     }
 
-    if (attacker.class === "Assault") rawDmg = Math.round(rawDmg * 1.1);
+    if (attacker.class === "Assault") dmg = Math.round(dmg * 1.1);
 
-    const critBase = subChoice === "Head" ? 0.15 : 0.05;
-    const isCrit = Math.random() < critBase;
-    if (isCrit) {
-      criticalHit = true;
-      rawDmg = Math.round(rawDmg * 1.5);
-    }
+    const isCrit = Math.random() < (subChoice === "Head" ? 0.2 : 0.05);
+    if (isCrit) dmg = Math.round(dmg * 1.5);
 
-    if (hasStatus(target, "Armor Broken")) {
-      rawDmg = Math.round(rawDmg * 1.3);
-    }
-
+    if (hasStatus(target, "Armor Broken")) dmg = Math.round(dmg * 1.3);
     if (hasStatus(target, "Cover")) {
-      rawDmg = Math.round(rawDmg * 0.5);
+      dmg = Math.round(dmg * 0.5);
       removeStatus(target, "Cover");
     }
-    if (hasStatus(target, "Brace")) {
-      rawDmg = Math.round(rawDmg * 0.65);
-    }
+    if (hasStatus(target, "Brace")) dmg = Math.round(dmg * 0.65);
 
-    let finalDmg = rawDmg;
+    let finalDmg = dmg;
     if (target.shield > 0) {
       shieldDamage = Math.min(target.shield, finalDmg);
       target.shield -= shieldDamage;
       finalDmg = Math.max(0, finalDmg - shieldDamage);
     }
 
-    const armorMitigation = target.armorPower / (target.armorPower + 220);
-    const hpDmg = Math.round(finalDmg * (1 - armorMitigation));
+    const mitigation = target.armorPower / (target.armorPower + 220);
+    const hpDmg = Math.round(finalDmg * (1 - mitigation));
     target.hp = Math.max(0, target.hp - hpDmg);
     damageDealt = hpDmg;
 
-    if (subChoice === "Head" && Math.random() < 0.4) {
-      applyStatus(target, "Suppressed", 2);
-    } else if (subChoice === "Legs" && applyLegsSuppressed) {
-      applyStatus(target, "Suppressed", 2);
+    logText = `${attacker.name} attacks Hostile ${subChoice}${isCrit ? " [CRITICAL]" : ""}, dealing ${damageDealt} HP damage and ${shieldDamage} shield damage.`;
+    if (predictionCountered) {
+      logText += ` [PREDICTION SUCCESS] ${target.name} anticipated attack vector and deflected the brunt of it!`;
     }
 
-    let targetLog = `initiated strike targeting Hostile ${subChoice}`;
-    if (criticalHit) targetLog += " [CRITICAL]";
-    logText = `${attacker.name} ${targetLog}, dealing ${damageDealt} HP damage and ${shieldDamage} shield damage.`;
-    if (applyLegsSuppressed && subChoice === "Legs") logText += ` Target ${target.name}'s legs are disabled (Suppressed).`;
+    if (subChoice === "Legs" && Math.random() < 0.6) {
+      applyStatus(target, "Suppressed", 2);
+      logText += ` Target ${target.name} is Suppressed by the impact.`;
+    }
   }
 
-  return { damageDealt, shieldDamage, healingDone, criticalHit, dodgeTriggered, logText };
+  return {
+    round,
+    attacker: attacker.name === playerStateForHpSync.name ? "player" : "opponent",
+    actionName: action.name,
+    damageDealt,
+    shieldDamage,
+    healingDone,
+    logText,
+    playerHp: playerStateForHpSync.hp,
+    playerShield: playerStateForHpSync.shield,
+    opponentHp: oppStateForHpSync.hp,
+    opponentShield: oppStateForHpSync.shield
+  };
 }
 
 /**
- * Enemy AI Decision logic.
- * Decides turn action based on current vital metrics and player posture.
+ * Resolve entire committed round's plans simultaneously
  */
-export function calculateEnemyAIDecision(
+export function resolveCombatPlans(
+  player: CombatantState,
+  opponent: CombatantState,
+  playerPlan: TacticalPlan,
+  opponentPlan: TacticalPlan,
+  round: number
+): BattleLogEntry[] {
+  const roundLogs: BattleLogEntry[] = [];
+
+  // A. Process ticks at start of round
+  const pTicks = tickStatusEffects(player);
+  pTicks.forEach(tText => {
+    roundLogs.push({
+      round, attacker: "opponent", actionName: "Status Tick",
+      damageDealt: 0, shieldDamage: 0, healingDone: 0, logText: tText,
+      playerHp: player.hp, playerShield: player.shield, opponentHp: opponent.hp, opponentShield: opponent.shield
+    });
+  });
+
+  const oTicks = tickStatusEffects(opponent);
+  oTicks.forEach(tText => {
+    roundLogs.push({
+      round, attacker: "player", actionName: "Status Tick",
+      damageDealt: 0, shieldDamage: 0, healingDone: 0, logText: tText,
+      playerHp: player.hp, playerShield: player.shield, opponentHp: opponent.hp, opponentShield: opponent.shield
+    });
+  });
+
+  if (player.hp <= 0 || opponent.hp <= 0) return roundLogs;
+
+  // B. Gather Queued Actions
+  const pActions = [...playerPlan.actions];
+  const oActions = [...opponentPlan.actions];
+
+  // We split resolution into phases to support prediction/strategic priority
+  // Priority order:
+  // 1. Defenses
+  // 2. Consumables & Gadgets
+  // 3. Attacks & Specials
+
+  const resolvePhase = (actionFilter: (act: TacticalAction) => boolean) => {
+    const maxLen = Math.max(pActions.length, oActions.length);
+    for (let i = 0; i < maxLen; i++) {
+      if (player.hp <= 0 || opponent.hp <= 0) break;
+
+      // Player Action
+      if (i < pActions.length && actionFilter(pActions[i])) {
+        const act = pActions[i];
+        const res = resolveSingleAction(player, opponent, act, player, opponent, round);
+        roundLogs.push(res);
+        pActions.splice(i, 1);
+        oActions.length > pActions.length ? i-- : null; // adjust index as item is consumed
+      }
+
+      if (player.hp <= 0 || opponent.hp <= 0) break;
+
+      // Opponent Action
+      if (i < oActions.length && actionFilter(oActions[i])) {
+        const act = oActions[i];
+        const res = resolveSingleAction(opponent, player, act, player, opponent, round);
+        roundLogs.push(res);
+        oActions.splice(i, 1);
+      }
+    }
+  };
+
+  // Phase 1: Defenses
+  resolvePhase(act => act.type === "defend");
+
+  // Phase 2: Consumables & Gadgets
+  resolvePhase(act => act.type === "consumable" || act.type === "gadget");
+
+  // Phase 3: Attacks & Specials
+  resolvePhase(act => act.type === "attack" || act.type === "special" || act.type === "skip");
+
+  // C. Round Cleanup: remove round-specific temporary protection statuses
+  removeStatus(player, "ProtectHead");
+  removeStatus(player, "ProtectTorso");
+  removeStatus(player, "ProtectLegs");
+  removeStatus(player, "Cover");
+  removeStatus(player, "CounterStance");
+  removeStatus(player, "DecoyActive");
+
+  removeStatus(opponent, "ProtectHead");
+  removeStatus(opponent, "ProtectTorso");
+  removeStatus(opponent, "ProtectLegs");
+  removeStatus(opponent, "Cover");
+  removeStatus(opponent, "CounterStance");
+  removeStatus(opponent, "DecoyActive");
+
+  return roundLogs;
+}
+
+/**
+ * Intelligent AI Decision Planner spending 100 AP
+ */
+export function calculateEnemyTacticalPlan(
   enemy: CombatantState,
   player: CombatantState
-): { action: "attack" | "defend" | "consumable" | "gadget" | "special" | "skip"; subChoice: string } {
-  
+): TacticalPlan {
+  const actions: TacticalAction[] = [];
+  let ap = 100;
+
+  // Helper to add action if AP is available
+  const addAction = (type: TacticalAction["type"], name: string, subChoice: string, cost: number) => {
+    if (ap >= cost) {
+      actions.push({ id: `opp-act-${Date.now()}-${actions.length}`, type, name, subChoice, apCost: cost });
+      ap -= cost;
+    }
+  };
+
+  // 1. Low HP critical check: queue heal and protection first
   if (enemy.hp < enemy.maxHp * 0.35) {
     if (enemy.class === "Medic" && !hasStatus(enemy, "EMP Disabled")) {
-      return { action: "special", subChoice: "Helix emergency heal" };
+      addAction("special", "Helix Inoculation", "Helix Emergency Heal", 35);
+    } else {
+      addAction("consumable", "Use Field Medkit", "Field Medkit", 20);
     }
-    return { action: "consumable", subChoice: "Field Medkit" };
+    // Add defense support
+    addAction("defend", "Focus Torso Defense", "Protect Torso", 20);
   }
 
-  const empDisabled = hasStatus(enemy, "EMP Disabled");
-
+  // 2. Ability/EMP check: if player counter posture is active, use scanner or brace
   if (hasStatus(player, "CounterStance")) {
-    if (!empDisabled) {
-      if (enemy.class === "Engineer") return { action: "special", subChoice: "Deploy Auto-Turret" };
-      if (enemy.class === "Recon") return { action: "special", subChoice: "Critical vulnerability scan" };
-      return { action: "gadget", subChoice: "Scanner" };
+    if (!hasStatus(enemy, "EMP Disabled")) {
+      addAction("gadget", "Deploy Scanner", "Scanner", 15);
     }
-    return { action: "defend", subChoice: Math.random() < 0.5 ? "Brace" : "Shield" };
+    addAction("defend", "Brace Positioning", "Brace", 25);
   }
 
-  const r = Math.random();
-
-  if (r < 0.30 && !empDisabled) {
-    if (enemy.class === "Assault") return { action: "special", subChoice: "Suppressive Storm" };
-    if (enemy.class === "Medic") return { action: "special", subChoice: "Helix emergency heal" };
-    if (enemy.class === "Engineer") return { action: "special", subChoice: "Deploy Auto-Turret" };
-    if (enemy.class === "Recon") return { action: "special", subChoice: "Critical scan" };
-    return { action: "gadget", subChoice: "Drone" };
-  }
-
-  if (r < 0.45) {
-    if (enemy.shield < enemy.maxShield * 0.3) {
-      return { action: "defend", subChoice: "Shield" };
+  // 3. Regular Strategy combos based on Class
+  if (enemy.class === "Assault") {
+    // Aggressive Assault combo: Suppressive Storm + Torso Strike
+    if (!hasStatus(enemy, "EMP Disabled")) {
+      addAction("special", "Suppressive Storm", "Suppressive Storm", 35);
     }
-    return { action: "defend", subChoice: "Brace" };
+    addAction("attack", "Attack Torso", "Torso", 30);
+    addAction("defend", "Focus Torso Defense", "Protect Torso", 20);
+  } else if (enemy.class === "Recon") {
+    // Critical Vulnerability scan + Headshot
+    if (!hasStatus(enemy, "EMP Disabled")) {
+      addAction("special", "Vulnerability Scan", "Critical scan", 35);
+    }
+    addAction("attack", "Attack Head", "Head", 40);
+    addAction("defend", "Focus Head Defense", "Protect Head", 20);
+  } else if (enemy.class === "Engineer") {
+    // Deploy Turret + Shield
+    if (!hasStatus(enemy, "EMP Disabled")) {
+      addAction("special", "Deploy Auto-Turret", "Deploy Turret", 35);
+    }
+    addAction("defend", "Calibrate Shields", "Shield", 30);
+    addAction("attack", "Attack Torso", "Torso", 30);
+  } else {
+    // Generic Tactical setup
+    addAction("attack", "Attack Torso", "Torso", 30);
+    addAction("defend", "Focus Torso Defense", "Protect Torso", 20);
+    addAction("attack", "Attack Legs", "Legs", 30);
   }
 
-  const attackRoll = Math.random();
-  if (attackRoll < 0.25) {
-    return { action: "attack", subChoice: "Head" };
-  } else if (attackRoll < 0.55) {
-    return { action: "attack", subChoice: "Legs" };
+  // 4. Fill remaining AP with basic attacks or defenses
+  while (ap >= 20) {
+    if (ap >= 30) {
+      // 50% chance head / torso
+      if (Math.random() < 0.3) {
+        addAction("attack", "Attack Head", "Head", 40);
+      } else {
+        addAction("attack", "Attack Torso", "Torso", 30);
+      }
+    } else {
+      addAction("defend", "Focus Torso Defense", "Protect Torso", 20);
+    }
   }
-  return { action: "attack", subChoice: "Torso" };
+
+  return { actions, totalApSpent: 100 - ap };
+}
+
+/**
+ * Select Live Red Queen Commentary during Planning Phase
+ */
+export function getRedQueenTacticalAdvice(
+  player: CombatantState,
+  opponent: CombatantState
+): { advice: string; prediction: string; insights: string[] } {
+  let advice = "Build your tactical plan. Balance offense vectors with defense coverage.";
+  let prediction = "Enemy scanning posture indicates balanced Torso engagement.";
+  const insights = ["Ensure shields are calibrated.", "Deploy scanners to break heavy armor targets."];
+
+  const pHpPct = player.hp / player.maxHp;
+  const oHpPct = opponent.hp / opponent.maxHp;
+
+  if (oHpPct < 0.3) {
+    advice = "Hostile metrics indicate terminal state failure. Deploy aggressive Headshot plans to terminate.";
+    prediction = "Opponent likely running panic defensive recovery subroutines.";
+    insights.push("Target armor breached.");
+  } else if (pHpPct < 0.3) {
+    advice = "CRITICAL: Bio-vitals unstable. Queue healing consumables and double-guard Torso/Head vectors.";
+    prediction = "Opponent calibrating offensive Head targeting loops.";
+    insights.push("Vitals flatline threshold close.");
+  } else if (opponent.class === "Recon") {
+    advice = "Target Recon class has sniper capability. Anticipating high-accuracy headshots.";
+    prediction = "Hostile likely lining up Head shot vectors.";
+    insights.push("Reinforce Head defenses immediately.");
+  } else if (opponent.class === "Assault") {
+    advice = "Assault class uses suppressive bullet storms. Brace for high-damage torso focus.";
+    prediction = "Hostile likely targeting Torso.";
+    insights.push("Reinforce Torso defenses immediately.");
+  }
+
+  return { advice, prediction, insights };
 }
 
 /**
