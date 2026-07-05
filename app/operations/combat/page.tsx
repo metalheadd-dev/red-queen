@@ -11,11 +11,16 @@ import { mainframeAudio } from "@/lib/game/audio";
 import { InventoryItem, OperativeProfile } from "@/lib/game/types";
 import { 
   generateAIOpponent, 
-  runCombatSimulation, 
   getRedQueenCombatComment, 
   AIOpponent, 
   BattleLogEntry, 
-  BattleResult 
+  BattleResult,
+  CombatantState,
+  StatusEffect,
+  executeCombatAction,
+  tickStatusEffects,
+  calculateEnemyAIDecision,
+  hasStatus
 } from "@/lib/game/combat";
 
 const RANKS = [
@@ -51,6 +56,17 @@ export default function CombatSimulationPage() {
   const [isCombatRunning, setIsCombatRunning] = useState(false);
   const [historyPage, setHistoryPage] = useState(1);
   const historyPerPage = 5;
+
+  // Interactive Live Combat States
+  const [playerHp, setPlayerHp] = useState(100);
+  const [playerShield, setPlayerShield] = useState(50);
+  const [opponentHp, setOpponentHp] = useState(100);
+  const [opponentShield, setOpponentShield] = useState(50);
+  const [combatRound, setCombatRound] = useState(1);
+  const [playerEffects, setPlayerEffects] = useState<StatusEffect[]>([]);
+  const [opponentEffects, setOpponentEffects] = useState<StatusEffect[]>([]);
+  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const [isSimulationConcluded, setIsSimulationConcluded] = useState(false);
 
   const logEndRef = useRef<HTMLDivElement>(null);
 
@@ -284,60 +300,112 @@ export default function CombatSimulationPage() {
     }
 
     try { mainframeAudio.playSweep(); } catch(e){}
+
+    const pLevel = profile.level || 1;
+    const pBio = profile.stats ? (profile.stats.threat_awareness + profile.stats.operational_discipline + profile.stats.psychological_stability) / 3 * 10 : 50;
+    const pMaxHpVal = Math.round(150 + pLevel * 15 + pBio * 0.8);
     
-    // Simulate entire combat outcome in memory
-    const result = runCombatSimulation(profile, equippedGear, activeOpponent);
-    
-    setBattleResult(result);
-    setCombatLogs([]);
-    setLogIndex(0);
+    let pWeaponPower = 50;
+    let pArmorPower = 50;
+    let pShieldMaxVal = 100;
+    if (equippedGear.Weapon) pWeaponPower += equippedGear.Weapon.power || 0;
+    if (equippedGear.Armor) pArmorPower += equippedGear.Armor.power || 0;
+    if (equippedGear.Helmet) pArmorPower += (equippedGear.Helmet.power || 0) * 0.5;
+    if (equippedGear.Backpack) pArmorPower += (equippedGear.Backpack.power || 0) * 0.2;
+    if (equippedGear.Utility) pWeaponPower += (equippedGear.Utility.power || 0) * 0.3;
+    if (equippedGear.Armor && equippedGear.Armor.stats && typeof equippedGear.Armor.stats.Shield === "string") {
+      const sVal = parseInt(equippedGear.Armor.stats.Shield.replace(/\D/g, ""));
+      if (!isNaN(sVal)) pShieldMaxVal += sVal;
+    }
+
+    const oLevel = activeOpponent.level;
+    const oBioScore = activeOpponent.bioScore;
+    const oEqPower = activeOpponent.equipmentPower;
+    const oMaxHpVal = Math.round(140 + oLevel * 14 + oBioScore * 0.75);
+    const oShieldMaxVal = Math.round(80 + oEqPower * 0.05);
+
+    setPlayerHp(pMaxHpVal);
+    setPlayerShield(pShieldMaxVal);
+    setOpponentHp(oMaxHpVal);
+    setOpponentShield(oShieldMaxVal);
+    setCombatRound(1);
+    setPlayerEffects([]);
+    setOpponentEffects([]);
+    setActiveSubmenu(null);
+    setIsSimulationConcluded(false);
+    setBattleResult(null);
+
+    setCombatLogs([
+      {
+        round: 1,
+        attacker: "player",
+        actionName: "INIT",
+        damageDealt: 0,
+        shieldDamage: 0,
+        healingDone: 0,
+        logText: "Tactical Evaluation Matrix activated. Red Queen Online. Commencing Simulation.",
+        playerHp: pMaxHpVal,
+        playerShield: pShieldMaxVal,
+        opponentHp: oMaxHpVal,
+        opponentShield: oShieldMaxVal
+      }
+    ]);
+
     setView("combat");
     setIsCombatRunning(true);
   };
 
-  // Run round-by-round visual simulation timer
-  useEffect(() => {
-    if (!isCombatRunning || !battleResult) return;
+  const handleBattleConclusion = (outcome: "VICTORY" | "DEFEAT", finalRound: number) => {
+    setIsCombatRunning(false);
+    setIsSimulationConcluded(true);
 
-    const delay = Math.round(1800 / combatSpeed);
-    const interval = setInterval(() => {
-      if (logIndex < battleResult.logs.length) {
-        setCombatLogs(prev => [...prev, battleResult.logs[logIndex]]);
-        try { mainframeAudio.playTick(); } catch(e){}
-        setLogIndex(prev => prev + 1);
-      } else {
-        clearInterval(interval);
-        setIsCombatRunning(false);
-        try { mainframeAudio.playSweep(); } catch(e){}
-        
-        // Finalize rewards and stats persistence
-        finalizeCombatResults();
-      }
-    }, delay);
+    const baseRatingShift = outcome === "VICTORY" ? 25 : -15;
+    const playerBio = Math.round((profile!.stats.threat_awareness + profile!.stats.operational_discipline + profile!.stats.psychological_stability) / 3 * 10);
+    const bioScoreDiff = (activeOpponent!.bioScore - playerBio) / 20;
+    const ratingChange = Math.round(baseRatingShift + Math.min(15, Math.max(-10, bioScoreDiff)));
 
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCombatRunning, logIndex, combatSpeed, battleResult]);
+    const xpEarned = outcome === "VICTORY" ? Math.round(200 + activeOpponent!.level * 15) : Math.round(80 + activeOpponent!.level * 5);
+    const creditsEarned = outcome === "VICTORY" ? Math.round(150 + activeOpponent!.level * 10) : Math.round(50 + activeOpponent!.level * 3);
 
-  // Scroll active combat logs automatically
-  useEffect(() => {
-    if (logEndRef.current) {
-      logEndRef.current.scrollIntoView({ behavior: "smooth" });
+    const recoveredResources: Record<string, number> = {};
+    const dropRoll = Math.random();
+    if (outcome === "VICTORY") {
+      if (dropRoll < 0.25) recoveredResources["Medical Supplies"] = Math.floor(Math.random() * 2) + 1;
+      else if (dropRoll < 0.50) recoveredResources["Components"] = Math.floor(Math.random() * 2) + 1;
+      else if (dropRoll < 0.70) recoveredResources["Electronics"] = 1;
+      else if (dropRoll < 0.82) recoveredResources["Deuterium Cell"] = 1;
+    } else {
+      if (dropRoll < 0.1) recoveredResources["Medical Supplies"] = 1;
     }
-  }, [combatLogs]);
 
-  // Finalize statistics, ratings, drops, history logs, and push updates
-  const finalizeCombatResults = () => {
-    if (!profile || !battleResult || !activeOpponent) return;
+    const bioScoreChange = outcome === "VICTORY" ? 2 : -1;
+
+    const summaryResult: BattleResult = {
+      outcome,
+      ratingChange,
+      xpEarned,
+      creditsEarned,
+      recoveredResources,
+      bioScoreChange,
+      durationSeconds: finalRound * 8,
+      logs: [],
+      totalRounds: finalRound
+    };
+
+    setBattleResult(summaryResult);
+    finalizeCombatResultsInteractive(summaryResult);
+  };
+
+  const finalizeCombatResultsInteractive = (result: BattleResult) => {
+    if (!profile || !activeOpponent) return;
 
     const cStats = { ...(profile.campaignStats as any).combatStats };
     const cHistory = [...((profile.campaignStats as any).combatHistory || [])];
 
-    // Update attempts counter
     cStats.dailyAttemptsUsed = (cStats.dailyAttemptsUsed || 0) + 1;
     cStats.totalSimulations = (cStats.totalSimulations || 0) + 1;
 
-    if (battleResult.outcome === "VICTORY") {
+    if (result.outcome === "VICTORY") {
       cStats.victories = (cStats.victories || 0) + 1;
       cStats.winStreak = (cStats.winStreak || 0) + 1;
       if (cStats.winStreak > (cStats.bestWinStreak || 0)) {
@@ -349,29 +417,27 @@ export default function CombatSimulationPage() {
     }
 
     cStats.winRate = Math.round((cStats.victories / cStats.totalSimulations) * 100);
-    cStats.arenaRating = Math.max(100, (cStats.arenaRating || 1000) + battleResult.ratingChange);
+    cStats.arenaRating = Math.max(100, (cStats.arenaRating || 1000) + result.ratingChange);
     cStats.combatRank = getRankInfo(cStats.arenaRating).name;
 
-    // Record combat history entry
     const historyEntry = {
       id: `sim-${Date.now()}`,
       opponent: activeOpponent.name,
       faction: activeOpponent.faction,
       class: activeOpponent.class,
       role: activeOpponent.role,
-      result: battleResult.outcome,
-      ratingChange: battleResult.ratingChange,
-      xpEarned: battleResult.xpEarned,
-      creditsEarned: battleResult.creditsEarned,
-      bioScoreChange: battleResult.bioScoreChange,
-      durationSeconds: battleResult.durationSeconds,
+      result: result.outcome,
+      ratingChange: result.ratingChange,
+      xpEarned: result.xpEarned,
+      creditsEarned: result.creditsEarned,
+      bioScoreChange: result.bioScoreChange,
+      durationSeconds: result.durationSeconds,
       date: new Date().toISOString()
     };
 
     cHistory.unshift(historyEntry);
 
-    // Apply currency, level and bio-score adjustments
-    let newXp = (profile.xp || 0) + battleResult.xpEarned;
+    let newXp = (profile.xp || 0) + result.xpEarned;
     let newLevel = profile.level || 1;
     const reqXp = newLevel * 1000;
     if (newXp >= reqXp) {
@@ -379,12 +445,11 @@ export default function CombatSimulationPage() {
       newLevel += 1;
     }
 
-    const newCredits = (profile.credits || 0) + battleResult.creditsEarned;
+    const newCredits = (profile.credits || 0) + result.creditsEarned;
     
-    // Scavenged resources
     const newResources = { ...(profile.resources || {}) };
-    Object.keys(battleResult.recoveredResources).forEach(res => {
-      newResources[res] = (newResources[res] || 0) + battleResult.recoveredResources[res];
+    Object.keys(result.recoveredResources).forEach(res => {
+      newResources[res] = (newResources[res] || 0) + result.recoveredResources[res];
     });
 
     const updatedProfile: OperativeProfile = {
@@ -403,6 +468,197 @@ export default function CombatSimulationPage() {
     setProfile(updatedProfile);
     updateProfileOnServer(updatedProfile, inventory);
   };
+
+  const handlePlayerChoice = (actionType: string, subChoice: string) => {
+    if (!profile || !activeOpponent || isSimulationConcluded) return;
+
+    try { mainframeAudio.playTick(); } catch(e){}
+
+    const pLevel = profile.level || 1;
+    const pBio = profile.stats ? (profile.stats.threat_awareness + profile.stats.operational_discipline + profile.stats.psychological_stability) / 3 * 10 : 50;
+    const pMaxHpVal = Math.round(150 + pLevel * 15 + pBio * 0.8);
+    
+    let pWeaponPower = 50;
+    let pArmorPower = 50;
+    let pShieldMaxVal = 100;
+    if (equippedGear.Weapon) pWeaponPower += equippedGear.Weapon.power || 0;
+    if (equippedGear.Armor) pArmorPower += equippedGear.Armor.power || 0;
+    if (equippedGear.Helmet) pArmorPower += (equippedGear.Helmet.power || 0) * 0.5;
+    if (equippedGear.Backpack) pArmorPower += (equippedGear.Backpack.power || 0) * 0.2;
+    if (equippedGear.Utility) pWeaponPower += (equippedGear.Utility.power || 0) * 0.3;
+    if (equippedGear.Armor && equippedGear.Armor.stats && typeof equippedGear.Armor.stats.Shield === "string") {
+      const sVal = parseInt(equippedGear.Armor.stats.Shield.replace(/\D/g, ""));
+      if (!isNaN(sVal)) pShieldMaxVal += sVal;
+    }
+
+    const oLevel = activeOpponent.level;
+    const oBioScore = activeOpponent.bioScore;
+    const oEqPower = activeOpponent.equipmentPower;
+    const oMaxHpVal = Math.round(140 + oLevel * 14 + oBioScore * 0.75);
+    const oShieldMaxVal = Math.round(80 + oEqPower * 0.05);
+
+    const playerState: CombatantState = {
+      name: profile.name || "Operative",
+      level: pLevel,
+      class: profile.class || "Assault",
+      role: profile.role || "Vanguard",
+      hp: playerHp,
+      maxHp: pMaxHpVal,
+      shield: playerShield,
+      maxShield: pShieldMaxVal,
+      weaponPower: pWeaponPower,
+      armorPower: pArmorPower,
+      statusEffects: [...playerEffects]
+    };
+
+    const opponentState: CombatantState = {
+      name: activeOpponent.name,
+      level: oLevel,
+      class: activeOpponent.class,
+      role: activeOpponent.role,
+      hp: opponentHp,
+      maxHp: oMaxHpVal,
+      shield: opponentShield,
+      maxShield: oShieldMaxVal,
+      weaponPower: Math.round(45 + oEqPower * 0.04),
+      armorPower: Math.round(45 + oEqPower * 0.04),
+      statusEffects: [...opponentEffects]
+    };
+
+    const nextLogs: BattleLogEntry[] = [];
+
+    // Deduct consumable quantity if consumed
+    if (actionType === "consumable") {
+      let nextInv = inventory.map(item => {
+        if (item.name === subChoice || item.id === subChoice) {
+          return { ...item, qty: item.qty - 1 };
+        }
+        return item;
+      }).filter(item => item.qty > 0);
+      
+      setInventory(nextInv);
+      const updatedProfile = { ...profile, inventory: nextInv };
+      setProfile(updatedProfile);
+      updateProfileOnServer(updatedProfile, nextInv);
+    }
+
+    // A. Player Turn Ticks
+    const playerTicks = tickStatusEffects(playerState);
+    playerTicks.forEach(tText => {
+      nextLogs.push({
+        round: combatRound,
+        attacker: "opponent",
+        actionName: "DOT Ticks",
+        damageDealt: 0,
+        shieldDamage: 0,
+        healingDone: 0,
+        logText: tText,
+        playerHp: playerState.hp,
+        playerShield: playerState.shield,
+        opponentHp: opponentState.hp,
+        opponentShield: opponentState.shield
+      });
+    });
+
+    if (playerState.hp <= 0) {
+      setPlayerHp(0);
+      setCombatLogs(prev => [...prev, ...nextLogs]);
+      handleBattleConclusion("DEFEAT", combatRound);
+      return;
+    }
+
+    // B. Player Execute choice
+    const pRes = executeCombatAction(playerState, opponentState, actionType as any, subChoice);
+    nextLogs.push({
+      round: combatRound,
+      attacker: "player",
+      actionName: subChoice,
+      damageDealt: pRes.damageDealt,
+      shieldDamage: pRes.shieldDamage,
+      healingDone: pRes.healingDone,
+      logText: pRes.logText,
+      playerHp: playerState.hp,
+      playerShield: playerState.shield,
+      opponentHp: opponentState.hp,
+      opponentShield: opponentState.shield
+    });
+
+    if (opponentState.hp <= 0) {
+      setOpponentHp(0);
+      setCombatLogs(prev => [...prev, ...nextLogs]);
+      handleBattleConclusion("VICTORY", combatRound);
+      return;
+    }
+
+    // C. Enemy Turn Ticks
+    const oppTicks = tickStatusEffects(opponentState);
+    oppTicks.forEach(oText => {
+      nextLogs.push({
+        round: combatRound,
+        attacker: "player",
+        actionName: "DOT Ticks",
+        damageDealt: 0,
+        shieldDamage: 0,
+        healingDone: 0,
+        logText: oText,
+        playerHp: playerState.hp,
+        playerShield: playerState.shield,
+        opponentHp: opponentState.hp,
+        opponentShield: opponentState.shield
+      });
+    });
+
+    if (opponentState.hp <= 0) {
+      setOpponentHp(0);
+      setCombatLogs(prev => [...prev, ...nextLogs]);
+      handleBattleConclusion("VICTORY", combatRound);
+      return;
+    }
+
+    // D. Enemy AI Choice
+    const aiChoice = calculateEnemyAIDecision(opponentState, playerState);
+    const oRes = executeCombatAction(opponentState, playerState, aiChoice.action, aiChoice.subChoice);
+    nextLogs.push({
+      round: combatRound,
+      attacker: "opponent",
+      actionName: aiChoice.subChoice,
+      damageDealt: oRes.damageDealt,
+      shieldDamage: oRes.shieldDamage,
+      healingDone: oRes.healingDone,
+      logText: oRes.logText,
+      playerHp: playerState.hp,
+      playerShield: playerState.shield,
+      opponentHp: opponentState.hp,
+      opponentShield: opponentState.shield
+    });
+
+    if (playerState.hp <= 0) {
+      setPlayerHp(0);
+      setCombatLogs(prev => [...prev, ...nextLogs]);
+      handleBattleConclusion("DEFEAT", combatRound);
+      return;
+    }
+
+    // E. Update States
+    setPlayerHp(playerState.hp);
+    setPlayerShield(playerState.shield);
+    setOpponentHp(opponentState.hp);
+    setOpponentShield(opponentState.shield);
+    setPlayerEffects(playerState.statusEffects);
+    setOpponentEffects(opponentState.statusEffects);
+    setCombatRound(prev => prev + 1);
+
+    // F. Append Logs
+    setCombatLogs(prev => [...prev, ...nextLogs]);
+    setActiveSubmenu(null);
+  };
+
+  // Scroll active combat logs automatically
+  useEffect(() => {
+    if (logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [combatLogs]);
 
   const getPentagonPoints = (center: number, radius: number) => {
     const points = [];
@@ -445,11 +701,10 @@ export default function CombatSimulationPage() {
   const pShieldMax = 100 + (equippedGear.Armor ? 100 : 0);
 
   // Active Live state calculation
-  const latestLog = combatLogs[combatLogs.length - 1];
-  const activePlayerHp = latestLog ? latestLog.playerHp : pMaxHp;
-  const activePlayerShield = latestLog ? latestLog.playerShield : pShieldMax;
-  const activeOppHp = latestLog ? latestLog.opponentHp : (activeOpponent ? Math.round(140 + activeOpponent.level * 14 + activeOpponent.bioScore * 0.75) : 100);
-  const activeOppShield = latestLog ? latestLog.opponentShield : (activeOpponent ? Math.round(80 + activeOpponent.equipmentPower * 0.05) : 50);
+  const activePlayerHp = playerHp;
+  const activePlayerShield = playerShield;
+  const activeOppHp = opponentHp;
+  const activeOppShield = opponentShield;
 
   // Win probability calculation
   const getLiveProbability = () => {
@@ -458,13 +713,13 @@ export default function CombatSimulationPage() {
     const oPower = (activeOpponent.level * 100) + activeOpponent.bioScore;
     const ratio = pPower / (pPower + oPower);
     const pPct = activePlayerHp / pMaxHp;
-    const oPct = activeOppHp / (140 + activeOpponent.level * 14 + activeOpponent.bioScore * 0.75);
+    const oPct = activeOppHp / Math.round(140 + activeOpponent.level * 14 + activeOpponent.bioScore * 0.75);
     return Math.round(Math.min(99, Math.max(1, (ratio * 0.6 + (pPct - oPct + 1) * 0.2) * 100)));
   };
 
   const winProb = getLiveProbability();
   const rqLive = getRedQueenCombatComment(
-    logIndex,
+    combatRound,
     winProb,
     activePlayerHp,
     pMaxHp,
@@ -1104,27 +1359,12 @@ export default function CombatSimulationPage() {
                       EVALUATION STREAMING IN PROGRESS
                     </h3>
                     <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                      ROUND {Math.ceil(logIndex / 2)} / 12 // DURATION: {logIndex * 4}s
+                      ROUND {combatRound} / 12 // DURATION: {combatRound * 8}s
                     </span>
                   </div>
 
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", fontFamily: "var(--mono)", fontSize: "11px" }}>
-                    <span>SPEED MODULE:</span>
-                    <div style={{ display: "flex", border: "1px solid var(--border)", borderRadius: "2px" }}>
-                      {[1, 2, 4].map(s => (
-                        <button
-                          key={s}
-                          onClick={() => { try { mainframeAudio.playBeep(); } catch(e){} setCombatSpeed(s as any); }}
-                          style={{
-                            padding: "6px 12px", background: combatSpeed === s ? "rgba(0,255,204,0.1)" : "none",
-                            color: combatSpeed === s ? "var(--accent)" : "var(--text-dim)", border: "none",
-                            cursor: "pointer", fontWeight: "bold"
-                          }}
-                        >
-                          {s}X
-                        </button>
-                      ))}
-                    </div>
+                    <span style={{ color: "var(--text-dim)" }}>MANUAL VECTOR CONTROLS ACTIVE</span>
                   </div>
                 </div>
 
@@ -1133,12 +1373,29 @@ export default function CombatSimulationPage() {
                   
                   {/* Left Column: Player status */}
                   <div style={{ background: "#0a0a0a", border: "1px solid var(--border)", padding: "16px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <div style={{ fontSize: "13px", fontWeight: "bold", color: "#fff" }}>{profile.name}</div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "13px", fontWeight: "bold", color: "#fff" }}>{profile.name}</span>
+                      <span style={{ color: "var(--accent)", fontSize: "10px", fontFamily: "var(--mono)" }}>PLAYER</span>
+                    </div>
                     <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)" }}>LVL {profile.level} // {profile.class.toUpperCase()}</div>
                     
                     {/* Portrait Card */}
-                    <div style={{ height: "130px", background: "rgba(0,255,204,0.01)", border: "1px solid rgba(0,255,204,0.06)", borderRadius: "2px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                      [ PORTRAIT DECK ]
+                    <div style={{ height: "130px", background: "rgba(0,255,204,0.01)", border: "1px solid rgba(0,255,204,0.06)", borderRadius: "2px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                      <span>[ PORTRAIT DECK ]</span>
+                      {playerEffects.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", padding: "0 8px", justifyContent: "center" }}>
+                          {playerEffects.map((eff, idx) => (
+                            <span key={idx} style={{ 
+                              background: eff.name === "EMP Disabled" ? "rgba(186,85,211,0.15)" : eff.name === "Stimmed" ? "rgba(255,165,0,0.15)" : "rgba(255,77,77,0.15)",
+                              border: eff.name === "EMP Disabled" ? "1px solid #ba55d3" : eff.name === "Stimmed" ? "1px solid #ffa500" : "1px solid #ff4d4d",
+                              color: eff.name === "EMP Disabled" ? "#ba55d3" : eff.name === "Stimmed" ? "#ffa500" : "#ff4d4d",
+                              fontSize: "8px", padding: "1px 4px", borderRadius: "1px", fontWeight: "bold"
+                            }}>
+                              {eff.name.toUpperCase()} ({eff.duration})
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Vitals bars */}
@@ -1192,12 +1449,29 @@ export default function CombatSimulationPage() {
 
                   {/* Right Column: Hostile status */}
                   <div style={{ background: "#0a0a0a", border: "1px solid var(--border)", padding: "16px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <div style={{ fontSize: "13px", fontWeight: "bold", color: "#fff" }}>{activeOpponent.name}</div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "13px", fontWeight: "bold", color: "#fff" }}>{activeOpponent.name}</span>
+                      <span style={{ color: "#ff4d4d", fontSize: "10px", fontFamily: "var(--mono)" }}>HOSTILE</span>
+                    </div>
                     <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)" }}>LVL {activeOpponent.level} // {activeOpponent.class.toUpperCase()}</div>
                     
                     {/* Portrait Card */}
-                    <div style={{ height: "130px", background: "rgba(255,77,77,0.01)", border: "1px solid rgba(255,77,77,0.06)", borderRadius: "2px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#ff4d4d", fontFamily: "var(--mono)" }}>
-                      [ PORTRAIT DECK ]
+                    <div style={{ height: "130px", background: "rgba(255,77,77,0.01)", border: "1px solid rgba(255,77,77,0.06)", borderRadius: "2px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", fontSize: "11px", color: "#ff4d4d", fontFamily: "var(--mono)" }}>
+                      <span>[ PORTRAIT DECK ]</span>
+                      {opponentEffects.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", padding: "0 8px", justifyContent: "center" }}>
+                          {opponentEffects.map((eff, idx) => (
+                            <span key={idx} style={{ 
+                              background: eff.name === "EMP Disabled" ? "rgba(186,85,211,0.15)" : eff.name === "Stimmed" ? "rgba(255,165,0,0.15)" : "rgba(255,77,77,0.15)",
+                              border: eff.name === "EMP Disabled" ? "1px solid #ba55d3" : eff.name === "Stimmed" ? "1px solid #ffa500" : "1px solid #ff4d4d",
+                              color: eff.name === "EMP Disabled" ? "#ba55d3" : eff.name === "Stimmed" ? "#ffa500" : "#ff4d4d",
+                              fontSize: "8px", padding: "1px 4px", borderRadius: "1px", fontWeight: "bold"
+                            }}>
+                              {eff.name.toUpperCase()} ({eff.duration})
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Vitals bars */}
@@ -1225,6 +1499,226 @@ export default function CombatSimulationPage() {
                   </div>
 
                 </div>
+
+                {/* INTERACTIVE ACTION DECK */}
+                {isCombatRunning && !isSimulationConcluded && (
+                  <div style={{ background: "#0b0b0b", border: "1px solid var(--border)", padding: "16px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                    
+                    {/* Primary options header */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "8px" }}>
+                      <span style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)", fontWeight: "bold" }}>
+                        SELECT TACTICAL DEPLOYMENT ACTION
+                      </span>
+                      <span style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)" }}>
+                        DECISION VECTOR // ROUND {combatRound}
+                      </span>
+                    </div>
+
+                    {/* Primary Button Grid */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "10px" }}>
+                      <button
+                        onClick={() => { try { mainframeAudio.playBeep(); } catch(e){} setActiveSubmenu(activeSubmenu === "attack" ? null : "attack"); }}
+                        className="btn"
+                        style={{
+                          background: activeSubmenu === "attack" ? "rgba(0,255,204,0.12)" : "rgba(255,255,255,0.02)",
+                          border: activeSubmenu === "attack" ? "1px solid var(--accent)" : "1px solid var(--border)",
+                          color: activeSubmenu === "attack" ? "var(--accent)" : "#fff",
+                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
+                        }}
+                      >
+                        ⚔️ ATTACK
+                      </button>
+
+                      <button
+                        onClick={() => { try { mainframeAudio.playBeep(); } catch(e){} setActiveSubmenu(activeSubmenu === "defend" ? null : "defend"); }}
+                        className="btn"
+                        style={{
+                          background: activeSubmenu === "defend" ? "rgba(0,255,204,0.12)" : "rgba(255,255,255,0.02)",
+                          border: activeSubmenu === "defend" ? "1px solid var(--accent)" : "1px solid var(--border)",
+                          color: activeSubmenu === "defend" ? "var(--accent)" : "#fff",
+                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
+                        }}
+                      >
+                        🛡️ DEFEND
+                      </button>
+
+                      <button
+                        onClick={() => { try { mainframeAudio.playBeep(); } catch(e){} setActiveSubmenu(activeSubmenu === "consumable" ? null : "consumable"); }}
+                        className="btn"
+                        style={{
+                          background: activeSubmenu === "consumable" ? "rgba(0,255,204,0.12)" : "rgba(255,255,255,0.02)",
+                          border: activeSubmenu === "consumable" ? "1px solid var(--accent)" : "1px solid var(--border)",
+                          color: activeSubmenu === "consumable" ? "var(--accent)" : "#fff",
+                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
+                        }}
+                      >
+                        🎒 CONSUMABLE
+                      </button>
+
+                      <button
+                        onClick={() => { try { mainframeAudio.playBeep(); } catch(e){} setActiveSubmenu(activeSubmenu === "gadget" ? null : "gadget"); }}
+                        className="btn"
+                        style={{
+                          background: activeSubmenu === "gadget" ? "rgba(0,255,204,0.12)" : "rgba(255,255,255,0.02)",
+                          border: activeSubmenu === "gadget" ? "1px solid var(--accent)" : "1px solid var(--border)",
+                          color: activeSubmenu === "gadget" ? "var(--accent)" : "#fff",
+                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
+                        }}
+                      >
+                        ⚙️ GADGET
+                      </button>
+
+                      <button
+                        onClick={() => { try { mainframeAudio.playBeep(); } catch(e){} setActiveSubmenu(activeSubmenu === "special" ? null : "special"); }}
+                        className="btn"
+                        style={{
+                          background: activeSubmenu === "special" ? "rgba(0,255,204,0.12)" : "rgba(255,255,255,0.02)",
+                          border: activeSubmenu === "special" ? "1px solid var(--accent)" : "1px solid var(--border)",
+                          color: activeSubmenu === "special" ? "var(--accent)" : "#fff",
+                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px", fontWeight: "bold"
+                        }}
+                      >
+                        ⚡ ABILITY
+                      </button>
+
+                      <button
+                        onClick={() => handlePlayerChoice("skip", "Recalibrate")}
+                        className="btn"
+                        style={{
+                          background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", color: "var(--text-dim)",
+                          fontFamily: "var(--mono)", fontSize: "11.5px", padding: "10px", cursor: "pointer", borderRadius: "2px"
+                        }}
+                      >
+                        ⏭️ SKIP
+                      </button>
+                    </div>
+
+                    {/* Submenu Expansion Panel */}
+                    {activeSubmenu && (
+                      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "12px", borderRadius: "2px", marginTop: "4px" }}>
+                        
+                        {/* A. Attack Targeting */}
+                        {activeSubmenu === "attack" && (
+                          <div>
+                            <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px" }}>SELECT ATTACK TARGET VECTOR:</div>
+                            <div style={{ display: "flex", gap: "10px" }}>
+                              <button onClick={() => handlePlayerChoice("attack", "Head")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(255,77,77,0.3)", padding: "8px", fontSize: "11px", color: "#ff4d4d", fontFamily: "var(--mono)" }}>
+                                TARGET HEAD (55% Acc // 1.8x Dmg)
+                              </button>
+                              <button onClick={() => handlePlayerChoice("attack", "Torso")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                                TARGET TORSO (90% Acc // 1.0x Dmg)
+                              </button>
+                              <button onClick={() => handlePlayerChoice("attack", "Legs")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(255,255,255,0.15)", padding: "8px", fontSize: "11px", color: "#fff", fontFamily: "var(--mono)" }}>
+                                TARGET LEGS (80% Acc // 0.7x Dmg + Suppressed chance)
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* B. Defend Positioning */}
+                        {activeSubmenu === "defend" && (
+                          <div>
+                            <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px" }}>SELECT DEFENSIVE ACTION MATRIX:</div>
+                            <div style={{ display: "flex", gap: "10px" }}>
+                              <button onClick={() => handlePlayerChoice("defend", "Take Cover")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
+                                TAKE COVER (Mitigate 50% dmg for 1 turn)
+                              </button>
+                              <button onClick={() => handlePlayerChoice("defend", "Brace")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
+                                BRACE FOR IMPACT (+40% Defense for 2 turns)
+                              </button>
+                              <button onClick={() => handlePlayerChoice("defend", "Shield")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
+                                REGEN SHIELDS (Restore 40 Shield Points)
+                              </button>
+                              <button onClick={() => handlePlayerChoice("defend", "Dodge")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
+                                PREDICTIVE EVADE (+40% Dodge for 1 turn)
+                              </button>
+                              <button onClick={() => handlePlayerChoice("defend", "Counter Stance")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                                COUNTER POSTURE (Dodge & counter attack)
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* C. Consumables list */}
+                        {activeSubmenu === "consumable" && (
+                          <div>
+                            <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px" }}>CHOOSE CONSUMABLE (DEDUCTED FROM PROFILE INVENTORY):</div>
+                            {inventory.filter(i => i.name.includes("Medkit") || i.name.includes("Stim") || i.name.includes("Cell") || i.name.includes("Plasma") || i.name.includes("Supplies") || i.name.includes("Deuterium")).length === 0 ? (
+                              <div style={{ fontSize: "11px", color: "var(--text-dim)", fontFamily: "var(--mono)", fontStyle: "italic" }}>
+                                NO USABLE CONSUMABLES AVAILABLE IN INVENTORY.
+                              </div>
+                            ) : (
+                              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                {inventory.filter(i => i.name.includes("Medkit") || i.name.includes("Stim") || i.name.includes("Cell") || i.name.includes("Plasma") || i.name.includes("Supplies") || i.name.includes("Deuterium")).map(item => (
+                                  <button
+                                    key={item.id}
+                                    onClick={() => handlePlayerChoice("consumable", item.name)}
+                                    className="btn btn-ghost"
+                                    style={{ border: "1px solid var(--border)", padding: "8px 14px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}
+                                  >
+                                    📦 {item.name.toUpperCase()} (Qty: {item.qty})
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* D. Gadgets list */}
+                        {activeSubmenu === "gadget" && (
+                          <div>
+                            <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px" }}>DEPLOY GADGET MODULE:</div>
+                            <div style={{ display: "flex", gap: "10px" }}>
+                              <button onClick={() => handlePlayerChoice("gadget", "EMP")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
+                                EMP PULSE (Disable hostile systems for 2 turns)
+                              </button>
+                              <button onClick={() => handlePlayerChoice("gadget", "Drone")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
+                                ANOMALY DRONE (Deal 30 Dmg + Apply Bleeding)
+                              </button>
+                              <button onClick={() => handlePlayerChoice("gadget", "Scanner")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
+                                TACTICAL SCANNER (Break Armor; Scan vulnerabilities)
+                              </button>
+                              <button onClick={() => handlePlayerChoice("gadget", "Decoy")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid var(--border)", padding: "8px", fontSize: "11px", fontFamily: "var(--mono)", color: "#fff" }}>
+                                HOLOGRAPHIC DECOY (Force hostile miss next turn)
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* E. Special Abilities */}
+                        {activeSubmenu === "special" && (
+                          <div>
+                            <div style={{ fontSize: "10px", color: "var(--text-dim)", fontFamily: "var(--mono)", marginBottom: "8px" }}>DEPLOY ROLE-SPECIFIC ABILITY:</div>
+                            <div style={{ display: "flex", gap: "10px" }}>
+                              {profile.class === "Medic" && (
+                                <button onClick={() => handlePlayerChoice("special", "Helix Emergency Heal")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                                  HELIX INOCULATION (Heal 45 HP + Remove Bleed/Poison)
+                                </button>
+                              )}
+                              {profile.class === "Engineer" && (
+                                <button onClick={() => handlePlayerChoice("special", "Deploy Defense Turret")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                                  DEPLOY AUTO-TURRET (Deals 20 automatic DoT for 3 rounds)
+                                </button>
+                              )}
+                              {profile.class === "Recon" && (
+                                <button onClick={() => handlePlayerChoice("special", "Critical scan")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                                  VULNERABILITY SCAN (Guarantees Critical Hit next turn)
+                                </button>
+                              )}
+                              {profile.class !== "Medic" && profile.class !== "Engineer" && profile.class !== "Recon" && (
+                                <button onClick={() => handlePlayerChoice("special", "Suppressive Storm")} className="btn btn-ghost" style={{ flex: 1, border: "1px solid rgba(0,255,204,0.3)", padding: "8px", fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
+                                  SUPPRESSIVE STORM BURST (Deal 40 Dmg + Suppress hostile for 2 turns)
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                      </div>
+                    )}
+
+                  </div>
+                )}
 
                 {/* Live Analysis commentary & win prob dashboard */}
                 <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px" }}>
