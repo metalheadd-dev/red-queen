@@ -6,6 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import AccessGuard from "@/components/AccessGuard";
 import OperationsManualView from "@/components/OperationsManualView";
+import { mainframeAudio } from "@/lib/game/audio";
 import { DEFAULT_STATS, UserStats, calculateBioScore, getClearanceLevel } from "@/lib/progression";
 
 // Game Types & Data imports
@@ -159,6 +160,41 @@ export default function OperationsPage() {
   const [activeTab, setActiveTab] = useState<"center" | "profile" | "inventory" | "settings" | "manual">("center");
   const [completedOnboarding, setCompletedOnboarding] = useState<boolean>(true);
   const [gameplayOnboardingStep, setGameplayOnboardingStep] = useState<number>(1);
+
+  // Mainframe Boot Sequence States & Hook
+  const [booted, setBooted] = useState(false);
+  const [bootLogs, setBootLogs] = useState<string[]>([]);
+
+  useEffect(() => {
+    const logs = [
+      "CONNECTING TO RED QUEEN MAINFRAME...",
+      "[OK] LOAD SECURE SUITE // V7.4.1",
+      "[OK] LOAD SOUL REGISTRY: UMBRELLA-RED-QUEEN",
+      "[OK] STABILIZE METADATA DEPIN DECK",
+      "[OK] CHECK SOLANA TOKEN GATE CLEARANCE ($THREAT)",
+      "[OK] CLEARANCE SECURED: LEVEL 5 ACCESS GRANTED",
+      "LAUNCHING INTERACTIVE TACTICAL CONSOLE DECK..."
+    ];
+    let currentLogIndex = 0;
+    const interval = setInterval(() => {
+      if (currentLogIndex < logs.length) {
+        setBootLogs(prev => [...prev, logs[currentLogIndex]]);
+        try {
+          mainframeAudio.playTick();
+        } catch (e) {}
+        currentLogIndex++;
+      } else {
+        clearInterval(interval);
+        setTimeout(() => {
+          setBooted(true);
+          try {
+            mainframeAudio.playSweep();
+          } catch (e) {}
+        }, 300);
+      }
+    }, 180);
+    return () => clearInterval(interval);
+  }, []);
 
   // Map and Selected Sector selection
   const [selectedSectorId, setSelectedSectorId] = useState<string>("sec-alpha");
@@ -871,6 +907,7 @@ export default function OperationsPage() {
         const logLine = logSteps[currentStep];
         setDeploymentLogs(prev => [...prev, logLine]);
         setDeploymentProgress(Math.floor(((currentStep + 1) / logSteps.length) * 100));
+        try { mainframeAudio.playTick(); } catch(e){}
         currentStep++;
       } else {
         clearInterval(interval);
@@ -897,11 +934,13 @@ export default function OperationsPage() {
       if (current < connSteps.length) {
         const connLine = connSteps[current];
         setConnectionLogs(prev => [...prev, connLine]);
+        try { mainframeAudio.playTick(); } catch(e){}
         current++;
       } else {
         clearInterval(interval);
         setTimeout(() => {
           setMissionFlow("decision");
+          try { mainframeAudio.playSweep(); } catch(e){}
         }, 800);
       }
     }, 600);
@@ -958,9 +997,11 @@ export default function OperationsPage() {
 
     if (success) {
       setEventOutcomeText(`[SUCCESS] ${choice.success_text}`);
+      try { mainframeAudio.playSuccess(); } catch(e){}
     } else {
       const damage = reward.injury || 0;
       setEventOutcomeText(`[FAILURE] ${choice.failure_text} (Health Impact: -${damage} HP)`);
+      try { mainframeAudio.playWarning(); } catch(e){}
       
       // Deduct health directly in local UI state
       setProfile(prev => {
@@ -983,6 +1024,7 @@ export default function OperationsPage() {
     if (profile.health <= 10) {
       setMissionOutcome("FAILURE");
       setMissionFlow("debriefing");
+      try { mainframeAudio.playWarning(); } catch(e){}
       setOutcomeCommentary(
         RedQueenIntelligenceService.getMissionDebriefing(
           profile,
@@ -1892,6 +1934,63 @@ export default function OperationsPage() {
   }
 
   // --- IMMERSIVE GAMEPLAY MAIN HUB ---
+  if (!booted) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        background: "#050505",
+        color: "#00ffcc",
+        fontFamily: "var(--mono)",
+        padding: "40px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        gap: "12px",
+        position: "relative",
+        overflow: "hidden"
+      }}>
+        {/* CRT Scanline */}
+        <div className="crt-scanlines" />
+        
+        {/* Terminal Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+          <div style={{ width: "12px", height: "12px", background: "#00ffcc", borderRadius: "50%", animation: "boot-blink 1s ease-in-out infinite" }} />
+          <span style={{ fontSize: "16px", fontWeight: "bold", letterSpacing: "0.15em" }}>RED QUEEN SECURE BOOT MATRIX</span>
+        </div>
+
+        {/* Boot Logs */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "600px", width: "100%" }}>
+          {bootLogs.map((log, idx) => (
+            <div key={idx} style={{ fontSize: "14px", borderLeft: "2px solid #00ffcc", paddingLeft: "12px", color: log.startsWith("[OK]") ? "#00ffcc" : "#fff" }}>
+              {log}
+            </div>
+          ))}
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <span style={{ color: "#00ffcc" }}>&gt;</span>
+            <span style={{ width: "8px", height: "15px", background: "#00ffcc", animation: "boot-blink 0.8s steps(2, start) infinite" }} />
+          </div>
+        </div>
+
+        <style jsx>{`
+          @keyframes boot-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.15; }
+          }
+          .crt-scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            background-size: 100% 3px;
+            z-index: 999999;
+            pointer-events: none;
+            opacity: 0.4;
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <AccessGuard>
       {!completedOnboarding && profile && (
@@ -2351,7 +2450,7 @@ export default function OperationsPage() {
           </div>
           
           <button
-            onClick={() => setActiveTab("center")}
+            onClick={() => { setActiveTab("center"); try { mainframeAudio.playSweep(); } catch(e){} }}
             style={{
               width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
               background: activeTab === "center" ? "rgba(255, 77, 77, 0.06)" : "none",
@@ -2365,7 +2464,7 @@ export default function OperationsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("profile")}
+            onClick={() => { setActiveTab("profile"); try { mainframeAudio.playSweep(); } catch(e){} }}
             style={{
               width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
               background: activeTab === "profile" ? "rgba(255, 77, 77, 0.06)" : "none",
@@ -2379,7 +2478,7 @@ export default function OperationsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("inventory")}
+            onClick={() => { setActiveTab("inventory"); try { mainframeAudio.playSweep(); } catch(e){} }}
             style={{
               width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
               background: activeTab === "inventory" ? "rgba(255, 77, 77, 0.06)" : "none",
@@ -2393,7 +2492,7 @@ export default function OperationsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("settings")}
+            onClick={() => { setActiveTab("settings"); try { mainframeAudio.playSweep(); } catch(e){} }}
             style={{
               width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
               background: activeTab === "settings" ? "rgba(255, 77, 77, 0.06)" : "none",
@@ -2407,7 +2506,7 @@ export default function OperationsPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("manual")}
+            onClick={() => { setActiveTab("manual"); try { mainframeAudio.playSweep(); } catch(e){} }}
             style={{
               width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
               background: activeTab === "manual" ? "rgba(255, 77, 77, 0.06)" : "none",

@@ -111,7 +111,7 @@ export const INITIAL_MISSIONS: Mission[] = [
   {
     id: "op-1-sanctuary-search",
     title: "OPERATION SANCTUARY SEARCH",
-    description: "Deploy to Sector Alpha to locate and extract a civilian survival cell trapped inside an abandoned medical depot. High toxic levels detected.",
+    description: "Extract civilian medical pod from Sector Alpha suburb depots. High toxic threat.",
     region: "sec-alpha",
     difficulty: "Easy",
     duration: 5,
@@ -122,7 +122,7 @@ export const INITIAL_MISSIONS: Mission[] = [
     category: "critical",
     factionReputationDelta: { helix: 12, citadel: -5 },
     sectorProgressPoints: 10,
-    story: "Red Queen scouts have pinpointed a structural node in Sector Alpha containing trapped medical staff. Bypassing the security gateway is required to retrieve them before local toxin levels saturate their pod filters.",
+    story: "Suburban depot pod filters are failing. Extract the target pod before toxicity levels saturate.",
     primaryObjective: "Extract civilian medical pod from Sector Alpha.",
     secondaryObjectives: ["Retrieve bio-toxin samples", "Decrypt security gate keylogs"],
     expectedThreat: "Low-level rogue cleaning drones, atmospheric toxins.",
@@ -138,24 +138,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-1-ev-1",
         title: "DEPOT ENTRY GATES",
-        text: "You arrive at the depot. The entrance is blocked by structural rubble, and there are high biological hazard readings inside. The survivors are running out of air.",
+        text: "Blocked entry gates. High bio-hazard readings. Survivors running out of oxygen.",
         options: [
           {
             id: "op-1-ev1-opt1",
-            text: "Crawl through the narrow ventilation shafts using hazard filters.",
+            text: "Crawl through ventilation shafts using hazard filters.",
             success_prob: 75,
             class_bonus: { classId: "Medic", bonus: 15 },
-            success_text: "You navigated the vents safely and reached the interior corridor.",
-            failure_text: "The toxic gas saturated your filters. You sustained respiratory damage before dropping into the depot.",
+            success_text: "Safe ventilation transit completed.",
+            failure_text: "Atmospheric filters failed. Respiratory trauma sustained.",
             effects: { xp: 10, credits: 10, injury: 20 }
           },
           {
             id: "op-1-ev1-opt2",
-            text: "Clear the door hinges using a breach charge.",
+            text: "Blast the gate hinges using a breach charge.",
             success_prob: 80,
             class_bonus: { classId: "Assault", bonus: 15 },
-            success_text: "The hinges blew cleanly. You bypassed the door instantly.",
-            failure_text: "The blast caused a minor structural collapse. Falling concrete struck your shoulder.",
+            success_text: "Hinges destroyed. Entrance cleared.",
+            failure_text: "Blast debris caused a minor collapse. Injury sustained.",
             effects: { xp: 15, credits: 5, injury: 30 }
           }
         ]
@@ -163,24 +163,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-1-ev-2",
         title: "TOXIC HALLWAY",
-        text: "The hallway is flooded with glowing bio-chemical coolant leaking from ruptured storage vats.",
+        text: "Depot corridor is flooded with bio-chemical coolant.",
         options: [
           {
             id: "op-1-ev2-opt1",
-            text: "Synthesize a chemical neutralizer formula to coat your boots.",
+            text: "Coat boots with a synthesized neutralizer formula.",
             success_prob: 70,
             class_bonus: { classId: "Scientist", bonus: 20 },
-            success_text: "The neutralizer dissolved the hazard. You crossed the pool cleanly.",
-            failure_text: "The acid burned through your protective boot meshes, causing severe chemical burns.",
+            success_text: "Corrosive chemical dissolved safely.",
+            failure_text: "Boot lining melted. Chemical burns sustained.",
             effects: { xp: 15, credits: 15, injury: 25 }
           },
           {
             id: "op-1-ev2-opt2",
-            text: "Jump across structural girder supports.",
+            text: "Jump across exposed structural steel girders.",
             success_prob: 60,
             class_bonus: { classId: "Recon", bonus: 20 },
-            success_text: "You leap across the columns, landing on solid platform boards.",
-            failure_text: "You slipped on wet debris, falling into the shallow acid pool.",
+            success_text: "Successfully leaped across the coolant pool.",
+            failure_text: "Slipped on toxic debris, falling into coolant.",
             effects: { xp: 10, credits: 5, injury: 35 }
           }
         ]
@@ -188,24 +188,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-1-ev-3",
         title: "POD CONDUIT CODES",
-        text: "You reach the pod, but the emergency release console is locked by secure encryption keys.",
+        text: "Target rescue pod reached, but console lock triggers are offline.",
         options: [
           {
             id: "op-1-ev3-opt1",
-            text: "Manually bypass pressure release valves using insulated cutters.",
+            text: "Manual valve bypass using insulated cutters.",
             success_prob: 65,
             class_bonus: { classId: "Engineer", bonus: 20 },
-            success_text: "The hatch popped open. The survivors are secure.",
-            failure_text: "A pressure backfire sprayed steam in your face before the pod unlocked.",
+            success_text: "Pressure released. Hatch opened safely.",
+            failure_text: "Hot steam feedback released before hatch opened.",
             effects: { xp: 20, credits: 20, injury: 20, reputationBonus: 10 }
           },
           {
             id: "op-1-ev3-opt2",
-            text: "Decrypt the release codes using a WASM loop script.",
+            text: "Decrypt the locking codes using a terminal WASM loop.",
             success_prob: 80,
             class_bonus: { classId: "Specialist", bonus: 15 },
-            success_text: "The code cracked instantly, releasing the cell safety locks.",
-            failure_text: "A security backup loop shorted the console, causing an EM feedback pulse.",
+            success_text: "Codes cracked. Lock systems deactivated.",
+            failure_text: "Console overload generated EM shock feedback.",
             effects: { xp: 25, credits: 15, injury: 25, reputationBonus: 10 }
           }
         ]
@@ -215,7 +215,7 @@ export const INITIAL_MISSIONS: Mission[] = [
   {
     id: "op-2-signal-recovery",
     title: "OPERATION BEACON RECOVERY",
-    description: "Deploy to Sector Beta to recover an orbital transmitter beacon emitting high-energy gravity anomalies. Structural stability is collapsing.",
+    description: "Recover transmitter beacon core. High gravity anomaly distortions.",
     region: "sec-beta",
     difficulty: "Normal",
     duration: 10,
@@ -226,7 +226,7 @@ export const INITIAL_MISSIONS: Mission[] = [
     category: "normal",
     factionReputationDelta: { nomads: 10, aegis: -4 },
     sectorProgressPoints: 15,
-    story: "An orbital transmitter beacon has dropped in Sector Beta, emitting a powerful gravitational anomaly. Gravity spikes are tearing the local structures apart. Recover the core before structural collapse is complete.",
+    story: "Extract orbital beacon core from magnetic substation before structural collapse.",
     primaryObjective: "Extract transmitter beacon core.",
     secondaryObjectives: ["Map localized gravitational faults", "Secure electronics caches"],
     expectedThreat: "Gravitational compression waves, EM flares.",
@@ -242,24 +242,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-2-ev-1",
         title: "GRAVITY FIELD ENTRY",
-        text: "The terrain surrounding the beacon substation shifts rapidly due to gravitational anomalies.",
+        text: "Local terrain shifting under gravity anomalies.",
         options: [
           {
             id: "op-2-ev1-opt1",
-            text: "Calibrate gravity wave stabilizers to guide your path.",
+            text: "Calibrate gravity wave stabilizers.",
             success_prob: 75,
             class_bonus: { classId: "Scientist", bonus: 15 },
-            success_text: "The spikes smoothed out. You walked forward safely.",
-            failure_text: "The stabilizer feedback knocked you off balance. You tumbled down a rocky slope.",
+            success_text: "Gravitational spikes stabilized. Clear path ahead.",
+            failure_text: "Calibration failed. Gravitational shear caused joint damage.",
             effects: { xp: 15, credits: 10, injury: 20 }
           },
           {
             id: "op-2-ev1-opt2",
-            text: "Sprint through the field boundaries during the gravity wave drop intervals.",
+            text: "Sprint across boundary lines during field drops.",
             success_prob: 60,
             class_bonus: { classId: "Recon", bonus: 20 },
-            success_text: "You timed it perfectly and crossed the threshold.",
-            failure_text: "A sudden gravity swell slammed you to the floor, bruising your knees.",
+            success_text: "Interval timed correctly. Threshold crossed.",
+            failure_text: "Gravitational shift caught you mid-step. Heavy impact sustained.",
             effects: { xp: 10, credits: 5, injury: 25 }
           }
         ]
@@ -267,24 +267,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-2-ev-2",
         title: "BEACON CIRCUIT SHIELD",
-        text: "The transmitter beacon is protected by an active high-frequency EM shield loop.",
+        text: "The target transmitter is protected by an active high-frequency EM shield loop.",
         options: [
           {
             id: "op-2-ev2-opt1",
             text: "Inject a dampening algorithm to ground the shield.",
             success_prob: 80,
             class_bonus: { classId: "Specialist", bonus: 15 },
-            success_text: "The shield collapsed with a quiet hum.",
-            failure_text: "The loop backfired, overloading your arm terminal and burning your wrist.",
+            success_text: "Shield grounded. Terminal feedback suppressed.",
+            failure_text: "Shield backfired. System overload scorched your deck.",
             effects: { xp: 20, credits: 15, injury: 20 }
           },
           {
             id: "op-2-ev2-opt2",
-            text: "Cut the shield generator power cells manually.",
+            text: "Cut power cell wiring manually.",
             success_prob: 65,
             class_bonus: { classId: "Engineer", bonus: 20 },
-            success_text: "You sliced the connectors. The shield instantly dissolved.",
-            failure_text: "Spark feedback from the high-voltage cells scorched your chest plate.",
+            success_text: "Wiring sliced. Shield system collapsed.",
+            failure_text: "Power backfired. Electrical shock sustained.",
             effects: { xp: 15, credits: 20, injury: 30 }
           }
         ]
@@ -292,24 +292,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-2-ev-3",
         title: "CORE HARVEST",
-        text: "The beacon's core is unstable. Removing it requires precise kinetic isolation.",
+        text: "Beacon core is unstable. Direct extraction requires kinetic clamps.",
         options: [
           {
             id: "op-2-ev3-opt1",
-            text: "Deploy a remote extraction drone to pull the core.",
+            text: "Deploy remote drone to pull core.",
             success_prob: 85,
             class_bonus: { classId: "Engineer", bonus: 15 },
-            success_text: "The drone extracted the core cleanly without feedback.",
-            failure_text: "The drone core exploded on detachment, spraying shrapnel.",
+            success_text: "Drone extraction completed cleanly.",
+            failure_text: "Drone capacitor failed. Shock feedback sustained.",
             effects: { xp: 20, credits: 30, injury: 25, unlocksSectorId: "sec-epsilon", reputationBonus: 12 }
           },
           {
             id: "op-2-ev3-opt2",
-            text: "Pull the core manually using magnetic containment clamps.",
+            text: "Extract core using magnetic clamps.",
             success_prob: 70,
             class_bonus: { classId: "Assault", bonus: 15 },
-            success_text: "You ripped the core free. The gravitational collapse ceased.",
-            failure_text: "The core anomaly collapsed slightly on exit, causing joint strain.",
+            success_text: "Core ripped free. Anomaly signature neutralized.",
+            failure_text: "Clamps slipped. Force feedback caused shoulder strain.",
             effects: { xp: 25, credits: 25, injury: 35, unlocksSectorId: "sec-epsilon", reputationBonus: 12 }
           }
         ]
@@ -319,7 +319,7 @@ export const INITIAL_MISSIONS: Mission[] = [
   {
     id: "op-3-sybil-breach",
     title: "OPERATION SYBIL BREACH",
-    description: "Infiltrate Sector Delta's primary routing exchange nodes. Erase operative digital footprints and deploy decentralized WASM routing bypasses.",
+    description: "Infiltrate exchange nodes. Obfuscate signature footprints & bypass firewalls.",
     region: "sec-delta",
     difficulty: "Hard",
     duration: 15,
@@ -330,7 +330,7 @@ export const INITIAL_MISSIONS: Mission[] = [
     category: "critical",
     factionReputationDelta: { ghost: 15, horizon: -6 },
     sectorProgressPoints: 25,
-    story: "Sybil routing sensors are tracing network communication signatures in Sector Delta. Infiltrate the routing exchange nodes, deploy WASM decrypters, and purge your operative digital footprint before they isolate your location.",
+    story: "Deploy WASM bypass scripts to route around tracer grids.",
     primaryObjective: "Bypass routing exchanges and copy coordinates.",
     secondaryObjectives: ["Obfuscate telemetry logs", "Erase router memory registries"],
     expectedThreat: "Sybil tracker drones, firewall trace programs.",
@@ -346,24 +346,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-3-ev-1",
         title: "ROUTER SCANNER AVOIDANCE",
-        text: "Rogue security scans sweep the node perimeter.",
+        text: "Rogue security sweeps monitoring node perimeter.",
         options: [
           {
             id: "op-3-ev1-opt1",
-            text: "Obfuscate your transmission signature using fake relays.",
+            text: "Obfuscate signatures via decoy relays.",
             success_prob: 80,
             class_bonus: { classId: "Specialist", bonus: 15 },
-            success_text: "The scanner passed your position without triggering alerts.",
-            failure_text: "The tracer detected the relay. A tracking wave shocked your interface.",
+            success_text: "Decoy engaged. Tracer sweep bypassed.",
+            failure_text: "Relay traced. Feedback shock sustained.",
             effects: { xp: 15, credits: 15, injury: 15 }
           },
           {
             id: "op-3-ev1-opt2",
-            text: "Slip through sensor shadows using cloak filters.",
+            text: "Slip through sweep shadows using cloaks.",
             success_prob: 70,
             class_bonus: { classId: "Recon", bonus: 20 },
-            success_text: "You navigated the node corridor unseen.",
-            failure_text: "A sensor caught your thermal leak, firing an warning laser pulse.",
+            success_text: "Vanguard sweep avoided cleanly.",
+            failure_text: "Cloak fluctuated. Laser warning pulse fired.",
             effects: { xp: 20, credits: 10, injury: 30 }
           }
         ]
@@ -371,24 +371,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-3-ev-2",
         title: "FIREWALL BYPASS",
-        text: "The main server rack is locked behind a double-blind firewall.",
+        text: "Main routing rack protected by double-blind firewall.",
         options: [
           {
             id: "op-3-ev2-opt1",
-            text: "Inject a bypass script via direct terminal hookup.",
+            text: "Inject bypass script via terminal connection.",
             success_prob: 75,
             class_bonus: { classId: "Specialist", bonus: 20 },
-            success_text: "The firewall collapsed. Databases are exposed.",
-            failure_text: "The security program back-traced your port, overloading your arm deck.",
+            success_text: "Bypass script accepted. Firewall collapsed.",
+            failure_text: "Trace counter-hack triggered. Terminal shock sustained.",
             effects: { xp: 25, credits: 25, injury: 25 }
           },
           {
             id: "op-3-ev2-opt2",
-            text: "Short-circuit the rack's localized power distributor.",
+            text: "Short-circuit local power distributor.",
             success_prob: 65,
             class_bonus: { classId: "Engineer", bonus: 15 },
-            success_text: "Power died. The firewall reset, exposing raw sectors.",
-            failure_text: "The high-voltage surge discharged into your gloves, causing shock burns.",
+            success_text: "Power failed. Firewall protection collapsed.",
+            failure_text: "High-voltage backfire burned glove nodes.",
             effects: { xp: 20, credits: 30, injury: 35 }
           }
         ]
@@ -396,24 +396,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-3-ev-3",
         title: "DATA CLEANSE",
-        text: "The system is deleting the coordinates. You must copy the data before the purge.",
+        text: "Mainframe coordinates purging. Fast download required.",
         options: [
           {
             id: "op-3-ev3-opt1",
-            text: "Overload the memory register buffers to halt the purge.",
+            text: "Overload buffer registries to halt purge.",
             success_prob: 70,
             class_bonus: { classId: "Scientist", bonus: 20 },
-            success_text: "Buffer overflow successful. Data downloaded.",
-            failure_text: "The override failed, purging half the file and shocking your console.",
+            success_text: "Purge halted. Anomaly registry downloaded.",
+            failure_text: "Override script failed. Partial data purge.",
             effects: { xp: 30, credits: 40, injury: 25, unlocksSectorId: "sec-gamma", reputationBonus: 15 }
           },
           {
             id: "op-3-ev3-opt2",
-            text: "Force manual memory extraction blocks.",
+            text: "Execute manual core memory extraction.",
             success_prob: 60,
             class_bonus: { classId: "Assault", bonus: 15 },
-            success_text: "You extracted the hardware memory boards directly.",
-            failure_text: "The capacitor discharged during extraction, burning your fingers.",
+            success_text: "Hardware memory modules recovered.",
+            failure_text: "Extractor capacitor exploded, injuring fingers.",
             effects: { xp: 25, credits: 50, injury: 35, unlocksSectorId: "sec-gamma", reputationBonus: 15 }
           }
         ]
@@ -423,7 +423,7 @@ export const INITIAL_MISSIONS: Mission[] = [
   {
     id: "op-4-server-raid",
     title: "OPERATION SERVER RAID",
-    description: "Extract encrypted anomaly coordinates from Sector Epsilon server warehouses.",
+    description: "Retrieve encrypted database drives from subterranean warehouses.",
     region: "sec-epsilon",
     difficulty: "Normal",
     duration: 8,
@@ -434,7 +434,7 @@ export const INITIAL_MISSIONS: Mission[] = [
     category: "normal",
     factionReputationDelta: { eclipse: 10, vanguard: -4 },
     sectorProgressPoints: 15,
-    story: "The underground military warehouses in Sector Epsilon contain encrypted coordinates for advanced anomalies. Automated security systems are active. Perform a fast tactical raid to extract the data drives.",
+    story: "Raid automated server silos to extract anomaly coordinates.",
     primaryObjective: "Recover data drives from server warehouses.",
     secondaryObjectives: ["Disable automated perimeter turret", "Download backup silo telemetry"],
     expectedThreat: "Automated kinetic turrets, security alarms.",
@@ -450,24 +450,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-4-ev-1",
         title: "OUTER SILOS",
-        text: "The server silos are guarded by automated turret sweeps.",
+        text: "Silo gates guarded by automated kinetic turret sweep.",
         options: [
           {
             id: "op-4-ev1-opt1",
-            text: "Cloak and dodge the turret sweep paths.",
+            text: "Dodge sweeps using cloak filters.",
             success_prob: 80,
             class_bonus: { classId: "Recon", bonus: 15 },
-            success_text: "You bypassed the turrets without notice.",
-            failure_text: "A turret grazed your leg armor with a kinetic round.",
+            success_text: "Turret sweep bypassed undetected.",
+            failure_text: "Sensor sweep caught your cloak. Kinetic round grazed your leg.",
             effects: { xp: 15, credits: 10, injury: 25 }
           },
           {
             id: "op-4-ev1-opt2",
-            text: "Throw EM disruptor grenades to blind the turrets.",
+            text: "Deactivate turret sensors via EM grenades.",
             success_prob: 75,
             class_bonus: { classId: "Engineer", bonus: 15 },
-            success_text: "The sensors shorted. You walked past the deactivated turrets.",
-            failure_text: "The grenade detonated early, blowing shrapnel in your face.",
+            success_text: "Turrets blinded. Path cleared.",
+            failure_text: "EM blast backfired, causing facial armor damage.",
             effects: { xp: 15, credits: 15, injury: 35 }
           }
         ]
@@ -475,15 +475,15 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-4-ev-2",
         title: "DATABASE CORE",
-        text: "A security lock prevents terminal connection.",
+        text: "Secure console terminal locked.",
         options: [
           {
             id: "op-4-ev2-opt1",
-            text: "Inject security bypass coordinates.",
+            text: "Inject bypass security decryption key.",
             success_prob: 75,
             class_bonus: { classId: "Specialist", bonus: 15 },
-            success_text: "The terminal accepted the bypass.",
-            failure_text: "The system locked out, shock-discharging your arm deck.",
+            success_text: "Console accepted bypass key.",
+            failure_text: "Lockout trigger fired. Console shock sustained.",
             effects: { xp: 20, credits: 20, injury: 20 }
           }
         ]
@@ -491,16 +491,16 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-4-ev-3",
         title: "SECURITY REBOOT",
-        text: "The systems are rebooting. Alarm levels are rising.",
+        text: "Silo alerts triggered. Vault seals activating.",
         options: [
           {
             id: "op-4-ev3-opt1",
-            text: "Secure the drive and escape through the vents.",
+            text: "Secure the drive and escape via vents.",
             success_prob: 80,
             class_bonus: { classId: "Recon", bonus: 20 },
-            success_text: "You escaped safely before security closed the silo.",
-            failure_text: "You fell from a vent shaft, bruising your ribs.",
-            effects: { xp: 25, credits: 30, injury: 20, reputationBonus: 10 }
+            success_text: "Secured database drive and escaped through vents.",
+            failure_text: "Vent hatch closed early. Heavy strain sustained during escape.",
+            effects: { xp: 25, credits: 30, injury: 25, unlocksSectorId: "sec-omega", reputationBonus: 10 }
           }
         ]
       }
@@ -509,7 +509,7 @@ export const INITIAL_MISSIONS: Mission[] = [
   {
     id: "op-5-satellite-hijack",
     title: "OPERATION SATELLITE HIJACK",
-    description: "Recalibrate the high-altitude telemetry dish in Sector Gamma to redirect scanning paths.",
+    description: "Redirect telemetry scanning paths from Sector Gamma uplink.",
     region: "sec-gamma",
     difficulty: "Hard",
     duration: 12,
@@ -520,7 +520,7 @@ export const INITIAL_MISSIONS: Mission[] = [
     category: "critical",
     factionReputationDelta: { horizon: 15, ghost: -6 },
     sectorProgressPoints: 25,
-    story: "A volatile pathogen leak is spiking in Sector Gamma, centering around a high-altitude telemetry dish. Inject alignment instructions to redirect scanning paths and secure local sensor arrays.",
+    story: "Calibrate regional dish path telemetry to bypass search scanners.",
     primaryObjective: "Redirect scanning paths of the telemetry dish.",
     secondaryObjectives: ["Contain localized pathogen leaks", "Inject decoy signatures into the uplink"],
     expectedThreat: "Volatile bio-pathogens, search drones.",
@@ -536,15 +536,15 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-5-ev-1",
         title: "TELEMETRY DISH ACCESS",
-        text: "Radiation levels are leaking from the dish antenna grids.",
+        text: "Dish antenna grids leaking high-dose radiation.",
         options: [
           {
             id: "op-5-ev1-opt1",
-            text: "Synthesize anti-radiation inoculations.",
+            text: "Inject anti-radiation formula.",
             success_prob: 80,
             class_bonus: { classId: "Medic", bonus: 15 },
-            success_text: "The injection protected you from the radiation spikes.",
-            failure_text: "The formula failed. You absorbed radiation, causing cell damage.",
+            success_text: "Inoculation held. Shielded from radiation spikes.",
+            failure_text: "Formula collapsed. Cell radiation damage sustained.",
             effects: { xp: 25, credits: 20, injury: 30 }
           }
         ]
@@ -552,15 +552,15 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-5-ev-2",
         title: "RECALIBRATION CODES",
-        text: "The dish is locked to its target path coordinates.",
+        text: "Dish console locked to active tracking targets.",
         options: [
           {
             id: "op-5-ev2-opt1",
-            text: "Calibrate alignment spectrum grids.",
+            text: "Calibrate spectrum alignment grids.",
             success_prob: 75,
             class_bonus: { classId: "Scientist", bonus: 20 },
-            success_text: "You redirected the telemetry scans.",
-            failure_text: "The dish console exploded with wave feedback.",
+            success_text: "Scan paths successfully redirected.",
+            failure_text: "Console capacitor exploded. Plasma burn sustained.",
             effects: { xp: 30, credits: 40, injury: 25 }
           }
         ]
@@ -568,15 +568,15 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-5-ev-3",
         title: "UPLINK SECURITY",
-        text: "Drones are searching the telemetry platform.",
+        text: "Rogue security drones approaching telemetry deck.",
         options: [
           {
             id: "op-5-ev3-opt1",
-            text: "Initiate decoy signatures to clear the deck.",
+            text: "Trigger fake decoy signatures.",
             success_prob: 80,
             class_bonus: { classId: "Specialist", bonus: 15 },
-            success_text: "The drones left the platform. Connection resolved.",
-            failure_text: "The drones fired on your position during your retreat.",
+            success_text: "Drones redirected away. Telemetry uplink secured.",
+            failure_text: "Decoy key failed. Drones fired during your retreat.",
             effects: { xp: 35, credits: 50, injury: 30, unlocksSectorId: "sec-zeta", reputationBonus: 15 }
           }
         ]
@@ -586,7 +586,7 @@ export const INITIAL_MISSIONS: Mission[] = [
   {
     id: "op-6-outpost-breach",
     title: "OPERATION OUTPOST BREACH",
-    description: "Clear Sector Alpha outpost parameter fortifications to secure transport routes. Repeatable side-op.",
+    description: "Clear perimeter gate to secure transport routes. Repeatable.",
     region: "sec-alpha",
     difficulty: "Easy",
     duration: 4,
@@ -598,7 +598,7 @@ export const INITIAL_MISSIONS: Mission[] = [
     factionReputationDelta: { vanguard: 8, eclipse: -3 },
     sectorProgressPoints: 10,
     isRepeatable: true,
-    story: "An outpost guarding a transport route in Sector Alpha has locked its perimeter fortifications. Clear the blockade to ensure secure supply route travel.",
+    story: "Assault security outposts blocking transport supply lanes.",
     primaryObjective: "Clear outpost parameter fortifications.",
     secondaryObjectives: ["Scan sector gateway channels", "Disable backup power distributors"],
     expectedThreat: "Security lock grids, defense drones.",
@@ -613,15 +613,15 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-6-ev-1",
         title: "OUTPOST GATES",
-        text: "A heavy reinforced door blocks entry to the depot.",
+        text: "Reinforced gate blocks transport route access.",
         options: [
           {
             id: "op-6-ev1-opt1",
-            text: "Blow the door with charges.",
+            text: "Blast gate with breach charge.",
             success_prob: 85,
             class_bonus: { classId: "Assault", bonus: 10 },
-            success_text: "The door is blown. Route cleared.",
-            failure_text: "Shrapnel from the door hit your arm.",
+            success_text: "Gate blown. Transport lane cleared.",
+            failure_text: "Debris feedback struck shoulder guards.",
             effects: { xp: 10, credits: 20, injury: 15 }
           }
         ]
@@ -629,15 +629,15 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-6-ev-2",
         title: "TACTICAL RETREAT",
-        text: "A rogue security drone blocks your escape route.",
+        text: "Rogue guardian drone blocking gate exit.",
         options: [
           {
             id: "op-6-ev2-opt1",
             text: "Neutralize the drone.",
             success_prob: 80,
             class_bonus: { classId: "Assault", bonus: 15 },
-            success_text: "Drone destroyed.",
-            failure_text: "The drone fired a laser pulse, burning your shoulder.",
+            success_text: "Drone neutralized. Exit clear.",
+            failure_text: "Drone shot fired. Laser burn sustained.",
             effects: { xp: 15, credits: 20, injury: 20, reputationBonus: 5 }
           }
         ]
@@ -647,7 +647,7 @@ export const INITIAL_MISSIONS: Mission[] = [
   {
     id: "op-7-omega-nexus",
     title: "OPERATION OMEGA NEXUS",
-    description: "Infiltrate the deep subterranean quantum relay in Sector Omega. Establish final firewall uplink and secure humanity's legacy registry.",
+    description: "Secure Sector Omega quantum relay. Establish final legacy registry handshake.",
     region: "sec-omega",
     difficulty: "Hard",
     duration: 20,
@@ -658,7 +658,7 @@ export const INITIAL_MISSIONS: Mission[] = [
     category: "critical",
     factionReputationDelta: { ghost: 20, horizon: 10, eclipse: -10 },
     sectorProgressPoints: 25,
-    story: "This is the final coordinate node. The deep subterranean quantum relay in Sector Omega is undergoing temporal drift. Secure the node structure, establish a direct mainframe link, and execute the final security handshake to secure the network registry.",
+    story: "Infiltrate temporal substation core to verify terminal connection.",
     primaryObjective: "Establish final mainframe uplink handshake.",
     secondaryObjectives: ["Purge leftover tracking anomalies", "Download deep core database memory"],
     expectedThreat: "Temporal quantum echoes, automated terminal gates.",
@@ -673,24 +673,24 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-7-ev-1",
         title: "THE NEXUS ARCH",
-        text: "The quantum core is surrounded by shifting energy barriers. Chrono-flares threaten to destabilize your terminal connection.",
+        text: "Quantum core surrounded by shifting chrono-flares.",
         options: [
           {
             id: "op-7-ev1-opt1",
-            text: "Calibrate frequency arrays using quantum data pads.",
+            text: "Calibrate frequencies via quantum pads.",
             success_prob: 75,
             class_bonus: { classId: "Scientist", bonus: 15 },
-            success_text: "Frequency locked. Chrono-flares normalized.",
-            failure_text: "Chronological feedback shocked your deck, causing temporary system drift.",
+            success_text: "Frequencies locked. Arch energy stabilized.",
+            failure_text: "Temporal feedback shocked terminal interfaces.",
             effects: { xp: 30, credits: 50, injury: 25 }
           },
           {
             id: "op-7-ev1-opt2",
-            text: "Inject routing override bypass loops.",
+            text: "Inject script routing override loops.",
             success_prob: 80,
             class_bonus: { classId: "Specialist", bonus: 15 },
-            success_text: "Bypass completed successfully. The arch opened.",
-            failure_text: "Bypass detected. Core defense systems fired warning lasers.",
+            success_text: "Handshake completed. Core arch opened.",
+            failure_text: "Override detected. Defenses fired warning pulse.",
             effects: { xp: 35, credits: 40, injury: 30 }
           }
         ]
@@ -700,7 +700,7 @@ export const INITIAL_MISSIONS: Mission[] = [
   {
     id: "op-8-core-venting",
     title: "OPERATION CORE VENTING",
-    description: "Deploy to Sector Zeta reactor core to vent radioactive particles and secure deuterium canisters. Repeatable side-op.",
+    description: "Vent radioactive reactor core valves & retrieve Deuterium canisters. Repeatable.",
     region: "sec-zeta",
     difficulty: "Hard",
     duration: 10,
@@ -712,7 +712,7 @@ export const INITIAL_MISSIONS: Mission[] = [
     factionReputationDelta: { nomads: 12, citadel: -4 },
     sectorProgressPoints: 20,
     isRepeatable: true,
-    story: "The reactor core in Sector Zeta has accumulated dangerous gravity distortions. Manually cycle the pressure valves and extract remaining Deuterium containers before the core goes critical.",
+    story: "Vent pressure tubes to secure remaining Deuterium cells.",
     primaryObjective: "Cycle pressure valves and extract Deuterium containers.",
     secondaryObjectives: ["Vent radioactive particles", "Calibrate primary backup power grid"],
     expectedThreat: "Gravity drops, radioactive coolant leaks.",
@@ -727,15 +727,15 @@ export const INITIAL_MISSIONS: Mission[] = [
       {
         id: "op-8-ev-1",
         title: "COOLANT PIPES",
-        text: "Coolant pipes are ruptured, venting high-pressure radioactive vapor across the catwalk.",
+        text: "Coolant pipes leaking high-pressure radioactive vapor.",
         options: [
           {
             id: "op-8-ev1-opt1",
-            text: "Vent the backup valve stack using insulated cutters.",
+            text: "Cycle backup valves using cutters.",
             success_prob: 75,
             class_bonus: { classId: "Engineer", bonus: 15 },
-            success_text: "Pressure released. Path cleared.",
-            failure_text: "Scalding coolant vapor escaped before you could seal the pipe.",
+            success_text: "Valve cycled. Vapor vented safely.",
+            failure_text: "Scalding coolant spray caused severe skin burns.",
             effects: { xp: 20, credits: 30, injury: 25 }
           }
         ]
