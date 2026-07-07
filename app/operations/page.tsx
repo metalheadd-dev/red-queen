@@ -2465,6 +2465,24 @@ export default function OperationsPage() {
             </a>
           </Link>
 
+          <Link href="/operations/market" passHref legacyBehavior>
+            <a
+              onClick={() => { try { mainframeAudio.playSweep(); } catch(e){} }}
+              style={{
+                width: "100%", padding: "12px 14px", border: "1px solid var(--border)",
+                background: "none",
+                color: "var(--text-dim)",
+                borderColor: "var(--border)",
+                fontFamily: "var(--title-font)", fontSize: "13px", textAlign: "left", cursor: "pointer",
+                transition: "all 0.18s", borderRadius: "2px", fontWeight: "bold", letterSpacing: "0.08em",
+                display: "block", textDecoration: "none"
+              }}
+            >
+              🛒 MARKETPLACE
+            </a>
+          </Link>
+
+
           <button
             onClick={() => { setActiveTab("profile"); try { mainframeAudio.playSweep(); } catch(e){} }}
             style={{
