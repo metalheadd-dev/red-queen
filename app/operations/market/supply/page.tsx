@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useAuth } from "@/components/AuthProvider";
 import { loadProfile, saveProfile } from "@/lib/game/service";
 import { OperativeProfile } from "@/lib/game/types";
 import { mainframeAudio } from "@/lib/game/audio";
@@ -22,6 +23,7 @@ interface CatalogItem {
 
 export default function RedQueenLogistics() {
   const { publicKey } = useWallet();
+  const { session } = useAuth();
   const [profile, setProfile] = useState<OperativeProfile | null>(null);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null);
@@ -55,7 +57,9 @@ export default function RedQueenLogistics() {
         "Content-Type": "application/json"
       };
 
-      if (publicKey) {
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      } else if (publicKey) {
         const savedSig = localStorage.getItem(`rq_sol_sig:${identifier}`);
         if (savedSig) {
           const { signature, message } = JSON.parse(savedSig);

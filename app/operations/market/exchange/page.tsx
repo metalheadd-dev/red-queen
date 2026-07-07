@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useAuth } from "@/components/AuthProvider";
 import { loadProfile, saveProfile, loadInventory, saveInventory } from "@/lib/game/service";
 import { INITIAL_INVENTORY } from "@/lib/game/data";
 import { OperativeProfile, InventoryItem } from "@/lib/game/types";
@@ -24,6 +25,7 @@ interface P2PListing {
 export default function SOLvivorExchange() {
   const { publicKey } = useWallet();
   const searchParams = useSearchParams();
+  const { session } = useAuth();
   
   const [profile, setProfile] = useState<OperativeProfile | null>(null);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -77,7 +79,9 @@ export default function SOLvivorExchange() {
         "Content-Type": "application/json"
       };
 
-      if (publicKey) {
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      } else if (publicKey) {
         const savedSig = localStorage.getItem(`rq_sol_sig:${identifier}`);
         if (savedSig) {
           const { signature, message } = JSON.parse(savedSig);
@@ -122,7 +126,9 @@ export default function SOLvivorExchange() {
         "Content-Type": "application/json"
       };
 
-      if (publicKey) {
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      } else if (publicKey) {
         const savedSig = localStorage.getItem(`rq_sol_sig:${identifier}`);
         if (savedSig) {
           const { signature, message } = JSON.parse(savedSig);

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useAuth } from "@/components/AuthProvider";
 import { loadProfile, saveProfile } from "@/lib/game/service";
 import { OperativeProfile, InventoryItem } from "@/lib/game/types";
 import { mainframeAudio } from "@/lib/game/audio";
@@ -22,6 +23,7 @@ interface P2PListing {
 
 export default function MyListings() {
   const { publicKey } = useWallet();
+  const { session } = useAuth();
   const [profile, setProfile] = useState<OperativeProfile | null>(null);
   const [myListings, setMyListings] = useState<P2PListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +74,9 @@ export default function MyListings() {
         "Content-Type": "application/json"
       };
 
-      if (publicKey) {
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      } else if (publicKey) {
         const savedSig = localStorage.getItem(`rq_sol_sig:${identifier}`);
         if (savedSig) {
           const { signature, message } = JSON.parse(savedSig);
