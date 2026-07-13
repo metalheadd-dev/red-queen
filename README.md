@@ -37,13 +37,18 @@
 ### 🗄️ Threat Vector Archives
 * **Classified Dossiers**: Comprehensive data on active extinction vectors across multiple severity levels.
 
+### 🔌 AI-to-AI Gateway (Model Context Protocol)
+* **Open MCP Standard**: Exposes Red Queen mainframe intelligence tools directly to external AI agents (Claude Desktop, Cursor, or automated bots) using standard JSON-RPC.
+* **Stateless Streamable HTTP**: Runs serverlessly at `/api/mcp/mcp` via the `mcp-handler` protocol, eliminating connection limits and state overhead.
+* **On-Chain Monetization (x402)**: Premium tools (`get_depin_telemetry`, `get_premium_intel`) are protected by the x402 payment standard. Agents must submit a transaction proof (USDC signature) on the Solana network to unlock telemetry.
+* **Security & Privacy Audits**: The `analyze_wallet_security` tool diagnoses tracking traces, AI profiling metrics, geo-IP leak vulnerabilities, and blacklist reputation for Solana wallets.
+
 ---
 
 ## 🗺️ Roadmap: Future Extensions
 
-1. **Iteration 3: AI-to-AI Gateway (Model Context Protocol)**: Expose Red Queen tools to external AI agents to allow machine-to-machine threat queries, bio-score grading, and automated warnings.
-2. **Iteration 4: Security Guard (t54 x402-secure)**: Risk analysis and threat filtering for incoming autonomous agent queries.
-3. **Iteration 5: Quest Board & Automated Rewards**: AI-evaluated community challenges with automated treasury payouts in USDC.
+1. **Iteration 4: Security Guard (t54 x402-secure)**: Risk analysis and threat filtering for incoming autonomous agent queries.
+2. **Iteration 5: Quest Board & Automated Rewards**: AI-evaluated community challenges with automated treasury payouts in USDC.
 
 ---
 
