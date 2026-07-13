@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.65",
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "1.26.0",
     "@payai/facilitator": "^2.4.3",
     "@solana/kit": "^7.0.0",
     "@solana/spl-token": "^0.4.14",
