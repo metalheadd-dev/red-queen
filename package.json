@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.65",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@payai/facilitator": "^2.4.3",
+    "@solana/kit": "^7.0.0",
     "@solana/spl-token": "^0.4.14",
     "@solana/wallet-adapter-base": "^0.9.27",
     "@solana/wallet-adapter-react": "^0.15.39",
@@ -25,10 +27,12 @@
     "bs58": "^6.0.0",
     "jimp": "^1.6.1",
     "maplibre-gl": "^5.24.0",
+    "mcp-handler": "^1.1.0",
     "next": "^16.2.1",
     "openai": "^6.39.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^20",
