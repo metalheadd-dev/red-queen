@@ -1,23 +1,18 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { supabase } from "@/lib/supabase";
+import {
+  fetchWithTimeout,
+  fetchFIRMS,
+  fetchGDELT,
+  fetchReliefWeb,
+  fetchCNEOS,
+  fetchCISAKEV,
+  fetchFearGreed,
+  fetchDefiLlamaTVL
+} from "@/lib/threats-fetchers";
 
 export const dynamic = "force-dynamic";
-
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 4000) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    clearTimeout(id);
-    return response;
-  } catch (error) {
-    clearTimeout(id);
-    throw error;
-  }
-}
 
 async function fetchUSGS() {
   try {
@@ -115,7 +110,7 @@ async function fetchExchangeRates() {
 }
 
 export async function POST() {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD in UTC time
 
   const SCENARIOS = ["T-VIRUS OUTBREAK", "SKYNET ACTIVATION", "NUCLEAR WINTER", "BIOWEAPON RELEASE"];
   const TRANSMISSIONS = [
@@ -135,6 +130,23 @@ export async function POST() {
     source: "System Mainframe Fallback Backup Logs"
   };
 
+  // 1. Check Supabase UTC daily caching table
+  if (supabase) {
+    try {
+      const { data: cached, error } = await supabase
+        .from("daily_threats")
+        .select("payload")
+        .eq("date", today)
+        .single();
+      if (!error && cached?.payload) {
+        return NextResponse.json(cached.payload);
+      }
+    } catch (err) {
+      console.warn("Failed to check daily_threats table cache:", err);
+    }
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(fallbackData);
   }
@@ -142,23 +154,75 @@ export async function POST() {
   const client = new OpenAI({ apiKey });
 
   try {
-    const [usgs, nasa, gdacs, noaa, news, exchange] = await Promise.all([
+    // 2. Fetch all telemetry sources (existing + 7 new ones) in parallel using Promise.allSettled
+    const [
+      usgs,
+      nasa,
+      gdacs,
+      noaa,
+      news,
+      exchange,
+      firmsNodes,
+      gdeltNodes,
+      reliefwebNodes,
+      cneos,
+      cisakev,
+      fearGreed,
+      defiLlama
+    ] = await Promise.allSettled([
       fetchUSGS(),
       fetchNASA(),
       fetchGDACS(),
       fetchNOAA(),
       fetchGoogleNewsOutbreaks(),
-      fetchExchangeRates()
+      fetchExchangeRates(),
+      fetchFIRMS(),
+      fetchGDELT(),
+      fetchReliefWeb(),
+      fetchCNEOS(),
+      fetchCISAKEV(),
+      fetchFearGreed(),
+      fetchDefiLlamaTVL()
     ]);
 
-    const telemetry = [...usgs, ...nasa, ...gdacs, ...noaa, ...news, ...exchange];
+    const usgsData = usgs.status === "fulfilled" ? usgs.value : [];
+    const nasaData = nasa.status === "fulfilled" ? nasa.value : [];
+    const gdacsData = gdacs.status === "fulfilled" ? gdacs.value : [];
+    const noaaData = noaa.status === "fulfilled" ? noaa.value : [];
+    const newsData = news.status === "fulfilled" ? news.value : [];
+    const exchangeData = exchange.status === "fulfilled" ? exchange.value : [];
+
+    const firmsData = firmsNodes.status === "fulfilled" ? firmsNodes.value.map(n => n.desc) : [];
+    const gdeltData = gdeltNodes.status === "fulfilled" ? gdeltNodes.value.map(n => `GDELT Incident Alert: ${n.title} in ${n.country} (${n.desc})`) : [];
+    const reliefwebData = reliefwebNodes.status === "fulfilled" ? reliefwebNodes.value.map(n => `ReliefWeb Disaster Alert: ${n.title} (${n.desc})`) : [];
+
+    const cneosData = cneos.status === "fulfilled" ? cneos.value : [];
+    const cisakevData = cisakev.status === "fulfilled" ? cisakev.value : [];
+    const fearGreedData = fearGreed.status === "fulfilled" ? fearGreed.value : [];
+    const defiLlamaData = defiLlama.status === "fulfilled" ? defiLlama.value : [];
+
+    const telemetry = [
+      ...usgsData,
+      ...nasaData,
+      ...gdacsData,
+      ...noaaData,
+      ...newsData,
+      ...exchangeData,
+      ...firmsData,
+      ...gdeltData,
+      ...reliefwebData,
+      ...cneosData,
+      ...cisakevData,
+      ...fearGreedData,
+      ...defiLlamaData
+    ];
     
     if (telemetry.length === 0) {
       return NextResponse.json(fallbackData);
     }
 
     const systemPrompt = `You are the RED QUEEN AI, an autonomous system mainframe monitoring a global collapse simulation.
-You are given a list of active real-world telemetry feeds (earthquakes, space storms, disease outbreaks, natural disasters, currency devaluations).
+You are given a list of active real-world telemetry feeds (earthquakes, space storms, disease outbreaks, natural disasters, active wildfires, near-Earth asteroids, cyber vulnerabilities, and crypto fear levels).
 Your task is to synthesize a single lore-rich, cyberpunk-style "Daily Threat Forecast" card for the homepage.
 You must output a JSON object containing exactly the following keys:
 {
@@ -186,7 +250,7 @@ Keep descriptions and countermeasures technical, cold, and post-apocalyptic in t
 
     const parsed = JSON.parse(response.choices[0].message.content || "{}");
     
-    return NextResponse.json({
+    const resultPayload = {
       codename: parsed.codename || "SYS-WARN",
       name: parsed.name || "UNIDENTIFIED THREAT VECTOR",
       description: parsed.description || "Warning: telemetry analysis failed.",
@@ -196,7 +260,21 @@ Keep descriptions and countermeasures technical, cold, and post-apocalyptic in t
       location: parsed.location || "Global Containment Zones",
       publishDate: parsed.publishDate || fallbackData.publishDate,
       source: parsed.source || "Multiple Telemetry Sources"
-    });
+    };
+
+    // 3. Upsert to Supabase cache table
+    if (supabase) {
+      try {
+        await supabase.from("daily_threats").upsert({
+          date: today,
+          payload: resultPayload
+        });
+      } catch (err) {
+        console.warn("Failed to write daily threat forecast cache:", err);
+      }
+    }
+
+    return NextResponse.json(resultPayload);
   } catch (err) {
     console.error("Failed to generate dynamic AI threat forecast:", err);
     return NextResponse.json(fallbackData);

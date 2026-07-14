@@ -223,7 +223,7 @@ export default function SolvivorsHubPage() {
             id: `gdacs-${alert.id}`,
             name: alert.title,
             type: alert.eventTypeName || alert.eventType,
-            category: "gdacs",
+            category: alert.category || "gdacs",
             severity: Math.round(alert.alertScore * 20) || 50,
             lat: alert.lat,
             lng: alert.lng,

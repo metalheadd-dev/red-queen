@@ -101,10 +101,31 @@ export default function HomePage() {
       async function loadMapNodes() {
         setLoadingMap(true);
         try {
-          const res = await fetch("/api/threat-map");
-          const data = await res.json();
-          setMapNodes(data);
-          if (data.length > 0) setSelectedNode(data[0]);
+          const [staticRes, liveRes] = await Promise.all([
+            fetch("/api/threat-map"),
+            fetch("/api/broadcasts/live")
+          ]);
+          const staticData = await staticRes.json();
+          const liveData = await liveRes.json().catch(() => ({ alerts: [] }));
+          
+          const liveAlerts = liveData.alerts || [];
+          const formattedLiveNodes = liveAlerts.map((alert: any) => ({
+            id: `live-${alert.id}`,
+            name: alert.title,
+            type: alert.eventTypeName || alert.eventType || "KINETIC",
+            category: "realistic",
+            severity: Math.round(alert.alertScore * 20) || 75,
+            lat: Number(alert.lat),
+            lng: Number(alert.lng),
+            region: alert.country || "Global",
+            desc: alert.desc || "",
+            solution: "Evacuate high-risk zones, monitor active thermal scans and local threat broadcasts.",
+            analysis: alert.desc || ""
+          }));
+
+          const combined = [...staticData, ...formattedLiveNodes];
+          setMapNodes(combined);
+          if (combined.length > 0) setSelectedNode(combined[0]);
         } catch (err) {
           console.error("Failed to load threat map nodes:", err);
         }

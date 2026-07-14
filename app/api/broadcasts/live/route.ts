@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchFIRMS, fetchGDELT, fetchReliefWeb, fetchWithTimeout } from "@/lib/threats-fetchers";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ interface GDACSAlert {
   alertLevel: "Green" | "Orange" | "Red" | "Unknown";
   alertScore: number;
   country: string;
+  category?: "gdacs" | "realistic";
 }
 
 function cleanText(text: string): string {
@@ -44,7 +46,7 @@ function mapEventTypeName(type: string): string {
   }
 }
 
-export async function GET() {
+async function fetchGDACSAlerts(): Promise<GDACSAlert[]> {
   try {
     const res = await fetch("https://www.gdacs.org/xml/rss.xml", {
       next: { revalidate: 360 }, // Cache for 6 minutes (matching GDACS update cycle)
@@ -57,7 +59,6 @@ export async function GET() {
     const xmlText = await res.text();
     const alerts: GDACSAlert[] = [];
     
-    // Extract items
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     let match;
     
@@ -115,13 +116,43 @@ export async function GET() {
           alertLevel,
           alertScore,
           country,
+          category: "gdacs" as const
         });
       }
     }
-
-    return NextResponse.json({ success: true, alerts });
-  } catch (error: any) {
+    return alerts;
+  } catch (error) {
     console.error("GDACS fetch error:", error);
+    return [];
+  }
+}
+
+export async function GET() {
+  try {
+    // Fetch all geo-sources (GDACS + FIRMS + GDELT + ReliefWeb) in parallel
+    const [gdacsResult, firmsResult, gdeltResult, reliefwebResult] = await Promise.allSettled([
+      fetchGDACSAlerts(),
+      fetchFIRMS(),
+      fetchGDELT(),
+      fetchReliefWeb()
+    ]);
+
+    const gdacsAlerts = gdacsResult.status === "fulfilled" ? gdacsResult.value : [];
+    const firmsAlerts = firmsResult.status === "fulfilled" ? firmsResult.value : [];
+    const gdeltAlerts = gdeltResult.status === "fulfilled" ? gdeltResult.value : [];
+    const reliefwebAlerts = reliefwebResult.status === "fulfilled" ? reliefwebResult.value : [];
+
+    // Combine them into one array
+    const combinedAlerts: GDACSAlert[] = [
+      ...gdacsAlerts,
+      ...firmsAlerts,
+      ...gdeltAlerts,
+      ...reliefwebAlerts
+    ];
+
+    return NextResponse.json({ success: true, alerts: combinedAlerts });
+  } catch (error: any) {
+    console.error("Combined live broadcast fetch error:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to load live broadcasts" },
       { status: 500 }
