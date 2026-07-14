@@ -92,6 +92,7 @@ export default function AdminDashboardPage() {
   // Containment Breach status states
   const [breachActive, setBreachActive] = useState(false);
   const [breachUntil, setBreachUntil] = useState("");
+  const [breachDurationHours, setBreachDurationHours] = useState("24");
   const [loadingBreach, setLoadingBreach] = useState(false);
   const [savingBreach, setSavingBreach] = useState(false);
 
@@ -372,6 +373,11 @@ export default function AdminDashboardPage() {
       if (data.success && data.breach) {
         setBreachActive(!!data.breach.active);
         setBreachUntil(formatDatetimeLocal(data.breach.until));
+        if (data.breach.until) {
+          const msLeft = new Date(data.breach.until).getTime() - Date.now();
+          const hrsLeft = Math.max(1, Math.round(msLeft / (1000 * 60 * 60)));
+          setBreachDurationHours(String(hrsLeft));
+        }
       }
     } catch (e) {
       console.error("Failed to load breach status:", e);
@@ -384,6 +390,12 @@ export default function AdminDashboardPage() {
     setSavingBreach(true);
     try {
       const token = session?.access_token;
+      let calculatedUntil = null;
+      if (breachActive) {
+        const durationHrs = parseFloat(breachDurationHours) || 24;
+        calculatedUntil = new Date(Date.now() + durationHrs * 60 * 60 * 1000).toISOString();
+      }
+      
       const res = await fetch("/api/admin/breach", {
         method: "POST",
         headers: {
@@ -392,12 +404,16 @@ export default function AdminDashboardPage() {
         },
         body: JSON.stringify({
           active: breachActive,
-          until: breachUntil ? new Date(breachUntil).toISOString() : null
+          until: calculatedUntil
         })
       });
       const data = await res.json();
       if (data.success) {
         alert("Containment breach state updated successfully.");
+        if (data.breach) {
+          setBreachActive(!!data.breach.active);
+          setBreachUntil(formatDatetimeLocal(data.breach.until));
+        }
       } else {
         alert("Error: " + data.error);
       }
@@ -1599,15 +1615,24 @@ export default function AdminDashboardPage() {
 
                 <div>
                   <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "8px" }}>
-                    BREACH EXPIRE TIMESTAMP (UTC)
+                    BREACH DURATION (HOURS)
                   </label>
                   <input
-                    type="datetime-local"
-                    value={breachUntil}
-                    onChange={(e) => setBreachUntil(e.target.value)}
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    value={breachDurationHours}
+                    onChange={(e) => setBreachDurationHours(e.target.value)}
                     style={{ width: "100%", background: "#0c0c0c", border: "1px solid var(--border)", color: "#fff", padding: "10px 14px", fontFamily: "var(--mono)", fontSize: "12px", borderRadius: "2px" }}
+                    placeholder="Enter duration in hours (e.g. 24)"
                   />
                 </div>
+
+                {breachActive && breachUntil && (
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11.5px", color: "#ff4d4d", background: "rgba(255, 77, 77, 0.05)", border: "1px solid rgba(255, 77, 77, 0.15)", padding: "10px 14px", borderRadius: "2px" }}>
+                    CURRENT ACTIVE DEADLINE: {new Date(breachUntil).toUTCString()}
+                  </div>
+                )}
 
                 <div style={{ fontSize: "11px", color: "var(--text-dim)", lineHeight: "1.6", borderTop: "1px dashed rgba(255,77,77,0.1)", paddingTop: "12px" }}>
                   <strong>NOTICE:</strong> Toggling this manually writes directly to the <code>system_state</code> table. While active, returning operatives will see an urgent check-in warning window. Operatives who fail to check-in before this expiration date will have their daily streak reset to 1.

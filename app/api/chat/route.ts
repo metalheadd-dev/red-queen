@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { SOUL_PROMPT } from "@/lib/soul";
 import { supabase } from "@/lib/supabase";
 import { getHashedWallet } from "@/lib/crypto";
-import { getStatsFromScenarios, updateStatsInScenarios, getCleanScenarios, parseStatsFromAI, applyStatGains, calculateBioScore } from "@/lib/progression";
+import { getStatsFromScenarios, updateStatsInScenarios, getCleanScenarios, parseStatsFromAI, applyStatGains, calculateBioScore, getXpMultiplier } from "@/lib/progression";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { isValidSolanaPublicKey, getWorkingConnection } from "@/lib/solana";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -190,24 +190,23 @@ RE-ACTIVATION RULES & PARANOIA:
           const currentStats = getStatsFromScenarios(userProfile?.chosen_scenarios);
           let updatedStats = currentStats;
 
-          // Compute multipliers
-          let tokenMultiplier = 1.0;
+          // Compute multipliers using centralized helper
           const addressToCheck = walletAddress.startsWith("email-auth:")
             ? userProfile?.linked_wallet_address
             : walletAddress;
 
+          let balance = 0;
           if (addressToCheck) {
-            const balance = await getThreatBalance(addressToCheck);
-            if (balance > 0) {
-              tokenMultiplier = 2.0;
-            }
+            balance = await getThreatBalance(addressToCheck);
           }
+          
           const level = currentStats.level || 1;
-          const clearanceMultiplier = level >= 5 ? 2.0 : 
-                                      level >= 4 ? 1.75 : 
-                                      level >= 3 ? 1.5 : 
-                                      level >= 2 ? 1.25 : 1.0;
-          const totalMultiplier = tokenMultiplier * clearanceMultiplier;
+          const pulseTier = userProfile?.pulse_tier || 0;
+          const { total: totalMultiplier } = getXpMultiplier({
+            tokenBalance: balance,
+            level,
+            pulseTier
+          });
 
           if (parsed) {
             const boostedXp = Math.round(parsed.xpGain * totalMultiplier);

@@ -91,6 +91,10 @@ type Profile = {
   bio_score_rank?: number | null;
   streak_count?: number;
   last_checkin_at?: string | null;
+  total_checkins?: number;
+  longest_streak?: number;
+  pulse_tier?: number;
+  highest_pulse_tier_reached?: number;
 };
 
 // Client-side SHA-256 generator to display the Hashed Passport
@@ -746,6 +750,12 @@ export default function OperativeProfilePage() {
     ? Math.max(0, Math.floor((new Date(breachUntil).getTime() - new Date().getTime()) / (1000 * 60 * 60)))
     : null;
 
+  const highestPulseTier = profile?.highest_pulse_tier_reached || 0;
+  let pulseTitle = "";
+  if (highestPulseTier === 1) pulseTitle = "STEADY OPERATIVE";
+  else if (highestPulseTier === 2) pulseTitle = "HARDENED SURVIVOR";
+  else if (highestPulseTier === 3) pulseTitle = "UNDYING";
+
   const displayName = customName || generatedName;
   const scoreNum = profile?.last_bio_score ?? null;
   const displayScore = scoreNum ?? 0;
@@ -813,8 +823,23 @@ export default function OperativeProfilePage() {
                     </div>
                   ) : (
                     <div>
-                      <h2 className="glow-text" style={{ fontSize: "clamp(18px, 3vw, 24px)", margin: 0, color: "var(--text)", letterSpacing: "0.05em", fontFamily: "var(--title-font)" }}>
+                      <h2 className="glow-text" style={{ fontSize: "clamp(18px, 3vw, 24px)", margin: 0, color: "var(--text)", letterSpacing: "0.05em", fontFamily: "var(--title-font)", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                         {displayName}
+                        {pulseTitle && (
+                          <span style={{
+                            fontFamily: "var(--mono)",
+                            fontSize: "10px",
+                            fontWeight: "bold",
+                            color: "#f0c929",
+                            background: "rgba(240, 201, 41, 0.08)",
+                            border: "1px solid rgba(240, 201, 41, 0.25)",
+                            padding: "2px 6px",
+                            borderRadius: "2px",
+                            letterSpacing: "0.05em"
+                          }}>
+                            {pulseTitle}
+                          </span>
+                        )}
                       </h2>
                       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "6px" }}>
                         {profile && (typeof profile.xp_rank === "number" || typeof profile.bio_score_rank === "number") && (
@@ -943,10 +968,14 @@ export default function OperativeProfilePage() {
 
               {/* Streak Day Counter */}
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "22px", fontWeight: "bold", color: "#fff" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "20px", fontWeight: "bold", color: "#fff" }}>
                   PULSE CHAIN: <span style={{ color: alreadyCheckedIn ? "#00ffcc" : "var(--accent)" }}>{streakCount} DAYS</span>
                 </span>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-dim)", marginTop: "4px", lineHeight: "1.4" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginTop: "2px" }}>
+                  TOTAL UPLINKS: <span style={{ color: "#fff", fontWeight: "bold", marginRight: "12px" }}>{profile?.total_checkins || 0}</span>
+                  LONGEST CHAIN: <span style={{ color: "#f0c929", fontWeight: "bold" }}>{profile?.longest_streak || 0} DAYS</span>
+                </span>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-dim)", marginTop: "6px", lineHeight: "1.4" }}>
                   RED QUEEN tracks your pulse. Miss a transmission and containment assumes the worst.
                 </span>
               </div>

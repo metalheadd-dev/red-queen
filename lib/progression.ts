@@ -185,3 +185,33 @@ export function applyStatGains(current: UserStats, xpGain: number, gains: Partia
 
   return updated;
 }
+
+export function getXpMultiplier(params: {
+  tokenBalance: number;
+  level: number;
+  pulseTier: number; // 0 = no tier, 1 = 7-day, 2 = 30-day, 3 = 100-day
+}): { total: number; breakdown: { token: number; clearance: number; pulse: number } } {
+  const tokenMultiplier = params.tokenBalance > 0 ? 2.0 : 1.0;
+  
+  const level = params.level || 1;
+  const clearanceMultiplier = 
+    level >= 5 ? 2.0 : 
+    level >= 4 ? 1.75 : 
+    level >= 3 ? 1.5 : 
+    level >= 2 ? 1.25 : 
+    1.0;
+    
+  let pulseMultiplier = 1.0;
+  if (params.pulseTier === 1) pulseMultiplier = 1.1;
+  else if (params.pulseTier === 2) pulseMultiplier = 1.25;
+  else if (params.pulseTier === 3) pulseMultiplier = 1.5;
+
+  return {
+    total: tokenMultiplier * clearanceMultiplier * pulseMultiplier,
+    breakdown: {
+      token: tokenMultiplier,
+      clearance: clearanceMultiplier,
+      pulse: pulseMultiplier
+    }
+  };
+}
