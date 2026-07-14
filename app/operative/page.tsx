@@ -919,25 +919,72 @@ export default function OperativeProfilePage() {
                 </Link>
 
                 {/* Secondary controls grouped inline */}
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <button onClick={() => setEditingName(true)} className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", flex: 1, minWidth: "75px" }}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "stretch" }}>
+                  <button onClick={() => setEditingName(true)} className="btn btn-ghost" style={{
+                    fontSize: "10px",
+                    padding: "0 10px",
+                    flex: 1,
+                    minWidth: "75px",
+                    height: "38px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}>
                     RENAME
                   </button>
-                  <Link href="/leaderboard" style={{ textDecoration: "none", flex: 1, minWidth: "100px" }}>
-                    <button className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", width: "100%" }}>
+                  <Link href="/leaderboard" style={{ textDecoration: "none", flex: 1, minWidth: "100px", display: "flex" }}>
+                    <button className="btn btn-ghost" style={{
+                      fontSize: "10px",
+                      padding: "0 10px",
+                      width: "100%",
+                      height: "38px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
                       LEADERBOARD
                     </button>
                   </Link>
-                  <Link href="/threat-vector" style={{ textDecoration: "none", flex: 1, minWidth: "100px" }}>
-                    <button className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", width: "100%" }}>
+                  <Link href="/threat-vector" style={{ textDecoration: "none", flex: 1, minWidth: "100px", display: "flex" }}>
+                    <button className="btn btn-ghost" style={{
+                      fontSize: "10px",
+                      padding: "0 10px",
+                      width: "100%",
+                      height: "38px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: "1.2"
+                    }}>
                       SECTOR MATRIX
                     </button>
                   </Link>
-                  <button onClick={saveProfile} disabled={saving} className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", flex: 1.2, minWidth: "110px", color: saved ? "#00ffcc" : "var(--text)" }}>
+                  <button onClick={saveProfile} disabled={saving} className="btn btn-ghost" style={{
+                    fontSize: "10px",
+                    padding: "0 10px",
+                    flex: 1.2,
+                    minWidth: "110px",
+                    height: "38px",
+                    color: saved ? "#00ffcc" : "var(--text)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}>
                     {saving ? "SAVING..." : saved ? "SECURED" : "SAVE PROFILE"}
                   </button>
                   {user && (
-                    <button onClick={() => logout()} className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", flex: 1, minWidth: "80px", color: "var(--accent)", borderColor: "rgba(255,77,77,0.2)" }}>
+                    <button onClick={() => logout()} className="btn btn-ghost" style={{
+                      fontSize: "10px",
+                      padding: "0 10px",
+                      flex: 1,
+                      minWidth: "80px",
+                      height: "38px",
+                      color: "var(--accent)",
+                      borderColor: "rgba(255,77,77,0.2)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
                       LOGOUT
                     </button>
                   )}
