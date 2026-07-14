@@ -89,6 +89,8 @@ type Profile = {
   stats?: typeof DEFAULT_STATS;
   xp_rank?: number | null;
   bio_score_rank?: number | null;
+  streak_count?: number;
+  last_checkin_at?: string | null;
 };
 
 // Client-side SHA-256 generator to display the Hashed Passport
@@ -142,6 +144,11 @@ export default function OperativeProfilePage() {
   const [depinError, setDepinError] = useState<string | null>(null);
   const [premiumTxid, setPremiumTxid] = useState<string | null>(null);
   const [depinTxid, setDepinTxid] = useState<string | null>(null);
+
+  const [breachActive, setBreachActive] = useState(false);
+  const [breachUntil, setBreachUntil] = useState<string | null>(null);
+  const [transmittingPulse, setTransmittingPulse] = useState(false);
+  const [activityTab, setActivityTab] = useState<"quests" | "x402" | "logs" | "wallet">("quests");
 
   const decryptIntel = async (endpoint: "/api/intel/premium" | "/api/intel/depin", type: "premium" | "depin") => {
     const setLoading = type === "premium" ? setLoadingPremium : setLoadingDepin;
@@ -430,6 +437,48 @@ export default function OperativeProfilePage() {
     }
   };
 
+  const handleTransmitPulse = async () => {
+    if (!wallet) return;
+    setTransmittingPulse(true);
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/checkin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({ wallet_address: wallet })
+      });
+      const data = await res.json();
+      if (res.status === 200) {
+        alert(`Pulse Transmitted successfully! Pulse chain: ${data.streak_count} days.`);
+        fetchProfile();
+      } else {
+        alert("Transmission Failed: " + (data.error || "Unknown error"));
+      }
+    } catch (err: any) {
+      alert("Error transmitting pulse: " + err.message);
+    }
+    setTransmittingPulse(false);
+  };
+
+  useEffect(() => {
+    async function checkBreach() {
+      try {
+        const res = await fetch("/api/admin/breach");
+        const data = await res.json();
+        if (data.success && data.breach) {
+          setBreachActive(!!data.breach.active);
+          setBreachUntil(data.breach.until);
+        }
+      } catch (e) {
+        console.warn("Failed to check containment breach status:", e);
+      }
+    }
+    checkBreach();
+  }, []);
+
   const generatedName = wallet ? generateApocalypticName(wallet) : "";
 
   // Render hashed passport once wallet connects
@@ -685,6 +734,18 @@ export default function OperativeProfilePage() {
     setSaving(false);
   }
 
+  const lastCheckinStr = profile?.last_checkin_at;
+  const lastCheckin = lastCheckinStr ? new Date(lastCheckinStr) : null;
+  const hoursSinceLast = lastCheckin ? (new Date().getTime() - lastCheckin.getTime()) / (1000 * 60 * 60) : null;
+  const alreadyCheckedIn = hoursSinceLast !== null && hoursSinceLast < 20;
+
+  const streakCount = profile?.streak_count || 0;
+  const filledDots = streakCount >= 7 ? 7 : streakCount;
+  
+  const breachRemainingHours = breachActive && breachUntil
+    ? Math.max(0, Math.floor((new Date(breachUntil).getTime() - new Date().getTime()) / (1000 * 60 * 60)))
+    : null;
+
   const displayName = customName || generatedName;
   const scoreNum = profile?.last_bio_score ?? null;
   const displayScore = scoreNum ?? 0;
@@ -701,404 +762,267 @@ export default function OperativeProfilePage() {
       {/* Header / Profile Card */}
       <div style={{ borderBottom: "1px solid var(--border)", padding: "40px 24px", background: "var(--surface)" }}>
         <div className="container">
-          <div className="tag tag-red" style={{ marginBottom: "16px" }}>OPERATIVE PASSPORT — SECURE LINK</div>
-          <h1 className="glow-text" style={{ fontSize: "clamp(24px, 4vw, 36px)", marginBottom: "8px", letterSpacing: "0.05em" }}>
-            OPERATIVE <span style={{ color: "var(--accent)" }}>PROFILE</span>
-          </h1>
-          <p style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", marginBottom: "20px" }}>
-            Your AI-generated survival identity
-          </p>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "32px", flexWrap: "wrap" }}>
-            {/* High-tech vector SVGs radar scanline avatar */}
-            <div style={{
-              width: "96px", height: "96px", borderRadius: "2px",
-              border: "1px solid var(--accent)", background: "rgba(255, 77, 77, 0.03)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0, position: "relative", overflow: "hidden",
-              boxShadow: "0 0 15px rgba(255, 77, 77, 0.1)"
-            }}>
-              <svg width="60" height="60" viewBox="0 0 100 100" style={{ filter: "drop-shadow(0 0 3px rgba(255, 0, 51, 0.5))" }}>
-                <circle cx="50" cy="50" r="40" stroke="var(--accent)" strokeWidth="1.5" fill="none" strokeDasharray="6, 6" />
-                <circle cx="50" cy="50" r="25" stroke="var(--accent)" strokeWidth="1" fill="none" opacity="0.6" />
-                <path d="M 50 5 L 50 20 M 50 80 L 50 95 M 5 50 L 20 50 M 80 50 L 95 50" stroke="var(--accent)" strokeWidth="2" />
-                <circle cx="50" cy="50" r="4" fill="var(--accent)" />
-              </svg>
-              <div style={{
-                position: "absolute", bottom: "4px", left: 0, right: 0,
-                textAlign: "center", fontFamily: "var(--mono)", fontSize: "8px", color: "var(--accent)", letterSpacing: "0.1em"
-              }}>
-                SEC-ID
-              </div>
-            </div>
-
-            {/* Hashed details */}
-            <div style={{ flex: 1, minWidth: "280px" }}>
-              {editingName ? (
-                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px", flexWrap: "wrap" }}>
-                  <input
-                    value={customName}
-                    onChange={(e) => { setCustomName(e.target.value.toUpperCase()); setSaved(false); }}
-                    onKeyDown={(e) => { if (e.key === "Enter") confirmName(customName); }}
-                    style={{
-                      fontFamily: "var(--mono)", fontSize: "20px", fontWeight: 700,
-                      background: "rgba(255, 77, 77, 0.05)", border: "1px solid var(--accent)",
-                      color: "var(--text)", padding: "4px 10px", outline: "none", borderRadius: "2px",
-                      maxWidth: "280px", width: "100%"
-                    }}
-                    maxLength={36}
-                    autoFocus
-                  />
-                  <button className="btn btn-primary" style={{ fontSize: "10px", padding: "4px 10px" }}
-                    onClick={() => confirmName(customName)}>CONFIRM</button>
-                </div>
-              ) : (
-                <>
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px", flexWrap: "wrap" }}>
-                    <h2 className="glow-text" style={{ fontSize: "clamp(20px, 3vw, 26px)", margin: 0, color: "var(--text)", letterSpacing: "0.05em", fontFamily: "var(--title-font)" }}>
-                      {displayName}
-                    </h2>
-                    <button
-                      onClick={() => setEditingName(true)}
-                      style={{
-                        background: "rgba(255, 255, 255, 0.02)",
-                        border: "1px solid var(--border)",
-                        color: "var(--text-dim)",
-                        fontFamily: "var(--mono)",
-                        fontSize: "11px",
-                        padding: "3.5px 12px",
-                        cursor: "pointer",
-                        borderRadius: "2px",
-                        letterSpacing: "0.05em",
-                        transition: "all 0.2s"
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--accent)"}
-                      onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border)"}
-                    >
-                      ✎ RENAME
-                    </button>
-                    <Link href="/leaderboard" style={{ textDecoration: "none" }}>
-                      <button
-                        style={{
-                          background: "rgba(255, 77, 77, 0.05)",
-                          border: "1px solid var(--accent)",
-                          color: "var(--text)",
-                          fontFamily: "var(--mono)",
-                          fontSize: "11px",
-                          padding: "3.5px 12px",
-                          cursor: "pointer",
-                          borderRadius: "2px",
-                          letterSpacing: "0.05em",
-                          transition: "all 0.2s",
-                          display: "inline-flex",
-                          alignItems: "center"
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 77, 77, 0.15)"}
-                        onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255, 77, 77, 0.05)"}
-                      >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", marginRight: "6px" }}>
-                          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-                          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-                          <path d="M4 22h16" />
-                          <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
-                          <path d="M12 2a4 4 0 0 1 4 4v7H8V6a4 4 0 0 1 4-4z" />
-                        </svg>
-                        LEADERBOARD
-                      </button>
-                    </Link>
+          <div className="tag tag-red" style={{ marginBottom: "16px" }}>OPERATIVE PASSPORT — SECURE UPLINK</div>
+          
+          <div style={{ display: "flex", gap: "32px", flexWrap: "wrap", width: "100%" }}>
+            
+            {/* Left Column: Identity & Actions */}
+            <div style={{ flex: "1.2 1 360px", display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                {/* Scanline Avatar */}
+                <div style={{
+                  width: "80px", height: "80px", borderRadius: "2px",
+                  border: "1px solid var(--accent)", background: "rgba(255, 77, 77, 0.03)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0, position: "relative", overflow: "hidden",
+                  boxShadow: "0 0 12px rgba(255, 77, 77, 0.15)"
+                }}>
+                  <svg width="50" height="50" viewBox="0 0 100 100" style={{ filter: "drop-shadow(0 0 3px rgba(255, 0, 51, 0.5))" }}>
+                    <circle cx="50" cy="50" r="40" stroke="var(--accent)" strokeWidth="1.5" fill="none" strokeDasharray="6, 6" />
+                    <circle cx="50" cy="50" r="25" stroke="var(--accent)" strokeWidth="1" fill="none" opacity="0.6" />
+                    <path d="M 50 5 L 50 20 M 50 80 L 50 95 M 5 50 L 20 50 M 80 50 L 95 50" stroke="var(--accent)" strokeWidth="2" />
+                    <circle cx="50" cy="50" r="4" fill="var(--accent)" />
+                  </svg>
+                  <div style={{
+                    position: "absolute", bottom: "3px", left: 0, right: 0,
+                    textAlign: "center", fontFamily: "var(--mono)", fontSize: "7px", color: "var(--accent)", letterSpacing: "0.1em"
+                  }}>
+                    SEC-ID
                   </div>
-                  {profile && (typeof profile.xp_rank === "number" || typeof profile.bio_score_rank === "number") && (
-                    <div style={{
-                      display: "inline-block",
-                      background: "rgba(0, 255, 204, 0.04)",
-                      border: "1px solid rgba(0, 255, 204, 0.15)",
-                      borderLeft: "3px solid #00ffcc",
-                      padding: "5px 12px",
-                      fontSize: "11px",
-                      fontFamily: "var(--mono)",
-                      color: "var(--text)",
-                      marginBottom: "16px",
-                      letterSpacing: "0.05em",
-                      borderRadius: "2px"
-                    }}>
-                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>// MAINFRAME STANDINGS:</span>{" "}
-                      {typeof profile.xp_rank === "number" && (
-                        <span>
-                          XP RANK <span style={{ color: "#00ffcc", fontWeight: "bold" }}>#{profile.xp_rank}</span>
-                        </span>
-                      )}
-                      {typeof profile.xp_rank === "number" && typeof profile.bio_score_rank === "number" && (
-                        <span style={{ color: "rgba(255,255,255,0.2)", margin: "0 8px" }}>|</span>
-                      )}
-                      {typeof profile.bio_score_rank === "number" && (
-                        <span>
-                          BIO-SCORE RANK <span style={{ color: "#00ffcc", fontWeight: "bold" }}>#{profile.bio_score_rank}</span>
-                        </span>
-                      )}
+                </div>
+
+                {/* Identity Details */}
+                <div style={{ flex: 1 }}>
+                  {editingName ? (
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <input
+                        value={customName}
+                        onChange={(e) => { setCustomName(e.target.value.toUpperCase()); setSaved(false); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") confirmName(customName); }}
+                        style={{
+                          fontFamily: "var(--mono)", fontSize: "18px", fontWeight: 700,
+                          background: "rgba(255, 77, 77, 0.05)", border: "1px solid var(--accent)",
+                          color: "var(--text)", padding: "4px 8px", outline: "none", borderRadius: "2px",
+                          maxWidth: "200px", width: "100%"
+                        }}
+                        maxLength={36}
+                        autoFocus
+                      />
+                      <button className="btn btn-primary" style={{ fontSize: "10px", padding: "4px 8px" }}
+                        onClick={() => confirmName(customName)}>CONFIRM</button>
+                    </div>
+                  ) : (
+                    <div>
+                      <h2 className="glow-text" style={{ fontSize: "clamp(18px, 3vw, 24px)", margin: 0, color: "var(--text)", letterSpacing: "0.05em", fontFamily: "var(--title-font)" }}>
+                        {displayName}
+                      </h2>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "6px" }}>
+                        {profile && (typeof profile.xp_rank === "number" || typeof profile.bio_score_rank === "number") && (
+                          <div style={{
+                            fontFamily: "var(--mono)",
+                            fontSize: "10px",
+                            color: "#00ffcc",
+                            letterSpacing: "0.05em"
+                          }}>
+                            {typeof profile.xp_rank === "number" && `RANK #${profile.xp_rank}`}
+                          </div>
+                        )}
+                        <div style={{ height: "10px", width: "1px", background: "rgba(255,255,255,0.1)" }} />
+                        <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-muted)" }}>
+                          LVL {stats.level}
+                        </div>
+                      </div>
                     </div>
                   )}
-                </>
-              )}
 
-              {/* Hashed Passport display */}
+                  {/* Dynamic Bio-Score Onboarding state check */}
+                  <div style={{ marginTop: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>BIO-SCORE:</span>
+                    {displayScore === 0 ? (
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "var(--text-muted)", padding: "2px 6px", borderRadius: "2px" }}>
+                        CALIBRATION REQUIRED
+                      </span>
+                    ) : (
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", background: `${scoreColor}10`, border: `1px solid ${scoreColor}30`, color: scoreColor, padding: "2px 6px", borderRadius: "2px", fontWeight: "bold" }}>
+                        {displayScore}% — {displayScore >= 80 ? "EXCELLENT" : displayScore >= 50 ? "NOMINAL" : "CRITICAL"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Cryptographic signature */}
               <div style={{
                 background: "rgba(10, 10, 10, 0.6)",
                 border: "1px solid var(--border)",
                 borderLeft: "2px solid var(--accent)",
-                padding: "12px 16px",
+                padding: "10px 14px",
                 borderRadius: "2px",
-                marginBottom: "16px",
-                maxWidth: "600px",
                 boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)"
               }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "6px", display: "flex", justifyContent: "space-between" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em", marginBottom: "4px", display: "flex", justifyContent: "space-between" }}>
                   <span>CRYPTOGRAPHIC PASSPORT SIGNATURE</span>
-                  <span style={{ color: "rgba(255,77,77,0.4)" }}>[ SALTED SHA-256 ]</span>
+                  <span style={{ color: "rgba(255,77,77,0.3)" }}>[ SHA-256 ]</span>
                 </div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--accent)", wordBreak: "break-all", lineHeight: "1.4", opacity: 0.9 }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", wordBreak: "break-all", opacity: 0.9 }}>
                   {hashedPassport || "COMPUTING ANONYMOUS PASSPORT..."}
                 </div>
               </div>
 
-              {/* Tactical Stats Grid */}
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-                gap: "12px",
-                maxWidth: "600px",
-                marginBottom: "16px"
-              }}>
-                <div style={{ background: "rgba(255, 255, 255, 0.01)", border: "1px solid var(--border)", padding: "10px 14px", borderRadius: "2px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>MONITORED VECTORS</div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "var(--text)", fontWeight: "bold", marginTop: "4px" }}>
-                    <span style={{ color: "var(--accent)" }}>{chosenScenarios.length}</span> <span style={{ fontSize: "11px", color: "var(--text-dim)" }}>ACTIVE</span>
-                  </div>
-                </div>
+              {/* Action Buttons Panel */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "6px" }}>
+                {/* Main Primary CTA */}
+                <Link href="/terminal" style={{ textDecoration: "none" }}>
+                  <button className="btn" style={{
+                    width: "100%",
+                    fontSize: "13px",
+                    fontFamily: "var(--mono)",
+                    background: "var(--accent)",
+                    borderColor: "var(--accent)",
+                    color: "#fff",
+                    boxShadow: "0 0 12px rgba(255, 77, 77, 0.25)",
+                    padding: "10px 20px",
+                    fontWeight: "bold",
+                    letterSpacing: "0.05em",
+                    cursor: "pointer"
+                  }}>
+                    ▶ OPEN SYSTEM TERMINAL
+                  </button>
+                </Link>
 
-                <div style={{ background: "rgba(255, 255, 255, 0.01)", border: "1px solid var(--border)", padding: "10px 14px", borderRadius: "2px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>CLEARANCE LEVEL</div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "var(--text)", fontWeight: "bold", marginTop: "4px" }}>
-                    LEVEL <span style={{ color: "var(--accent)" }}>{stats.level}</span>
-                  </div>
-                </div>
-
-                <div style={{ background: "rgba(255, 255, 255, 0.01)", border: "1px solid var(--border)", padding: "10px 14px", borderRadius: "2px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>TOTAL SYSTEM XP</div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "var(--text)", fontWeight: "bold", marginTop: "4px" }}>
-                    <span style={{ color: "var(--accent)" }}>{stats.xp}</span> <span style={{ fontSize: "11px", color: "var(--text-dim)" }}>XP</span>
-                  </div>
-                </div>
-
-                <div style={{ background: "rgba(255, 255, 255, 0.01)", border: "1px solid var(--border)", padding: "10px 14px", borderRadius: "2px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.1em" }}>UPLINK STATUS</div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "#00ffcc", fontWeight: "bold", marginTop: "6px", letterSpacing: "0.05em" }}>
-                    ANONYMIZED
-                  </div>
-                </div>
-              </div>
-
-              {/* Boosters Panel */}
-              <div style={{ 
-                background: "rgba(255, 0, 51, 0.02)",
-                border: "1px solid rgba(255, 0, 51, 0.15)",
-                padding: "12px 16px",
-                borderRadius: "2px",
-                maxWidth: "600px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px"
-              }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.15em", fontWeight: "bold" }}>
-                  ACTIVE SYSTEM BOOSTERS
-                </div>
-                <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>
-                    $THREAT HODL: <span style={{ color: threatBalance && threatBalance > 0 ? "#00ffcc" : "var(--text-muted)" }}>{threatBalance && threatBalance > 0 ? "2.0x BOOST" : "INACTIVE"}</span>
-                  </div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)" }}>
-                    CLEARANCE: <span style={{ color: "var(--accent)" }}>
-                      {stats.level >= 5 ? "2.0x BOOST" : 
-                       stats.level >= 4 ? "1.75x BOOST" : 
-                       stats.level >= 3 ? "1.5x BOOST" : 
-                       stats.level >= 2 ? "1.25x BOOST" : 
-                       "1.0x BASE"}
-                    </span>
-                  </div>
-                  <div style={{ height: "14px", width: "1px", background: "rgba(255,255,255,0.1)" }} />
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text)", fontWeight: "bold" }}>
-                    XP MULTIPLIER: <span style={{ color: "#00ffcc", textShadow: "0 0 4px rgba(0, 255, 204, 0.4)" }}>
-                      {((threatBalance && threatBalance > 0 ? 2.0 : 1.0) * 
-                        (stats.level >= 5 ? 2.0 : 
-                         stats.level >= 4 ? 1.75 : 
-                         stats.level >= 3 ? 1.5 : 
-                         stats.level >= 2 ? 1.25 : 
-                         1.0)).toFixed(2)}x
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Score display with live glowing bar */}
-            <div style={{
-              textAlign: "left",
-              marginLeft: "auto",
-              minWidth: "240px",
-              background: "rgba(10, 10, 10, 0.4)",
-              border: "1px solid var(--border)",
-              padding: "20px",
-              borderRadius: "2px",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center"
-            }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.15em", marginBottom: "8px", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "6px" }}>
-                SURVIVAL READINESS (BIO-SCORE)
-              </div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "56px", fontWeight: 900, color: scoreColor, lineHeight: 1, textShadow: `0 0 8px ${scoreColor}50` }}>
-                  {displayScore}%
-                </span>
-                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: scoreColor, letterSpacing: "0.05em", fontWeight: "bold" }}>
-                  {displayScore >= 80 ? "EXCELLENT" : displayScore >= 50 ? "NOMINAL" : "CRITICAL"}
-                </span>
-              </div>
-              <div className="threat-bar-wrap" style={{ marginTop: "16px", width: "100%", height: "6px", border: "1px solid rgba(255,255,255,0.05)", background: "#111" }}>
-                <div className="threat-bar-fill" style={{ width: `${displayScore}%`, background: scoreColor, boxShadow: `0 0 10px ${scoreColor}` }} />
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px", fontFamily: "var(--mono)", fontSize: "11.5px", color: "var(--text-dim)", borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "10px" }}>
-                <span>TOTAL SYSTEM XP:</span>
-                <span style={{ color: "var(--accent)", fontWeight: "bold" }}>{stats.xp} XP</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div style={{ display: "flex", gap: "12px", marginTop: "32px", flexWrap: "wrap", alignItems: "center" }}>
-            <button
-              className="btn btn-primary"
-              onClick={saveProfile}
-              disabled={saving}
-              style={{ fontSize: "15px" }}
-            >
-              {saving ? "SAVING..." : saved ? "✓ PROFILE SECURED" : "SAVE PROFILE"}
-            </button>
-            <Link href="/terminal" className="btn btn-ghost" style={{ fontSize: "15px" }}>
-              ▶ OPEN TERMINAL
-            </Link>
-            <Link href="/threat-vector" className="btn btn-ghost" style={{ fontSize: "15px" }}>
-              BROWSE SECTOR MATRIX
-            </Link>
-            
-            {user && (
-              <button
-                className="btn btn-ghost"
-                onClick={() => logout()}
-                style={{
-                  fontSize: "15px",
-                  borderColor: "rgba(255, 77, 77, 0.4)",
-                  color: "var(--accent)",
-                  background: "rgba(255, 77, 77, 0.02)",
-                  marginLeft: "auto"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "var(--accent)";
-                  e.currentTarget.style.background = "rgba(255, 77, 77, 0.08)";
-                  e.currentTarget.style.boxShadow = "0 0 15px rgba(255, 77, 77, 0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(255, 77, 77, 0.4)";
-                  e.currentTarget.style.background = "rgba(255, 77, 77, 0.02)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                ⎋ LOGOUT SESSION
-              </button>
-            )}
-          </div>
-
-          {/* Solana Wallet Linkage Panel for Email Users */}
-          {user && (
-            <div style={{
-              marginTop: "32px",
-              padding: "20px 24px",
-              background: "rgba(255, 77, 77, 0.03)",
-              border: "1px dashed rgba(255, 77, 77, 0.2)",
-              borderRadius: "2px",
-              maxWidth: "580px"
-            }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "8px", fontWeight: "bold" }}>
-                // CRYPTOGRAPHIC KEY REGISTRY (WEB3 LINKAGE)
-              </div>
-              <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 16px 0" }}>
-                Establish a cryptographic link between your email session and your Solana wallet. By binding your public key, the Red Queen can query your on-chain $THREAT token holdings and activate your 2.0x XP multiplier.
-              </p>
-
-              {profile?.linked_wallet_address ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "15.5px", color: "#00ffcc" }}>
-                    Status: LINKED TO WALLET ADDRESS
-                  </div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text)", wordBreak: "break-all", background: "rgba(0,0,0,0.4)", padding: "8px 12px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                    {profile.linked_wallet_address}
-                  </div>
-                  
-                  {solanaWalletAddress && solanaWalletAddress !== profile.linked_wallet_address && (
-                    <div style={{ marginTop: "12px" }}>
-                      <p style={{ fontSize: "11.5px", color: "var(--text-muted)", margin: "0 0 8px 0" }}>
-                        Connected wallet ({solanaWalletAddress.slice(0, 4)}...{solanaWalletAddress.slice(-4)}) differs from linked wallet. Do you want to update the link?
-                      </p>
-                      <button 
-                        onClick={linkSolanaWallet}
-                        disabled={saving}
-                        className="btn btn-ghost"
-                        style={{ fontSize: "10.5px", padding: "4px 12px", borderColor: "var(--accent)", color: "var(--accent)" }}
-                      >
-                        {saving ? "LINKING..." : "UPDATE LINKED WALLET"}
-                      </button>
-                    </div>
+                {/* Secondary controls grouped inline */}
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button onClick={() => setEditingName(true)} className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", flex: 1, minWidth: "75px" }}>
+                    ✎ RENAME
+                  </button>
+                  <Link href="/leaderboard" style={{ textDecoration: "none", flex: 1, minWidth: "100px" }}>
+                    <button className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", width: "100%" }}>
+                      🏆 LEADERBOARD
+                    </button>
+                  </Link>
+                  <Link href="/threat-vector" style={{ textDecoration: "none", flex: 1, minWidth: "100px" }}>
+                    <button className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", width: "100%" }}>
+                      🛰️ SECTOR MATRIX
+                    </button>
+                  </Link>
+                  <button onClick={saveProfile} disabled={saving} className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", flex: 1.2, minWidth: "110px", color: saved ? "#00ffcc" : "var(--text)" }}>
+                    {saving ? "SAVING..." : saved ? "✓ SECURED" : "💾 SAVE PROFILE"}
+                  </button>
+                  {user && (
+                    <button onClick={() => logout()} className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", flex: 1, minWidth: "80px", color: "var(--accent)", borderColor: "rgba(255,77,77,0.2)" }}>
+                      ⎋ LOGOUT
+                    </button>
                   )}
                 </div>
-              ) : (
-                <div>
-                  {solanaWalletAddress ? (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "10px" }}>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text)" }}>
-                        Connected Solana Wallet: <span style={{ color: "var(--accent)" }}>{solanaWalletAddress.slice(0, 6)}...{solanaWalletAddress.slice(-6)}</span>
-                      </div>
-                      <button
-                        onClick={linkSolanaWallet}
-                        disabled={saving}
-                        className="btn btn-primary"
-                        style={{ fontSize: "14px", padding: "6px 16px", boxShadow: "0 0 10px rgba(255,0,51,0.1)" }}
-                      >
-                        {saving ? "LINKING..." : "LINK CONNECTED WALLET NOW"}
-                      </button>
-                    </div>
+              </div>
+            </div>
+
+            {/* Right Column: Pulse Protocol Check-in Module */}
+            <div style={{
+              flex: "0.8 1 280px",
+              background: "rgba(10, 10, 10, 0.4)",
+              border: "1px solid var(--border)",
+              borderLeft: `3px solid ${alreadyCheckedIn ? "#00ffcc" : "var(--accent)"}`,
+              padding: "20px",
+              borderRadius: "2px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", letterSpacing: "0.15em" }}>
+                  PULSE PROTOCOL STATUS
+                </span>
+                {hoursSinceLast !== null && hoursSinceLast > 48 && (
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "8.5px", background: "rgba(255,77,77,0.1)", border: "1px solid rgba(255,77,77,0.3)", color: "var(--accent)", padding: "1px 5px", borderRadius: "2px", fontWeight: "bold" }}>
+                    PULSE LOST — RESET
+                  </span>
+                )}
+              </div>
+
+              {/* Streak Day Counter */}
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "22px", fontWeight: "bold", color: "#fff" }}>
+                  PULSE CHAIN: <span style={{ color: alreadyCheckedIn ? "#00ffcc" : "var(--accent)" }}>{streakCount} DAYS</span>
+                </span>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--text-dim)", marginTop: "4px", lineHeight: "1.4" }}>
+                  RED QUEEN tracks your pulse. Miss a transmission and containment assumes the worst.
+                </span>
+              </div>
+
+              {/* 7-Dot strip */}
+              <div style={{ display: "flex", gap: "8px", margin: "4px 0" }}>
+                {Array.from({ length: 7 }).map((_, i) => {
+                  const isFilled = i < filledDots;
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        borderRadius: "50%",
+                        background: isFilled ? (alreadyCheckedIn ? "#00ffcc" : "var(--accent)") : "transparent",
+                        border: `2px solid ${isFilled ? (alreadyCheckedIn ? "#00ffcc" : "var(--accent)") : "rgba(255,255,255,0.15)"}`,
+                        boxShadow: isFilled ? `0 0 8px ${alreadyCheckedIn ? "#00ffcc" : "var(--accent)"}` : "none",
+                        transition: "all 0.3s"
+                      }}
+                      title={isFilled ? `Day ${i + 1} secure` : `Day ${i + 1} pending`}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Containment Breach Warning Banner */}
+              {breachActive && (
+                <div style={{
+                  background: "rgba(255, 77, 77, 0.05)",
+                  border: "1px solid rgba(255, 77, 77, 0.2)",
+                  padding: "8px 10px",
+                  borderRadius: "2px",
+                  fontFamily: "var(--mono)",
+                  fontSize: "10.5px",
+                  lineHeight: "1.4"
+                }}>
+                  {alreadyCheckedIn ? (
+                    <span style={{ color: "#00ffcc", fontWeight: "bold" }}>
+                      ✓ SIGNAL TRANSMITTED // SYSTEM BREACH IN PROGRESS (WINDOW SECURED)
+                    </span>
                   ) : (
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-                      <WalletMultiButton style={{
-                        background: "transparent",
-                        border: "1px solid var(--accent)",
-                        color: "var(--accent)",
-                        fontFamily: "var(--mono)",
-                        fontSize: "14px",
-                        padding: "6px 16px",
-                        height: "auto",
-                        lineHeight: "1.5",
-                      }} />
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text-muted)" }}>
-                        Connect your wallet to enable link sequence.
-                      </span>
-                    </div>
+                    <span style={{ color: "var(--accent)", fontWeight: "bold" }}>
+                      ⚠️ SIGNAL WINDOW CLOSING — TRANSMIT PULSE WITHIN {breachRemainingHours ?? 0}H OR THE CHAIN BREAKS
+                    </span>
                   )}
                 </div>
               )}
-            </div>
-          )}
-        </div>
 
-        {/* Progression & Sub-Stats panel */}
+              {/* Action Button */}
+              <button
+                onClick={handleTransmitPulse}
+                disabled={alreadyCheckedIn || transmittingPulse}
+                className="btn"
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  fontFamily: "var(--mono)",
+                  fontSize: "11px",
+                  fontWeight: "bold",
+                  cursor: alreadyCheckedIn ? "default" : "pointer",
+                  background: alreadyCheckedIn ? "rgba(0, 255, 204, 0.04)" : "var(--accent)",
+                  borderColor: alreadyCheckedIn ? "rgba(0, 255, 204, 0.2)" : "var(--accent)",
+                  color: alreadyCheckedIn ? "#00ffcc" : "#fff",
+                  boxShadow: alreadyCheckedIn ? "none" : "0 0 10px rgba(255,77,77,0.2)"
+                }}
+              >
+                {transmittingPulse ? "[ COUPLING UPLINK SENT... ]" : alreadyCheckedIn ? "[ ✓ PULSE SENT ]" : "[ TRANSMIT PULSE ]"}
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+
+      {/* Progression & Sub-Stats panel */}
         <div className="container" style={{ padding: "0 24px 20px", display: "flex", flexDirection: "column", gap: "24px" }}>
           
           {/* XP & Clearance Level Progression Block */}
@@ -1117,30 +1041,88 @@ export default function OperativeProfilePage() {
               </h3>
             </div>
 
-            <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
+            <p style={{ fontSize: "14.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
               <strong>What is this?</strong> Your Level and Experience Points (XP) represent your permanent training record on the platform. You earn XP by checking in, talking to the terminal, and performing audits. This score <strong>never decreases or decays</strong>. Raising your XP unlocks higher clearance tiers.
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", marginBottom: "32px" }} className="responsive-grid-2">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }} className="responsive-grid-2">
               
-              {/* Level & Unlock Progress Checklist */}
+              {/* Left Column: XP and Boosters */}
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "15px", color: "var(--text)", fontWeight: "bold" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--text)", fontWeight: "bold" }}>
                     OPERATIVE PROGRESS: LEVEL {stats.level}
                   </span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "15px", color: "var(--accent)", fontWeight: "bold" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--accent)", fontWeight: "bold" }}>
                     {stats.xp} Total XP ({stats.xp % 100}/100 XP to next level)
                   </span>
                 </div>
-                <div className="threat-bar-wrap" style={{ height: "8px", background: "#111", marginBottom: "24px" }}>
+                <div className="threat-bar-wrap" style={{ height: "8px", background: "#111", marginBottom: "16px" }}>
                   <div className="threat-bar-fill" style={{ width: `${stats.xp % 100}%`, background: "var(--accent)" }} />
                 </div>
 
-                <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "14px" }}>
+                {/* Inline Boosters Badges */}
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
+                  <span style={{
+                    fontFamily: "var(--mono)",
+                    fontSize: "10px",
+                    background: threatBalance && threatBalance > 0 ? "rgba(0, 255, 204, 0.08)" : "rgba(255, 255, 255, 0.02)",
+                    border: `1px solid ${threatBalance && threatBalance > 0 ? "rgba(0, 255, 204, 0.2)" : "rgba(255, 255, 255, 0.08)"}`,
+                    color: threatBalance && threatBalance > 0 ? "#00ffcc" : "var(--text-muted)",
+                    padding: "3px 8px",
+                    borderRadius: "2px",
+                    fontWeight: "bold"
+                  }}>
+                    $THREAT HODL: {threatBalance && threatBalance > 0 ? "2.0x BOOST" : "1.0x BASE"}
+                  </span>
+                  <span style={{
+                    fontFamily: "var(--mono)",
+                    fontSize: "10px",
+                    background: "rgba(255, 77, 77, 0.08)",
+                    border: "1px solid rgba(255, 77, 77, 0.2)",
+                    color: "var(--accent)",
+                    padding: "3px 8px",
+                    borderRadius: "2px",
+                    fontWeight: "bold"
+                  }}>
+                    CLEARANCE: {
+                      stats.level >= 5 ? "2.0x BOOST" : 
+                      stats.level >= 4 ? "1.75x BOOST" : 
+                      stats.level >= 3 ? "1.5x BOOST" : 
+                      stats.level >= 2 ? "1.25x BOOST" : 
+                      "1.0x BASE"
+                    }
+                  </span>
+                  <span style={{
+                    fontFamily: "var(--mono)",
+                    fontSize: "10px",
+                    background: "rgba(240, 201, 41, 0.08)",
+                    border: "1px solid rgba(240, 201, 41, 0.2)",
+                    color: "#f0c929",
+                    padding: "3px 8px",
+                    borderRadius: "2px",
+                    fontWeight: "bold"
+                  }}>
+                    COMBINED: {((threatBalance && threatBalance > 0 ? 2.0 : 1.0) * 
+                      (stats.level >= 5 ? 2.0 : 
+                       stats.level >= 4 ? 1.75 : 
+                       stats.level >= 3 ? 1.5 : 
+                       stats.level >= 2 ? 1.25 : 
+                       1.0)).toFixed(2)}x XP
+                  </span>
+                </div>
+
+                <div style={{ fontFamily: "var(--sans)", fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
+                  Permanently track training metrics in the database. Engage in terminal actions, audits, and checks to increase system clearance. Permanent status <strong>never decays or decreases</strong> over time.
+                </div>
+              </div>
+
+              {/* Right Column: Clearance Tier Unlock checklist */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px" }}>
                   [ CLEARANCE TIER LOCKS ]
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "14.5px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontFamily: "var(--mono)", fontSize: "12.5px" }}>
                   {[
                     { l: 1, label: "CIVILIAN", req: "0+ XP", desc: "Basic terminal checks", unlocked: stats.level >= 1 },
                     { l: 2, label: "OBSERVER", req: "100+ XP", desc: "Live incident feeds enabled", unlocked: stats.level >= 2 },
@@ -1152,11 +1134,11 @@ export default function OperativeProfilePage() {
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <span style={{ color: cl.unlocked ? "var(--accent)" : "var(--text-muted)", fontWeight: "bold", display: "inline-flex", alignItems: "center" }}>
                           {cl.unlocked ? (
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block" }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           ) : (
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block" }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                             </svg>
@@ -1165,145 +1147,14 @@ export default function OperativeProfilePage() {
                         <span style={{ fontWeight: cl.unlocked ? "bold" : "normal" }}>
                           Lvl {cl.l}: {cl.label}
                         </span>
-                        <span style={{ fontSize: "12.5px", color: "var(--text-dim)" }}>- {cl.desc}</span>
+                        <span style={{ fontSize: "11px", color: "var(--text-dim)" }}>- {cl.desc}</span>
                       </div>
-                      <span style={{ fontSize: "13.5px", color: cl.unlocked ? "#00ffcc" : "var(--text-muted)" }}>{cl.req}</span>
+                      <span style={{ fontSize: "11.5px", color: cl.unlocked ? "#00ffcc" : "var(--text-muted)" }}>{cl.req}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Multiplier Boosters Summary */}
-              <div style={{ background: "rgba(255, 255, 255, 0.01)", border: "1px solid rgba(255, 255, 255, 0.03)", padding: "20px", borderRadius: "2px" }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "12px" }}>
-                  [ ACTIVE REWARD BOOSTERS ]
-                </div>
-                <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
-                  Boosters multiply the amount of XP you gain for every interaction. You can stack boosters by holding the token and unlocking higher clearance.
-                </p>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontFamily: "var(--mono)", fontSize: "14.5px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "var(--text-dim)" }}>$THREAT TOKEN MULTIPLIER:</span>
-                    <span style={{ color: threatBalance && threatBalance > 0 ? "#00ffcc" : "var(--text-muted)", fontWeight: "bold" }}>
-                      {threatBalance && threatBalance > 0 ? "2.0x (ACTIVE)" : "1.0x (INACTIVE)"}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "var(--text-dim)" }}>CLEARANCE LEVEL MULTIPLIER:</span>
-                    <span style={{ color: "var(--accent)", fontWeight: "bold" }}>
-                      {stats.level >= 5 ? "2.0x (Lvl 5)" : 
-                       stats.level >= 4 ? "1.75x (Lvl 4)" : 
-                       stats.level >= 3 ? "1.5x (Lvl 3)" : 
-                       stats.level >= 2 ? "1.25x (Lvl 2)" : 
-                       "1.0x (Lvl 1)"}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "8px", borderTop: "1px dashed rgba(255, 255, 255, 0.05)" }}>
-                    <span style={{ color: "var(--text)", fontWeight: "bold" }}>COMBINED TOTAL BOOST:</span>
-                    <span style={{ color: "#00ffcc", fontWeight: "bold" }}>
-                      {((threatBalance && threatBalance > 0 ? 2.0 : 1.0) * 
-                        (stats.level >= 5 ? 2.0 : 
-                         stats.level >= 4 ? 1.75 : 
-                         stats.level >= 3 ? 1.5 : 
-                         stats.level >= 2 ? 1.25 : 
-                         1.0)).toFixed(2)}x XP
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* XP Audit History Logs */}
-            <div style={{ borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "24px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "16px" }}>
-                [ SYSTEM DIAGNOSTICS & XP AUDIT HISTORY ]
-              </div>
-              {loadingHistory ? (
-                <div style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--text-dim)", padding: "10px 0" }}>
-                  DECRYPTING TRANSACTIONAL AUDIT PATHS...
-                </div>
-              ) : history.filter(m => m.role === "assistant").length === 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase" }}>
-                    [ Showing Simulated Training Operations — Connect & Chat to Log Real Data ]
-                  </div>
-                  {[
-                    { op: "OP-INIT", action: "System Clearance Onboarding Check-In", date: "2026-05-30", reward: "+20 XP", stat: "Awareness +2, Stability +1", type: "SUCCESS" },
-                    { op: "OP-042", action: "Footprint Entropy Scan", date: "2026-05-29", reward: "+10 XP", stat: "Surveillance Resistance +2", type: "SUCCESS" },
-                    { op: "OP-041", action: "Algorithmic Sandbox Verification", date: "2026-05-28", reward: "+8 XP", stat: "Adaptability +1", type: "SUCCESS" }
-                  ].map((log, idx) => (
-                    <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#090909", border: "1px solid #141414", padding: "10px 16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "13.5px" }}>
-                      <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-                        <span style={{ color: "#00ffcc", fontWeight: "bold" }}>
-                          [{log.op}]
-                        </span>
-                        <span style={{ color: "var(--text)" }}>{log.action}</span>
-                        <span style={{ color: "var(--text-dim)", fontSize: "11px" }}>({log.date})</span>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <span style={{ color: "#00ffcc", marginRight: "16px", fontWeight: "bold" }}>{log.reward}</span>
-                        <span style={{ color: "var(--text-dim)", fontSize: "12px" }}>[{log.stat}]</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {history
-                    .filter(m => m.role === "assistant")
-                    .reverse()
-                    .slice(0, 10)
-                    .map((msg, idx) => {
-                      const parsed = parseStatsFromAI(msg.content);
-                      const dateStr = new Date(msg.created_at).toISOString().split("T")[0];
-                      
-                      let fallbackXp = 0;
-                      if (!parsed) {
-                        const scoreMatch = msg.content.match(/\[BIO-SCORE:\s*(\d+)%?\]/i);
-                        if (scoreMatch) fallbackXp = 5;
-                      }
-
-                      if (!parsed && fallbackXp === 0) return null;
-
-                      const xpVal = parsed ? parsed.xpGain : fallbackXp;
-                      const statGains = parsed ? Object.entries(parsed.gains)
-                        .filter(([_, val]) => (val as number) > 0)
-                        .map(([key, val]) => `${key.replace("_", " ").toUpperCase()} +${val}`)
-                        .join(", ") : "Threat Awareness +1";
-
-                      return (
-                        <div key={idx} style={{ 
-                          display: "flex", 
-                          justifyContent: "space-between", 
-                          alignItems: "center", 
-                          background: "#090909", 
-                          border: "1px solid #141414", 
-                          padding: "10px 16px", 
-                          borderRadius: "2px", 
-                          fontFamily: "var(--mono)", 
-                          fontSize: "13px",
-                          flexWrap: "wrap",
-                          gap: "8px"
-                        }}>
-                          <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
-                            <span style={{ color: "#00ffcc", fontWeight: "bold" }}>
-                              [OP-DB-{idx + 1}]
-                            </span>
-                            <span style={{ color: "var(--text)", textOverflow: "ellipsis", maxWidth: "250px", overflow: "hidden", whiteSpace: "nowrap" }}>
-                              {msg.content.replace(/\[BIO-SCORE:.*?\]/gi, "").trim().slice(0, 45)}...
-                            </span>
-                             <span style={{ color: "var(--text-dim)", fontSize: "12px" }}>({dateStr})</span>
-                          </div>
-                          <div style={{ textAlign: "right", display: "flex", gap: "16px", alignItems: "center" }}>
-                            <span style={{ color: "#00ffcc", fontWeight: "bold" }}>+{xpVal} XP</span>
-                             <span style={{ color: "var(--text-dim)", fontSize: "12px" }}>[{statGains}]</span>
-                          </div>
-                        </div>
-                      );
-                    }).filter(Boolean)}
-                </div>
-              )}
             </div>
           </div>
 
@@ -1406,533 +1257,654 @@ export default function OperativeProfilePage() {
               <strong>What is this?</strong> Your BIO-SCORE is a dynamic rating between 0% and 100% that measures your current survival preparedness. It is calculated by averaging your 7 individual sub-stats. <strong>Warning: If you do not interact with the terminal for 24 hours, this score will decay by 5% per day.</strong> Check in daily to stop decay and restore your stats.
                 </p>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "32px", marginBottom: "32px" }} className="responsive-grid-2-large">
-                  
-                  {/* Left Column: Radar geometry & Psy Profile */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                    <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px", alignSelf: "flex-start" }}>
-                        [ RADAR DIAGNOSTICS GEOMETRY ]
+                {(() => {
+                  const allZeroStats =
+                    stats.threat_awareness === 0 &&
+                    stats.operational_discipline === 0 &&
+                    stats.psychological_stability === 0 &&
+                    stats.technical_preparedness === 0 &&
+                    stats.adaptability === 0 &&
+                    stats.resourcefulness === 0 &&
+                    stats.surveillance_resistance === 0;
+
+                  if (allZeroStats) {
+                    return (
+                      <div style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "48px 24px",
+                        background: "#080808",
+                        border: "1px dashed rgba(255, 77, 77, 0.2)",
+                        borderRadius: "4px",
+                        textAlign: "center",
+                        minHeight: "280px",
+                        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)"
+                      }}>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "12px", fontWeight: "bold" }}>
+                          [ DIAGNOSTICS NOT YET CALIBRATED ]
+                        </span>
+                        <p style={{ fontFamily: "var(--sans)", fontSize: "14px", color: "var(--text-dim)", maxWidth: "420px", lineHeight: "1.6", margin: "0 0 24px 0" }}>
+                          Operative cognitive parameters and survival readiness ratings are not yet established. Speak to the terminal interface to execute active check-ins and establish calibration parameters.
+                        </p>
+                        <Link href="/terminal" style={{ textDecoration: "none" }}>
+                          <button className="btn btn-primary" style={{ padding: "10px 24px", fontSize: "12px", fontWeight: "bold", fontFamily: "var(--mono)" }}>
+                            TALK TO THE TERMINAL TO BEGIN CALIBRATION
+                          </button>
+                        </Link>
                       </div>
+                    );
+                  }
+
+                  return (
+                    <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "32px", marginBottom: "32px" }} className="responsive-grid-2-large">
                       
-                      {/* SVG Radar Chart */}
-                      <div style={{ position: "relative", width: "240px", height: "240px" }}>
-                        <svg width="240" height="240" viewBox="0 0 240 240" style={{ overflow: "visible" }}>
-                          {[1, 2, 3, 4, 5].map((lvl) => (
-                            <polygon
-                              key={lvl}
-                              points={getRadarGridPoints(lvl)}
-                              fill="none"
-                              stroke="rgba(0, 255, 204, 0.08)"
-                              strokeWidth="1"
-                            />
-                          ))}
-                          {Array.from({ length: 7 }).map((_, i) => {
-                            const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
-                            const x = 120 + 84 * Math.cos(angle);
-                            const y = 120 + 84 * Math.sin(angle);
-                            return (
-                              <line
-                                key={i}
-                                x1="120"
-                                y1="120"
-                                x2={x}
-                                y2={y}
-                                stroke="rgba(0, 255, 204, 0.12)"
-                                strokeWidth="1.5"
-                                strokeDasharray="2 2"
+                      {/* Left Column: Radar geometry & Psy Profile */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                        <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                          <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#00ffcc", letterSpacing: "0.15em", marginBottom: "16px", alignSelf: "flex-start" }}>
+                            [ RADAR DIAGNOSTICS GEOMETRY ]
+                          </div>
+                          
+                          {/* SVG Radar Chart */}
+                          <div style={{ position: "relative", width: "240px", height: "240px" }}>
+                            <svg width="240" height="240" viewBox="0 0 240 240" style={{ overflow: "visible" }}>
+                              {[1, 2, 3, 4, 5].map((lvl) => (
+                                <polygon
+                                  key={lvl}
+                                  points={getRadarGridPoints(lvl)}
+                                  fill="none"
+                                  stroke="rgba(0, 255, 204, 0.08)"
+                                  strokeWidth="1"
+                                />
+                              ))}
+                              {Array.from({ length: 7 }).map((_, i) => {
+                                const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
+                                const x = 120 + 84 * Math.cos(angle);
+                                const y = 120 + 84 * Math.sin(angle);
+                                return (
+                                  <line
+                                    key={i}
+                                    x1="120"
+                                    y1="120"
+                                    x2={x}
+                                    y2={y}
+                                    stroke="rgba(0, 255, 204, 0.12)"
+                                    strokeWidth="1.5"
+                                    strokeDasharray="2 2"
+                                  />
+                                );
+                              })}
+                              <polygon
+                                points={getRadarPoints(subStatsList.map(s => s.val))}
+                                fill="rgba(0, 255, 204, 0.15)"
+                                stroke="#00ffcc"
+                                strokeWidth="2"
+                                style={{ filter: "drop-shadow(0 0 4px rgba(0,255,204,0.3))" }}
                               />
-                            );
-                          })}
-                          <polygon
-                            points={getRadarPoints(subStatsList.map(s => s.val))}
-                            fill="rgba(0, 255, 204, 0.15)"
-                            stroke="#00ffcc"
-                            strokeWidth="2"
-                            style={{ filter: "drop-shadow(0 0 4px rgba(0,255,204,0.3))" }}
-                          />
-                          {subStatsList.map((st, i) => {
-                            const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
-                            const r = (st.val / 100) * 84;
-                            const x = 120 + r * Math.cos(angle);
-                            const y = 120 + r * Math.sin(angle);
-                            return (
-                              <circle
-                                key={i}
-                                cx={x}
-                                cy={y}
-                                r="3.5"
-                                fill="#00ffcc"
-                                style={{ filter: "drop-shadow(0 0 2px #00ffcc)" }}
-                              />
-                            );
-                          })}
-                          {subStatsList.map((st, i) => {
-                            const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
-                            const offset = 98;
-                            const x = 120 + offset * Math.cos(angle);
-                            const y = 120 + offset * Math.sin(angle);
-                            return (
-                              <text
-                                key={i}
-                                x={x}
-                                y={y + 4}
-                                textAnchor="middle"
-                                style={{
-                                  fontFamily: "var(--mono)",
-                                  fontSize: "8.5px",
-                                  fill: "var(--text-dim)",
-                                  fontWeight: "bold",
-                                  letterSpacing: "0.05em"
-                                }}
-                              >
-                                {st.label}
-                              </text>
-                            );
-                          })}
-                        </svg>
+                              {subStatsList.map((st, i) => {
+                                const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
+                                const r = (st.val / 100) * 84;
+                                const x = 120 + r * Math.cos(angle);
+                                const y = 120 + r * Math.sin(angle);
+                                return (
+                                  <circle
+                                    key={i}
+                                    cx={x}
+                                    cy={y}
+                                    r="3.5"
+                                    fill="#00ffcc"
+                                    style={{ filter: "drop-shadow(0 0 2px #00ffcc)" }}
+                                  />
+                                );
+                              })}
+                              {subStatsList.map((st, i) => {
+                                const angle = (i * 2 * Math.PI) / 7 - Math.PI / 2;
+                                const offset = 98;
+                                const x = 120 + offset * Math.cos(angle);
+                                const y = 120 + offset * Math.sin(angle);
+                                return (
+                                  <text
+                                    key={i}
+                                    x={x}
+                                    y={y + 4}
+                                    textAnchor="middle"
+                                    style={{
+                                      fontFamily: "var(--mono)",
+                                      fontSize: "8.5px",
+                                      fill: "var(--text-dim)",
+                                      fontWeight: "bold",
+                                      letterSpacing: "0.05em"
+                                    }}
+                                  >
+                                    {st.label}
+                                  </text>
+                                );
+                              })}
+                            </svg>
+                          </div>
+                        </div>
+    
+                        {/* Psychological Profile Card */}
+                        <div style={{ background: "rgba(0, 255, 204, 0.02)", borderLeft: "3px solid #00ffcc", padding: "20px", borderRadius: "0 2px 2px 0" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#00ffcc", letterSpacing: "0.15em" }}>
+                              [ COGNITIVE PSYCHE DIAGNOSTIC ]
+                            </span>
+                            <span className="tag tag-green" style={{ fontSize: "10px", padding: "2px 6px", background: "rgba(0, 255, 204, 0.1)", color: "#00ffcc", borderColor: "rgba(0, 255, 204, 0.2)" }}>
+                              {psyProfile.tag}
+                            </span>
+                          </div>
+                          <h4 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--text)", margin: "0 0 6px 0" }}>
+                            {psyProfile.title}
+                          </h4>
+                          <p style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0, fontStyle: "italic" }}>
+                            &ldquo;{psyProfile.desc}&rdquo;
+                          </p>
+                        </div>
+                      </div>
+    
+                      {/* Right Column: 7 Sub-Stats bars */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {subStatsList.map((st, idx) => (
+                          <div key={idx} style={{ background: "#080808", border: "1px solid #141414", padding: "12px 16px", borderRadius: "2px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                               <span style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text)", fontWeight: "bold" }}>{st.label}</span>
+                               <span style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "#00ffcc", fontWeight: "bold" }}>{st.val}/100</span>
+                            </div>
+                            <div className="threat-bar-wrap" style={{ height: "4px", background: "#111", marginBottom: "4px" }}>
+                              <div className="threat-bar-fill" style={{ width: `${st.val}%`, background: "#00ffcc" }} />
+                            </div>
+                             <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)" }}>
+                              {st.desc}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-
-                    {/* Psychological Profile Card */}
-                    <div style={{ background: "rgba(0, 255, 204, 0.02)", borderLeft: "3px solid #00ffcc", padding: "20px", borderRadius: "0 2px 2px 0" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                        <span style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#00ffcc", letterSpacing: "0.15em" }}>
-                          [ COGNITIVE PSYCHE DIAGNOSTIC ]
-                        </span>
-                        <span className="tag tag-green" style={{ fontSize: "10px", padding: "2px 6px", background: "rgba(0, 255, 204, 0.1)", color: "#00ffcc", borderColor: "rgba(0, 255, 204, 0.2)" }}>
-                          {psyProfile.tag}
-                        </span>
-                      </div>
-                      <h4 style={{ fontFamily: "var(--title-font)", fontSize: "14px", color: "var(--text)", margin: "0 0 6px 0" }}>
-                        {psyProfile.title}
-                      </h4>
-                      <p style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", margin: 0, fontStyle: "italic" }}>
-                        &ldquo;{psyProfile.desc}&rdquo;
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Right Column: 7 Sub-Stats bars */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    {subStatsList.map((st, idx) => (
-                      <div key={idx} style={{ background: "#080808", border: "1px solid #141414", padding: "12px 16px", borderRadius: "2px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                           <span style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "var(--text)", fontWeight: "bold" }}>{st.label}</span>
-                           <span style={{ fontFamily: "var(--mono)", fontSize: "14.5px", color: "#00ffcc", fontWeight: "bold" }}>{st.val}/100</span>
-                        </div>
-                        <div className="threat-bar-wrap" style={{ height: "4px", background: "#111", marginBottom: "4px" }}>
-                          <div className="threat-bar-fill" style={{ width: `${st.val}%`, background: "#00ffcc" }} />
-                        </div>
-                         <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)" }}>
-                          {st.desc}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
             );
           })()}
 
-          {/* Quests and Community Section Block */}
-          <div className="panel" style={{
-            background: "rgba(5, 5, 5, 0.4)",
-            borderColor: "rgba(240, 201, 41, 0.15)",
-            padding: "32px",
-            boxShadow: "0 0 20px rgba(240, 201, 41, 0.01)"
-          }}>
-            <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "16px", marginBottom: "24px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "#f0c929", letterSpacing: "0.2em", marginBottom: "4px" }}>
-                [ COMMUNITY OPERATIONS & MISSIONS ]
-              </div>
-              <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase", display: "flex", alignItems: "center" }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0c929" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "10px" }}>
-                  <circle cx="12" cy="12" r="10" />
-                  <circle cx="12" cy="12" r="6" />
-                  <circle cx="12" cy="12" r="2" />
-                  <line x1="12" y1="1" x2="12" y2="3" />
-                  <line x1="12" y1="21" x2="12" y2="23" />
-                  <line x1="1" y1="12" x2="3" y2="12" />
-                  <line x1="21" y1="12" x2="23" y2="12" />
-                </svg>
-                RED QUEEN QUESTS
-              </h3>
-            </div>
+          {/* Sub-tabs header for secondary features */}
+          <div style={{ display: "flex", gap: "0", borderBottom: "1px solid var(--border)", marginBottom: "20px", flexWrap: "wrap" }}>
+            {[
+              { id: "quests", label: "DRILLS & QUESTS" },
+              { id: "x402", label: "MICROPAYMENTS (X402)" },
+              { id: "logs", label: "XP AUDIT LOGS" },
+              { id: "wallet", label: "CRYPTO REGISTRY" }
+            ].map((tab) => {
+              const active = activityTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActivityTab(tab.id as any)}
+                  style={{
+                    fontFamily: "var(--mono)", fontSize: "11px", letterSpacing: "0.15em",
+                    padding: "10px 18px", background: "none", border: "none",
+                    borderBottom: active ? "2px solid var(--accent)" : "2px solid transparent",
+                    color: active ? "var(--text)" : "var(--text-muted)",
+                    cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap",
+                    fontWeight: active ? "bold" : "normal"
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
 
-            <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
-              <strong>What is this?</strong> Participate in targeted community challenges and network drills. Completing active quests earns massive XP rewards, upgrades your clearance tier, and grants permanent sub-stat boosts.
-            </p>
-
-            {loadingQuests ? (
-              <div style={{ textAlign: "center", padding: "20px", fontFamily: "var(--mono)", color: "var(--accent)" }}>
-                [ SYNCHRONIZING WITH RED QUEEN OPERATIONS... ]
-              </div>
-            ) : userQuests.length === 0 ? (
-              <div style={{
-                textAlign: "center",
-                padding: "32px",
-                border: "1px dashed rgba(240, 201, 41, 0.15)",
-                background: "rgba(240, 201, 41, 0.01)",
-                color: "var(--text-dim)",
-                borderRadius: "4px"
-              }}>
-                <div style={{ fontFamily: "var(--mono)", fontSize: "13px", marginBottom: "12px" }}>
-                  [ NO ACTIVE OPERATIONS RUNNING ]
+          {/* Tab contents */}
+          
+          {/* 1. Quests and Drills */}
+          {activityTab === "quests" && (
+            <div className="panel" style={{
+              background: "rgba(5, 5, 5, 0.4)",
+              borderColor: "rgba(240, 201, 41, 0.15)",
+              padding: "24px",
+              boxShadow: "0 0 20px rgba(240, 201, 41, 0.01)"
+            }}>
+              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "12px", marginBottom: "16px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#f0c929", letterSpacing: "0.15em", marginBottom: "4px" }}>
+                  [ COMMUNITY OPERATIONS & ACTIVE DRILLS ]
                 </div>
-                <Link href="/solvivors" className="btn btn-primary" style={{ fontSize: "11px", padding: "8px 16px" }}>
-                  BROWSE SOLVIVORS HUB
-                </Link>
+                <h3 style={{ fontFamily: "var(--mono)", fontSize: "16px", margin: 0, textTransform: "uppercase" }}>
+                  RED QUEEN QUESTS
+                </h3>
               </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "16px" }}>
-                {userQuests.map((quest) => {
-                  const title = quest.details?.title || "Classified Operation";
-                  const description = quest.details?.description || "";
-                  const rewardText = quest.type === "task" 
-                    ? `+${quest.details?.reward_xp || 0} XP`
-                    : `${quest.details?.reward_sol || 0} SOL`;
 
-                  return (
-                    <div key={quest.id} style={{ 
-                      background: "#080808", 
-                      border: "1px solid",
-                      borderColor: quest.status === "completed" ? "rgba(85, 255, 85, 0.15)" : 
-                                   quest.status === "pending" ? "rgba(240, 201, 41, 0.15)" : "rgba(240, 201, 41, 0.08)",
-                      padding: "24px", 
-                      borderRadius: "4px",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between"
-                    }}>
-                      <div>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                          <span className="tag" style={{ 
-                            color: quest.type === "task" ? "var(--accent)" : "#f0c929", 
-                            borderColor: quest.type === "task" ? "rgba(255, 77, 77, 0.2)" : "rgba(240, 201, 41, 0.2)", 
-                            fontSize: "10.5px" 
-                          }}>
-                            {quest.type === "task" ? "TASK" : "BOUNTY"}
-                          </span>
-                          
-                          <span style={{ 
-                            fontFamily: "var(--mono)", 
-                            fontSize: "11px", 
-                            fontWeight: "bold",
-                            color: quest.status === "completed" ? "#55ff55" : 
-                                   quest.status === "pending" ? "#f0c929" : 
-                                   quest.status === "rejected" ? "var(--accent)" : "#00ffcc"
-                          }}>
-                            {quest.status === "active" && "[ STARTED ]"}
-                            {quest.status === "pending" && "[ UNDER APPROVAL ]"}
-                            {quest.status === "completed" && "[ COMPLETED ]"}
-                            {quest.status === "rejected" && "[ REJECTED ]"}
-                          </span>
-                        </div>
+              <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
+                Participate in targeted community challenges and network drills. Completing active quests earns massive XP rewards, upgrades your clearance tier, and grants permanent sub-stat boosts.
+              </p>
 
-                        <h4 style={{ fontFamily: "var(--mono)", fontSize: "16px", color: "#ffffff", margin: "0 0 8px 0" }}>
-                          {title}
-                        </h4>
-                        <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.6", margin: "0 0 20px 0" }}>
-                          {description}
-                        </p>
-                      </div>
+              {loadingQuests ? (
+                <div style={{ textAlign: "center", padding: "20px", fontFamily: "var(--mono)", color: "var(--accent)" }}>
+                  [ SYNCHRONIZING WITH RED QUEEN OPERATIONS... ]
+                </div>
+              ) : userQuests.length === 0 ? (
+                <div style={{
+                  textAlign: "center",
+                  padding: "24px",
+                  border: "1px dashed rgba(240, 201, 41, 0.15)",
+                  background: "rgba(240, 201, 41, 0.01)",
+                  color: "var(--text-dim)",
+                  borderRadius: "4px"
+                }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "12px", marginBottom: "8px" }}>
+                    [ NO ACTIVE OPERATIONS RUNNING ]
+                  </div>
+                  <Link href="/solvivors" className="btn btn-primary" style={{ fontSize: "10px", padding: "6px 12px" }}>
+                    BROWSE SOLVIVORS HUB
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "14px" }}>
+                  {userQuests.map((quest) => {
+                    const title = quest.details?.title || "Classified Operation";
+                    const description = quest.details?.description || "";
+                    const rewardText = quest.details 
+                      ? (quest.type === "task" ? `+${quest.details.reward_xp} XP` : `${quest.details.reward_sol} SOL`)
+                      : "REWARD CALCULATION PENDING";
 
-                      <div style={{ borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "16px", marginTop: "auto" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                          <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)" }}>
-                            REWARD:
-                          </span>
-                          <span style={{ 
-                            fontFamily: "var(--mono)", 
-                            fontSize: "13.5px", 
-                            color: quest.type === "task" ? "#00ffcc" : "#f0c929", 
-                            fontWeight: "bold" 
-                          }}>
-                            {rewardText}
-                          </span>
-                        </div>
-
-                        {quest.status === "active" && (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                            <input
-                              type="text"
-                              value={proofInputs[quest.id] || ""}
-                              onChange={(e) => setProofInputs(prev => ({ ...prev, [quest.id]: e.target.value }))}
-                              placeholder="Enter proof link (e.g. X post, YouTube link)"
-                              style={{
-                                width: "100%",
-                                padding: "8px 12px",
-                                background: "#050505",
-                                border: "1px solid rgba(255,255,255,0.1)",
-                                borderRadius: "2px",
-                                color: "#fff",
-                                fontSize: "12px",
-                                fontFamily: "var(--sans)",
-                                outline: "none"
-                              }}
-                            />
-                            <button
-                              onClick={() => handleSubmitQuest(quest.id)}
-                              disabled={submittingQuest === quest.id}
-                              className="btn btn-primary"
-                              style={{ width: "100%", fontSize: "11px", padding: "8px" }}
-                            >
-                              {submittingQuest === quest.id ? "SUBMITTING..." : "SUBMIT PROOF"}
-                            </button>
-                          </div>
-                        )}
-
-                        {quest.status === "pending" && (
-                          <div style={{ background: "rgba(240, 201, 41, 0.03)", border: "1px solid rgba(240, 201, 41, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11.5px" }}>
-                            <div style={{ color: "var(--text-dim)", wordBreak: "break-all", marginBottom: "4px" }}>
-                              <strong>Submitted Proof:</strong> <a href={quest.proof_link} target="_blank" rel="noopener noreferrer" style={{ color: "#f0c929", textDecoration: "underline" }}>{quest.proof_link}</a>
-                            </div>
-                            <span style={{ color: "#f0c929", fontStyle: "italic" }}>
-                              Queen AI is verifying payload.
+                    return (
+                      <div key={quest.id} style={{ 
+                        background: "#080808", 
+                        border: "1px solid",
+                        borderColor: quest.status === "completed" ? "rgba(85, 255, 85, 0.15)" : 
+                                     quest.status === "pending" ? "rgba(240, 201, 41, 0.15)" : "rgba(240, 201, 41, 0.08)",
+                        padding: "16px 20px", 
+                        borderRadius: "2px",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between"
+                      }}>
+                        <div>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                            <span className="tag" style={{ 
+                              color: quest.type === "task" ? "var(--accent)" : "#f0c929", 
+                              borderColor: quest.type === "task" ? "rgba(255, 77, 77, 0.2)" : "rgba(240, 201, 41, 0.2)", 
+                              fontSize: "9.5px" 
+                            }}>
+                              {quest.type === "task" ? "TASK" : "BOUNTY"}
+                            </span>
+                            
+                            <span style={{ 
+                              fontFamily: "var(--mono)", 
+                              fontSize: "10px", 
+                              fontWeight: "bold",
+                              color: quest.status === "completed" ? "#55ff55" : 
+                                     quest.status === "pending" ? "#f0c929" : 
+                                     quest.status === "rejected" ? "var(--accent)" : "#00ffcc"
+                            }}>
+                              {quest.status === "active" && "[ STARTED ]"}
+                              {quest.status === "pending" && "[ UNDER VERIFICATION ]"}
+                              {quest.status === "completed" && "[ COMPLETED ]"}
+                              {quest.status === "rejected" && "[ REJECTED ]"}
                             </span>
                           </div>
-                        )}
 
-                        {quest.status === "completed" && (
-                          <div style={{ background: "rgba(85, 255, 85, 0.03)", border: "1px solid rgba(85, 255, 85, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11.5px", color: "#55ff55" }}>
-                            {quest.type === "task" ? (
-                              <span>✓ Approved. Awarded: <strong>+{quest.xp_awarded} XP</strong> (multiplier active)</span>
-                            ) : (
-                              <span>✓ Approved. SOL Reward logged for payout.</span>
-                            )}
-                          </div>
-                        )}
+                          <h4 style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "#ffffff", margin: "0 0 6px 0" }}>
+                            {title}
+                          </h4>
+                          <p style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: "1.5", margin: "0 0 16px 0" }}>
+                            {description}
+                          </p>
+                        </div>
 
-                        {quest.status === "rejected" && (
-                          <div style={{ background: "rgba(255, 77, 77, 0.03)", border: "1px solid rgba(255, 77, 77, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11.5px", color: "var(--accent)" }}>
-                            <span>✗ Proof rejected. Please retry and submit a new valid proof link.</span>
+                        <div style={{ borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "12px", marginTop: "auto" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                            <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>
+                              REWARD:
+                            </span>
+                            <span style={{ 
+                              fontFamily: "var(--mono)", 
+                              fontSize: "12.5px", 
+                              color: quest.type === "task" ? "#00ffcc" : "#f0c929", 
+                              fontWeight: "bold" 
+                            }}>
+                              {rewardText}
+                            </span>
                           </div>
-                        )}
+
+                          {quest.status === "active" && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                              <input
+                                type="text"
+                                value={proofInputs[quest.id] || ""}
+                                onChange={(e) => setProofInputs(prev => ({ ...prev, [quest.id]: e.target.value }))}
+                                placeholder="Enter proof link (e.g. X post, YouTube link)"
+                                style={{
+                                  width: "100%",
+                                  padding: "6px 10px",
+                                  background: "#050505",
+                                  border: "1px solid rgba(255,255,255,0.1)",
+                                  borderRadius: "2px",
+                                  color: "#fff",
+                                  fontSize: "11px",
+                                  outline: "none"
+                                }}
+                              />
+                              <button
+                                onClick={() => handleSubmitQuest(quest.id)}
+                                disabled={submittingQuest === quest.id}
+                                className="btn btn-primary"
+                                style={{ width: "100%", fontSize: "10px", padding: "6px" }}
+                              >
+                                {submittingQuest === quest.id ? "SUBMITTING..." : "SUBMIT PROOF"}
+                              </button>
+                            </div>
+                          )}
+
+                          {quest.status === "pending" && (
+                            <div style={{ background: "rgba(240, 201, 41, 0.03)", border: "1px solid rgba(240, 201, 41, 0.1)", padding: "8px", borderRadius: "2px", fontSize: "10.5px" }}>
+                              <div style={{ color: "var(--text-dim)", wordBreak: "break-all", marginBottom: "4px" }}>
+                                <strong>Submitted Proof:</strong> <a href={quest.proof_link} target="_blank" rel="noopener noreferrer" style={{ color: "#f0c929", textDecoration: "underline" }}>{quest.proof_link}</a>
+                              </div>
+                              <span style={{ color: "#f0c929", fontStyle: "italic" }}>
+                                Queen AI is verifying payload.
+                              </span>
+                            </div>
+                          )}
+
+                          {quest.status === "completed" && (
+                            <div style={{ background: "rgba(85, 255, 85, 0.03)", border: "1px solid rgba(85, 255, 85, 0.1)", padding: "8px", borderRadius: "2px", fontSize: "10.5px", color: "#55ff55" }}>
+                              {quest.type === "task" ? (
+                                <span>✓ Approved. Awarded: <strong>+{quest.xp_awarded} XP</strong></span>
+                              ) : (
+                                <span>✓ Approved. SOL Reward logged for payout.</span>
+                              )}
+                            </div>
+                          )}
+
+                          {quest.status === "rejected" && (
+                            <div style={{ background: "rgba(255, 77, 77, 0.03)", border: "1px solid rgba(255, 77, 77, 0.1)", padding: "8px", borderRadius: "2px", fontSize: "10.5px", color: "var(--accent)" }}>
+                              <span>✗ Proof rejected. Please retry and submit a new valid proof link.</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            
-            <div style={{ 
-              marginTop: "24px", 
-              borderTop: "1px dashed rgba(255,255,255,0.06)", 
-              paddingTop: "16px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "12px"
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 2. x402 Micropayments */}
+          {activityTab === "x402" && (
+            <div className="panel" style={{
+              background: "rgba(5, 5, 5, 0.4)",
+              borderColor: "rgba(255, 77, 77, 0.15)",
+              padding: "24px",
+              boxShadow: "0 0 20px rgba(255, 0, 51, 0.02)"
             }}>
-              <span style={{ fontSize: "12px", color: "var(--text-dim)", fontFamily: "var(--mono)", display: "flex", alignItems: "center", gap: "6px" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: "#f0c929", filter: "drop-shadow(0 0 4px rgba(240, 201, 41, 0.6))" }}>
-                  <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .6 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
-                  <line x1="9" y1="18" x2="15" y2="18" />
-                  <line x1="10" y1="22" x2="14" y2="22" />
-                  <line x1="12" y1="2" x2="12" y2="4" />
-                  <line x1="5" y1="5" x2="6.4" y2="6.4" />
-                  <line x1="19" y1="5" x2="17.6" y2="6.4" />
-                </svg>
-                <em>Quest status monitors in real-time.</em>
-              </span>
-              <Link href="/solvivors" style={{ 
-                fontFamily: "var(--mono)", 
-                fontSize: "12px", 
-                color: "#f0c929", 
-                textDecoration: "underline" 
-              }}>
-                Browse Solvivors Hub ↗
-              </Link>
-            </div>
-          </div>
-
-          {/* x402 Micropayment Decryption Gated Archives Block */}
-          <div className="panel" style={{
-            background: "rgba(5, 5, 5, 0.4)",
-            borderColor: "rgba(255, 77, 77, 0.15)",
-            padding: "32px",
-            boxShadow: "0 0 20px rgba(255, 0, 51, 0.02)"
-          }}>
-            <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "16px", marginBottom: "24px" }}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--accent)", letterSpacing: "0.2em", marginBottom: "4px" }}>
-                [ SECURE MICROPAYMENT PROTOCOL (X402) ]
+              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "12px", marginBottom: "16px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px" }}>
+                  [ SECURE MICROPAYMENT PROTOCOL (X402) ]
+                </div>
+                <h3 style={{ fontFamily: "var(--mono)", fontSize: "16px", margin: 0, textTransform: "uppercase" }}>
+                  ACCESS RESTRICTED APOCALYPSE DOSSIERS
+                </h3>
               </div>
-              <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase", display: "flex", alignItems: "center", gap: "8px" }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 3px currentColor)" }}>
-                  <rect x="2" y="5" width="20" height="14" rx="2" />
-                  <line x1="2" y1="10" x2="22" y2="10" />
-                  <line x1="6" y1="15" x2="10" y2="15" />
-                </svg>
-                <span>ACCESS RESTRICTED APOCALYPSE DOSSIERS</span>
-              </h3>
-            </div>
 
-            <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
-              <strong>What is this?</strong> RED QUEEN gates premium intelligence briefings behind **x402 open-protocol micropayments** ($0.01 and $0.02 USDC) to cover compute overhead and prevent scraping. Settle the on-chain HTTP 402 payment challenge with your connected Solana wallet. Decryption completes in 400ms, streaming live containment metrics directly to this operative console.
-            </p>
+              <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
+                RED QUEEN gates premium intelligence briefings behind **x402 open-protocol micropayments** ($0.01 and $0.02 USDC) to cover compute overhead. Settle the on-chain HTTP 402 payment challenge with your connected Solana wallet.
+              </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }} className="responsive-grid-2">
-              {/* Premium Briefing Panel */}
-              <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "#ffffff" }}>
-                    DOSSIER A: GLOBAL CONTAINMENT
-                  </span>
-                  <span className="tag" style={{ color: "var(--accent)", borderColor: "rgba(255,77,77,0.3)" }}>
-                    $0.01 USDC
-                  </span>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }} className="responsive-grid-2">
+                {/* Dossier A */}
+                <div style={{ background: "#080808", border: "1px solid #141414", padding: "16px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold", color: "#ffffff" }}>
+                      DOSSIER A: GLOBAL CONTAINMENT
+                    </span>
+                    <span className="tag" style={{ color: "var(--accent)", borderColor: "rgba(255,77,77,0.3)", fontSize: "9px" }}>
+                      $0.01 USDC
+                    </span>
+                  </div>
+
+                  {premiumIntel ? (
+                    <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "12px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div style={{ color: "#ffffff", fontWeight: "bold" }}>{premiumIntel.intel?.headline}</div>
+                      <div style={{ color: "var(--text-dim)" }}>{premiumIntel.intel?.summary}</div>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                        <strong>Directive:</strong> {premiumIntel.intel?.directive}
+                      </div>
+                      {premiumTxid && (
+                        <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "6px", marginTop: "4px" }}>
+                          <a href={`https://solscan.io/tx/${premiumTxid}`} target="_blank" rel="noopener noreferrer" style={{ color: "#00ffcc", textDecoration: "underline", fontSize: "10.5px" }}>
+                            [ 🔗 VERIFIED SOLSCAN PROOF ]
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0c0303", padding: "8px", border: "1px solid #230808" }}>
+                        STATUS: {loadingPremium ? `[ PAYING... ]` : "[ LOCKED ]"}
+                      </div>
+                      <button className="btn btn-primary" onClick={() => decryptIntel("/api/intel/premium", "premium")} disabled={!!loadingPremium || !connected} style={{ padding: "8px", fontSize: "11px" }}>
+                        {loadingPremium ? "COUPLING..." : connected ? "DECRYPT DOSSIER" : "CONNECT WALLET"}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                {premiumIntel ? (
-                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "13px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "6px" }}>
-                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</span>
-                      <span style={{ color: "#2ecc40", fontSize: "10px", fontWeight: "bold", background: "rgba(46, 204, 64, 0.1)", padding: "2px 6px", borderRadius: "2px" }}>✓ LIVE DATA: USGS & NASA & DISEASE.SH</span>
-                    </div>
-                    <div style={{ color: "#ffffff", fontWeight: "bold" }}>{premiumIntel.intel?.headline}</div>
-                    <div style={{ color: "var(--text-dim)" }}>{premiumIntel.intel?.summary}</div>
-                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                      <strong>Directive:</strong> {premiumIntel.intel?.directive}
-                    </div>
-
-                    <div style={{ background: "rgba(0, 255, 204, 0.01)", border: "1px solid rgba(0, 255, 204, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11px", display: "flex", flexDirection: "column", gap: "3px", marginTop: "4px" }}>
-                      <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "4px", marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 3px currentColor)" }}>
-                          <rect x="2" y="5" width="20" height="14" rx="2" />
-                          <line x1="2" y1="10" x2="22" y2="10" />
-                          <line x1="6" y1="15" x2="10" y2="15" />
-                        </svg>
-                        <span>x402 PROTOCOL PAYMENT RECEIPT</span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Standard Version:</span><span>x402 V2 (Exact SVM Scheme)</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Facilitator Gate:</span><span>https://facilitator.payai.network</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>USDC Mint Address:</span><span style={{ fontSize: "10px" }}>EPjFWdd...t1v (Solana Mainnet)</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Settlement Price:</span><span style={{ fontWeight: "bold", color: "#f0c929" }}>0.01 USDC</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Verification State:</span><span style={{ color: "#2ecc40", fontWeight: "bold" }}>✓ SETTLED // ON-CHAIN</span></div>
-                    </div>
-
-                    {premiumTxid && (
-                      <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "8px", marginTop: "4px" }}>
-                        <a
-                          href={`https://solscan.io/tx/${premiumTxid}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: "#00ffcc", textDecoration: "underline", fontSize: "11px", fontWeight: "bold" }}
-                        >
-                          [ 🔗 VERIFIED ON-CHAIN PROOF (SOLSCAN) ]
-                        </a>
-                      </div>
-                    )}
+                {/* Dossier B */}
+                <div style={{ background: "#080808", border: "1px solid #141414", padding: "16px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold", color: "#ffffff" }}>
+                      DOSSIER B: SOLANA SATELLITE STATUS
+                    </span>
+                    <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.3)", fontSize: "9px" }}>
+                      $0.02 USDC
+                    </span>
                   </div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <div style={{ fontSize: "13.5px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0c0303", padding: "12px", border: "1px solid #230808", borderRadius: "2px" }}>
-                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : "[ LOCKED // x402 PROTOCOL: 0.01 USDC REQUIRED ]"}
-                    </div>
-                    {premiumError && (
-                      <div style={{ fontSize: "13px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                        ⚠️ ERROR: {premiumError}
-                      </div>
-                    )}
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => decryptIntel("/api/intel/premium", "premium")}
-                      disabled={!!loadingPremium || !connected}
-                      style={{ padding: "12px", fontSize: "13.5px" }}
-                    >
-                      {loadingPremium ? "PROCESS PAYWALL..." : connected ? "DECRYPT DOSSIER" : "CONNECT WALLET TO PAY"}
-                    </button>
-                  </div>
-                )}
-              </div>
 
-              {/* DePIN Sensor Panel */}
-              <div style={{ background: "#080808", border: "1px solid #141414", padding: "24px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: "14px", fontWeight: "bold", color: "#ffffff" }}>
-                    DOSSIER B: SOLANA SOLVIVAL REAL STATUS
-                  </span>
-                  <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.3)" }}>
-                    $0.02 USDC
-                  </span>
+                  {depinIntel ? (
+                    <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "12px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "11.5px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div style={{ color: "#ffffff", fontWeight: "bold" }}>{depinIntel.depin?.scannerName}</div>
+                      <div style={{ color: "var(--text-dim)" }}>
+                        Health: <span style={{ color: "#00ffcc" }}>{depinIntel.depin?.networkHealth}</span> | Nodes: {depinIntel.depin?.onlineNodes}
+                      </div>
+                      {depinTxid && (
+                        <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "6px", marginTop: "4px" }}>
+                          <a href={`https://solscan.io/tx/${depinTxid}`} target="_blank" rel="noopener noreferrer" style={{ color: "#00ffcc", textDecoration: "underline", fontSize: "10.5px" }}>
+                            [ 🔗 VERIFIED SOLSCAN PROOF ]
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0a0802", padding: "8px", border: "1px solid #231d08" }}>
+                        STATUS: {loadingDepin ? `[ PAYING... ]` : "[ LOCKED ]"}
+                      </div>
+                      <button className="btn btn-primary" onClick={() => decryptIntel("/api/intel/depin", "depin")} disabled={!!loadingDepin || !connected} style={{ padding: "8px", fontSize: "11px" }}>
+                        {loadingDepin ? "COUPLING..." : connected ? "DECRYPT DOSSIER B" : "CONNECT WALLET"}
+                      </button>
+                    </div>
+                  )}
                 </div>
-
-                {depinIntel ? (
-                  <div style={{ background: "rgba(0, 255, 204, 0.02)", border: "1px solid rgba(0, 255, 204, 0.2)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "13px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "6px" }}>
-                      <span style={{ color: "#00ffcc", fontWeight: "bold" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</span>
-                      <span style={{ color: "#2ecc40", fontSize: "10px", fontWeight: "bold", background: "rgba(46, 204, 64, 0.1)", padding: "2px 6px", borderRadius: "2px" }}>✓ LIVE DATA: SOLANA MAINNET RPC</span>
-                    </div>
-                    <div style={{ color: "#ffffff", fontWeight: "bold" }}>{depinIntel.depin?.scannerName}</div>
-                    <div style={{ color: "var(--text-dim)" }}>
-                      Health: <span style={{ color: "#00ffcc" }}>{depinIntel.depin?.networkHealth}</span> | Online Nodes: {depinIntel.depin?.onlineNodes}
-                    </div>
-                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                      <strong>Active Alerts:</strong>
-                      <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
-                        {depinIntel.depin?.sensorAlerts?.map((alert: string, i: number) => (
-                          <li key={i}>{alert}</li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div style={{ background: "rgba(0, 255, 204, 0.01)", border: "1px solid rgba(0, 255, 204, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11px", display: "flex", flexDirection: "column", gap: "3px", marginTop: "4px" }}>
-                      <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0, 255, 204, 0.15)", paddingBottom: "4px", marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 3px currentColor)" }}>
-                          <rect x="2" y="5" width="20" height="14" rx="2" />
-                          <line x1="2" y1="10" x2="22" y2="10" />
-                          <line x1="6" y1="15" x2="10" y2="15" />
-                        </svg>
-                        <span>x402 PROTOCOL PAYMENT RECEIPT</span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Standard Version:</span><span>x402 V2 (Exact SVM Scheme)</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Facilitator Gate:</span><span>https://facilitator.payai.network</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>USDC Mint Address:</span><span style={{ fontSize: "10px" }}>EPjFWdd...t1v (Solana Mainnet)</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Settlement Price:</span><span style={{ fontWeight: "bold", color: "#f0c929" }}>0.02 USDC</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Verification State:</span><span style={{ color: "#2ecc40", fontWeight: "bold" }}>✓ SETTLED // ON-CHAIN</span></div>
-                    </div>
-
-                    {depinTxid && (
-                      <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: "8px", marginTop: "4px" }}>
-                        <a
-                          href={`https://solscan.io/tx/${depinTxid}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: "#00ffcc", textDecoration: "underline", fontSize: "11px", fontWeight: "bold" }}
-                        >
-                          [ 🔗 VERIFIED ON-CHAIN PROOF (SOLSCAN) ]
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <div style={{ fontSize: "13.5px", color: "var(--text-muted)", fontFamily: "var(--mono)", background: "#0a0802", padding: "12px", border: "1px solid #231d08", borderRadius: "2px" }}>
-                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : "[ LOCKED // x402 PROTOCOL: 0.02 USDC REQUIRED ]"}
-                    </div>
-                    {depinError && (
-                      <div style={{ fontSize: "13px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
-                        ⚠️ ERROR: {depinError}
-                      </div>
-                    )}
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => decryptIntel("/api/intel/depin", "depin")}
-                      disabled={!!loadingDepin || !connected}
-                      style={{ padding: "12px", fontSize: "13.5px", borderColor: "rgba(240, 201, 41, 0.4)", color: "#ffffff" }}
-                    >
-                      {loadingDepin ? "PROCESS PAYWALL..." : connected ? "DECRYPT DOSSIER B" : "CONNECT WALLET TO PAY"}
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
-          </div>
+          )}
+
+          {/* 3. XP Audit Logs */}
+          {activityTab === "logs" && (
+            <div className="panel" style={{
+              background: "rgba(5, 5, 5, 0.4)",
+              borderColor: "rgba(255, 77, 77, 0.15)",
+              padding: "24px",
+              boxShadow: "0 0 20px rgba(255, 0, 51, 0.02)"
+            }}>
+              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "12px", marginBottom: "16px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px" }}>
+                  [ MAIN DIAGNOSTICS & XP AUDIT LOGS ]
+                </div>
+                <h3 style={{ fontFamily: "var(--mono)", fontSize: "16px", margin: 0, textTransform: "uppercase" }}>
+                  XP REWARDS PATHWAY HISTORY
+                </h3>
+              </div>
+
+              {loadingHistory ? (
+                <div style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", padding: "10px 0" }}>
+                  DECRYPTING AUDIT LOG TRAILING INDEXES...
+                </div>
+              ) : history.filter(m => m.role === "assistant").length === 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>
+                    [ Simulation Log Mode — Connect wallet and complete checkins to populate actual data ]
+                  </div>
+                  {[
+                    { op: "OP-INIT", action: "System Onboarding Verification", date: "2026-05-30", reward: "+20 XP", stat: "Stability +1", type: "SUCCESS" },
+                    { op: "OP-042", action: "OPSEC Threat Check", date: "2026-05-29", reward: "+10 XP", stat: "OPSEC +2", type: "SUCCESS" }
+                  ].map((log, idx) => (
+                    <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#090909", border: "1px solid #141414", padding: "10px 14px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "12px" }}>
+                      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                        <span style={{ color: "#00ffcc", fontWeight: "bold" }}>[{log.op}]</span>
+                        <span style={{ color: "var(--text)" }}>{log.action}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{log.reward}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {history
+                    .filter(m => m.role === "assistant")
+                    .reverse()
+                    .slice(0, 15)
+                    .map((msg, idx) => {
+                      const parsed = parseStatsFromAI(msg.content);
+                      const dateStr = new Date(msg.created_at).toISOString().split("T")[0];
+                      
+                      let fallbackXp = 0;
+                      if (!parsed) {
+                        const scoreMatch = msg.content.match(/\[BIO-SCORE:\s*(\d+)%?\]/i);
+                        if (scoreMatch) fallbackXp = 5;
+                      }
+
+                      if (!parsed && fallbackXp === 0) return null;
+
+                      const xpVal = parsed ? parsed.xpGain : fallbackXp;
+                      const statGains = parsed ? Object.entries(parsed.gains)
+                        .filter(([_, val]) => (val as number) > 0)
+                        .map(([key, val]) => `${key.replace("_", " ").toUpperCase()} +${val}`)
+                        .join(", ") : "Threat Awareness +1";
+
+                      return (
+                        <div key={idx} style={{ 
+                          display: "flex", 
+                          justifyContent: "space-between", 
+                          alignItems: "center", 
+                          background: "#090909", 
+                          border: "1px solid #141414", 
+                          padding: "8px 12px", 
+                          borderRadius: "2px", 
+                          fontFamily: "var(--mono)", 
+                          fontSize: "12px",
+                          gap: "8px"
+                        }}>
+                          <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                            <span style={{ color: "#00ffcc", fontWeight: "bold" }}>[OP-DB-{idx + 1}]</span>
+                            <span style={{ color: "var(--text)", textOverflow: "ellipsis", maxWidth: "200px", overflow: "hidden", whiteSpace: "nowrap" }}>
+                              {msg.content.replace(/\[BIO-SCORE:.*?\]/gi, "").trim().slice(0, 40)}...
+                            </span>
+                            <span style={{ color: "var(--text-dim)", fontSize: "11px" }}>({dateStr})</span>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <span style={{ color: "#00ffcc", fontWeight: "bold", marginRight: "8px" }}>+{xpVal} XP</span>
+                            <span style={{ color: "var(--text-dim)", fontSize: "11px" }}>[{statGains}]</span>
+                          </div>
+                        </div>
+                      );
+                    }).filter(Boolean)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 4. Crypto Wallet Linkage */}
+          {activityTab === "wallet" && (
+            <div className="panel" style={{
+              background: "rgba(5, 5, 5, 0.4)",
+              borderColor: "rgba(255, 77, 77, 0.15)",
+              padding: "24px",
+              boxShadow: "0 0 20px rgba(255, 0, 51, 0.02)"
+            }}>
+              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "12px", marginBottom: "16px" }}>
+                <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px" }}>
+                  // CRYPTOGRAPHIC KEY REGISTRY (WEB3 LINKAGE)
+                </div>
+                <h3 style={{ fontFamily: "var(--mono)", fontSize: "16px", margin: 0, textTransform: "uppercase" }}>
+                  SOLANA WALLET BINDING GATEWAY
+                </h3>
+              </div>
+
+              <p style={{ fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6", marginBottom: "16px" }}>
+                Establish a cryptographic link between your email session and your Solana wallet. By binding your public key, the Red Queen can query your on-chain $THREAT token holdings and activate your 2.0x XP multiplier.
+              </p>
+
+              {profile?.linked_wallet_address ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "13.5px", color: "#00ffcc", fontWeight: "bold" }}>
+                    STATUS: LINKED TO WALLET ADDRESS
+                  </div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text)", wordBreak: "break-all", background: "rgba(0,0,0,0.4)", padding: "10px 14px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                    {profile.linked_wallet_address}
+                  </div>
+                  
+                  {solanaWalletAddress && solanaWalletAddress !== profile.linked_wallet_address && (
+                    <div style={{ marginTop: "8px" }}>
+                      <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: "0 0 8px 0" }}>
+                        Connected wallet ({solanaWalletAddress.slice(0, 4)}...{solanaWalletAddress.slice(-4)}) differs from linked wallet. Do you want to update the link?
+                      </p>
+                      <button onClick={linkSolanaWallet} disabled={saving} className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 12px", borderColor: "var(--accent)", color: "var(--accent)" }}>
+                        {saving ? "LINKING..." : "UPDATE LINKED WALLET"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  {solanaWalletAddress ? (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "10px" }}>
+                      <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", color: "var(--text)" }}>
+                        Connected Solana Wallet: <span style={{ color: "var(--accent)" }}>{solanaWalletAddress.slice(0, 6)}...{solanaWalletAddress.slice(-6)}</span>
+                      </div>
+                      <button onClick={linkSolanaWallet} disabled={saving} className="btn btn-primary" style={{ fontSize: "12px", padding: "8px 16px", boxShadow: "0 0 10px rgba(255,0,51,0.1)" }}>
+                        {saving ? "LINKING..." : "LINK CONNECTED WALLET NOW"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                      <WalletMultiButton style={{
+                        background: "transparent",
+                        border: "1px solid var(--accent)",
+                        color: "var(--accent)",
+                        fontFamily: "var(--mono)",
+                        fontSize: "12px",
+                        padding: "8px 16px",
+                        height: "auto",
+                        lineHeight: "1.5",
+                      }} />
+                      <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-muted)" }}>
+                        Connect your wallet to enable link sequence.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
-      </div>
 
       {/* Scenario Picker */}
       <div className="container" style={{ padding: "48px 24px" }}>

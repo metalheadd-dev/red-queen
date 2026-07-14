@@ -89,6 +89,12 @@ export default function AdminDashboardPage() {
   const [creating, setCreating] = useState(false);
   const [actioningId, setActioningId] = useState<string | null>(null);
 
+  // Containment Breach status states
+  const [breachActive, setBreachActive] = useState(false);
+  const [breachUntil, setBreachUntil] = useState("");
+  const [loadingBreach, setLoadingBreach] = useState(false);
+  const [savingBreach, setSavingBreach] = useState(false);
+
   // Manage active missions states
   const [tasks, setTasks] = useState<any[]>([]);
   const [bounties, setBounties] = useState<any[]>([]);
@@ -353,6 +359,60 @@ export default function AdminDashboardPage() {
     }
   }, [isAdmin, activeTab, fetchInvites, fetchPlayersAndAnalytics]);
 
+  const fetchBreachStatus = useCallback(async () => {
+    setLoadingBreach(true);
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/breach", {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
+      const data = await res.json();
+      if (data.success && data.breach) {
+        setBreachActive(!!data.breach.active);
+        setBreachUntil(formatDatetimeLocal(data.breach.until));
+      }
+    } catch (e) {
+      console.error("Failed to load breach status:", e);
+    }
+    setLoadingBreach(false);
+  }, [session]);
+
+  const handleBreachSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingBreach(true);
+    try {
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/breach", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({
+          active: breachActive,
+          until: breachUntil ? new Date(breachUntil).toISOString() : null
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Containment breach state updated successfully.");
+      } else {
+        alert("Error: " + data.error);
+      }
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
+    setSavingBreach(false);
+  };
+
+  useEffect(() => {
+    if (isAdmin && activeTab === ("breach" as any)) {
+      fetchBreachStatus();
+    }
+  }, [isAdmin, activeTab, fetchBreachStatus]);
+
   const handleAction = async (submissionId: string, action: "approve" | "reject") => {
     setActioningId(submissionId);
     try {
@@ -560,6 +620,18 @@ export default function AdminDashboardPage() {
               }}
             >
               METRICS & ANALYTICS
+            </button>
+            <button
+              onClick={() => setActiveTab("breach" as any)}
+              className="btn"
+              style={{
+                fontSize: "12px",
+                fontFamily: "var(--mono)",
+                borderColor: activeTab === ("breach" as any) ? "var(--accent)" : "rgba(255,255,255,0.05)",
+                background: activeTab === ("breach" as any) ? "rgba(255, 77, 77, 0.05)" : "transparent"
+              }}
+            >
+              CONTAINMENT BREACH
             </button>
           </div>
         </div>
@@ -1502,6 +1574,55 @@ export default function AdminDashboardPage() {
                 [ CALCULATING ANALYTIC ALGORITHMS... ]
               </div>
             )}
+          </div>
+        ) : activeTab === ("breach" as any) ? (
+          // Containment Breach View
+          <div>
+            <h2 style={{ fontSize: "18px", fontFamily: "var(--mono)", marginBottom: "20px", color: "var(--text)" }}>
+              [ SYSTEM STATE: CONTAINMENT BREACH INTRUSION ]
+            </h2>
+
+            <div className="panel" style={{ padding: "28px" }}>
+              <form onSubmit={handleBreachSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <input
+                    type="checkbox"
+                    id="breachActiveCheckbox"
+                    checked={breachActive}
+                    onChange={(e) => setBreachActive(e.target.checked)}
+                    style={{ width: "18px", height: "18px", cursor: "pointer" }}
+                  />
+                  <label htmlFor="breachActiveCheckbox" style={{ fontFamily: "var(--mono)", fontSize: "14px", color: "#fff", cursor: "pointer" }}>
+                    ACTIVE CONTAINMENT BREACH EVENT
+                  </label>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", marginBottom: "8px" }}>
+                    BREACH EXPIRE TIMESTAMP (UTC)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={breachUntil}
+                    onChange={(e) => setBreachUntil(e.target.value)}
+                    style={{ width: "100%", background: "#0c0c0c", border: "1px solid var(--border)", color: "#fff", padding: "10px 14px", fontFamily: "var(--mono)", fontSize: "12px", borderRadius: "2px" }}
+                  />
+                </div>
+
+                <div style={{ fontSize: "11px", color: "var(--text-dim)", lineHeight: "1.6", borderTop: "1px dashed rgba(255,77,77,0.1)", paddingTop: "12px" }}>
+                  <strong>NOTICE:</strong> Toggling this manually writes directly to the <code>system_state</code> table. While active, returning operatives will see an urgent check-in warning window. Operatives who fail to check-in before this expiration date will have their daily streak reset to 1.
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={savingBreach}
+                  className="btn btn-primary"
+                  style={{ width: "100%", padding: "12px", fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold" }}
+                >
+                  {savingBreach ? "[ SYNCHRONIZING SYSTEM STATE... ]" : "[ UPDATE BREACH STATUS ]"}
+                </button>
+              </form>
+            </div>
           </div>
         ) : null}
       </div>
