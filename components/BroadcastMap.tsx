@@ -73,7 +73,7 @@ export default function BroadcastMap({ nodes, onSelectNode, selectedNode }: Broa
 
         const el = document.createElement("div");
         el.className = "tactical-marker";
-        el.style.cssText = "width:24px;height:24px;position:relative;cursor:pointer;";
+        el.style.cssText = "width:24px;height:24px;position:absolute;cursor:pointer;";
         
         // Custom inner HTML with pulsing ring and solid core
         el.innerHTML = `

@@ -68,7 +68,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
 
         const el = document.createElement("div");
         el.className = "tactical-marker";
-        el.style.cssText = "width:20px;height:20px;position:relative;cursor:pointer;";
+        el.style.cssText = "width:20px;height:20px;position:absolute;cursor:pointer;";
         el.innerHTML = `
           <div class="pulse-ring" style="border-color:${color};box-shadow:0 0 10px ${color}80"></div>
           <div class="marker-core" style="background:${color}"></div>

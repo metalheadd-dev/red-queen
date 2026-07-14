@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchFIRMS, fetchGDELT, fetchReliefWeb, fetchWithTimeout } from "@/lib/threats-fetchers";
+import { fetchFIRMS, fetchGDELT, fetchReliefWeb, fetchUSGS, fetchNASA, fetchWithTimeout } from "@/lib/threats-fetchers";
 
 export const dynamic = "force-dynamic";
 
@@ -129,25 +129,31 @@ async function fetchGDACSAlerts(): Promise<GDACSAlert[]> {
 
 export async function GET() {
   try {
-    // Fetch all geo-sources (GDACS + FIRMS + GDELT + ReliefWeb) in parallel
-    const [gdacsResult, firmsResult, gdeltResult, reliefwebResult] = await Promise.allSettled([
+    // Fetch all geo-sources (GDACS + FIRMS + GDELT + ReliefWeb + USGS + NASA EONET) in parallel
+    const [gdacsResult, firmsResult, gdeltResult, reliefwebResult, usgsResult, nasaResult] = await Promise.allSettled([
       fetchGDACSAlerts(),
       fetchFIRMS(),
       fetchGDELT(),
-      fetchReliefWeb()
+      fetchReliefWeb(),
+      fetchUSGS(),
+      fetchNASA()
     ]);
 
     const gdacsAlerts = gdacsResult.status === "fulfilled" ? gdacsResult.value : [];
     const firmsAlerts = firmsResult.status === "fulfilled" ? firmsResult.value : [];
     const gdeltAlerts = gdeltResult.status === "fulfilled" ? gdeltResult.value : [];
     const reliefwebAlerts = reliefwebResult.status === "fulfilled" ? reliefwebResult.value : [];
+    const usgsAlerts = usgsResult.status === "fulfilled" ? usgsResult.value : [];
+    const nasaAlerts = nasaResult.status === "fulfilled" ? nasaResult.value : [];
 
     // Combine them into one array
     const combinedAlerts: GDACSAlert[] = [
       ...gdacsAlerts,
       ...firmsAlerts,
       ...gdeltAlerts,
-      ...reliefwebAlerts
+      ...reliefwebAlerts,
+      ...usgsAlerts,
+      ...nasaAlerts
     ];
 
     return NextResponse.json({ success: true, alerts: combinedAlerts });
