@@ -911,31 +911,31 @@ export default function OperativeProfilePage() {
                     letterSpacing: "0.05em",
                     cursor: "pointer"
                   }}>
-                    ▶ OPEN SYSTEM TERMINAL
+                    OPEN SYSTEM TERMINAL
                   </button>
                 </Link>
 
                 {/* Secondary controls grouped inline */}
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                   <button onClick={() => setEditingName(true)} className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", flex: 1, minWidth: "75px" }}>
-                    ✎ RENAME
+                    RENAME
                   </button>
                   <Link href="/leaderboard" style={{ textDecoration: "none", flex: 1, minWidth: "100px" }}>
                     <button className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", width: "100%" }}>
-                      🏆 LEADERBOARD
+                      LEADERBOARD
                     </button>
                   </Link>
                   <Link href="/threat-vector" style={{ textDecoration: "none", flex: 1, minWidth: "100px" }}>
                     <button className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", width: "100%" }}>
-                      🛰️ SECTOR MATRIX
+                      SECTOR MATRIX
                     </button>
                   </Link>
                   <button onClick={saveProfile} disabled={saving} className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", flex: 1.2, minWidth: "110px", color: saved ? "#00ffcc" : "var(--text)" }}>
-                    {saving ? "SAVING..." : saved ? "✓ SECURED" : "💾 SAVE PROFILE"}
+                    {saving ? "SAVING..." : saved ? "SECURED" : "SAVE PROFILE"}
                   </button>
                   {user && (
                     <button onClick={() => logout()} className="btn btn-ghost" style={{ fontSize: "10px", padding: "5px 10px", flex: 1, minWidth: "80px", color: "var(--accent)", borderColor: "rgba(255,77,77,0.2)" }}>
-                      ⎋ LOGOUT
+                      LOGOUT
                     </button>
                   )}
                 </div>
