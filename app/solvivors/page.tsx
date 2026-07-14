@@ -205,6 +205,8 @@ export default function SolvivorsHubPage() {
   const [selectedBroadcastNode, setSelectedBroadcastNode] = useState<any>(null);
   const [loadingBroadcasts, setLoadingBroadcasts] = useState(false);
   const [broadcastFilter, setBroadcastFilter] = useState<string>("all");
+  const [additionalData, setAdditionalData] = useState<any[]>([]);
+  const [loadingAdditional, setLoadingAdditional] = useState(false);
 
   // Sub-toggle inside operations: tasks, bounties
   const [activeTab, setActiveTab] = useState<"tasks" | "bounties">("tasks");
@@ -213,6 +215,7 @@ export default function SolvivorsHubPage() {
     if (activeHub === "broadcasts" && broadcastNodes.length === 0) {
       async function loadBroadcastData() {
         setLoadingBroadcasts(true);
+        setLoadingAdditional(true);
         try {
           // 1. Fetch live GDACS alerts
           const gdacsRes = await fetch("/api/broadcasts/live");
@@ -245,10 +248,16 @@ export default function SolvivorsHubPage() {
           if (combined.length > 0) {
             setSelectedBroadcastNode(combined[0]);
           }
+
+          // 3. Fetch additional non-geographic data
+          const addRes = await fetch("/api/broadcasts/additional");
+          const addData = await addRes.json();
+          setAdditionalData(addData.additional || []);
         } catch (err) {
           console.error("Failed to load broadcast feeds:", err);
         }
         setLoadingBroadcasts(false);
+        setLoadingAdditional(false);
       }
       loadBroadcastData();
     }
@@ -872,6 +881,56 @@ export default function SolvivorsHubPage() {
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Additional Non-Geographic Telemetry Data */}
+              <div style={{ marginTop: "32px", borderTop: "1px dashed rgba(255,255,255,0.08)", paddingTop: "24px" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)" }}>
+                  // ADDITIONAL NON-GEOGRAPHIC TELEMETRY
+                </span>
+                <h3 style={{ fontSize: "16px", fontFamily: "var(--mono)", color: "#fff", margin: "4px 0 16px" }}>
+                  UNMAPPED REAL-TIME THREAT LOGS
+                </h3>
+
+                {loadingAdditional ? (
+                  <div style={{ fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "11px", padding: "20px 0" }}>
+                    [ CONNECTING TO ADDITIONAL TELEMETRY HUBS... ]
+                  </div>
+                ) : additionalData.length === 0 ? (
+                  <div style={{ fontFamily: "var(--mono)", color: "var(--text-dim)", fontSize: "11px", padding: "20px 0" }}>
+                    [ NO ADDITIONAL THREAT TELEMETRY DETECTED ]
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
+                    {additionalData.map((item, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          background: "rgba(10, 10, 10, 0.4)",
+                          border: "1px solid rgba(255, 255, 255, 0.05)",
+                          borderLeft: `3px solid ${item.color || "var(--accent)"}`,
+                          padding: "16px",
+                          borderRadius: "4px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px"
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: item.color || "var(--accent)", textTransform: "uppercase", fontWeight: "bold" }}>
+                            {item.source}
+                          </span>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-dim)", background: "rgba(255,255,255,0.03)", padding: "2px 6px", borderRadius: "2px" }}>
+                            {item.category}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "12px", color: "#ddd", margin: 0, lineHeight: "1.5", fontFamily: "var(--mono)" }}>
+                          {item.message}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )
