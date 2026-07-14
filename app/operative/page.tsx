@@ -152,6 +152,7 @@ export default function OperativeProfilePage() {
   const [breachActive, setBreachActive] = useState(false);
   const [breachUntil, setBreachUntil] = useState<string | null>(null);
   const [transmittingPulse, setTransmittingPulse] = useState(false);
+  const [pulseError, setPulseError] = useState<string | null>(null);
   const [activityTab, setActivityTab] = useState<"quests" | "x402" | "logs" | "wallet">("quests");
 
   const decryptIntel = async (endpoint: "/api/intel/premium" | "/api/intel/depin", type: "premium" | "depin") => {
@@ -444,6 +445,7 @@ export default function OperativeProfilePage() {
   const handleTransmitPulse = async () => {
     if (!wallet) return;
     setTransmittingPulse(true);
+    setPulseError(null);
     try {
       const token = session?.access_token;
       const res = await fetch("/api/checkin", {
@@ -456,13 +458,14 @@ export default function OperativeProfilePage() {
       });
       const data = await res.json();
       if (res.status === 200) {
-        alert(`Pulse Transmitted successfully! Pulse chain: ${data.streak_count} days.`);
         fetchProfile();
       } else {
-        alert("Transmission Failed: " + (data.error || "Unknown error"));
+        setPulseError(data.error || "Transmission Failed");
+        setTimeout(() => setPulseError(null), 4000);
       }
     } catch (err: any) {
-      alert("Error transmitting pulse: " + err.message);
+      setPulseError(err.message || "Transmission Error");
+      setTimeout(() => setPulseError(null), 4000);
     }
     setTransmittingPulse(false);
   };
@@ -1040,11 +1043,28 @@ export default function OperativeProfilePage() {
                   background: alreadyCheckedIn ? "rgba(0, 255, 204, 0.04)" : "var(--accent)",
                   borderColor: alreadyCheckedIn ? "rgba(0, 255, 204, 0.2)" : "var(--accent)",
                   color: alreadyCheckedIn ? "#00ffcc" : "#fff",
-                  boxShadow: alreadyCheckedIn ? "none" : "0 0 10px rgba(255,77,77,0.2)"
+                  boxShadow: alreadyCheckedIn ? "none" : "0 0 10px rgba(255,77,77,0.2)",
+                  marginBottom: pulseError ? "8px" : 0
                 }}
               >
                 {transmittingPulse ? "[ COUPLING UPLINK SENT... ]" : alreadyCheckedIn ? "[ ✓ PULSE SENT ]" : "[ TRANSMIT PULSE ]"}
               </button>
+
+              {pulseError && (
+                <div style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: "10px",
+                  color: "var(--accent)",
+                  textAlign: "center",
+                  background: "rgba(255,77,77,0.05)",
+                  border: "1px solid rgba(255,77,77,0.15)",
+                  padding: "6px",
+                  borderRadius: "2px",
+                  lineHeight: "1.4"
+                }}>
+                  ⚠️ {pulseError}
+                </div>
+              )}
             </div>
             
           </div>
