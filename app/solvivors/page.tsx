@@ -199,6 +199,16 @@ export default function SolvivorsHubPage() {
       setHashedWallet(null);
     }
   }, [wallet]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam === "broadcasts" || window.location.hash === "#broadcasts") {
+        setActiveHub("broadcasts");
+      }
+    }
+  }, []);
   
   // Broadcasts map states
   const [broadcastNodes, setBroadcastNodes] = useState<any[]>([]);

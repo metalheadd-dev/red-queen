@@ -222,104 +222,13 @@ export default function HomePage() {
           Meet Red Queen, an autonomous AI survival agent that monitors emerging threats, assigns missions, and builds your survival profile. Prepare for the future before it arrives.
         </p>
 
-        {/* Play Red Queen: Operations promo section */}
-        <style>{`
-          @keyframes cardGlow {
-            from {
-              border-color: rgba(255, 77, 77, 0.2);
-              box-shadow: 0 0 15px rgba(255, 77, 77, 0.05);
-            }
-            to {
-              border-color: rgba(255, 77, 77, 0.6);
-              box-shadow: 0 0 35px rgba(255, 77, 77, 0.2);
-            }
-          }
-          @keyframes pulseGlow {
-            0%, 100% {
-              text-shadow: 0 0 15px rgba(255, 77, 77, 0.4);
-            }
-            50% {
-              text-shadow: 0 0 30px rgba(255, 77, 77, 0.95);
-            }
-          }
-          @keyframes buttonPulse {
-            0%, 100% {
-              transform: scale(1);
-              box-shadow: 0 0 20px rgba(255, 77, 77, 0.4);
-            }
-            50% {
-              transform: scale(1.04);
-              box-shadow: 0 0 35px rgba(255, 77, 77, 0.7);
-            }
-          }
-        `}</style>
-
-        <div style={{
-          margin: "24px auto 32px auto",
-          textAlign: "center",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "20px",
-          zIndex: 10,
-          background: "rgba(255, 77, 77, 0.03)",
-          border: "2px dashed rgba(255, 77, 77, 0.35)",
-          borderRadius: "4px",
-          padding: "32px 48px",
-          boxShadow: "0 0 30px rgba(255, 77, 77, 0.05)",
-          maxWidth: "600px",
-          width: "90%",
-          boxSizing: "border-box",
-          animation: "cardGlow 3s ease-in-out infinite alternate"
-        }}>
-          <h2 style={{
-            fontFamily: "var(--title-font)",
-            fontSize: "clamp(22px, 3.5vw, 32px)",
-            fontWeight: "900",
-            letterSpacing: "0.15em",
-            margin: 0,
-            color: "#fff",
-            textShadow: "0 0 20px rgba(255, 77, 77, 0.6)",
-            animation: "pulseGlow 2s ease-in-out infinite",
-            lineHeight: "1.3"
-          }}>
-            PLAY <span style={{ color: "var(--accent)" }}>RED QUEEN: OPERATIONS</span>
-          </h2>
-          
-          <Link href="/operations" style={{ textDecoration: "none", zIndex: 20 }}>
-            <button className="btn btn-primary" style={{
-              fontSize: "15px",
-              padding: "16px 44px",
-              fontWeight: "900",
-              letterSpacing: "0.2em",
-              border: "none",
-              borderRadius: "4px",
-              background: "linear-gradient(135deg, var(--accent) 0%, #ff1a1a 100%)",
-              boxShadow: "0 0 25px rgba(255, 77, 77, 0.5)",
-              color: "#000",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              animation: "buttonPulse 1.8s infinite"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "scale(1.05)";
-              e.currentTarget.style.boxShadow = "0 0 35px rgba(255, 77, 77, 0.8)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "scale(1)";
-              e.currentTarget.style.boxShadow = "0 0 25px rgba(255, 77, 77, 0.5)";
-            }}>
-              BECOME SOLVIVOR
-            </button>
-          </Link>
-        </div>
-
         <div style={{
           display: "flex",
           gap: "14px",
           justifyContent: "center",
           flexWrap: "wrap",
-          marginBottom: "20px",
+          marginTop: "24px",
+          marginBottom: "24px",
           fontFamily: "var(--mono)",
           fontSize: "13px",
           fontWeight: 600,
@@ -939,11 +848,40 @@ export default function HomePage() {
             ))}
           </div>
 
+          {/* Expanded Map Button */}
+          <div style={{ textAlign: "center", marginTop: "16px" }}>
+            <Link 
+              href="/solvivors?tab=broadcasts" 
+              className="btn btn-outline" 
+              style={{ 
+                fontSize: "11px", 
+                fontFamily: "var(--mono)", 
+                padding: "8px 22px", 
+                color: "#00ffcc", 
+                borderColor: "rgba(0, 255, 204, 0.4)",
+                background: "rgba(0, 255, 204, 0.04)",
+                letterSpacing: "0.12em",
+                borderRadius: "2px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px"
+              }}
+            >
+              <span>[ EXPAND RADAR: BROADCAST & NEWS FEED ↗ ]</span>
+            </Link>
+          </div>
+
           <div style={{ display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "32px", marginTop: "24px" }} className="responsive-grid-2-large">
             {/* Mapbox Network Map */}
             <div className="panel" style={{ background: "#020202", borderColor: "rgba(255,0,51,0.15)", position: "relative", minHeight: "500px", padding: "0", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: "16px", left: "16px", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", zIndex: 10, background: "rgba(0,0,0,0.6)", padding: "4px 8px", borderRadius: "2px" }}>
                 [ SYSTEM RADAR MONITORING NETWORK // LIVE GEOGRAPHY ]
+              </div>
+
+              <div style={{ position: "absolute", top: "16px", right: "16px", zIndex: 10 }}>
+                <Link href="/solvivors?tab=broadcasts" style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#00ffcc", letterSpacing: "0.1em", background: "rgba(0,0,0,0.8)", border: "1px solid rgba(0, 255, 204, 0.4)", padding: "4px 10px", borderRadius: "2px", textDecoration: "none" }}>
+                  FULL MAP & BROADCASTS ↗
+                </Link>
               </div>
 
               {loadingMap || !Array.isArray(mapNodes) || mapNodes.length === 0 ? (
@@ -1353,6 +1291,102 @@ export default function HomePage() {
                 Track your BIO-SCORE, rank progression, and unlocked access levels.
               </div>
               <div className="bento-cta">→ CHECK CLEARANCE</div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Play Red Queen: Operations Section */}
+      <section className="page-section" style={{ borderTop: "1px solid var(--border)", padding: "60px 0", background: "radial-gradient(circle at center, rgba(255, 0, 51, 0.04) 0%, rgba(5, 5, 5, 1) 100%)" }}>
+        <div className="container" style={{ display: "flex", justifyContent: "center" }}>
+          <style>{`
+            @keyframes cardGlow {
+              from {
+                border-color: rgba(255, 77, 77, 0.2);
+                box-shadow: 0 0 15px rgba(255, 77, 77, 0.05);
+              }
+              to {
+                border-color: rgba(255, 77, 77, 0.6);
+                box-shadow: 0 0 35px rgba(255, 77, 77, 0.2);
+              }
+            }
+            @keyframes pulseGlow {
+              0%, 100% {
+                text-shadow: 0 0 15px rgba(255, 77, 77, 0.4);
+              }
+              50% {
+                text-shadow: 0 0 30px rgba(255, 77, 77, 0.95);
+              }
+            }
+            @keyframes buttonPulse {
+              0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(255, 77, 77, 0.4);
+              }
+              50% {
+                transform: scale(1.04);
+                box-shadow: 0 0 35px rgba(255, 77, 77, 0.7);
+              }
+            }
+          `}</style>
+
+          <div style={{
+            margin: "0 auto",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "20px",
+            zIndex: 10,
+            background: "rgba(255, 77, 77, 0.03)",
+            border: "2px dashed rgba(255, 77, 77, 0.35)",
+            borderRadius: "4px",
+            padding: "36px 48px",
+            boxShadow: "0 0 30px rgba(255, 77, 77, 0.08)",
+            maxWidth: "640px",
+            width: "100%",
+            boxSizing: "border-box",
+            animation: "cardGlow 3s ease-in-out infinite alternate"
+          }}>
+            <h2 style={{
+              fontFamily: "var(--title-font)",
+              fontSize: "clamp(22px, 3.5vw, 32px)",
+              fontWeight: "900",
+              letterSpacing: "0.15em",
+              margin: 0,
+              color: "#fff",
+              textShadow: "0 0 20px rgba(255, 77, 77, 0.6)",
+              animation: "pulseGlow 2s ease-in-out infinite",
+              lineHeight: "1.3"
+            }}>
+              PLAY <span style={{ color: "var(--accent)" }}>RED QUEEN: OPERATIONS</span>
+            </h2>
+            
+            <Link href="/operations" style={{ textDecoration: "none", zIndex: 20 }}>
+              <button className="btn btn-primary" style={{
+                fontSize: "15px",
+                padding: "16px 44px",
+                fontWeight: "900",
+                letterSpacing: "0.2em",
+                border: "none",
+                borderRadius: "4px",
+                background: "linear-gradient(135deg, var(--accent) 0%, #ff1a1a 100%)",
+                boxShadow: "0 0 25px rgba(255, 77, 77, 0.5)",
+                color: "#000",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                animation: "buttonPulse 1.8s infinite"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.05)";
+                e.currentTarget.style.boxShadow = "0 0 35px rgba(255, 77, 77, 0.8)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow = "0 0 25px rgba(255, 77, 77, 0.5)";
+              }}>
+                BECOME SOLVIVOR
+              </button>
             </Link>
           </div>
         </div>
