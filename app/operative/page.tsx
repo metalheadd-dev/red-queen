@@ -13,6 +13,18 @@ import {
 } from "@/lib/progression";
 import { getNextThreatClearance, getThreatClearance } from "@/lib/threat-token";
 import { PREPAREDNESS_CHECKLIST } from "@/lib/preparedness";
+import {
+  PREPAREDNESS_PLANS_EVENT,
+  readPreparednessPlans,
+  type PreparednessPlan,
+} from "@/lib/preparedness-plan";
+import {
+  parseSignalWatchMemory,
+  SIGNAL_WATCH_EVENT,
+  SIGNAL_WATCH_STORAGE_KEY,
+  type SignalWatchMemory,
+} from "@/lib/signal-watch";
+import { isHolderProofFresh } from "@/lib/holder-proof";
 import { READINESS_BASELINE_PROMPT } from "@/lib/survival-context";
 
 type Profile = {
@@ -106,6 +118,8 @@ export default function OperativeProfilePage() {
   const [verifyStatus, setVerifyStatus] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [localChecks, setLocalChecks] = useState(0);
+  const [preparednessPlans, setPreparednessPlans] = useState<PreparednessPlan[]>([]);
+  const [signalWatch, setSignalWatch] = useState<SignalWatchMemory>({ version: 1, types: [], localPriority: false, knownSignalIds: [] });
   const [avatar, setAvatar] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -157,12 +171,25 @@ export default function OperativeProfilePage() {
   }, [generatedName, getHeaders, identity]);
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(LOCAL_CHECKLIST_KEY) || "{}");
-      setLocalChecks(PREPAREDNESS_CHECKLIST.filter((item) => Boolean(saved?.[item.id])).length);
-    } catch {
-      setLocalChecks(0);
-    }
+    const syncLocalMemory = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(LOCAL_CHECKLIST_KEY) || "{}");
+        setLocalChecks(PREPAREDNESS_CHECKLIST.filter((item) => Boolean(saved?.[item.id])).length);
+      } catch {
+        setLocalChecks(0);
+      }
+      setPreparednessPlans(readPreparednessPlans(localStorage));
+      setSignalWatch(parseSignalWatchMemory(localStorage.getItem(SIGNAL_WATCH_STORAGE_KEY)));
+    };
+    syncLocalMemory();
+    window.addEventListener("storage", syncLocalMemory);
+    window.addEventListener(PREPAREDNESS_PLANS_EVENT, syncLocalMemory);
+    window.addEventListener(SIGNAL_WATCH_EVENT, syncLocalMemory);
+    return () => {
+      window.removeEventListener("storage", syncLocalMemory);
+      window.removeEventListener(PREPAREDNESS_PLANS_EVENT, syncLocalMemory);
+      window.removeEventListener(SIGNAL_WATCH_EVENT, syncLocalMemory);
+    };
   }, []);
 
   useEffect(() => {
@@ -250,7 +277,7 @@ export default function OperativeProfilePage() {
   }
 
   async function generateAvatar() {
-    if (!avatarFile || !session?.access_token || tokenBalance <= 0) return;
+    if (!avatarFile || !session?.access_token || !hasFreshHolderProof) return;
     setGeneratingAvatar(true);
     setAvatarStatus("RED QUEEN is reconstructing your SOLvivor identity...");
     try {
@@ -292,12 +319,17 @@ export default function OperativeProfilePage() {
   const bioScore = calculatedScore || profile?.last_bio_score || 0;
   const readinessTier = getClearanceLevel(bioScore);
   const tokenBalance = Number(profile?.verified_balance || 0);
-  const isThreatHolder = tokenBalance > 0;
+  const hasThreatBalance = tokenBalance > 0;
+  const hasFreshHolderProof = isHolderProofFresh(tokenBalance, profile?.last_verification);
   const tokenClearance = getThreatClearance(tokenBalance);
   const nextTokenClearance = getNextThreatClearance(tokenBalance);
   const displayName = customName || profile?.apocalyptic_name || generatedName || "UNREGISTERED SOLVIVOR";
   const xpProgress = stats.xp % 100;
   const localProgress = Math.round((localChecks / PREPAREDNESS_CHECKLIST.length) * 100);
+  const activeProtocols = preparednessPlans.filter((plan) => plan.status === "ACTIVE");
+  const completedProtocols = preparednessPlans.length - activeProtocols.length;
+  const protocolSteps = preparednessPlans.flatMap((plan) => plan.steps);
+  const completedProtocolSteps = protocolSteps.filter((step) => step.completed).length;
   const verifiedWallet = identity.startsWith("email-auth:")
     ? profile?.linked_wallet_address || ""
     : publicKey?.toString() || identity;
@@ -389,28 +421,29 @@ export default function OperativeProfilePage() {
           <Link href={baselineHref}>{bioScore === 0 ? "RUN 3-MIN BASELINE" : "START FOCUSED DRILL"} →</Link>
         </section>
 
-        <section className={`rq-profile-visage${isThreatHolder ? " is-unlocked" : " is-locked"}`}>
+        <section className={`rq-profile-visage${hasFreshHolderProof ? " is-unlocked" : " is-locked"}`}>
           <div className="rq-profile-visage-copy">
             <span>QUEEN VISAGE // $THREAT HOLDER UTILITY</span>
             <h2>Enter the system in RED QUEEN form.</h2>
             <p>Upload a clear portrait and the Queen will reconstruct it in the platform&apos;s red-and-white apocalyptic intelligence style while preserving your identity.</p>
             <ul>
               <li>Available only to accounts with verified $THREAT holdings.</li>
-              <li>The source image is sent only after you press Generate.</li>
+              <li>Generate sends the source portrait to the configured AI image provider for this one request.</li>
               <li>The generated portrait stays on this device unless you download or share it.</li>
             </ul>
-            {!isThreatHolder && <Link href="/network-clearance">VERIFY $THREAT TO UNLOCK →</Link>}
+            {!hasThreatBalance && <Link href="/network-clearance">VERIFY $THREAT TO UNLOCK →</Link>}
+            {hasThreatBalance && !hasFreshHolderProof && <a href="#holder-clearance">REFRESH HOLDER PROOF TO GENERATE →</a>}
           </div>
           <div className="rq-profile-visage-studio">
             <div className="rq-profile-visage-preview">
-              {!isThreatHolder ? (
-                <div className="rq-profile-visage-lock"><span>HOLDER ACCESS</span><strong>Queen Visage awaits verified $THREAT clearance.</strong></div>
+              {!hasFreshHolderProof ? (
+                <div className="rq-profile-visage-lock"><span>{hasThreatBalance ? "PROOF EXPIRED" : "HOLDER ACCESS"}</span><strong>{hasThreatBalance ? "Refresh your balance to reopen the studio." : "Queen Visage awaits verified $THREAT clearance."}</strong></div>
               ) : avatar || avatarPreview ? (
                 <img src={avatar || avatarPreview} alt={avatar ? "Generated Queen Visage" : "Portrait selected for Queen Visage"} />
               ) : (
                 <div><span>NO PORTRAIT LOADED</span><strong>Your face. Her visual language.</strong></div>
               )}
-              <i>{!isThreatHolder ? "LOCKED // $THREAT REQUIRED" : avatar ? "QUEEN VISAGE ACTIVE" : avatarPreview ? "SOURCE PREVIEW" : "AWAITING SOURCE"}</i>
+              <i>{!hasFreshHolderProof ? hasThreatBalance ? "LOCKED // REFRESH PROOF" : "LOCKED // $THREAT REQUIRED" : avatar ? "QUEEN VISAGE ACTIVE" : avatarPreview ? "SOURCE PREVIEW" : "AWAITING SOURCE"}</i>
             </div>
             <input
               ref={avatarInputRef}
@@ -420,9 +453,9 @@ export default function OperativeProfilePage() {
               onChange={(event) => chooseAvatarSource(event.target.files?.[0])}
             />
             <div className="rq-profile-visage-actions">
-              <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={!isThreatHolder || generatingAvatar}>CHOOSE PORTRAIT</button>
-              <button type="button" className="primary" onClick={generateAvatar} disabled={!isThreatHolder || !avatarFile || generatingAvatar}>
-                {!isThreatHolder ? "HOLDER ACCESS ONLY" : generatingAvatar ? "RECONSTRUCTING..." : "GENERATE QUEEN VISAGE"}
+              <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={!hasFreshHolderProof || generatingAvatar}>CHOOSE PORTRAIT</button>
+              <button type="button" className="primary" onClick={generateAvatar} disabled={!hasFreshHolderProof || !avatarFile || generatingAvatar}>
+                {!hasFreshHolderProof ? hasThreatBalance ? "REFRESH HOLDER PROOF" : "HOLDER ACCESS ONLY" : generatingAvatar ? "RECONSTRUCTING..." : "GENERATE QUEEN VISAGE"}
               </button>
               {avatar && <a href={avatar} download="red-queen-solvivor.webp">DOWNLOAD</a>}
               {(avatar || avatarPreview) && <button type="button" onClick={removeAvatar} disabled={generatingAvatar}>REMOVE</button>}
@@ -438,6 +471,17 @@ export default function OperativeProfilePage() {
           <div className="rq-profile-metric"><span>EXPERIENCE</span><strong>{stats.xp} XP</strong><b>LEVEL {stats.level}{profile?.xp_rank ? ` · RANK #${profile.xp_rank}` : ""}</b><i><em style={{ width: `${xpProgress}%` }} /></i><p>Permanent evidence and drill record.</p></div>
           <div className="rq-profile-metric"><span>LOCAL PREPARE</span><strong>{localProgress}%</strong><b>{localChecks}/{PREPAREDNESS_CHECKLIST.length} SELF-CHECKS</b><i><em style={{ width: `${localProgress}%` }} /></i><p>Stored on this device; not BIO evidence.</p></div>
           <div className="rq-profile-metric"><span>$THREAT CLEARANCE</span><strong>LVL {tokenClearance.level}</strong><b>{tokenClearance.name}</b><p>{tokenClearance.responseDepth.toUpperCase()} analysis · ×{tokenClearance.earnedXpMultiplier.toFixed(2)} earned XP.</p></div>
+        </section>
+
+        <section className="rq-profile-continuity" aria-label="Survival continuity">
+          <div className="rq-profile-continuity-heading">
+            <span>QUEEN MEMORY // ACTIVE SURVIVAL LOOP</span>
+            <h2>What RED QUEEN is carrying forward for you</h2>
+            <p>Plans, completed actions and watched signals persist beyond a single conversation on this device.</p>
+          </div>
+          <div><span>ACTIVE PROTOCOLS</span><strong>{activeProtocols.length}</strong><small>{completedProtocols} completed</small><Link href="/survival-kit">OPEN PROTOCOLS →</Link></div>
+          <div><span>PLAN EXECUTION</span><strong>{completedProtocolSteps}/{protocolSteps.length}</strong><small>observable steps complete</small><Link href="/survival-kit">CONTINUE PLAN →</Link></div>
+          <div><span>SIGNAL WATCH</span><strong>{signalWatch.types.length}</strong><small>{signalWatch.localPriority ? "local priority active" : "signal categories"}</small><Link href="/#live-map">TUNE WATCH →</Link></div>
         </section>
 
         <div className="rq-profile-grid">
@@ -459,7 +503,7 @@ export default function OperativeProfilePage() {
           </section>
 
           <aside className="rq-profile-side">
-            <section className="rq-profile-panel rq-profile-token">
+            <section id="holder-clearance" className="rq-profile-panel rq-profile-token">
               <div className="rq-profile-panel-heading"><div><span>02 // ON-CHAIN CLEARANCE</span><h2>$THREAT utility</h2></div></div>
               <div className="rq-profile-token-balance"><span>VERIFIED BALANCE</span><strong>{tokenBalance.toLocaleString()} $THREAT</strong><small>LAST CHECK {formatRelativeTime(profile?.last_verification)}</small></div>
               <ul><li>{tokenClearance.contextMessages} context messages</li><li>{tokenClearance.responseDepth} response depth</li><li>×{tokenClearance.earnedXpMultiplier.toFixed(2)} multiplier on earned XP only</li></ul>
@@ -473,6 +517,9 @@ export default function OperativeProfilePage() {
               <div className="rq-profile-panel-heading"><div><span>03 // MEMORY & PRIVACY</span><h2>What Queen remembers</h2></div></div>
               <div><span>ACCOUNT MEMORY</span><strong>{profile ? "ACTIVE" : "AWAITING FIRST EVIDENCE"}</strong></div>
               <div><span>CONVERSATION HISTORY</span><strong>{history.length} SAVED MESSAGES</strong></div>
+              <div><span>QUEEN PROTOCOLS</span><strong>{activeProtocols.length} ACTIVE · {completedProtocols} COMPLETE</strong></div>
+              <div><span>SIGNAL WATCH</span><strong>{signalWatch.types.length} CATEGORIES{signalWatch.localPriority ? " · LOCAL" : ""}</strong></div>
+              <div><span>LAST SENSOR SCAN</span><strong>{formatRelativeTime(signalWatch.lastScanAt)}</strong></div>
               <div><span>EXACT LOCATION</span><strong>NEVER REQUESTED</strong></div>
               <p>Broad area and preparedness checklist context remain under your control. Seed phrases, private keys and exact addresses must never be entered.</p>
               <Link href="/privacy">REVIEW PRIVACY POLICY →</Link>

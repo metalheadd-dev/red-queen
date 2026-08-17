@@ -3106,6 +3106,16 @@ body:has(#game-player-root) .page-content {
 .rq-profile-metric > p { margin: 9px 0 0; color: rgba(255,255,255,.33); font-size: 8px; line-height: 1.45; }
 .rq-profile-metric > i { display: block; height: 3px; margin-top: 10px; background: rgba(255,255,255,.07); }
 .rq-profile-metric > i em { display: block; height: 100%; background: var(--accent); }
+.rq-profile-continuity { display: grid; grid-template-columns: minmax(310px,1.4fr) repeat(3,minmax(150px,.6fr)); margin-bottom: 16px; border: 1px solid rgba(255,0,51,.18); background: linear-gradient(110deg,rgba(255,0,51,.055),#08090b 52%); }
+.rq-profile-continuity > div { min-width: 0; padding: 19px; border-left: 1px solid rgba(255,255,255,.07); }
+.rq-profile-continuity > div:first-child { border-left: 0; }
+.rq-profile-continuity-heading > span,
+.rq-profile-continuity > div:not(.rq-profile-continuity-heading) > span { color: var(--accent); font: 700 9px var(--mono); letter-spacing: .11em; }
+.rq-profile-continuity-heading h2 { margin: 7px 0 5px; color: #fff; font-size: 18px; }
+.rq-profile-continuity-heading p { margin: 0; color: rgba(255,255,255,.43); font-size: 10px; line-height: 1.5; }
+.rq-profile-continuity > div:not(.rq-profile-continuity-heading) > strong { display: block; margin: 10px 0 3px; color: #fff; font: 700 25px var(--title-font); }
+.rq-profile-continuity > div:not(.rq-profile-continuity-heading) > small { display: block; min-height: 25px; color: rgba(255,255,255,.35); font-size: 9px; line-height: 1.4; }
+.rq-profile-continuity > div:not(.rq-profile-continuity-heading) > a { display: inline-block; margin-top: 10px; color: rgba(255,255,255,.66); font: 700 9px var(--mono); text-decoration: none; }
 .rq-profile-grid { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(310px,.65fr); gap: 16px; align-items: start; }
 .rq-profile-panel { border: 1px solid rgba(255,255,255,.085); background: #090a0c; padding: 22px; }
 .rq-profile-panel-heading { display: flex; justify-content: space-between; gap: 14px; align-items: end; margin-bottom: 18px; }
@@ -3166,6 +3176,9 @@ body:has(#game-player-root) .page-content {
   .rq-profile-identity { grid-template-columns: auto 1fr; }
   .rq-profile-hero-actions { grid-column: 1 / -1; grid-template-columns: repeat(3,1fr); }
   .rq-profile-metrics { grid-template-columns: repeat(2,1fr); }
+  .rq-profile-continuity { grid-template-columns: repeat(3,1fr); }
+  .rq-profile-continuity-heading { grid-column: 1 / -1; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .rq-profile-continuity > div:nth-child(2) { border-left: 0; }
   .rq-profile-grid { grid-template-columns: 1fr; }
   .rq-profile-visage { grid-template-columns: 1fr; }
 }
@@ -3181,6 +3194,10 @@ body:has(#game-player-root) .page-content {
   .rq-profile-error,
   .rq-profile-next { grid-template-columns: 1fr; }
   .rq-profile-metrics { grid-template-columns: 1fr 1fr; }
+  .rq-profile-continuity { grid-template-columns: 1fr; }
+  .rq-profile-continuity-heading { grid-column: auto; }
+  .rq-profile-continuity > div { border-top: 1px solid rgba(255,255,255,.07); border-left: 0; }
+  .rq-profile-continuity > div:first-child { border-top: 0; }
   .rq-profile-metric { padding: 14px; }
   .rq-profile-metric > strong { font-size: 22px; }
   .rq-profile-panel { padding: 17px; }

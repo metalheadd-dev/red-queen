@@ -1,6 +1,7 @@
 import OpenAI, { toFile } from "openai";
 import { getAuthIdentifier } from "@/lib/auth-helpers";
 import { getHashedWallet } from "@/lib/crypto";
+import { isHolderProofFresh } from "@/lib/holder-proof";
 import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +34,15 @@ export async function POST(request: Request) {
   if (Number(holder?.verified_balance || 0) <= 0) {
     return Response.json(
       { error: "Queen Visage is reserved for verified $THREAT holders.", code: "HOLDER_REQUIRED" },
+      { status: 403 },
+    );
+  }
+  if (!isHolderProofFresh(holder?.verified_balance, holder?.last_verification)) {
+    return Response.json(
+      {
+        error: "Refresh your $THREAT balance before using Queen Visage. Holder proof expires after 30 minutes.",
+        code: "HOLDER_REVERIFY_REQUIRED",
+      },
       { status: 403 },
     );
   }
