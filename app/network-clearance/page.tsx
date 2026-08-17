@@ -23,7 +23,7 @@ export default function NetworkClearancePage() {
           <div>
             <span className="pulse-eyebrow">SOLANA MAINNET // ON-CHAIN CONTROL PLANE</span>
             <h1>Proof before <em>privilege.</em></h1>
-            <p>One place to see what RED QUEEN actually reads from Solana, what your $THREAT unlocks, and when a signature or USDC payment is required.</p>
+            <p>RED QUEEN does not sell destiny. This is the exact record of what she can verify on Solana, what your $THREAT expands, and when a separate signature or USDC payment is required.</p>
             <div className="onchain-hero-tags"><span>SIWS IDENTITY</span><span>SPL BALANCE PROOF</span><span>x402 USDC</span><span>NO CUSTODY</span></div>
           </div>
           <div className="onchain-network-card">
@@ -39,7 +39,7 @@ export default function NetworkClearancePage() {
         <OnchainClearanceClient />
 
         <section className="onchain-contract">
-          <div className="onchain-section-head"><span>01 // UTILITY CONTRACT</span><h2>Two assets. Two precise jobs.</h2><p>No vague ecosystem language: $THREAT controls persistent intelligence capacity; USDC pays for discrete AI compute through x402.</p></div>
+          <div className="onchain-section-head"><span>01 // UTILITY CONTRACT</span><h2>Two assets. Two precise jobs.</h2><p>No ritual without purpose: $THREAT expands persistent RED QUEEN intelligence capacity; USDC pays only for a discrete AI operation through x402.</p></div>
           <div className="onchain-contract-grid">
             <article>
               <span>$THREAT · ACCESS LAYER</span>

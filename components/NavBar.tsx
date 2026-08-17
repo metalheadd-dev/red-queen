@@ -15,6 +15,7 @@ const primaryLinks = [
   { href: "/terminal", label: "QUEEN", subtitle: "Ask, analyze, prepare or simulate", match: "terminal" },
   { href: "/survival-kit", label: "PREPARE", subtitle: "Build practical readiness", match: "prepare" },
   { href: "/threat-vector", label: "LIBRARY", subtitle: "Open the threat intelligence archive", match: "library" },
+  { href: "/community", label: "COMMUNITY", subtitle: "Lore, field notes and Queen transmissions", match: "community" },
   { href: "/network-clearance", label: "ONCHAIN", subtitle: "Live Solana proof and $THREAT utility", match: "onchain" },
 ] as const;
 
@@ -63,6 +64,7 @@ export default function NavBar() {
     if (match === "library") return pathname.startsWith("/threat-vector");
     if (match === "terminal") return pathname.startsWith("/terminal");
     if (match === "prepare") return pathname.startsWith("/survival-kit");
+    if (match === "community") return pathname.startsWith("/community") || pathname.startsWith("/solvivors");
     if (match === "onchain") return pathname.startsWith("/network-clearance") || pathname.startsWith("/clearance");
     return false;
   };
@@ -131,7 +133,7 @@ export default function NavBar() {
             </Link>
           ))}
           <Link href={accountHref} tabIndex={menuOpen ? 0 : -1}>
-            <span>07</span>
+            <span>0{primaryLinks.length + 1}</span>
             <div><strong>{accountLabel}</strong><small>Save context, readiness and clearance</small></div>
           </Link>
         </nav>

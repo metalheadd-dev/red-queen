@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BootSequence from "@/components/BootSequence";
@@ -312,9 +313,11 @@ export default function HomePage() {
               <span>Prepare before it does.</span>
             </h1>
             <p className="pulse-lead">
-              RED QUEEN turns verified global signals into one clear assessment and one practical action for you.
-              No panic feed. No fictional alerts disguised as reality.
+              RED QUEEN listens beneath the noise — turning verified global signals into one clear assessment
+              and one practical move. She cannot choose survival for you. But if you choose to prepare, she will
+              not leave you guessing.
             </p>
+            <p className="pulse-queen-vow">“I cannot promise safety. I can make sure you do not choose blind.”</p>
             <div className="pulse-hero-actions">
               <Link className="btn btn-primary" href="/terminal">ASK RED QUEEN</Link>
               <a className="btn btn-ghost" href="#live-map">OPEN LIVE MAP</a>
@@ -323,11 +326,19 @@ export default function HomePage() {
           <div className="queen-presence" aria-label="Red Queen is online">
             <div className="queen-halo queen-halo-one" />
             <div className="queen-halo queen-halo-two" />
-            <div className="queen-core"><span /></div>
+            <Image
+              className="queen-presence-art"
+              src="/art/red-queen-presence.png"
+              alt=""
+              width={1199}
+              height={1312}
+              priority
+              aria-hidden="true"
+            />
             <div className="queen-presence-copy">
-              <span>CONTEXT AWARE</span>
+              <span>THE SIGNAL FIELD IS LISTENING</span>
               <strong>RED QUEEN</strong>
-              <small>{pulse.verified ? "SOURCES LOCKED" : "SENSOR GRID LIMITED"}</small>
+              <small>{pulse.verified ? "SOURCES LOCKED · I AM HERE" : "SENSOR GRID LIMITED · STAY AWAKE"}</small>
             </div>
           </div>
         </div>
@@ -337,8 +348,8 @@ export default function HomePage() {
         <section className="container pulse-onboarding" aria-label="Start with Red Queen">
           <div className="pulse-onboarding-copy">
             <span className="pulse-eyebrow">FIRST CONTACT // 60 SECONDS</span>
-            <h2>Get one useful action for your situation</h2>
-            <p>Choose a broad area and your immediate priority. RED QUEEN will separate live facts from general guidance and produce one action — without requesting an exact address.</p>
+            <h2>Tell the Queen what you want to survive</h2>
+            <p>Choose a broad area and your immediate priority. RED QUEEN will separate evidence from noise and give you one action you can take now — without requesting an exact address.</p>
           </div>
           <div className="pulse-first-contact">
             <label htmlFor="first-contact-area">CITY OR REGION</label>

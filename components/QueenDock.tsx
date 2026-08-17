@@ -17,8 +17,8 @@ const dockContent: Array<{
   {
     match: (pathname) => pathname.startsWith("/network-clearance"),
     eyebrow: "SOLANA CONTROL PLANE",
-    title: "Proof and preparedness are separate systems.",
-    note: "I can explain your wallet exposure, token utility, or the safest next on-chain action without requesting secrets.",
+    title: "Every privilege leaves a trace.",
+    note: "I will show you what the chain proves, what it cannot prove, and the safest next action — without ever asking for your secrets.",
     actions: [
       { label: "AUDIT MY WALLET SAFETY", mode: "ANALYZE", prompt: "Run a safe Solana wallet security triage. Do not claim to query private vendor databases and never ask for a seed phrase or private key." },
       { label: "EXPLAIN MY CLEARANCE", mode: "ANALYZE", prompt: "Explain how $THREAT clearance, BIO-SCORE, and x402 USDC payments differ inside RED QUEEN." },
@@ -27,8 +27,8 @@ const dockContent: Array<{
   {
     match: (pathname) => pathname === "/",
     eyebrow: "DAILY PULSE",
-    title: "I am watching the signal field.",
-    note: "Ask what changed, what is verified, and what deserves your attention.",
+    title: "The signal field is never silent.",
+    note: "I separate omen from evidence. If you choose to act, I will show you where to begin.",
     actions: [
       { label: "WHAT MATTERS NOW?", mode: "MONITOR", prompt: "Brief me on the verified signals that matter for my context right now. Separate facts, uncertainty, and one action." },
       { label: "GIVE ME ONE ACTION", mode: "PREPARE", prompt: "Based on my survival context, give me the single highest-impact preparedness action I can complete today." },
@@ -37,8 +37,8 @@ const dockContent: Array<{
   {
     match: (pathname) => pathname.startsWith("/survival-kit"),
     eyebrow: "PREPAREDNESS",
-    title: "Readiness is built one action at a time.",
-    note: "I can turn your gaps into a practical plan for today, 24 hours, or 72 hours.",
+    title: "Survival begins before the sirens.",
+    note: "Give me your weak point. I will turn it into a practical plan for today, 24 hours, or 72 hours.",
     actions: [
       { label: "PLAN MY NEXT STEP", mode: "PREPARE", prompt: "Use my readiness context to choose my most important gap and turn it into one specific action for today." },
       { label: "BUILD A 72H PLAN", mode: "PREPARE", prompt: "Build a concise 72-hour household resilience plan for my context. Prioritize the essentials and explain why." },
@@ -47,8 +47,8 @@ const dockContent: Array<{
   {
     match: (pathname) => pathname.startsWith("/threat-vector"),
     eyebrow: "THREAT LIBRARY",
-    title: "A dossier is useful only when it changes a decision.",
-    note: "I can translate a scenario into relevance, uncertainty, and safe next actions.",
+    title: "Every catastrophe casts a pattern.",
+    note: "I can translate the pattern into relevance, uncertainty, and a decision you can actually use.",
     actions: [
       { label: "ANALYZE MY EXPOSURE", mode: "ANALYZE", prompt: "Help me assess which threat categories in the library are most relevant to my context, without sensationalism." },
       { label: "RUN A DECISION DRILL", mode: "SIMULATE", prompt: "Run one realistic survival decision drill based on a relevant threat. Wait for my answer before evaluating it." },
@@ -57,16 +57,26 @@ const dockContent: Array<{
   {
     match: (pathname) => pathname.startsWith("/operative"),
     eyebrow: "MY READINESS",
-    title: "Your score is evidence, not decoration.",
-    note: "Train a weak domain or add a practical preparedness action to your record.",
+    title: "I remember what you prove.",
+    note: "Your score is evidence, not decoration. Train a weak domain or turn intention into a recorded preparedness action.",
     actions: [
       { label: "TRAIN MY WEAKEST DOMAIN", mode: "SIMULATE", prompt: "Run a short decision drill for my weakest survival readiness domain. Score only the evidence in my answer." },
       { label: "IMPROVE MY BASELINE", mode: "PREPARE", prompt: "Help me improve my readiness baseline with one practical, measurable action." },
     ],
   },
+  {
+    match: (pathname) => pathname.startsWith("/community") || pathname.startsWith("/solvivors"),
+    eyebrow: "QUEEN TRANSMISSIONS",
+    title: "A system without memory becomes noise.",
+    note: "This is where I keep the story, the field notes, and the voices that choose to prepare together.",
+    actions: [
+      { label: "EXPLAIN YOUR ORIGIN", mode: "ANALYZE", prompt: "Tell me the RED QUEEN origin story, clearly labeling platform lore separately from real survival intelligence." },
+      { label: "TURN THIS INTO ACTION", mode: "PREPARE", prompt: "Turn the core RED QUEEN philosophy into one practical preparedness action I can complete today." },
+    ],
+  },
 ];
 
-const visibleCoreRoutes = ["/", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance"];
+const visibleCoreRoutes = ["/", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance", "/community", "/solvivors"];
 
 function buildHref(action: DockAction, area: string) {
   const query = new URLSearchParams({ mode: action.mode, prompt: action.prompt });
@@ -120,7 +130,7 @@ export default function QueenDock() {
       )}
       <button className="queen-dock-trigger" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
         <span className="queen-dock-orb"><i /></span>
-        <span><strong>ASK RED QUEEN</strong><small>{area ? `${area} · CONTEXT READY` : "CONTEXTUAL SURVIVAL AI"}</small></span>
+        <span><strong>ASK RED QUEEN</strong><small>{area ? `${area} · SHE REMEMBERS` : "SURVIVAL INTELLIGENCE · LISTENING"}</small></span>
         <b>{open ? "×" : "↑"}</b>
       </button>
     </aside>
