@@ -863,37 +863,89 @@ export default function TerminalPage() {
       setLoading(true);
       await new Promise(r => setTimeout(r, 600)); // satisfy typing animation
       
-      const cmd = text.toLowerCase().split(" ")[0];
+      const [cmd, ...commandArgs] = text.toLowerCase().trim().split(/\s+/);
       let reply = "";
       
       if (cmd === "/help") {
-        reply = `[SYSTEM HELP INDEX]
+        reply = `[QUEEN COMMAND INDEX]
 
-Available commands:
-- /help : Displays this technical manual (Free).
-- /bio : Queries your current active survival assessment score (Free).
-- /scan : Instructs Red Queen to run deep metadata checks (Requires connected wallet).
-- /decrypt [ID] : Decrypts a specific vector file (Requires Level-3 clearance).
+These commands read the current interface state. They do not call the AI or consume a guest analysis:
+- /memory : Show active action, saved protocols, baseline, and Signal Watch configuration.
+- /context : Show the broad area, focus, and current Queen mode.
+- /mode monitor|analyze|prepare|simulate : Change how Queen approaches the next request.
+- /pulse : Open the verified Daily Pulse and live signal field.
+- /bio : Explain the current evidence-based readiness score.
+- /help : Show this command index.
 
-Note: Custom computed actions must be triggered from the specific dossier pages in Sector Alpha.`;
+Ask a normal question when you want RED QUEEN to analyze, plan, or simulate.`;
+      } else if (cmd === "/memory") {
+        const memory = buildDeviceSurvivalMemory(localStorage);
+        const planLines = memory.plans.length
+          ? memory.plans.map((plan) => `- ${plan.title}: ${plan.completedSteps}/${plan.totalSteps} steps · ${plan.status}`).join("\n")
+          : "- No Queen Protocols saved.";
+        const watched = [memory.signalWatch.localPriority ? "LOCAL PRIORITY" : "", ...memory.signalWatch.types]
+          .filter(Boolean)
+          .join(", ") || "NOT CONFIGURED";
+        reply = `[DEVICE SURVIVAL MEMORY]
+
+ACTIVE ACTION
+${memory.activeAction || "No active daily action saved."}
+
+QUEEN PROTOCOLS
+${planLines}
+
+LOCAL BASELINE
+${memory.preparednessChecks}/18 checks marked on this device.
+
+SIGNAL WATCH
+${watched}
+
+This state remains device-local. It is loaded as bounded context only when you ask Queen a normal question; it is not verified BIO evidence.`;
+      } else if (cmd === "/context") {
+        reply = `[CURRENT QUEEN CONTEXT]
+
+BROAD AREA: ${survivalContext.area || "GLOBAL / NOT SET"}
+FOCUS: ${getFocusOption(survivalContext.focus).label.toUpperCase()}
+MODE: ${survivalContext.mode}
+
+RED QUEEN never needs an exact address. Change context using the controls beside the terminal or return to [Pulse](/).`;
+      } else if (cmd === "/mode") {
+        const requestedMode = commandArgs[0]?.toUpperCase() || "";
+        if (isAgentMode(requestedMode)) {
+          changeAgentMode(requestedMode);
+          reply = `[QUEEN MODE CHANGED]
+
+ACTIVE MODE: ${requestedMode}
+${AGENT_MODES.find((mode) => mode.id === requestedMode)?.description || "The next request will use this reasoning mode."}
+
+No AI request was consumed. Ask your next question when ready.`;
+        } else {
+          reply = `[MODE REQUIRED]
+
+Use one of:
+/mode monitor
+/mode analyze
+/mode prepare
+/mode simulate`;
+        }
+      } else if (cmd === "/pulse") {
+        reply = `[PULSE HANDOFF]
+
+Open [Daily Pulse](/) for the current source health and personal priority, or jump to the [Live Signal Field](/#live-map).
+
+Pulse is Queen's sight. A silent or unreachable sensor is never presented as proof of safety.`;
       } else if (cmd === "/bio") {
-        reply = `[BIO-SCORE TELEMETRY RECON]
+        reply = `[BIO-SCORE // EVIDENCE STATUS]
 
-Subject Passport: ${user ? user.email : (walletAddress ? walletAddress.slice(0, 4) + "..." + walletAddress.slice(-4) : "UNKNOWN")}
-Active Score: ${currentScore ? currentScore + "%" : "PENDING (Speak to Red Queen to evaluate)"}
-Status: ${currentScore && parseInt(currentScore) < 20 ? "CRITICAL OUTLOOK" : currentScore && parseInt(currentScore) < 60 ? "STABLE THREATENED" : "OPTIMAL RESISTANCE"}
+IDENTITY: ${hasVerifiedIdentity ? "VERIFIED SESSION" : "UNSAVED LOCAL SESSION"}
+ACTIVE SCORE: ${scoreNum}%
+LEVEL: ${stats?.level || 1} · XP: ${stats?.xp || 0}
 
-Maintain vigilance.`;
-      } else if (cmd === "/scan" || cmd === "/decrypt") {
-        reply = `[CLEARANCE GATE FAILURE]
-
-Running direct trace commands from the terminal root is restricted. 
-To decrypt or scan target files:
-1. Navigate to the [THREAT ARCHIVES](/threat-vector).
-2. Choose a dossier file under SECTOR ALPHA or BETA.
-3. Verify your clearance level to decrypt the intelligence data.`;
+BIO changes only after an eligible decision, demonstrated preparation, or evaluated drill. $THREAT holdings never create competence. ${hasVerifiedIdentity ? "Eligible evidence can persist to your account." : "Sign in before a drill if you want eligible evidence saved to your account."}`;
       } else {
-        reply = `[ERR_0x1E] UNKNOWN COMMAND: "${cmd}". Type /help for active protocols.`;
+        reply = `[UNKNOWN QUEEN COMMAND]
+
+${cmd} is not active. Type /help for the current platform command index, or ask a normal question for Queen analysis.`;
       }
 
       setMessages((prev) => [
