@@ -30,11 +30,11 @@ export default function NavBar() {
   };
 
   const links = [
-    { href: "/", label: "HUB", subtitle: "Central Command Center & Cyber Threat Map" },
-    { href: "/terminal", label: "TERMINAL", subtitle: "Direct communication channel with RED QUEEN AI" },
-    { href: "/threat-vector", label: "THREAT VECTORS", subtitle: "Interactive database of monitored digital and societal threats" },
-    { href: "/solvivors", label: "SOLVIVORS", subtitle: "Classified news, operational briefs, bounties, and media archives" },
-    { href: "/survival-kit", label: "SURVIVAL KIT", subtitle: "Digital survival documentation and threat response protocols" },
+    { href: "/", label: "PULSE", subtitle: "Your daily verified intelligence brief" },
+    { href: "/#live-map", label: "LIVE MAP", subtitle: "Verified signals from global source networks" },
+    { href: "/terminal", label: "ASK QUEEN", subtitle: "Ask what a threat means for your situation" },
+    { href: "/survival-kit", label: "PREPARE", subtitle: "Practical checklists and response protocols" },
+    { href: "/threat-vector", label: "LIBRARY", subtitle: "Explore real, fictional, and satirical scenarios" },
   ];
 
   const legalLinks = [
@@ -52,7 +52,7 @@ export default function NavBar() {
             <div className="navbar-logo-icon">
               <SolvivalIcon size={30} />
             </div>
-            <span className="navbar-logo-text">SOLVIVAL CORP</span>
+            <span className="navbar-logo-text">RED QUEEN</span>
           </Link>
 
           {/* Desktop Links */}
@@ -74,10 +74,10 @@ export default function NavBar() {
                   className={pathname === "/operative" ? "active" : ""}
                   style={{ color: "var(--accent)" }}
                 >
-                  ◉ PROFILE
+                  READINESS
                 </Link>
                 <div className="nav-item-tooltip">
-                  Your AI-generated survival identity
+                  Your BIO-SCORE and personal readiness profile
                 </div>
               </li>
             )}
@@ -108,7 +108,7 @@ export default function NavBar() {
                   flexShrink: 0
                 }}
               >
-                [ ACCESS PORTAL ]
+                [ CONNECT ]
               </Link>
             ) : (
               <>
@@ -242,7 +242,7 @@ export default function NavBar() {
                       display: "block",
                     }}
                   >
-                    {pathname === "/operative" ? "▶ " : ""}◉ PROFILE
+                    {pathname === "/operative" ? "> " : ""}READINESS
                   </Link>
                   <div style={{
                     fontFamily: "var(--sans)",
@@ -254,7 +254,7 @@ export default function NavBar() {
                     fontWeight: "normal",
                     letterSpacing: "normal"
                   }}>
-                    Your AI-generated survival identity
+                    Your BIO-SCORE and personal readiness profile
                   </div>
                 </li>
               )}
@@ -302,7 +302,7 @@ export default function NavBar() {
                   letterSpacing: "0.1em"
                 }}
               >
-                ACCESS PORTAL
+                CONNECT
               </Link>
             ) : (
               <>

@@ -5,13 +5,13 @@ import Footer from "@/components/Footer";
 import SolanaProvider from "@/components/SolanaProvider";
 
 export const metadata: Metadata = {
-  title: "SOLVIVAL CORP — RED QUEEN TERMINAL",
+  title: "RED QUEEN — Survival Intelligence on Solana",
   description:
-    "The RED QUEEN is online. Survival intelligence, threat assessment, and classified apocalypse briefings. Are you prepared?",
-  keywords: ["apocalypse", "survival", "red queen", "solvival corp", "AI agent", "$THREAT token", "THREAT"],
+    "Verified threat signals, practical preparedness, and a context-aware AI survival agent powered by the Solana ecosystem.",
+  keywords: ["survival intelligence", "threat monitoring", "red queen", "Solana", "AI agent", "$THREAT token", "preparedness"],
   openGraph: {
-    title: "SOLVIVAL CORP — RED QUEEN",
-    description: "The AI that decides who survives. Talk to the RED QUEEN.",
+    title: "RED QUEEN — Survival Intelligence on Solana",
+    description: "Know what matters. Prepare before it does.",
     type: "website",
   },
 };

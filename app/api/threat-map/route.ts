@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { REALISTIC, FICTIONAL, SATIRICAL, ALGORITHMIC, Threat } from "@/lib/threats";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,35 @@ interface ThreatNode {
   desc: string;
   solution: string;
   analysis: string;
+}
+
+function liveProvenance(node: ThreatNode) {
+  if (node.id.startsWith("usgs-")) {
+    return { source: "USGS", sourceUrl: "https://earthquake.usgs.gov/earthquakes/map/", confidence: 98 };
+  }
+  if (node.id.startsWith("nasa-")) {
+    return { source: "NASA EONET", sourceUrl: "https://eonet.gsfc.nasa.gov/", confidence: 92 };
+  }
+  if (node.id.startsWith("noaa-")) {
+    return { source: "NOAA SWPC", sourceUrl: "https://www.swpc.noaa.gov/products/alerts-watches-and-warnings", confidence: 97 };
+  }
+  if (node.id.startsWith("news-")) {
+    return { source: "Google News RSS", sourceUrl: "https://news.google.com/", confidence: 55 };
+  }
+  if (node.id.startsWith("exchange-")) {
+    return { source: "ExchangeRate API", sourceUrl: "https://www.exchangerate-api.com/", confidence: 75 };
+  }
+  return { source: "RED QUEEN archive", sourceUrl: "", confidence: 0 };
+}
+
+function sanitizeNodes(nodes: ThreatNode[], forceVerified = false) {
+  return nodes.map((node) => ({
+    ...node,
+    coords: geoToSvg(node.lat, node.lng),
+    ...liveProvenance(node),
+    verified: forceVerified || (!node.id.startsWith("archive-") && !node.id.startsWith("fallback-")),
+    updatedAt: new Date().toISOString(),
+  }));
 }
 
 // Geographic to SVG coordinates (width 800, height 400) - used for fallback SVG views
@@ -152,13 +181,14 @@ function resolveRealisticType(id: string): "BIOLOGICAL" | "GEOLOGICAL" | "METEOR
   return "KINETIC";
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const liveOnly = request.nextUrl.searchParams.get("scope") === "live";
   const nodes: ThreatNode[] = [];
 
   // Default fallback data in case external APIs fail or are offline
   const fallbackNodes: ThreatNode[] = [
     {
-      id: "usgs-eq-1",
+      id: "fallback-usgs-eq-1",
       name: "M 5.8 Seismic Activity",
       type: "GEOLOGICAL",
       category: "realistic",
@@ -172,7 +202,7 @@ export async function GET() {
       analysis: "RED QUEEN: Kinetic tremors disrupt local connectivity. Secure secondary satcom routes."
     },
     {
-      id: "nasa-fire-1",
+      id: "fallback-nasa-fire-1",
       name: "Wildfire Active Burn Loop",
       type: "METEOROLOGICAL",
       category: "realistic",
@@ -236,8 +266,7 @@ export async function GET() {
         return { lat: coords.lat, lng: coords.lng, name: country.toUpperCase() };
       }
     }
-    // Return slightly randomized location in mid-latitudes if unresolved
-    return { lat: 15 + Math.random() * 15, lng: -25 + Math.random() * 30, name: "Global Health Network" };
+    return { lat: 20, lng: 0, name: "LOCATION UNVERIFIED" };
   }
 
   try {
@@ -376,7 +405,7 @@ export async function GET() {
           const pubDate = pubDateMatch ? pubDateMatch[1].trim() : new Date().toUTCString();
           
           const countryInfo = detectCountry(cleanTitle);
-          const severity = 75 + Math.floor(Math.random() * 20);
+          const severity = 55;
           
           items.push({
             id: `news-outbreak-${index}`,
@@ -450,12 +479,17 @@ export async function GET() {
     nodes.push(...exchangeNodes);
 
     // Merge fallback data if API yields too few nodes
-    if (nodes.length < 2) {
+    if (!liveOnly && nodes.length < 2) {
       nodes.push(...fallbackNodes);
     }
   } catch (err) {
     console.error("Failed to fetch live threat map data:", err);
-    nodes.push(...fallbackNodes);
+    if (!liveOnly) nodes.push(...fallbackNodes);
+  }
+
+  // The core Pulse must never mix scenario-library content with verified live signals.
+  if (liveOnly) {
+    return NextResponse.json(sanitizeNodes(nodes, true));
   }
 
   // --- Dynamic Mapping of the Entire Threat Archive ---
@@ -498,10 +532,7 @@ export async function GET() {
   nodes.push(...archiveMapping(ALGORITHMIC, "algorithmic"));
 
   // Ensure all node coordinates are formatted correctly
-  const sanitized = nodes.map(n => ({
-    ...n,
-    coords: geoToSvg(n.lat, n.lng)
-  }));
+  const sanitized = sanitizeNodes(nodes, false);
 
   return NextResponse.json(sanitized);
 }

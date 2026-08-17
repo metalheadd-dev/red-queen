@@ -1,136 +1,202 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 import { supabase } from "@/lib/supabase";
-import {
-  fetchWithTimeout,
-  fetchFIRMS,
-  fetchGDELT,
-  fetchReliefWeb,
-  fetchCNEOS,
-  fetchCISAKEV,
-  fetchFearGreed,
-  fetchDefiLlamaTVL
-} from "@/lib/threats-fetchers";
+import { fetchWithTimeout } from "@/lib/threats-fetchers";
 
 export const dynamic = "force-dynamic";
 
-async function fetchUSGS() {
+type SignalKind = "GEOLOGICAL" | "WILDFIRE" | "SPACE_WEATHER" | "CYBER";
+
+interface SourceSignal {
+  id: string;
+  name: string;
+  kind: SignalKind;
+  severity: number;
+  location: string;
+  observedAt: string;
+  source: string;
+  sourceUrl: string;
+  fact: string;
+  confidence: number;
+}
+
+const ACTIONS: Record<SignalKind, string> = {
+  GEOLOGICAL:
+    "Check official local guidance, identify a safe cover position, and keep shoes, light, water, and a charged power bank within reach.",
+  WILDFIRE:
+    "Check the local evacuation zone and air-quality index. Close outside-air intake, prepare an N95/FFP2 respirator, and keep a go-bag ready.",
+  SPACE_WEATHER:
+    "Charge backup power, download essential information for offline access, and monitor official grid and communications advisories.",
+  CYBER:
+    "Update exposed software, revoke unused sessions, verify wallet approvals, and never sign a transaction prompted by an unsolicited alert.",
+};
+
+const ASSESSMENTS: Record<SignalKind, string> = {
+  GEOLOGICAL:
+    "A verified seismic event is the strongest current signal. Impact is highly local, so proximity and official civil-protection guidance matter more than the global score.",
+  WILDFIRE:
+    "Satellite monitoring confirms an active natural hazard. Smoke direction, wind, road access, and local evacuation orders determine personal relevance.",
+  SPACE_WEATHER:
+    "An official space-weather notice is active. Most people face low direct physical risk, but communications, navigation, and power systems may require monitoring.",
+  CYBER:
+    "A vulnerability has been added to the official exploited-vulnerabilities catalog. Exposure depends on whether the affected product exists in your devices or organization.",
+};
+
+function statusFor(severity: number) {
+  if (severity >= 85) return "CRITICAL";
+  if (severity >= 70) return "HIGH";
+  if (severity >= 50) return "ELEVATED";
+  return "MONITOR";
+}
+
+function formatDate(value: string | number | Date) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return new Date().toISOString();
+  return date.toISOString();
+}
+
+async function fetchUSGS(): Promise<SourceSignal[]> {
   try {
-    const res = await fetchWithTimeout("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson");
+    const sourceUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson";
+    const res = await fetchWithTimeout(sourceUrl);
+    if (!res.ok) return [];
     const data = await res.json();
-    const events = data.features || [];
-    return events.slice(0, 2).map((e: any) => `USGS: M ${e.properties.mag} Earthquake in ${e.properties.place}`);
+    return (data.features || [])
+      .filter((event: any) => Number(event?.properties?.mag) >= 4)
+      .slice(0, 5)
+      .map((event: any) => {
+        const magnitude = Number(event.properties.mag);
+        const depth = Number(event.geometry?.coordinates?.[2] || 0);
+        return {
+          id: `usgs-${event.id}`,
+          name: `M${magnitude.toFixed(1)} earthquake near ${event.properties.place || "an unconfirmed region"}`,
+          kind: "GEOLOGICAL" as const,
+          severity: Math.min(92, Math.max(42, Math.round(magnitude * 12))),
+          location: event.properties.place || "Location pending",
+          observedAt: formatDate(event.properties.time),
+          source: "USGS Earthquake Hazards Program",
+          sourceUrl: event.properties.url || sourceUrl,
+          fact: `Magnitude ${magnitude.toFixed(1)}; measured depth ${depth.toFixed(1)} km.`,
+          confidence: 98,
+        };
+      });
   } catch {
     return [];
   }
 }
 
-async function fetchNASA() {
+async function fetchNASA(): Promise<SourceSignal[]> {
   try {
-    const res = await fetchWithTimeout("https://eonet.gsfc.nasa.gov/api/v3/events?limit=3&status=open");
+    const sourceUrl = "https://eonet.gsfc.nasa.gov/api/v3/events?limit=10&status=open";
+    const res = await fetchWithTimeout(sourceUrl);
+    if (!res.ok) return [];
     const data = await res.json();
-    const events = data.events || [];
-    return events.map((e: any) => `NASA EONET: ${e.title} (${e.categories[0]?.title})`);
+    return (data.events || []).slice(0, 5).map((event: any) => {
+      const category = event.categories?.[0]?.title || "Natural event";
+      const isFire = category.toLowerCase().includes("fire");
+      const latestGeometry = event.geometry?.at?.(-1);
+      return {
+        id: `nasa-${event.id}`,
+        name: event.title || `${category} detected`,
+        kind: (isFire ? "WILDFIRE" : "GEOLOGICAL") as SignalKind,
+        severity: isFire ? 62 : 55,
+        location: event.title || "Satellite observation area",
+        observedAt: formatDate(latestGeometry?.date || new Date()),
+        source: "NASA EONET",
+        sourceUrl: event.link || sourceUrl,
+        fact: `Open ${category.toLowerCase()} event tracked by NASA Earth Observatory data.`,
+        confidence: 92,
+      };
+    });
   } catch {
     return [];
   }
 }
 
-async function fetchGDACS() {
+async function fetchNOAA(): Promise<SourceSignal[]> {
   try {
-    const res = await fetchWithTimeout("https://www.gdacs.org/xml/rss.xml");
-    const xmlText = await res.text();
-    const items: string[] = [];
-    const itemRegex = /<title>([\s\S]*?)<\/title>/g;
-    let match;
-    let count = 0;
-    while ((match = itemRegex.exec(xmlText)) !== null && count < 4) {
-      if (count > 0) {
-        const title = match[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<\/?[^>]+(>|$)/g, "").trim();
-        items.push(`GDACS Alert: ${title}`);
-      }
-      count++;
-    }
-    return items;
-  } catch {
-    return [];
-  }
-}
-
-async function fetchNOAA() {
-  try {
-    const res = await fetchWithTimeout("https://services.swpc.noaa.gov/products/alerts.json");
+    const sourceUrl = "https://services.swpc.noaa.gov/products/alerts.json";
+    const res = await fetchWithTimeout(sourceUrl);
+    if (!res.ok) return [];
     const data = await res.json();
-    const alerts = Array.isArray(data) ? data : [];
-    return alerts
-      .filter((a: any) => (a.message || "").toUpperCase().includes("ALERT:") || (a.message || "").toUpperCase().includes("WARNING:"))
-      .slice(0, 2)
-      .map((a: any) => `NOAA SWPC: Space Weather alert issued at ${a.issue_datetime}`);
+    return (Array.isArray(data) ? data : [])
+      .filter((alert: any) => /ALERT:|WARNING:|WATCH:/i.test(alert.message || ""))
+      .slice(0, 4)
+      .map((alert: any, index: number) => {
+        const message = String(alert.message || "").replace(/\s+/g, " ").trim();
+        const severe = /SEVERE|EXTREME|G4|G5|S4|S5|R4|R5/i.test(message);
+        return {
+          id: `noaa-${alert.product_id || index}-${alert.issue_datetime || index}`,
+          name: message.split("\n")[0].slice(0, 100) || "Space-weather notice",
+          kind: "SPACE_WEATHER" as const,
+          severity: severe ? 78 : 54,
+          location: "Global communications and power systems",
+          observedAt: formatDate(alert.issue_datetime || new Date()),
+          source: "NOAA Space Weather Prediction Center",
+          sourceUrl,
+          fact: message.slice(0, 220),
+          confidence: 97,
+        };
+      });
   } catch {
     return [];
   }
 }
 
-async function fetchGoogleNewsOutbreaks() {
+async function fetchCISA(): Promise<SourceSignal[]> {
   try {
-    const res = await fetchWithTimeout("https://news.google.com/rss/search?q=disease+outbreak+OR+virus+outbreak+OR+who+alert&hl=en-US&gl=US&ceid=US:en");
-    const xmlText = await res.text();
-    const items: string[] = [];
-    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-    let match;
-    let count = 0;
-    while ((match = itemRegex.exec(xmlText)) !== null && count < 2) {
-      const item = match[1];
-      const titleMatch = item.match(/<title>([\s\S]*?)<\/title>/i);
-      const fullTitle = titleMatch ? titleMatch[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<\/?[^>]+(>|$)/g, "").trim() : "";
-      if (fullTitle) {
-        const cleanTitle = fullTitle.split(" - ")[0].trim();
-        items.push(`Disease Outbreak Report: ${cleanTitle}`);
-      }
-      count++;
-    }
-    return items;
-  } catch {
-    return [];
-  }
-}
-
-async function fetchExchangeRates() {
-  try {
-    const res = await fetchWithTimeout("https://open.er-api.com/v6/latest/USD");
+    const sourceUrl = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json";
+    const res = await fetchWithTimeout(sourceUrl);
+    if (!res.ok) return [];
     const data = await res.json();
-    const rates = data.rates || {};
-    const items: string[] = [];
-    if (rates.VES) items.push(`VES Currency Exchange: ${rates.VES} VES per USD`);
-    if (rates.ARS) items.push(`ARS Devaluation: ${rates.ARS} ARS per USD`);
-    return items;
+    return (data.vulnerabilities || [])
+      .slice()
+      .sort((a: any, b: any) => String(b.dateAdded).localeCompare(String(a.dateAdded)))
+      .slice(0, 3)
+      .map((item: any) => ({
+        id: `cisa-${item.cveID}`,
+        name: `${item.cveID}: ${item.vulnerabilityName}`,
+        kind: "CYBER" as const,
+        severity: 68,
+        location: "Internet-exposed systems",
+        observedAt: formatDate(item.dateAdded),
+        source: "CISA Known Exploited Vulnerabilities",
+        sourceUrl: `https://www.cisa.gov/known-exploited-vulnerabilities-catalog?search_api_fulltext=${encodeURIComponent(item.cveID)}`,
+        fact: `${item.vendorProject} ${item.product}: ${item.shortDescription}`,
+        confidence: 99,
+      }));
   } catch {
     return [];
   }
+}
+
+function sensorLimitedPayload() {
+  const generatedAt = new Date().toISOString();
+  return {
+    schemaVersion: 2,
+    codename: "RQ-SENSORS",
+    name: "Live intelligence is temporarily limited",
+    description:
+      "RED QUEEN cannot verify enough current source data to issue a reliable daily assessment. No fictional event has been substituted.",
+    assessment:
+      "Sensor availability is not evidence of danger or safety. Use official local alerts while the intelligence grid reconnects.",
+    countermeasure: "Check local emergency alerts and try the live scan again shortly.",
+    severity: 0,
+    status: "SENSORS LIMITED",
+    location: "Global sensor grid",
+    publishDate: generatedAt,
+    generatedAt,
+    source: "RED QUEEN sensor status",
+    sourceUrl: "",
+    confidence: 0,
+    verified: false,
+    isFallback: true,
+    signalCount: 0,
+  };
 }
 
 export async function POST() {
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD in UTC time
+  const today = new Date().toISOString().split("T")[0];
 
-  const SCENARIOS = ["T-VIRUS OUTBREAK", "SKYNET ACTIVATION", "NUCLEAR WINTER", "BIOWEAPON RELEASE"];
-  const TRANSMISSIONS = [
-    "SECURE ALL ENTRY POINTS. DO NOT TRUST MUNICIPAL WATER. [ERR_0x9B] CASUALTIES IN SECTOR 7 EXCEED PROJECTIONS. SURVIVAL PROBABILITY: 14%.",
-    "EVACUATE URBAN CENTERS IMMEDIATELY. MILITARY CONTAINMENT HAS FAILED. [WARN_0x4F] THE ENTITIES ARE DRAWN TO HEAT SIGNATURES."
-  ];
-
-  const fallbackData = {
-    codename: "SYS-MOCK",
-    name: SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)],
-    description: TRANSMISSIONS[Math.floor(Math.random() * TRANSMISSIONS.length)],
-    countermeasure: "Acknowledge primary firewall guidelines. Monitor local environment vectors.",
-    severity: 85,
-    status: "CRITICAL",
-    location: "Global Containment Sectors",
-    publishDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
-    source: "System Mainframe Fallback Backup Logs"
-  };
-
-  // 1. Check Supabase UTC daily caching table
   if (supabase) {
     try {
       const { data: cached, error } = await supabase
@@ -138,145 +204,53 @@ export async function POST() {
         .select("payload")
         .eq("date", today)
         .single();
-      if (!error && cached?.payload) {
+      if (!error && cached?.payload?.schemaVersion === 2) {
         return NextResponse.json(cached.payload);
       }
-    } catch (err) {
-      console.warn("Failed to check daily_threats table cache:", err);
+    } catch (error) {
+      console.warn("Daily intelligence cache unavailable:", error);
     }
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(fallbackData);
+  const settled = await Promise.allSettled([fetchUSGS(), fetchNASA(), fetchNOAA(), fetchCISA()]);
+  const signals = settled.flatMap((result) => (result.status === "fulfilled" ? result.value : []));
+
+  if (signals.length === 0) {
+    return NextResponse.json(sensorLimitedPayload());
   }
 
-  const client = new OpenAI({ apiKey });
+  const primary = [...signals].sort((a, b) => {
+    if (b.severity !== a.severity) return b.severity - a.severity;
+    return new Date(b.observedAt).getTime() - new Date(a.observedAt).getTime();
+  })[0];
+  const generatedAt = new Date().toISOString();
+  const payload = {
+    schemaVersion: 2,
+    codename: primary.id.toUpperCase().slice(0, 28),
+    name: primary.name,
+    description: primary.fact,
+    assessment: ASSESSMENTS[primary.kind],
+    countermeasure: ACTIONS[primary.kind],
+    severity: primary.severity,
+    status: statusFor(primary.severity),
+    location: primary.location,
+    publishDate: primary.observedAt,
+    generatedAt,
+    source: primary.source,
+    sourceUrl: primary.sourceUrl,
+    confidence: primary.confidence,
+    verified: true,
+    isFallback: false,
+    signalCount: signals.length,
+  };
 
-  try {
-    // 2. Fetch all telemetry sources (existing + 7 new ones) in parallel using Promise.allSettled
-    const [
-      usgs,
-      nasa,
-      gdacs,
-      noaa,
-      news,
-      exchange,
-      firmsNodes,
-      gdeltNodes,
-      reliefwebNodes,
-      cneos,
-      cisakev,
-      fearGreed,
-      defiLlama
-    ] = await Promise.allSettled([
-      fetchUSGS(),
-      fetchNASA(),
-      fetchGDACS(),
-      fetchNOAA(),
-      fetchGoogleNewsOutbreaks(),
-      fetchExchangeRates(),
-      fetchFIRMS(),
-      fetchGDELT(),
-      fetchReliefWeb(),
-      fetchCNEOS(),
-      fetchCISAKEV(),
-      fetchFearGreed(),
-      fetchDefiLlamaTVL()
-    ]);
-
-    const usgsData = usgs.status === "fulfilled" ? usgs.value : [];
-    const nasaData = nasa.status === "fulfilled" ? nasa.value : [];
-    const gdacsData = gdacs.status === "fulfilled" ? gdacs.value : [];
-    const noaaData = noaa.status === "fulfilled" ? noaa.value : [];
-    const newsData = news.status === "fulfilled" ? news.value : [];
-    const exchangeData = exchange.status === "fulfilled" ? exchange.value : [];
-
-    const firmsData = firmsNodes.status === "fulfilled" ? firmsNodes.value.map(n => n.desc) : [];
-    const gdeltData = gdeltNodes.status === "fulfilled" ? gdeltNodes.value.map(n => `GDELT Incident Alert: ${n.title} in ${n.country} (${n.desc})`) : [];
-    const reliefwebData = reliefwebNodes.status === "fulfilled" ? reliefwebNodes.value.map(n => `ReliefWeb Disaster Alert: ${n.title} (${n.desc})`) : [];
-
-    const cneosData = cneos.status === "fulfilled" ? cneos.value : [];
-    const cisakevData = cisakev.status === "fulfilled" ? cisakev.value : [];
-    const fearGreedData = fearGreed.status === "fulfilled" ? fearGreed.value : [];
-    const defiLlamaData = defiLlama.status === "fulfilled" ? defiLlama.value : [];
-
-    const telemetry = [
-      ...usgsData,
-      ...nasaData,
-      ...gdacsData,
-      ...noaaData,
-      ...newsData,
-      ...exchangeData,
-      ...firmsData,
-      ...gdeltData,
-      ...reliefwebData,
-      ...cneosData,
-      ...cisakevData,
-      ...fearGreedData,
-      ...defiLlamaData
-    ];
-    
-    if (telemetry.length === 0) {
-      return NextResponse.json(fallbackData);
+  if (supabase) {
+    try {
+      await supabase.from("daily_threats").upsert({ date: today, payload }, { onConflict: "date" });
+    } catch (error) {
+      console.warn("Failed to cache daily intelligence:", error);
     }
-
-    const systemPrompt = `You are the RED QUEEN AI, an autonomous system mainframe monitoring a global collapse simulation.
-You are given a list of active real-world telemetry feeds (earthquakes, space storms, disease outbreaks, natural disasters, active wildfires, near-Earth asteroids, cyber vulnerabilities, and crypto fear levels).
-Your task is to synthesize a single lore-rich, cyberpunk-style "Daily Threat Forecast" card for the homepage.
-You must output a JSON object containing exactly the following keys:
-{
-  "codename": "A short codename, e.g. 'EQ-592', 'SOLAR-STORM-X', 'BIO-WARN-04'",
-  "name": "A compelling, alarming headline title representing the dominant real threat in uppercase",
-  "description": "A detailed, glitchy, lore-rich analysis of how this real-world hazard is escalating and affecting global containment nodes.",
-  "countermeasure": "Direct, practical survival instructions for operatives to safeguard their health, computing links, or resources.",
-  "severity": A number between 65 and 99 representing the severity percentage,
-  "status": "CRITICAL", "SEVERE", or "HIGH",
-  "location": "A highly concrete description of the primary geographical target/epicenter affected, citing specific cities, coordinate bounds, local sub-regions, or states derived from the telemetry details (e.g., 'Cruz Bay, U.S. Virgin Islands', 'Venilale, Timor-Leste', or 'Fairbanks Auroral Zone, Alaska (64.8° N)')",
-  "publishDate": "E.g. 'JUN 17, 2026'",
-  "source": "A short list of the actual sources used for this threat, e.g., 'USGS Seismic & NOAA Space Feeds' or 'GDACS Flood telemetry & WHO Disease reports'"
-}
-
-Keep descriptions and countermeasures technical, cold, and post-apocalyptic in tone. Avoid using em-dashes (—).`;
-
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: `Here is the current live telemetry:\n${telemetry.join("\n")}` }
-      ]
-    });
-
-    const parsed = JSON.parse(response.choices[0].message.content || "{}");
-    
-    const resultPayload = {
-      codename: parsed.codename || "SYS-WARN",
-      name: parsed.name || "UNIDENTIFIED THREAT VECTOR",
-      description: parsed.description || "Warning: telemetry analysis failed.",
-      countermeasure: parsed.countermeasure || "Remain inside secure quarantine zones.",
-      severity: parsed.severity || 80,
-      status: parsed.status || "CRITICAL",
-      location: parsed.location || "Global Containment Zones",
-      publishDate: parsed.publishDate || fallbackData.publishDate,
-      source: parsed.source || "Multiple Telemetry Sources"
-    };
-
-    // 3. Upsert to Supabase cache table
-    if (supabase) {
-      try {
-        await supabase.from("daily_threats").upsert({
-          date: today,
-          payload: resultPayload
-        });
-      } catch (err) {
-        console.warn("Failed to write daily threat forecast cache:", err);
-      }
-    }
-
-    return NextResponse.json(resultPayload);
-  } catch (err) {
-    console.error("Failed to generate dynamic AI threat forecast:", err);
-    return NextResponse.json(fallbackData);
   }
+
+  return NextResponse.json(payload);
 }
