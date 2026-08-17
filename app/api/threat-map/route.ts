@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { REALISTIC, FICTIONAL, SATIRICAL, ALGORITHMIC, Threat } from "@/lib/threats";
 import { fetchGDACS } from "@/lib/threats-fetchers";
+import { fetchSignalGrid } from "@/lib/signal-engine";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,9 @@ interface ThreatNode {
   confidence?: number;
   observedAt?: string;
   updatedAt?: string;
+  priorityScore?: number;
+  freshness?: "FRESH" | "CURRENT" | "AGING" | "STALE";
+  ageHours?: number;
 }
 
 function liveProvenance(node: ThreatNode) {
@@ -207,6 +211,35 @@ export async function GET(request: NextRequest) {
   // requested explicitly so an omitted query parameter can never mix them into a live map.
   const liveOnly = request.nextUrl.searchParams.get("scope") !== "archive";
   const nodes: ThreatNode[] = [];
+
+  if (liveOnly) {
+    const grid = await fetchSignalGrid({ sourceIds: ["USGS", "NASA_EONET", "GDACS"] });
+    const liveNodes: ThreatNode[] = grid.signals
+      .filter((signal) => Number.isFinite(signal.lat) && Number.isFinite(signal.lng))
+      .map((signal) => ({
+        id: signal.id,
+        name: signal.name,
+        type: signal.kind === "GEOLOGICAL" ? "GEOLOGICAL" : signal.kind === "HEALTH" ? "BIOLOGICAL" : "METEOROLOGICAL",
+        category: "realistic",
+        severity: signal.severity,
+        lat: signal.lat!,
+        lng: signal.lng!,
+        coords: geoToSvg(signal.lat!, signal.lng!),
+        region: signal.region,
+        desc: signal.fact,
+        solution: signal.action,
+        analysis: signal.assessment,
+        source: signal.source,
+        sourceUrl: signal.sourceUrl,
+        confidence: signal.confidence,
+        observedAt: signal.observedAt,
+        updatedAt: signal.updatedAt,
+        priorityScore: signal.priorityScore,
+        freshness: signal.freshness,
+        ageHours: signal.ageHours,
+      }));
+    return NextResponse.json(sanitizeNodes(liveNodes));
+  }
 
   // Default fallback data in case external APIs fail or are offline
   const fallbackNodes: ThreatNode[] = [

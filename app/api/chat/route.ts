@@ -16,7 +16,7 @@ import {
 import { isValidSolanaPublicKey } from "@/lib/solana";
 import { readThreatBalance } from "@/lib/onchain";
 import { getThreatClearance } from "@/lib/threat-token";
-import { findVerifiedLiveMapSignal, VerifiedMapSignal } from "@/lib/live-map-signals";
+import { findVerifiedSignalById, NormalizedSignal } from "@/lib/signal-engine";
 import {
   formatAgentMessage,
   RED_QUEEN_RESPONSE_SCHEMA,
@@ -125,14 +125,14 @@ async function getVerifiedDailyPulse(): Promise<LivePulse | null> {
   }
 }
 
-function mapSignalToPulse(signal: VerifiedMapSignal): LivePulse {
+function mapSignalToPulse(signal: NormalizedSignal): LivePulse {
   return {
     schemaVersion: 2,
     verified: true,
     name: signal.name,
-    description: signal.description,
+    description: signal.fact,
     assessment: signal.assessment,
-    countermeasure: signal.countermeasure,
+    countermeasure: signal.action,
     location: signal.region,
     source: signal.source,
     sourceUrl: signal.sourceUrl,
@@ -270,7 +270,7 @@ export async function POST(req: Request) {
     const bioScore = calculateBioScore(stats);
     const focusAreas = getCleanScenarios(userProfile?.chosen_scenarios);
     const selectedMapSignal = sessionContext.signalId
-      ? await findVerifiedLiveMapSignal(sessionContext.signalId)
+      ? await findVerifiedSignalById(sessionContext.signalId)
       : null;
     const livePulse = sessionContext.signalId
       ? selectedMapSignal ? mapSignalToPulse(selectedMapSignal) : null

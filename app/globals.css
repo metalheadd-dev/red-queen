@@ -1869,6 +1869,23 @@ body:has(#game-player-root) .page-content {
 .pulse-action-links a,
 .pulse-inline-link { color: var(--accent); font: 700 9px var(--mono); letter-spacing: .1em; text-decoration: none; }
 
+.pulse-source-grid { margin-top: 14px; border: 1px solid rgba(112,199,232,.16); background: rgba(5,8,11,.92); }
+.pulse-source-grid > header { display:flex;align-items:end;justify-content:space-between;gap:20px;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07); }
+.pulse-source-grid > header strong { display:block;margin-top:6px;color:#fff;font-size:14px;text-transform:none; }
+.pulse-source-grid > header small { color:rgba(255,255,255,.35);font:700 8px var(--mono);letter-spacing:.08em; }
+.pulse-source-grid > div { display:grid;grid-template-columns:repeat(6,minmax(0,1fr)); }
+.pulse-source-grid article { position:relative;min-width:0;padding:14px 14px 13px 26px;border-right:1px solid rgba(255,255,255,.06); }
+.pulse-source-grid article:last-child { border-right:0; }
+.pulse-source-grid article i { position:absolute;top:17px;left:13px;width:6px;height:6px;border-radius:50%;background:#a8ff60;box-shadow:0 0 9px rgba(168,255,96,.6); }
+.pulse-source-grid article[data-status="NO_SIGNALS"] i { background:#70c7e8;box-shadow:0 0 9px rgba(112,199,232,.55); }
+.pulse-source-grid article[data-status="OFFLINE"] i { background:var(--accent);box-shadow:0 0 9px rgba(255,0,51,.6); }
+.pulse-source-grid article span,.pulse-source-grid article strong,.pulse-source-grid article small { display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono); }
+.pulse-source-grid article span { color:rgba(255,255,255,.72);font-size:9px;font-weight:700; }
+.pulse-source-grid article strong { margin-top:8px;color:#a8ff60;font-size:8px;letter-spacing:.08em; }
+.pulse-source-grid article[data-status="NO_SIGNALS"] strong { color:#70c7e8; }
+.pulse-source-grid article[data-status="OFFLINE"] strong { color:var(--accent); }
+.pulse-source-grid article small { margin-top:5px;color:rgba(255,255,255,.38);font-size:8px; }
+.pulse-source-grid > p { margin:0;padding:10px 20px;border-top:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.38);font:700 8px/1.5 var(--mono); }
 .pulse-ranked-signals { margin-top: 14px; border: 1px solid rgba(255,255,255,.1); background: linear-gradient(115deg,rgba(9,10,13,.98),rgba(18,4,9,.94)); }
 .pulse-ranked-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,.07); }
 .pulse-ranked-heading h3 { margin: 6px 0 0; color: #fff; font-size: 18px; text-transform: none; }
@@ -2143,6 +2160,9 @@ body:has(#game-player-root) .page-content {
   .pulse-card { min-height: auto; padding: 22px; }
   .pulse-action-card { min-height: 290px; }
   .pulse-ranked-heading { align-items: flex-start; flex-direction: column; }
+  .pulse-source-grid > header { align-items:flex-start;flex-direction:column; }
+  .pulse-source-grid > div { grid-template-columns:repeat(2,1fr); }
+  .pulse-source-grid article { border-bottom:1px solid rgba(255,255,255,.06); }
   .pulse-metadata { grid-template-columns: 1fr; }
   .pulse-filter-group { width: 100%; overflow-x: auto; }
   .pulse-filter-group button { flex: 1 0 auto; }

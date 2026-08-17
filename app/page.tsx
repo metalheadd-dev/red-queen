@@ -41,12 +41,25 @@ interface PulseData {
   isFallback?: boolean;
   signalCount?: number;
   signals?: PulseSignal[];
+  sourceHealth?: SourceHealth[];
+  coverage?: { online: number; total: number; signalCount: number };
+  priorityScore?: number;
+  freshness?: "FRESH" | "CURRENT" | "AGING" | "STALE";
+}
+
+interface SourceHealth {
+  id: string;
+  label: string;
+  status: "ONLINE" | "NO_SIGNALS" | "OFFLINE";
+  signalCount: number;
+  checkedAt: string;
+  latestObservedAt?: string;
 }
 
 interface PulseSignal {
   id: string;
   name: string;
-  kind: "GEOLOGICAL" | "WILDFIRE" | "SPACE_WEATHER" | "CYBER" | "HEALTH";
+  kind: "GEOLOGICAL" | "WILDFIRE" | "DISASTER" | "SPACE_WEATHER" | "CYBER" | "HEALTH";
   severity: number;
   location: string;
   observedAt: string;
@@ -54,6 +67,9 @@ interface PulseSignal {
   sourceUrl: string;
   fact: string;
   confidence: number;
+  priorityScore?: number;
+  freshness?: "FRESH" | "CURRENT" | "AGING" | "STALE";
+  ageHours?: number;
 }
 
 interface RankedSignal {
@@ -67,6 +83,7 @@ interface RankedSignal {
   verified: boolean;
   score: number;
   reason: string;
+  freshness?: string;
   node?: MapNode;
 }
 
@@ -89,6 +106,9 @@ interface MapNode {
   observedAt?: string;
   updatedAt?: string;
   scannedAt?: string;
+  priorityScore?: number;
+  freshness?: "FRESH" | "CURRENT" | "AGING" | "STALE";
+  ageHours?: number;
 }
 
 const TacticalMap = dynamic(() => import("@/components/TacticalMap"), {
@@ -111,6 +131,8 @@ const SENSOR_LIMITED: PulseData = {
   isFallback: true,
   signalCount: 0,
   signals: [],
+  sourceHealth: [],
+  coverage: { online: 0, total: 0, signalCount: 0 },
 };
 
 function relativeTime(value?: string) {
@@ -259,11 +281,11 @@ export default function HomePage() {
     const mapped: RankedSignal[] = nodes.map((node) => {
       const distance = location ? distanceInKm(location, node) : undefined;
       const proximity = distance === undefined ? 0 : distance <= 100 ? 30 : distance <= 300 ? 24 : distance <= 1_000 ? 16 : 0;
-      const score = node.severity * .65 + (node.verified ? 12 : 0) + proximity;
+      const score = Math.min(100, (node.priorityScore ?? node.severity * .65 + (node.verified ? 12 : 0)) + proximity);
       const reason = distance !== undefined && distance <= 1_000
         ? `${Math.round(distance)} km from your broad area`
         : node.verified
-          ? "High-priority verified source"
+          ? `${node.freshness || "CURRENT"} · verified source`
           : "Elevated global signal";
       return {
         id: node.id,
@@ -276,6 +298,7 @@ export default function HomePage() {
         verified: node.verified === true,
         score,
         reason,
+        freshness: node.freshness,
         node,
       };
     });
@@ -290,12 +313,13 @@ export default function HomePage() {
         source: signal.source,
         sourceUrl: signal.sourceUrl,
         verified: signal.confidence >= 90,
-        score: signal.severity * .65 + (signal.confidence >= 90 ? 12 : 0),
+        score: signal.priorityScore ?? signal.severity * .65 + (signal.confidence >= 90 ? 12 : 0),
         reason: signal.kind === "HEALTH"
-          ? "New WHO public-health notice"
+          ? `${signal.freshness || "CURRENT"} · WHO public-health notice`
           : signal.kind === "CYBER"
-            ? "Actively exploited vulnerability"
-            : "Official global systems notice",
+            ? `${signal.freshness || "CURRENT"} · actively exploited vulnerability`
+            : `${signal.freshness || "CURRENT"} · official global systems notice`,
+        freshness: signal.freshness,
       }));
     return [...mapped, ...nonMapped].sort((a, b) => b.score - a.score).slice(0, 3);
   }, [localContext, nodes, pulse.signals]);
@@ -511,7 +535,7 @@ export default function HomePage() {
           </div>
           <div className={`pulse-trust ${pulse.verified ? "is-verified" : "is-limited"}`}>
             <span>{pulse.verified ? "VERIFIED" : "LIMITED"}</span>
-            <strong>{pulse.verified ? `${pulse.confidence ?? 0}% SOURCE CONFIDENCE` : "NO CLAIM ISSUED"}</strong>
+            <strong>{pulse.verified ? `${pulse.confidence ?? 0}% SOURCE CONFIDENCE · ${pulse.freshness || "CURRENT"}` : "NO CLAIM ISSUED"}</strong>
           </div>
         </div>
 
@@ -545,10 +569,30 @@ export default function HomePage() {
           </article>
         </div>
 
+        {!!pulse.sourceHealth?.length && (
+          <div className="pulse-source-grid">
+            <header>
+              <div><span className="pulse-eyebrow">SOURCE GRID // LIVE COVERAGE</span><strong>{pulse.coverage?.online || 0}/{pulse.coverage?.total || pulse.sourceHealth.length} sources reachable</strong></div>
+              <small>{pulse.coverage?.signalCount || 0} NORMALIZED SIGNALS · CHECKED {relativeTime(pulse.generatedAt).toUpperCase()}</small>
+            </header>
+            <div>
+              {pulse.sourceHealth.map((source) => (
+                <article key={source.id} data-status={source.status}>
+                  <i />
+                  <span>{source.label}</span>
+                  <strong>{source.status === "NO_SIGNALS" ? "NO CURRENT SIGNALS" : source.status}</strong>
+                  <small>{source.signalCount} SIGNALS{source.latestObservedAt ? ` · LATEST ${relativeTime(source.latestObservedAt).toUpperCase()}` : ""}</small>
+                </article>
+              ))}
+            </div>
+            <p>Reachability confirms the source responded — not that every local event is covered. Always follow official alerts for your area.</p>
+          </div>
+        )}
+
         <div className="pulse-ranked-signals">
           <div className="pulse-ranked-heading">
             <div><span className="pulse-eyebrow">QUEEN PRIORITY // PERSONAL TOP 3</span><h3>{hasResolvedArea ? `What deserves attention near ${localContext!.area}` : "What deserves attention in the signal field"}</h3></div>
-            <small>RANKED BY SEVERITY · SOURCE CONFIDENCE{hasResolvedArea ? " · PROXIMITY" : ""}</small>
+            <small>RANKED BY SEVERITY · CONFIDENCE · FRESHNESS{hasResolvedArea ? " · PROXIMITY" : ""}</small>
           </div>
           <div className="pulse-ranked-grid">
             {rankedSignals.map((signal, index) => (

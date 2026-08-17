@@ -153,10 +153,13 @@ function gdacsEventName(type: string) {
 }
 
 // European Commission Joint Research Centre / United Nations disaster alert feed.
-export async function fetchGDACS(): Promise<LiveMapNode[]> {
+export async function fetchGDACS(options: { throwOnError?: boolean } = {}): Promise<LiveMapNode[]> {
   try {
     const res = await fetchWithTimeout("https://www.gdacs.org/xml/rss.xml", {}, 6000);
-    if (!res.ok) return [];
+    if (!res.ok) {
+      if (options.throwOnError) throw new Error(`GDACS ${res.status}`);
+      return [];
+    }
     const xmlText = await res.text();
     const nodes: LiveMapNode[] = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
@@ -195,7 +198,8 @@ export async function fetchGDACS(): Promise<LiveMapNode[]> {
     }
 
     return nodes;
-  } catch {
+  } catch (error) {
+    if (options.throwOnError) throw error;
     return [];
   }
 }
