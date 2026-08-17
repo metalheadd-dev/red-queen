@@ -1933,6 +1933,8 @@ body:has(#game-player-root) .page-content {
 .signal-watch-results article.is-new span { color: #a8ff60; }
 .signal-watch-results article strong { display: block; margin-top: 5px; color: #fff; font-size: 10px; line-height: 1.35; }
 .signal-watch-results article small { display: block; margin-top: 5px; color: rgba(255,255,255,.34); font-size: 8px; line-height: 1.4; }
+.signal-watch-results article a { display: inline-block; margin-top: 7px; color: rgba(255,255,255,.62); font: 700 7px var(--mono); letter-spacing: .06em; text-decoration: none; }
+.signal-watch-results article a:hover { color: #fff; }
 .signal-watch-results p { grid-column: 1 / -1; margin: 0; color: rgba(255,255,255,.45); font-size: 10px; }
 .signal-watch-results > a { padding: 10px 12px; border: 1px solid rgba(255,0,51,.42); color: #fff; background: rgba(255,0,51,.07); font: 700 8px var(--mono); text-decoration: none; white-space: nowrap; }
 .signal-watch-limit { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin: 0 12px 12px; padding: 10px 12px; border: 1px solid rgba(240,201,41,.24); background: rgba(240,201,41,.045); }

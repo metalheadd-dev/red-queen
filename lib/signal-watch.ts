@@ -1,7 +1,7 @@
 export const SIGNAL_WATCH_STORAGE_KEY = "rq-signal-watch-v1";
 export const SIGNAL_WATCH_EVENT = "rq-signal-watch-updated";
 
-export type SignalWatchType = "GEOLOGICAL" | "METEOROLOGICAL" | "BIOLOGICAL" | "KINETIC" | "ALGORITHMIC";
+export type SignalWatchType = "GEOLOGICAL" | "METEOROLOGICAL" | "KINETIC" | "ALGORITHMIC" | "SPACE_WEATHER";
 
 export interface SignalWatchMemory {
   version: 1;
@@ -14,9 +14,9 @@ export interface SignalWatchMemory {
 export const SIGNAL_WATCH_OPTIONS: Array<{ id: SignalWatchType; label: string; description: string }> = [
   { id: "GEOLOGICAL", label: "Seismic", description: "Earthquakes and volcanic events" },
   { id: "METEOROLOGICAL", label: "Climate", description: "Floods, storms, fires and drought" },
-  { id: "BIOLOGICAL", label: "Biological", description: "Source-backed public-health signals" },
   { id: "KINETIC", label: "Infrastructure", description: "Humanitarian and infrastructure disruption" },
-  { id: "ALGORITHMIC", label: "Digital", description: "Cyber and Solana security signals" },
+  { id: "ALGORITHMIC", label: "Digital", description: "CISA cyber and Solana security signals" },
+  { id: "SPACE_WEATHER", label: "Space weather", description: "NOAA grid, radio and navigation notices" },
 ];
 
 const WATCH_TYPES = new Set(SIGNAL_WATCH_OPTIONS.map((option) => option.id));

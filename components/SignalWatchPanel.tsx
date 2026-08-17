@@ -18,10 +18,11 @@ export interface WatchableSignal {
   name: string;
   type: string;
   severity: number;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
   region: string;
   source?: string;
+  sourceUrl?: string;
   verified?: boolean;
 }
 
@@ -43,7 +44,9 @@ function distanceInKm(a: { lat: number; lng: number }, b: { lat: number; lng: nu
 
 function isWatched(signal: WatchableSignal, memory: SignalWatchMemory, location?: { lat: number; lng: number } | null) {
   const typeMatch = memory.types.includes(signal.type as SignalWatchType);
-  const localMatch = Boolean(memory.localPriority && location && signal.severity >= 60 && distanceInKm(location, signal) <= 1_000);
+  const hasCoordinates = Number.isFinite(signal.lat) && Number.isFinite(signal.lng);
+  const localMatch = Boolean(memory.localPriority && location && hasCoordinates && signal.severity >= 60
+    && distanceInKm(location, { lat: signal.lat!, lng: signal.lng! }) <= 1_000);
   return signal.verified !== false && (typeMatch || localMatch);
 }
 
@@ -181,6 +184,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
                 <span>{newSignalIds.includes(signal.id) ? "NEW THIS SCAN" : signal.type}</span>
                 <strong>{signal.name}</strong>
                 <small>{signal.source || "SOURCE PENDING"} · {signal.region}</small>
+                {signal.sourceUrl && <a href={signal.sourceUrl} target="_blank" rel="noopener noreferrer">OPEN SOURCE ↗</a>}
               </article>
             ))}
             {!matchedSignals.length && <p>No current verified signals match this watch. This is not proof of safety; check official local alerts.</p>}

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
 import { fetchWithTimeout } from "@/lib/threats-fetchers";
 
 export const dynamic = "force-dynamic";
@@ -172,7 +171,7 @@ async function fetchCISA(): Promise<SourceSignal[]> {
 function sensorLimitedPayload() {
   const generatedAt = new Date().toISOString();
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     codename: "RQ-SENSORS",
     name: "Live intelligence is temporarily limited",
     description:
@@ -191,32 +190,18 @@ function sensorLimitedPayload() {
     verified: false,
     isFallback: true,
     signalCount: 0,
+    signals: [],
   };
 }
 
 export async function POST() {
-  const today = new Date().toISOString().split("T")[0];
-
-  if (supabase) {
-    try {
-      const { data: cached, error } = await supabase
-        .from("daily_threats")
-        .select("payload")
-        .eq("date", today)
-        .single();
-      if (!error && cached?.payload?.schemaVersion === 2) {
-        return NextResponse.json(cached.payload);
-      }
-    } catch (error) {
-      console.warn("Daily intelligence cache unavailable:", error);
-    }
-  }
-
   const settled = await Promise.allSettled([fetchUSGS(), fetchNASA(), fetchNOAA(), fetchCISA()]);
   const signals = settled.flatMap((result) => (result.status === "fulfilled" ? result.value : []));
 
   if (signals.length === 0) {
-    return NextResponse.json(sensorLimitedPayload());
+    return NextResponse.json(sensorLimitedPayload(), {
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" },
+    });
   }
 
   const primary = [...signals].sort((a, b) => {
@@ -225,7 +210,7 @@ export async function POST() {
   })[0];
   const generatedAt = new Date().toISOString();
   const payload = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     codename: primary.id.toUpperCase().slice(0, 28),
     name: primary.name,
     description: primary.fact,
@@ -242,15 +227,10 @@ export async function POST() {
     verified: true,
     isFallback: false,
     signalCount: signals.length,
+    signals: signals.slice(0, 20),
   };
 
-  if (supabase) {
-    try {
-      await supabase.from("daily_threats").upsert({ date: today, payload }, { onConflict: "date" });
-    } catch (error) {
-      console.warn("Failed to cache daily intelligence:", error);
-    }
-  }
-
-  return NextResponse.json(payload);
+  return NextResponse.json(payload, {
+    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+  });
 }

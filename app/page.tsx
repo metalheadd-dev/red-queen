@@ -33,6 +33,20 @@ interface PulseData {
   verified?: boolean;
   isFallback?: boolean;
   signalCount?: number;
+  signals?: PulseSignal[];
+}
+
+interface PulseSignal {
+  id: string;
+  name: string;
+  kind: "GEOLOGICAL" | "WILDFIRE" | "SPACE_WEATHER" | "CYBER";
+  severity: number;
+  location: string;
+  observedAt: string;
+  source: string;
+  sourceUrl: string;
+  fact: string;
+  confidence: number;
 }
 
 interface MapNode {
@@ -73,6 +87,7 @@ const SENSOR_LIMITED: PulseData = {
   verified: false,
   isFallback: true,
   signalCount: 0,
+  signals: [],
 };
 
 function relativeTime(value?: string) {
@@ -174,6 +189,22 @@ export default function HomePage() {
       .filter((node) => distanceInKm(localContext.location!, node) <= 1_000)
       .sort((a, b) => distanceInKm(localContext.location!, a) - distanceInKm(localContext.location!, b));
   }, [localContext, nodes]);
+
+  const nonMapWatchSignals = useMemo(
+    () => (pulse.signals || [])
+      .filter((signal) => signal.kind === "SPACE_WEATHER" || signal.kind === "CYBER")
+      .map((signal) => ({
+        id: signal.id,
+        name: signal.name,
+        type: signal.kind === "CYBER" ? "ALGORITHMIC" : "SPACE_WEATHER",
+        severity: signal.severity,
+        region: signal.location,
+        source: signal.source,
+        sourceUrl: signal.sourceUrl,
+        verified: signal.confidence >= 90,
+      })),
+    [pulse.signals],
+  );
 
   const finishBoot = () => {
     sessionStorage.setItem("rq-booted", "1");
@@ -440,7 +471,7 @@ export default function HomePage() {
           </div>
         )}
 
-        <SignalWatchPanel nodes={nodes} area={localContext?.area} location={localContext?.location || null} />
+        <SignalWatchPanel nodes={[...nodes, ...nonMapWatchSignals]} area={localContext?.area} location={localContext?.location || null} />
 
         <div className="pulse-map-shell">
           {mapLoading ? (
