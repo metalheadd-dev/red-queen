@@ -9,9 +9,9 @@ const nextConfig: NextConfig = {
     return [
       { source: "/operations/:path*", destination: "/", permanent: false },
       { source: "/operations-docs", destination: "/", permanent: false },
-      { source: "/solvivors", destination: "/", permanent: false },
-      { source: "/leaderboard", destination: "/", permanent: false },
-      { source: "/roadmap", destination: "/", permanent: false },
+      { source: "/solvivors", destination: "/community", permanent: false },
+      { source: "/leaderboard", destination: "/operative", permanent: false },
+      { source: "/roadmap", destination: "/community#community-files", permanent: false },
       { source: "/api/operations/:path*", destination: "/", permanent: false },
       { source: "/api/marketplace/:path*", destination: "/", permanent: false },
       { source: "/api/quests/:path*", destination: "/", permanent: false },
