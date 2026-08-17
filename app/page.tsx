@@ -350,30 +350,30 @@ export default function HomePage() {
   }
 
   const beginFirstContact = async () => {
-    const area = sanitizeArea(startArea);
-    if (area.length < 2) {
-      setStartError("Enter a city or region — never an exact address.");
-      return;
-    }
+    const sanitizedArea = sanitizeArea(startArea);
+    const area = sanitizedArea.length >= 2 ? sanitizedArea : "";
     setStartResolving(true);
+    setStartError("");
     const focus = getFocusOption(startFocus);
     let location: SurvivalContext["location"];
-    try {
-      location = await resolveBroadArea(area);
-    } catch {
-      location = undefined;
+    if (area.length >= 2) {
+      try {
+        location = await resolveBroadArea(area);
+      } catch {
+        location = undefined;
+      }
     }
     const context: SurvivalContext = { area, focus: focus.id, mode: focus.mode, location };
     localStorage.setItem("rq-survival-context-v1", JSON.stringify(context));
     localStorage.setItem("rq-core-onboarding-v1", "done");
     setLocalContext(context);
     const params = new URLSearchParams({
-      area,
       focus: focus.id,
       mode: focus.mode,
       first: "1",
       prompt: buildFirstContactPrompt(context),
     });
+    if (area) params.set("area", area);
     router.push(`/terminal?${params.toString()}`);
     setStartResolving(false);
   };
@@ -486,19 +486,19 @@ export default function HomePage() {
           <div className="pulse-onboarding-copy">
             <span className="pulse-eyebrow">FIRST CONTACT // 60 SECONDS</span>
             <h2>Tell the Queen what you want to survive</h2>
-            <p>Choose a broad area and your immediate priority. RED QUEEN will separate evidence from noise and give you one action you can take now — without requesting an exact address.</p>
+            <p>Choose your immediate priority. A broad city or region adds local relevance, but it is optional. RED QUEEN will separate evidence from noise and give you one action you can take now.</p>
           </div>
           <div className="pulse-first-contact">
-            <label htmlFor="first-contact-area">CITY OR REGION</label>
+            <label htmlFor="first-contact-area">CITY OR REGION <small>OPTIONAL</small></label>
             <input
               id="first-contact-area"
               value={startArea}
               onChange={(event) => { setStartArea(event.target.value); setStartError(""); }}
-              placeholder="Barcelona, Catalonia"
+              placeholder="Optional · Barcelona, Catalonia"
               maxLength={80}
               autoComplete="address-level2"
             />
-            <span className="pulse-field-note">Saved on this device. Sent only with your RED QUEEN requests. Never enter a street address.</span>
+            <span className="pulse-field-note">No account or wallet required. Area is saved on this device and sent only with your RED QUEEN requests. Never enter a street address.</span>
             <div className="pulse-focus-grid" role="radiogroup" aria-label="Preparedness priority">
               {SURVIVAL_FOCUS_OPTIONS.map((option) => (
                 <button

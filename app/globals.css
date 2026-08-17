@@ -1777,6 +1777,7 @@ body:has(#game-player-root) .page-content {
 .pulse-onboarding p { max-width: 720px; color: rgba(255, 255, 255, 0.62); font-size: 14px; line-height: 1.6; }
 .pulse-first-contact { display: grid; gap: 9px; }
 .pulse-first-contact > label { color: rgba(255,255,255,.62); font: 700 9px var(--mono); letter-spacing: .14em; }
+.pulse-first-contact > label small { margin-left: 5px; color: rgba(255,255,255,.3); font: inherit; }
 .pulse-first-contact > input {
   width: 100%;
   padding: 12px 13px;

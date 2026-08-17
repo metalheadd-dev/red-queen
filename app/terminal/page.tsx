@@ -1123,7 +1123,7 @@ To decrypt or scan target files:
               <div className="queen-core queen-core-small"><span /></div>
               <div>
                 <span>FIRST CONTACT READY</span>
-                <strong>{survivalContext.area} · {getFocusOption(survivalContext.focus).label}</strong>
+                <strong>{survivalContext.area ? `${survivalContext.area} · ` : "GLOBAL · "}{getFocusOption(survivalContext.focus).label}</strong>
                 <p>Run the brief → save RED QUEEN&apos;s next action → complete it in My Plan. This first question creates an action; it does not change BIO-SCORE.</p>
               </div>
               <button type="button" onClick={() => setFirstContact(false)}>DISMISS</button>

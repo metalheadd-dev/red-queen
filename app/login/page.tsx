@@ -91,8 +91,8 @@ export default function LoginPage() {
           The public intelligence platform remains open without an account.
         </p>
         <div className="rq-login-benefits">
-          <div><span>01</span><strong>Save your readiness</strong><small>Checklist progress, BIO-SCORE evidence and next actions.</small></div>
-          <div><span>02</span><strong>Keep Queen in context</strong><small>Your region, priorities and training history follow you.</small></div>
+          <div><span>01</span><strong>Save verified readiness</strong><small>BIO-SCORE evidence, Queen history and your SOLvivor identity.</small></div>
+          <div><span>02</span><strong>Keep Queen in context</strong><small>Account history persists; broad-area and checklist preferences remain on your device.</small></div>
           <div><span>03</span><strong>Verify $THREAT utility</strong><small>Connect Solana only when you want holder clearance and premium depth.</small></div>
         </div>
       </section>
