@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAuth } from "@/components/AuthProvider";
@@ -106,6 +106,12 @@ export default function OperativeProfilePage() {
   const [verifyStatus, setVerifyStatus] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [localChecks, setLocalChecks] = useState(0);
+  const [avatar, setAvatar] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [avatarStatus, setAvatarStatus] = useState("");
+  const [generatingAvatar, setGeneratingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const generatedName = identity ? generateApocalypticName(identity) : "";
 
@@ -158,6 +164,21 @@ export default function OperativeProfilePage() {
       setLocalChecks(0);
     }
   }, []);
+
+  useEffect(() => {
+    if (!identity) return;
+    try {
+      setAvatar(localStorage.getItem(`rq-solvivor-avatar-v1:${identity}`) || "");
+    } catch {
+      setAvatar("");
+    }
+  }, [identity]);
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
 
   useEffect(() => {
     if (identity && !authLoading) loadAccount();
@@ -216,14 +237,65 @@ export default function OperativeProfilePage() {
     }
   }
 
+  function chooseAvatarSource(file?: File) {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 6 * 1024 * 1024) {
+      setAvatarStatus("Use a JPEG, PNG or WebP portrait smaller than 6 MB.");
+      return;
+    }
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+    setAvatarStatus("Portrait ready. Nothing is sent until you choose Generate.");
+  }
+
+  async function generateAvatar() {
+    if (!avatarFile || !session?.access_token || tokenBalance <= 0) return;
+    setGeneratingAvatar(true);
+    setAvatarStatus("RED QUEEN is reconstructing your SOLvivor identity...");
+    try {
+      const body = new FormData();
+      body.set("photo", avatarFile);
+      const response = await fetch("/api/profile/avatar", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body,
+      });
+      const data = await response.json();
+      if (!response.ok || !data.avatarDataUrl) throw new Error(data.error || "Portrait generation failed.");
+      setAvatar(data.avatarDataUrl);
+      setAvatarStatus("Queen Visage generated and saved on this device.");
+      try {
+        localStorage.setItem(`rq-solvivor-avatar-v1:${identity}`, data.avatarDataUrl);
+      } catch {
+        setAvatarStatus("Queen Visage generated. Browser storage is full, so download it before leaving.");
+      }
+    } catch (error) {
+      setAvatarStatus(error instanceof Error ? error.message : "Portrait generation failed.");
+    } finally {
+      setGeneratingAvatar(false);
+    }
+  }
+
+  function removeAvatar() {
+    setAvatar("");
+    setAvatarFile(null);
+    setAvatarStatus("Local Queen Visage removed.");
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarPreview("");
+    if (avatarInputRef.current) avatarInputRef.current.value = "";
+    try { localStorage.removeItem(`rq-solvivor-avatar-v1:${identity}`); } catch {}
+  }
+
   const stats = profile?.stats || DEFAULT_STATS;
   const calculatedScore = calculateBioScore(stats);
   const bioScore = calculatedScore || profile?.last_bio_score || 0;
   const readinessTier = getClearanceLevel(bioScore);
   const tokenBalance = Number(profile?.verified_balance || 0);
+  const isThreatHolder = tokenBalance > 0;
   const tokenClearance = getThreatClearance(tokenBalance);
   const nextTokenClearance = getNextThreatClearance(tokenBalance);
-  const displayName = customName || profile?.apocalyptic_name || generatedName || "UNREGISTERED SURVIVOR";
+  const displayName = customName || profile?.apocalyptic_name || generatedName || "UNREGISTERED SOLVIVOR";
   const xpProgress = stats.xp % 100;
   const localProgress = Math.round((localChecks / PREPAREDNESS_CHECKLIST.length) * 100);
   const verifiedWallet = identity.startsWith("email-auth:")
@@ -279,9 +351,12 @@ export default function OperativeProfilePage() {
     <div className="rq-profile-page">
       <header className="rq-profile-hero">
         <div className="container rq-profile-identity">
-          <div className="rq-profile-avatar"><div className="queen-core"><span /></div><b>RQ-ID</b></div>
+          <div className={`rq-profile-avatar${avatar ? " has-visage" : ""}`}>
+            {avatar ? <img src={avatar} alt={`${displayName} Queen Visage`} /> : <div className="queen-core"><span /></div>}
+            <b>SOLVIVOR ID</b>
+          </div>
           <div className="rq-profile-name">
-            <span className="pulse-eyebrow">MY READINESS // VERIFIED ACCOUNT</span>
+            <span className="pulse-eyebrow">SURVIVAL IDENTITY // VERIFIED SOLVIVOR</span>
             {editingName ? (
               <div className="rq-profile-name-editor">
                 <input value={customName} maxLength={36} autoFocus onChange={(event) => setCustomName(event.target.value.toUpperCase())} onKeyDown={(event) => { if (event.key === "Enter") saveName(); }} />
@@ -312,6 +387,48 @@ export default function OperativeProfilePage() {
         <section className="rq-profile-next">
           <div><span>RED QUEEN // NEXT LOOP</span><h2>{bioScore === 0 ? "Establish an evidence-based readiness baseline" : `Strengthen ${weakestDomain.label}`}</h2><p>{bioScore === 0 ? "Queen will present one decision at a time. Your first question alone will not change BIO." : weakestDomain.description}</p></div>
           <Link href={baselineHref}>{bioScore === 0 ? "RUN 3-MIN BASELINE" : "START FOCUSED DRILL"} →</Link>
+        </section>
+
+        <section className={`rq-profile-visage${isThreatHolder ? " is-unlocked" : " is-locked"}`}>
+          <div className="rq-profile-visage-copy">
+            <span>QUEEN VISAGE // $THREAT HOLDER UTILITY</span>
+            <h2>Enter the system in RED QUEEN form.</h2>
+            <p>Upload a clear portrait and the Queen will reconstruct it in the platform&apos;s red-and-white apocalyptic intelligence style while preserving your identity.</p>
+            <ul>
+              <li>Available only to accounts with verified $THREAT holdings.</li>
+              <li>The source image is sent only after you press Generate.</li>
+              <li>The generated portrait stays on this device unless you download or share it.</li>
+            </ul>
+            {!isThreatHolder && <Link href="/network-clearance">VERIFY $THREAT TO UNLOCK →</Link>}
+          </div>
+          <div className="rq-profile-visage-studio">
+            <div className="rq-profile-visage-preview">
+              {!isThreatHolder ? (
+                <div className="rq-profile-visage-lock"><span>HOLDER ACCESS</span><strong>Queen Visage awaits verified $THREAT clearance.</strong></div>
+              ) : avatar || avatarPreview ? (
+                <img src={avatar || avatarPreview} alt={avatar ? "Generated Queen Visage" : "Portrait selected for Queen Visage"} />
+              ) : (
+                <div><span>NO PORTRAIT LOADED</span><strong>Your face. Her visual language.</strong></div>
+              )}
+              <i>{!isThreatHolder ? "LOCKED // $THREAT REQUIRED" : avatar ? "QUEEN VISAGE ACTIVE" : avatarPreview ? "SOURCE PREVIEW" : "AWAITING SOURCE"}</i>
+            </div>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+              onChange={(event) => chooseAvatarSource(event.target.files?.[0])}
+            />
+            <div className="rq-profile-visage-actions">
+              <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={!isThreatHolder || generatingAvatar}>CHOOSE PORTRAIT</button>
+              <button type="button" className="primary" onClick={generateAvatar} disabled={!isThreatHolder || !avatarFile || generatingAvatar}>
+                {!isThreatHolder ? "HOLDER ACCESS ONLY" : generatingAvatar ? "RECONSTRUCTING..." : "GENERATE QUEEN VISAGE"}
+              </button>
+              {avatar && <a href={avatar} download="red-queen-solvivor.webp">DOWNLOAD</a>}
+              {(avatar || avatarPreview) && <button type="button" onClick={removeAvatar} disabled={generatingAvatar}>REMOVE</button>}
+            </div>
+            {avatarStatus && <p className="rq-profile-visage-status">{avatarStatus}</p>}
+          </div>
         </section>
 
         <section className="rq-profile-metrics" aria-label="Readiness summary">

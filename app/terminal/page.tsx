@@ -1,5 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useAuth } from "@/components/AuthProvider";
@@ -498,6 +500,7 @@ export default function TerminalPage() {
   });
   const [firstContact, setFirstContact] = useState(false);
   const [savedActionText, setSavedActionText] = useState("");
+  const [localPreparednessCount, setLocalPreparednessCount] = useState(0);
   const [apocalypticName, setApocalypticName] = useState<string>("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -761,6 +764,12 @@ export default function TerminalPage() {
   useEffect(() => {
     const savedAction = readDailyActions(localStorage).find((action) => action.status === "ACTIVE") || null;
     setSavedActionText(savedAction?.action || "");
+    try {
+      const checklist = JSON.parse(localStorage.getItem("rq-preparedness-checklist-v1") || "{}");
+      setLocalPreparednessCount(Object.values(checklist).filter(Boolean).length);
+    } catch {
+      setLocalPreparednessCount(0);
+    }
   }, []);
 
   useEffect(() => {
@@ -998,23 +1007,37 @@ To decrypt or scan target files:
 
 
   return (
-    <div style={{ padding: "60px 0 0", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
-      <div style={{
-        borderBottom: "1px solid var(--border)",
-        padding: "24px",
-        background: "var(--surface)",
-        display: "flex",
-        alignItems: "center",
-        gap: "20px",
-        flexWrap: "wrap"
-      }}>
+    <div className="rq-terminal-page">
+      <header className="rq-terminal-core">
+        <div className="rq-terminal-core-art" aria-hidden="true">
+          <Image src="/art/red-queen-presence.png" alt="" fill sizes="360px" priority />
+        </div>
+        <div className="rq-terminal-core-copy">
+          <span>QUEEN CORE // COGNITIVE COMMAND</span>
+          <h1>I see the field.<br /><em>I turn it into action.</em></h1>
+          <p>Pulse is my sight. The Map is my nervous system. The Library is my memory. Prepare is where intelligence becomes something your hands can finish.</p>
+          <strong>“I decide what deserves attention. You decide whether to act.”</strong>
+        </div>
+        <nav className="rq-terminal-neural-grid" aria-label="RED QUEEN system architecture">
+          <Link href="/"><span>EYES</span><strong>PULSE</strong><small>Daily signal</small></Link>
+          <Link href="/#live-map"><span>NERVES</span><strong>MAP</strong><small>Live field</small></Link>
+          <div className="active"><span>BRAIN</span><strong>QUEEN</strong><small>Decision core</small></div>
+          <Link href="/threat-vector"><span>MEMORY</span><strong>LIBRARY</strong><small>Threat knowledge</small></Link>
+          <Link href="/survival-kit"><span>HANDS</span><strong>PREPARE</strong><small>Action plan</small></Link>
+          <Link href="/community"><span>VOICE</span><strong>COMMUNITY</strong><small>SOLvivor network</small></Link>
+        </nav>
+        <div className="rq-terminal-memory-state">
+          <div><span>SOLVIVOR CONTEXT</span><strong>{survivalContext.area || "GLOBAL / NOT SET"}</strong></div>
+          <div><span>ACTIVE ACTION</span><strong>{savedActionText ? "SAVED IN PREPARE" : "NOT YET CREATED"}</strong></div>
+          <div><span>LOCAL BASELINE</span><strong>{localPreparednessCount}/18 CHECKS</strong></div>
+        </div>
+      </header>
+
+      <div className="rq-terminal-identity-bar">
         <SolvivalIcon size={32} />
-        <div>
-          <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.2em" }}>
-            CLASSIFIED COMM CHANNEL
-          </div>
-          <h1 className="glow-text" style={{ fontSize: "24px", margin: 0 }}>RED QUEEN TERMINAL</h1>
+        <div className="rq-terminal-title">
+          <span>SECURE SURVIVAL INTELLIGENCE CHANNEL</span>
+          <strong>RED QUEEN TERMINAL</strong>
         </div>
         <div className="rq-identity-strip">
           <div className="rq-identity-metric">
@@ -1111,7 +1134,7 @@ To decrypt or scan target files:
                 <div key={i} className={`message message-${msg.role === "user" ? "user" : "ai"}`}>
                   <div className="message-label">
                     {msg.role === "user"
-                      ? `[ YOU — ${apocalypticName || "SUBJECT"} ]`
+                      ? `[ SOLVIVOR — ${apocalypticName || "UNREGISTERED"} ]`
                       : `[ RED QUEEN — ${msg.intel?.clearance.name || agentClearance.name} ANALYSIS ]`}
                   </div>
                   {msg.intel ? (

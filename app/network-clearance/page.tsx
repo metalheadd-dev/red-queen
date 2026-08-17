@@ -44,7 +44,7 @@ export default function NetworkClearancePage() {
             <article>
               <span>$THREAT · ACCESS LAYER</span>
               <h3>Hold to expand RED QUEEN.</h3>
-              <ul><li>Longer trusted conversation context</li><li>More simultaneous personal Signal Watch slots</li><li>Higher response and comparison depth</li><li>Multiplier on XP that was already earned through evidence</li></ul>
+              <ul><li>Longer trusted conversation context</li><li>More simultaneous personal Signal Watch slots</li><li>Higher response and comparison depth</li><li>Holder-only Queen Visage portrait generation</li><li>Multiplier on XP that was already earned through evidence</li></ul>
               <small>HOLDINGS NEVER CREATE BIO-SCORE OR CLAIM COMPETENCE.</small>
             </article>
             <article>
@@ -91,6 +91,7 @@ export default function NetworkClearancePage() {
                   <li><strong>{tier.signalWatchSlots}</strong><span>signal watches</span></li>
                   <li><strong>{tier.responseDepth.toUpperCase()}</strong><span>analysis depth</span></li>
                   <li><strong>×{tier.earnedXpMultiplier.toFixed(2)}</strong><span>earned XP only</span></li>
+                  <li><strong>{tier.tier > 0 ? "UNLOCKED" : "LOCKED"}</strong><span>Queen Visage</span></li>
                 </ul>
               </article>
             ))}

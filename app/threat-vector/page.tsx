@@ -64,9 +64,9 @@ export default function ThreatVectorPage() {
     <div className="library-page">
       <header className="library-hero">
         <div className="container">
-          <span className="pulse-eyebrow">THREAT LIBRARY // KNOWLEDGE, NOT PANIC</span>
-          <h1>Understand the scenario.<br /><em>Then decide what matters.</em></h1>
-          <p>A structured survival reference for real hazards, digital defense and fictional simulations. Every lane is labeled so lore never masquerades as live intelligence.</p>
+          <span className="pulse-eyebrow">RED QUEEN // MEMORY OF THE SYSTEM</span>
+          <h1>She remembers the patterns.<br /><em>You learn before they repeat.</em></h1>
+          <p>The Queen&apos;s structured memory for real hazards, digital defense and fictional simulations. Every lane is labeled so lore never masquerades as live intelligence.</p>
           <div className="library-trust-banner">
             <div><span>LIBRARY</span><strong>Reference material</strong></div>
             <b>≠</b>
