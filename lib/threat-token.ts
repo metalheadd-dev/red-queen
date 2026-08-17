@@ -6,6 +6,7 @@ export interface ThreatClearance {
   name: "CIVILIAN" | "SCOUT" | "ANALYST" | "SENTINEL" | "COMMAND";
   threshold: number;
   contextMessages: number;
+  signalWatchSlots: number;
   responseDepth: "essential" | "standard" | "detailed" | "advanced" | "strategic";
   earnedXpMultiplier: number;
   description: string;
@@ -18,6 +19,7 @@ export const THREAT_CLEARANCE_LEVELS: ThreatClearance[] = [
     name: "CIVILIAN",
     threshold: 0,
     contextMessages: 6,
+    signalWatchSlots: 2,
     responseDepth: "essential",
     earnedXpMultiplier: 1,
     description: "Public intelligence and essential actions.",
@@ -28,6 +30,7 @@ export const THREAT_CLEARANCE_LEVELS: ThreatClearance[] = [
     name: "SCOUT",
     threshold: 1,
     contextMessages: 10,
+    signalWatchSlots: 3,
     responseDepth: "standard",
     earnedXpMultiplier: 1.05,
     description: "Expanded follow-up context and standard RED QUEEN analysis.",
@@ -38,6 +41,7 @@ export const THREAT_CLEARANCE_LEVELS: ThreatClearance[] = [
     name: "ANALYST",
     threshold: 100_000,
     contextMessages: 14,
+    signalWatchSlots: 4,
     responseDepth: "detailed",
     earnedXpMultiplier: 1.1,
     description: "Detailed risk decomposition and a larger working context.",
@@ -48,6 +52,7 @@ export const THREAT_CLEARANCE_LEVELS: ThreatClearance[] = [
     name: "SENTINEL",
     threshold: 500_000,
     contextMessages: 18,
+    signalWatchSlots: 5,
     responseDepth: "advanced",
     earnedXpMultiplier: 1.15,
     description: "Advanced diagnostics, longer context, and scenario comparison.",
@@ -58,6 +63,7 @@ export const THREAT_CLEARANCE_LEVELS: ThreatClearance[] = [
     name: "COMMAND",
     threshold: 1_000_000,
     contextMessages: 24,
+    signalWatchSlots: 6,
     responseDepth: "strategic",
     earnedXpMultiplier: 1.2,
     description: "Maximum context depth and strategic RED QUEEN analysis.",

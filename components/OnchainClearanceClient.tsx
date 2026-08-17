@@ -33,6 +33,7 @@ type OnchainSnapshot = {
       name: string;
       responseDepth: string;
       contextMessages: number;
+      signalWatchSlots: number;
       earnedXpMultiplier: number;
     };
   };
@@ -143,7 +144,7 @@ export default function OnchainClearanceClient() {
           </div>
           <div className="onchain-utility-result">
             <span>ACTIVE UTILITY</span>
-            <p><strong>{snapshot.threat.clearance.contextMessages} messages</strong> of working context · <strong>{snapshot.threat.clearance.responseDepth}</strong> analysis · <strong>×{snapshot.threat.clearance.earnedXpMultiplier.toFixed(2)}</strong> on genuinely earned XP.</p>
+            <p><strong>{snapshot.threat.clearance.contextMessages} messages</strong> of working context · <strong>{snapshot.threat.clearance.signalWatchSlots} signal watches</strong> · <strong>{snapshot.threat.clearance.responseDepth}</strong> analysis · <strong>×{snapshot.threat.clearance.earnedXpMultiplier.toFixed(2)}</strong> on genuinely earned XP.</p>
           </div>
         </>
       ) : (

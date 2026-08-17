@@ -3,12 +3,6 @@ import { HTTPFacilitatorClient, x402ResourceServer } from "@x402/core/server";
 import { registerExactSvmScheme } from "@x402/svm/exact/server";
 import { NextRequest, NextResponse } from "next/server";
 import { withX402 } from "@x402/next";
-import { supabase } from "./supabase";
-import { getHashedWallet } from "./crypto";
-import { getStatsFromScenarios, calculateBioScore, updateStatsInScenarios } from "./progression";
-import { PublicKey } from "@solana/web3.js";
-import { readThreatBalance } from "./onchain";
-import { getThreatClearance } from "./threat-token";
 
 // Fallback to PayAI's default facilitator endpoint if not configured
 const facilitatorUrl = process.env.PAYAI_FACILITATOR_URL || "https://facilitator.payai.network";
@@ -323,79 +317,14 @@ export function withFriendlyX402(
 }
 
 /**
- * Awards XP and stats to the user when they successfully unlock an x402 paywall.
- * Prevents duplicates by adding the paywallId to their scenarios log.
+ * Deprecated compatibility export. Payments must never create readiness or XP.
+ * Kept temporarily so older integrations fail closed during migration.
  */
 export async function awardXpForPaywall(
-  token: string,
+  _token: string,
   paywallId: string,
-  xpAmount = 50
+  _xpAmount = 50
 ): Promise<{ success: boolean; xpGained: number } | null> {
-  if (!supabase || !token) return null;
-
-  try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) return null;
-
-    let authWallet = "";
-    if (user.email) {
-      authWallet = `email-auth:${user.id}`;
-    } else {
-      const web3Identity = user.identities?.find((id: any) => id.provider === "web3" || id.provider === "solana");
-      authWallet = web3Identity?.identity_data?.sub || "";
-    }
-    if (!authWallet) return null;
-
-    const hashedWallet = getHashedWallet(authWallet);
-
-    const { data: profile, error: dbError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("wallet_address", hashedWallet)
-      .single();
-
-    if (dbError || !profile) return null;
-
-    const scenarios: string[] = profile.chosen_scenarios || [];
-    if (scenarios.includes(paywallId)) {
-      return { success: false, xpGained: 0 }; // Already unlocked/awarded
-    }
-
-    const currentStats = getStatsFromScenarios(scenarios);
-    
-    // x402 purchases may earn engagement XP, but never readiness stats or BIO-SCORE.
-    let threatBalance = 0;
-    const rawWallet = authWallet.startsWith("email-auth:") ? profile.linked_wallet_address : authWallet;
-    if (rawWallet) {
-      try {
-        threatBalance = await readThreatBalance(new PublicKey(rawWallet));
-      } catch (e) {
-        console.warn("x402 XP: Could not verify token balance:", e);
-      }
-    }
-    const tokenClearance = getThreatClearance(threatBalance);
-    const boostedXp = Math.round(xpAmount * tokenClearance.earnedXpMultiplier);
-    const nextXp = Math.max(0, currentStats.xp + boostedXp);
-    const updatedStats = {
-      ...currentStats,
-      xp: nextXp,
-      level: Math.floor(nextXp / 100) + 1,
-    };
-
-    const newBioScore = calculateBioScore(updatedStats);
-    const updatedScenarios = updateStatsInScenarios([...scenarios, paywallId], updatedStats);
-
-    await supabase.from("users").upsert({
-      wallet_address: hashedWallet,
-      last_bio_score: newBioScore,
-      chosen_scenarios: updatedScenarios,
-      last_interaction: new Date().toISOString()
-    }, { onConflict: "wallet_address" });
-
-    console.log(`[x402 XP] Awarded ${boostedXp} XP to ${hashedWallet} for paywall ${paywallId}`);
-    return { success: true, xpGained: boostedXp };
-  } catch (err) {
-    console.error("[x402 XP] Failed to award XP for paywall:", err);
-    return null;
-  }
+  console.warn(`Ignoring deprecated x402 XP request for ${paywallId}. Purchases do not award progression.`);
+  return { success: false, xpGained: 0 };
 }

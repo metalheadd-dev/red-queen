@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useWallet } from "@solana/wallet-adapter-react";
 import {
   parseSignalWatchMemory,
   SIGNAL_WATCH_EVENT,
@@ -58,10 +59,38 @@ function formatScanTime(value?: string) {
 }
 
 export default function SignalWatchPanel({ nodes, area, location }: SignalWatchPanelProps) {
+  const { publicKey } = useWallet();
   const [memory, setMemory] = useState<SignalWatchMemory>({ version: 1, types: [], localPriority: false, knownSignalIds: [] });
   const [ready, setReady] = useState(false);
   const [newSignalIds, setNewSignalIds] = useState<string[]>([]);
   const [previousScanAt, setPreviousScanAt] = useState<string | undefined>();
+  const [watchSlots, setWatchSlots] = useState(2);
+  const [clearanceName, setClearanceName] = useState("CIVILIAN");
+  const [limitMessage, setLimitMessage] = useState("");
+
+  useEffect(() => {
+    const address = publicKey?.toBase58();
+    if (!address) {
+      setWatchSlots(2);
+      setClearanceName("CIVILIAN");
+      return;
+    }
+    let active = true;
+    fetch(`/api/onchain/wallet?address=${encodeURIComponent(address)}`, { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "On-chain read unavailable");
+        if (!active) return;
+        setWatchSlots(Number(data.threat?.clearance?.signalWatchSlots) || 2);
+        setClearanceName(data.threat?.clearance?.name || "CIVILIAN");
+      })
+      .catch(() => {
+        if (!active) return;
+        setWatchSlots(2);
+        setClearanceName("UNVERIFIED");
+      });
+    return () => { active = false; };
+  }, [publicKey]);
 
   useEffect(() => {
     setMemory(parseSignalWatchMemory(localStorage.getItem(SIGNAL_WATCH_STORAGE_KEY)));
@@ -101,6 +130,13 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
   }
 
   function toggleType(type: SignalWatchType) {
+    const adding = !memory.types.includes(type);
+    const usedSlots = memory.types.length + (memory.localPriority ? 1 : 0);
+    if (adding && usedSlots >= watchSlots) {
+      setLimitMessage(`${clearanceName} clearance supports ${watchSlots} simultaneous watches. Remove one or verify a higher $THREAT tier.`);
+      return;
+    }
+    setLimitMessage("");
     updateMemory({
       ...memory,
       types: memory.types.includes(type) ? memory.types.filter((item) => item !== type) : [...memory.types, type],
@@ -109,6 +145,12 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
 
   function toggleLocal() {
     if (!location) return;
+    const usedSlots = memory.types.length + (memory.localPriority ? 1 : 0);
+    if (!memory.localPriority && usedSlots >= watchSlots) {
+      setLimitMessage(`${clearanceName} clearance supports ${watchSlots} simultaneous watches. Remove one or verify a higher $THREAT tier.`);
+      return;
+    }
+    setLimitMessage("");
     updateMemory({ ...memory, localPriority: !memory.localPriority });
   }
 
@@ -118,7 +160,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
     <section className={`signal-watch-panel ${hasWatches ? "is-active" : ""}`}>
       <div className="signal-watch-heading">
         <div><span>MY SIGNAL WATCH // ON-DEVICE</span><h3>{hasWatches ? `${matchedSignals.length} current matches · ${newSignalIds.length} new` : "Choose what RED QUEEN should remember"}</h3></div>
-        <small>LAST COMPARISON · {formatScanTime(previousScanAt)}</small>
+        <small>{memory.types.length + (memory.localPriority ? 1 : 0)}/{watchSlots} WATCH SLOTS · {clearanceName} · LAST SCAN {formatScanTime(previousScanAt)}</small>
       </div>
       <div className="signal-watch-controls">
         <button type="button" disabled={!location} className={memory.localPriority ? "active" : ""} onClick={toggleLocal}>
@@ -130,6 +172,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
           </button>
         ))}
       </div>
+      {limitMessage && <div className="signal-watch-limit"><span>{limitMessage}</span><Link href="/network-clearance">VERIFY CLEARANCE →</Link></div>}
       {hasWatches && (
         <div className="signal-watch-results">
           <div>

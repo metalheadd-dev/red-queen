@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import OnchainClearanceClient from "@/components/OnchainClearanceClient";
 import { SOLANA_MAINNET_CAIP2 } from "@/lib/onchain";
 import { THREAT_CLEARANCE_LEVELS, THREAT_TOKEN_MINT } from "@/lib/threat-token";
+import { X402_INTELLIGENCE_PRODUCTS } from "@/lib/intelligence-products";
 
 const LEVEL_COLORS = ["#8a8a8a", "#d8d8d8", "#f0c929", "#ff884d", "#ff4d4d"];
 
@@ -42,7 +43,7 @@ export default function NetworkClearancePage() {
             <article>
               <span>$THREAT · ACCESS LAYER</span>
               <h3>Hold to expand RED QUEEN.</h3>
-              <ul><li>Longer trusted conversation context</li><li>Higher response and comparison depth</li><li>Multiplier on XP that was already earned through evidence</li><li>Planned holder-only alert and agent channels</li></ul>
+              <ul><li>Longer trusted conversation context</li><li>More simultaneous personal Signal Watch slots</li><li>Higher response and comparison depth</li><li>Multiplier on XP that was already earned through evidence</li></ul>
               <small>HOLDINGS NEVER CREATE BIO-SCORE OR CLAIM COMPETENCE.</small>
             </article>
             <article>
@@ -54,8 +55,29 @@ export default function NetworkClearancePage() {
           </div>
         </section>
 
+        <section className="onchain-products">
+          <div className="onchain-section-head"><span>02 // x402 OPERATION CATALOG</span><h2>Pay for an output, not a vague premium tier.</h2><p>Each operation must declare its source inputs, exact or capped price, expected output and failure behavior before a wallet asks for approval.</p></div>
+          <div className="onchain-product-grid">
+            {X402_INTELLIGENCE_PRODUCTS.map((product) => (
+              <article key={product.id} className={`is-${product.status.toLowerCase()}`}>
+                <div><span>{product.status}</span><b>{product.price}</b></div>
+                <h3>{product.name}</h3>
+                <p>{product.value}</p>
+                <dl><div><dt>SCHEME</dt><dd>{product.scheme}</dd></div><div><dt>OUTPUT</dt><dd>{product.output}</dd></div></dl>
+                {product.endpoint ? <code>{product.endpoint}</code> : <small>NOT EXPOSED AS A PAID ENDPOINT YET</small>}
+              </article>
+            ))}
+          </div>
+          <div className="onchain-production-gates">
+            <div><span>LIVE RULE</span><strong>NO PAY-TO-EARN</strong><p>x402 purchases never award XP or BIO.</p></div>
+            <div><span>LIVE RULE</span><strong>FAIL CLOSED</strong><p>Source failure returns unavailable, never synthetic paid intelligence.</p></div>
+            <div><span>PRODUCTION GATE</span><strong>RECEIPT + IDEMPOTENCY</strong><p>Persist operation ID, settlement proof and delivery state before launch.</p></div>
+            <div><span>PRODUCTION GATE</span><strong>FACILITATOR HEALTH</strong><p>Check supported SVM schemes and disable purchase UI when settlement is unavailable.</p></div>
+          </div>
+        </section>
+
         <section className="onchain-tiers">
-          <div className="onchain-section-head"><span>02 // LIVE $THREAT CLEARANCE</span><h2>Utility you can measure.</h2><p>The server aggregates the canonical mint balance and maps it to the same tier used by the RED QUEEN agent.</p></div>
+          <div className="onchain-section-head"><span>03 // LIVE $THREAT CLEARANCE</span><h2>Utility you can measure.</h2><p>The server aggregates the canonical mint balance and maps it to the same tier used by the RED QUEEN agent and Signal Watch.</p></div>
           <div className="onchain-tier-grid">
             {THREAT_CLEARANCE_LEVELS.map((tier, index) => (
               <article key={tier.level} style={{ "--tier-color": LEVEL_COLORS[index] } as CSSProperties}>
@@ -64,6 +86,7 @@ export default function NetworkClearancePage() {
                 <p>{tier.description}</p>
                 <ul>
                   <li><strong>{tier.contextMessages}</strong><span>context messages</span></li>
+                  <li><strong>{tier.signalWatchSlots}</strong><span>signal watches</span></li>
                   <li><strong>{tier.responseDepth.toUpperCase()}</strong><span>analysis depth</span></li>
                   <li><strong>×{tier.earnedXpMultiplier.toFixed(2)}</strong><span>earned XP only</span></li>
                 </ul>
@@ -74,7 +97,7 @@ export default function NetworkClearancePage() {
         </section>
 
         <section className="onchain-stack">
-          <div className="onchain-section-head"><span>03 // SOLANA STACK</span><h2>Live now. Next with purpose.</h2><p>Every label reflects implementation state, not marketing intent.</p></div>
+          <div className="onchain-section-head"><span>04 // SOLANA STACK</span><h2>Live now. Next with purpose.</h2><p>Every label reflects implementation state, not marketing intent.</p></div>
           <div className="onchain-stack-grid">
             <article className="is-live"><span>LIVE</span><strong>Sign In With Solana</strong><p>Domain-bound, timestamped wallet authentication through Supabase Web3 Auth and the connected wallet adapter.</p></article>
             <article className="is-live"><span>LIVE</span><strong>SPL holder proof</strong><p>Server-side canonical mint read, aggregated token accounts, confirmed commitment, and fail-closed persistence.</p></article>
@@ -86,7 +109,7 @@ export default function NetworkClearancePage() {
         </section>
 
         <section className="onchain-safety">
-          <div><span>04 // SIGNATURE SAFETY</span><h2>RED QUEEN will never ask for a seed phrase.</h2></div>
+          <div><span>05 // SIGNATURE SAFETY</span><h2>RED QUEEN will never ask for a seed phrase.</h2></div>
           <ul><li><strong>CONNECT</strong><span>Expose one public address for read-only RPC calls.</span></li><li><strong>SIGN IN</strong><span>Prove address ownership with an off-chain SIWS message.</span></li><li><strong>PAY</strong><span>Approve a separately displayed transaction with network, asset, amount and destination.</span></li></ul>
           <div className="onchain-safety-actions"><Link href="/terminal" className="btn btn-primary">ASK RED QUEEN</Link><Link href="/operative" className="btn btn-ghost">OPEN MY READINESS</Link><a href={`https://explorer.solana.com/address/${THREAT_TOKEN_MINT}`} target="_blank" rel="noreferrer" className="btn btn-outline">VIEW MINT ↗</a></div>
           <code>CANONICAL $THREAT MINT · {THREAT_TOKEN_MINT}</code>

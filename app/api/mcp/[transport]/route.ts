@@ -57,7 +57,7 @@ const handler = createMcpHandler(
         description: "Retrieve live DePIN mesh network diagnostic telemetry from Solana Mainnet Beta, including active/delinquent nodes, vote performance thresholds, and average priority fee metrics. Protected by x402 micropayment standard.",
         inputSchema: z.object({
           paymentSignature: z.string().optional().describe("Optional transaction signature proving payment of $0.02 USDC to SVM address AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg. Required to unlock telemetry."),
-          operativeToken: z.string().optional().describe("Optional Bearer JWT token to award XP directly to the operative's profile."),
+          operativeToken: z.string().optional().describe("Deprecated compatibility field. Purchasing intelligence never awards readiness or XP."),
         }),
         outputSchema: z.object({
           success: z.boolean().describe("Operation success indicator"),
@@ -126,7 +126,7 @@ const handler = createMcpHandler(
         description: "Retrieve premium global threat briefing containing physical seismic anomalies, NASA natural disaster events, and Disease.sh pathogen analytics. Protected by x402 micropayment standard.",
         inputSchema: z.object({
           paymentSignature: z.string().optional().describe("Optional transaction signature proving payment of $0.01 USDC to SVM address AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg. Required to unlock premium briefing."),
-          operativeToken: z.string().optional().describe("Optional Bearer JWT token to award XP directly to the operative's profile."),
+          operativeToken: z.string().optional().describe("Deprecated compatibility field. Purchasing intelligence never awards readiness or XP."),
         }),
         outputSchema: z.object({
           success: z.boolean().describe("Operation success indicator"),
