@@ -31,6 +31,7 @@ import {
   MODE_STARTERS,
   READINESS_BASELINE_PROMPT,
   sanitizeArea,
+  sanitizeSignalId,
   SurvivalContext,
 } from "@/lib/survival-context";
 
@@ -551,6 +552,7 @@ export default function TerminalPage() {
       area: queryArea || storedArea,
       focus,
       mode,
+      signalId: sanitizeSignalId(params.get("signal")),
       location: queryArea && queryArea !== storedArea ? undefined : storedLocation,
     };
 

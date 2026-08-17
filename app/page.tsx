@@ -565,6 +565,7 @@ export default function HomePage() {
                     mode: "ANALYZE",
                     focus: "LOCAL_THREATS",
                     area: localContext?.area || "",
+                    ...(signal.node ? { signal: signal.node.id } : {}),
                     prompt: `Brief me on this signal: ${signal.name}. Explain why it matters to my context, separate verified fact from assessment, and give one justified action.`,
                   }).toString()}`}>ASK QUEEN →</Link>
                 </div>
@@ -704,8 +705,16 @@ export default function HomePage() {
                 mode: "ANALYZE",
                 focus: "LOCAL_THREATS",
                 area: localContext?.area || "",
+                signal: selectedNode.id,
                 prompt: `Explain the relevance of this live signal to my context: ${selectedNode.name}. Separate the verified source fact from assessment and give me one safe action.`,
               }).toString()}`}>ASK QUEEN ABOUT THIS →</Link>
+              <Link href={`/terminal?${new URLSearchParams({
+                mode: "PREPARE",
+                focus: "LOCAL_THREATS",
+                area: localContext?.area || "",
+                signal: selectedNode.id,
+                prompt: `Use the attached verified signal “${selectedNode.name}” only if it still resolves and is relevant to my context. If preparation is justified, build a concise 2-5 step protocol with one action I can complete now and a realistic review date. If it is not relevant, explain why and return no event-specific plan.`,
+              }).toString()}`}>BUILD QUEEN PROTOCOL →</Link>
             </footer>
           </article>
         )}

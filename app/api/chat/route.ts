@@ -16,12 +16,13 @@ import {
 import { isValidSolanaPublicKey } from "@/lib/solana";
 import { readThreatBalance } from "@/lib/onchain";
 import { getThreatClearance } from "@/lib/threat-token";
+import { findVerifiedLiveMapSignal, VerifiedMapSignal } from "@/lib/live-map-signals";
 import {
   formatAgentMessage,
   RED_QUEEN_RESPONSE_SCHEMA,
   RedQueenAgentResponse,
 } from "@/lib/red-queen-agent";
-import { AgentMode, isAgentMode, isSurvivalFocus, sanitizeArea, SurvivalFocus } from "@/lib/survival-context";
+import { AgentMode, isAgentMode, isSurvivalFocus, sanitizeArea, sanitizeSignalId, SurvivalFocus } from "@/lib/survival-context";
 
 export const maxDuration = 30;
 export const dynamic = "force-dynamic";
@@ -58,6 +59,7 @@ interface AgentSessionContext {
   area: string;
   focus?: SurvivalFocus;
   mode: AgentMode;
+  signalId?: string;
 }
 
 function normalizeSessionContext(value: unknown): AgentSessionContext {
@@ -68,6 +70,7 @@ function normalizeSessionContext(value: unknown): AgentSessionContext {
     area: sanitizeArea(typeof input.area === "string" ? input.area : ""),
     focus: isSurvivalFocus(rawFocus) ? rawFocus : undefined,
     mode: isAgentMode(rawMode) ? rawMode : "ANALYZE",
+    signalId: sanitizeSignalId(input.signalId),
   };
 }
 
@@ -120,6 +123,21 @@ async function getVerifiedDailyPulse(): Promise<LivePulse | null> {
   } catch {
     return null;
   }
+}
+
+function mapSignalToPulse(signal: VerifiedMapSignal): LivePulse {
+  return {
+    schemaVersion: 2,
+    verified: true,
+    name: signal.name,
+    description: signal.description,
+    assessment: signal.assessment,
+    countermeasure: signal.countermeasure,
+    location: signal.region,
+    source: signal.source,
+    sourceUrl: signal.sourceUrl,
+    generatedAt: signal.observedAt,
+  };
 }
 
 function buildLiveContext(pulse: LivePulse | null) {
@@ -251,7 +269,12 @@ export async function POST(req: Request) {
     const stats = getStatsFromScenarios(userProfile?.chosen_scenarios);
     const bioScore = calculateBioScore(stats);
     const focusAreas = getCleanScenarios(userProfile?.chosen_scenarios);
-    const livePulse = await getVerifiedDailyPulse();
+    const selectedMapSignal = sessionContext.signalId
+      ? await findVerifiedLiveMapSignal(sessionContext.signalId)
+      : null;
+    const livePulse = sessionContext.signalId
+      ? selectedMapSignal ? mapSignalToPulse(selectedMapSignal) : null
+      : await getVerifiedDailyPulse();
     let trustedHistory: ChatMessage[] = [];
     if (persistentMemory && supabase) {
       const { data: storedMessages } = await supabase

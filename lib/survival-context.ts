@@ -11,6 +11,7 @@ export interface SurvivalContext {
   area: string;
   focus: SurvivalFocus;
   mode: AgentMode;
+  signalId?: string;
   location?: {
     lat: number;
     lng: number;
@@ -54,6 +55,12 @@ export function getFocusOption(focus: SurvivalFocus) {
 
 export function sanitizeArea(value: string) {
   return value.replace(/[\r\n\t]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+}
+
+export function sanitizeSignalId(value: unknown) {
+  if (typeof value !== "string") return undefined;
+  const normalized = value.trim();
+  return /^(usgs|nasa|gdacs)-[A-Za-z0-9._:%-]{1,180}$/.test(normalized) ? normalized : undefined;
 }
 
 export function isSurvivalFocus(value: string | null | undefined): value is SurvivalFocus {
