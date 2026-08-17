@@ -140,6 +140,66 @@ function cleanXmlText(text: string): string {
     .trim();
 }
 
+function gdacsEventName(type: string) {
+  const names: Record<string, string> = {
+    EQ: "Earthquake",
+    TC: "Tropical Cyclone",
+    FL: "Flood",
+    VO: "Volcanic Eruption",
+    DR: "Drought",
+    WF: "Wildfire",
+  };
+  return names[type.toUpperCase()] || type || "Natural Hazard";
+}
+
+// European Commission Joint Research Centre / United Nations disaster alert feed.
+export async function fetchGDACS(): Promise<LiveMapNode[]> {
+  try {
+    const res = await fetchWithTimeout("https://www.gdacs.org/xml/rss.xml", {}, 6000);
+    if (!res.ok) return [];
+    const xmlText = await res.text();
+    const nodes: LiveMapNode[] = [];
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    let match;
+
+    while ((match = itemRegex.exec(xmlText)) !== null && nodes.length < 24) {
+      const item = match[1];
+      const read = (pattern: RegExp) => cleanXmlText(item.match(pattern)?.[1] || "");
+      const lat = Number(read(/<(?:geo|gdacs):lat>([\s\S]*?)<\/(?:geo|gdacs):lat>/i));
+      const lng = Number(read(/<(?:geo:long|gdacs:long)>([\s\S]*?)<\/(?:geo:long|gdacs:long)>/i));
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+
+      const eventType = read(/<gdacs:eventtype>([\s\S]*?)<\/gdacs:eventtype>/i) || "HAZARD";
+      const levelRaw = read(/<gdacs:alertlevel>([\s\S]*?)<\/gdacs:alertlevel>/i);
+      const alertLevel = (["Green", "Orange", "Red"] as const).find((level) => level === levelRaw) || "Unknown";
+      const alertScore = Number(read(/<gdacs:alertscore>([\s\S]*?)<\/gdacs:alertscore>/i)) || 0;
+      const eventId = read(/<gdacs:eventid>([\s\S]*?)<\/gdacs:eventid>/i);
+      const title = read(/<title>([\s\S]*?)<\/title>/i) || gdacsEventName(eventType);
+      const link = read(/<link>([\s\S]*?)<\/link>/i) || "https://www.gdacs.org";
+
+      nodes.push({
+        id: `gdacs-${eventType.toLowerCase()}-${eventId || encodeURIComponent(title)}`,
+        title,
+        desc: read(/<description>([\s\S]*?)<\/description>/i).slice(0, 320),
+        link,
+        lat,
+        lng,
+        eventType,
+        eventTypeName: gdacsEventName(eventType),
+        alertLevel,
+        alertScore,
+        country: read(/<gdacs:country>([\s\S]*?)<\/gdacs:country>/i) || "Global",
+        category: "realistic",
+        pubDate: read(/<pubDate>([\s\S]*?)<\/pubDate>/i) || new Date().toISOString(),
+      });
+    }
+
+    return nodes;
+  } catch {
+    return [];
+  }
+}
+
 // 1. NASA FIRMS (Wildfire active cluster data with 0.5 deg cluster mapping)
 export async function fetchFIRMS(): Promise<LiveMapNode[]> {
   const apiKey = process.env.FIRMS_MAP_KEY;

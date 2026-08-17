@@ -12,7 +12,7 @@ import { getAssociatedTokenAddress, createTransferCheckedInstruction } from "@so
 import { getWorkingConnection } from "@/lib/solana";
 import AgentResponseCard from "@/components/AgentResponseCard";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
-import { createDailyAction, DAILY_ACTION_EVENT, DAILY_ACTION_STORAGE_KEY, parseDailyAction } from "@/lib/daily-action";
+import { createDailyAction, DAILY_ACTION_EVENT, readDailyActions, saveDailyAction } from "@/lib/daily-action";
 import {
   AGENT_MODES,
   AgentMode,
@@ -729,7 +729,7 @@ export default function TerminalPage() {
   }, [shareModalData, apocalypticName, currentScore, hasVerifiedIdentity, agentClearance, stats, scoreNum]);
 
   useEffect(() => {
-    const savedAction = parseDailyAction(localStorage.getItem(DAILY_ACTION_STORAGE_KEY));
+    const savedAction = readDailyActions(localStorage).find((action) => action.status === "ACTIVE") || null;
     setSavedActionText(savedAction?.action || "");
   }, []);
 
@@ -961,7 +961,7 @@ To decrypt or scan target files:
 
   function saveAction(response: RedQueenClientResponse) {
     const action = createDailyAction(response, survivalContext);
-    localStorage.setItem(DAILY_ACTION_STORAGE_KEY, JSON.stringify(action));
+    saveDailyAction(localStorage, action);
     setSavedActionText(action.action);
     window.dispatchEvent(new Event(DAILY_ACTION_EVENT));
   }

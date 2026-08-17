@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   DAILY_ACTION_EVENT,
-  DAILY_ACTION_STORAGE_KEY,
   DailyAction,
   formatActionAge,
-  parseDailyAction,
+  getCurrentDailyAction,
+  readDailyActions,
+  updateDailyAction,
 } from "@/lib/daily-action";
 
 interface DailyActionPanelProps {
@@ -16,7 +17,7 @@ interface DailyActionPanelProps {
 
 function readAction() {
   if (typeof window === "undefined") return null;
-  return parseDailyAction(localStorage.getItem(DAILY_ACTION_STORAGE_KEY));
+  return getCurrentDailyAction(readDailyActions(localStorage));
 }
 
 export default function DailyActionPanel({ context = "PULSE" }: DailyActionPanelProps) {
@@ -56,7 +57,7 @@ export default function DailyActionPanel({ context = "PULSE" }: DailyActionPanel
       status: "COMPLETED",
       completedAt: new Date().toISOString(),
     };
-    localStorage.setItem(DAILY_ACTION_STORAGE_KEY, JSON.stringify(completed));
+    updateDailyAction(localStorage, action.id, { status: "COMPLETED", completedAt: completed.completedAt });
     window.dispatchEvent(new Event(DAILY_ACTION_EVENT));
   }
 
@@ -67,7 +68,7 @@ export default function DailyActionPanel({ context = "PULSE" }: DailyActionPanel
       <section className={`daily-action-panel is-empty is-${context.toLowerCase()}`}>
         <div><span>MY ACTION PLAN</span><b>NO ACTION SAVED</b></div>
         <h2>Turn one Queen answer into something you finish.</h2>
-        <p>Ask RED QUEEN for one practical action, then save it here. The plan stays on this device until account sync is enabled.</p>
+        <p>Ask RED QUEEN for one practical action, then save it here. Your active and completed actions stay in Survival Memory on this device.</p>
         <Link href={continueHref}>CREATE TODAY&apos;S ACTION →</Link>
       </section>
     );

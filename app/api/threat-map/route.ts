@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { REALISTIC, FICTIONAL, SATIRICAL, ALGORITHMIC, Threat } from "@/lib/threats";
+import { fetchGDACS } from "@/lib/threats-fetchers";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +17,18 @@ interface ThreatNode {
   desc: string;
   solution: string;
   analysis: string;
+  source?: string;
+  sourceUrl?: string;
+  confidence?: number;
 }
 
 function liveProvenance(node: ThreatNode) {
+  if (node.source && node.sourceUrl && node.confidence) {
+    return { source: node.source, sourceUrl: node.sourceUrl, confidence: node.confidence };
+  }
+  if (node.id.startsWith("gdacs-")) {
+    return { source: "GDACS (EC JRC / UN)", sourceUrl: "https://www.gdacs.org/", confidence: 96 };
+  }
   if (node.id.startsWith("usgs-")) {
     return { source: "USGS", sourceUrl: "https://earthquake.usgs.gov/earthquakes/map/", confidence: 98 };
   }
@@ -37,12 +47,12 @@ function liveProvenance(node: ThreatNode) {
   return { source: "RED QUEEN archive", sourceUrl: "", confidence: 0 };
 }
 
-function sanitizeNodes(nodes: ThreatNode[], forceVerified = false) {
+function sanitizeNodes(nodes: ThreatNode[]) {
   return nodes.map((node) => ({
     ...node,
     coords: geoToSvg(node.lat, node.lng),
     ...liveProvenance(node),
-    verified: forceVerified || (!node.id.startsWith("archive-") && !node.id.startsWith("fallback-")),
+    verified: liveProvenance(node).confidence >= 90 && !node.id.startsWith("archive-") && !node.id.startsWith("fallback-"),
     updatedAt: new Date().toISOString(),
   }));
 }
@@ -273,13 +283,14 @@ export async function GET(request: NextRequest) {
 
   try {
     // 1. Fetch USGS Earthquakes
-    const usgsPromise = fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson")
+    const usgsPromise = fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson", { next: { revalidate: 300 } })
       .then(res => res.json())
       .then(data => {
         const events = data.features || [];
         const topEvents = events
           .filter((e: any) => e.properties && e.properties.mag >= 4.0)
-          .slice(0, 2);
+          .sort((a: any, b: any) => (b.properties.mag || 0) - (a.properties.mag || 0))
+          .slice(0, 12);
         
         return topEvents.map((e: any, index: number) => {
           const lat = e.geometry.coordinates[1];
@@ -299,20 +310,23 @@ export async function GET(request: NextRequest) {
             region: e.properties.place || "Unknown Coastline",
             desc: `USGS: Seismic event registered at depth of ${e.geometry.coordinates[2]}km.`,
             solution: "Verify building integrity, stay clear of unstable structures.",
-            analysis: `RED QUEEN: Geological slip registered. Physical stability is compromised. Ensure off-grid generators are set on vibration-isolation pads.`
+            analysis: "RED QUEEN: Check distance, depth and official local guidance before deciding whether this event changes your plan.",
+            source: "USGS",
+            sourceUrl: e.properties.url || "https://earthquake.usgs.gov/earthquakes/map/",
+            confidence: 98,
           };
         });
       })
       .catch(() => []);
 
     // 2. Fetch NASA EONET (natural events)
-    const nasaPromise = fetch("https://eonet.gsfc.nasa.gov/api/v3/events?limit=3&status=open")
+    const nasaPromise = fetch("https://eonet.gsfc.nasa.gov/api/v3/events?limit=20&status=open", { next: { revalidate: 600 } })
       .then(res => res.json())
       .then(data => {
         const events = data.events || [];
         return events.map((e: any, index: number) => {
           const cat = e.categories[0]?.title || "Natural Hazard";
-          const geom = e.geometries[0];
+          const geom = e.geometries?.[e.geometries.length - 1];
           if (!geom || !geom.coordinates) return null;
           const lng = geom.coordinates[0];
           const lat = geom.coordinates[1];
@@ -329,15 +343,20 @@ export async function GET(request: NextRequest) {
             coords: geoToSvg(lat, lng),
             region: e.title || "Active Hazard Coordinate",
             desc: `NASA EONET: Remote sensing satellites flag active ${cat.toLowerCase()} anomaly.`,
-            solution: "Monitor localized weather briefings, evacuate if boundaries expand.",
-            analysis: `RED QUEEN: Natural atmospheric anomalies threaten open sat-relays. Anticipate minor signal latency spikes.`
+            solution: "Open the source event and verify current local authority guidance before acting.",
+            analysis: "RED QUEEN: Satellite event tracking establishes a source-backed signal, but local impact still requires regional confirmation.",
+            source: "NASA EONET",
+            sourceUrl: e.sources?.[0]?.url || "https://eonet.gsfc.nasa.gov/",
+            confidence: 92,
           };
         }).filter(Boolean);
       })
       .catch(() => []);
 
     // 3. Fetch NOAA Space Weather alerts
-    const noaaPromise = fetch("https://services.swpc.noaa.gov/products/alerts.json")
+    // Kept as a future non-geographic feed candidate. It is intentionally not
+    // executed or placed on the local map because space weather is global.
+    const loadNoaaSignals = () => fetch("https://services.swpc.noaa.gov/products/alerts.json")
       .then(res => res.json())
       .then(data => {
         const alerts = Array.isArray(data) ? data : [];
@@ -387,7 +406,8 @@ export async function GET(request: NextRequest) {
       .catch(() => []);
 
     // 4. Fetch Google News RSS for Disease Outbreaks
-    const googleNewsPromise = fetch("https://news.google.com/rss/search?q=disease+outbreak+OR+virus+outbreak+OR+who+alert&hl=en-US&gl=US&ceid=US:en")
+    // News discovery is not a verified alert source, so it stays out of live map requests.
+    const loadNewsCandidates = () => fetch("https://news.google.com/rss/search?q=disease+outbreak+OR+virus+outbreak+OR+who+alert&hl=en-US&gl=US&ceid=US:en")
       .then(res => res.text())
       .then(xmlText => {
         const items: any[] = [];
@@ -430,7 +450,8 @@ export async function GET(request: NextRequest) {
       .catch(() => []);
 
     // 5. Fetch Exchange Rates Volatility (Inflation metrics)
-    const exchangePromise = fetch("https://open.er-api.com/v6/latest/USD")
+    // A spot exchange rate is not a volatility alert without a time-series baseline.
+    const loadExchangeCandidates = () => fetch("https://open.er-api.com/v6/latest/USD")
       .then(res => res.json())
       .then(data => {
         const rates = data.rates || {};
@@ -466,19 +487,41 @@ export async function GET(request: NextRequest) {
       })
       .catch(() => []);
 
-    const [usgsNodes, nasaNodes, noaaNodes, newsNodes, exchangeNodes] = await Promise.all([
+    const gdacsPromise = fetchGDACS().then((alerts) => alerts.map((alert) => {
+      const type = ["EQ", "VO"].includes(alert.eventType.toUpperCase())
+        ? "GEOLOGICAL" as const
+        : ["TC", "FL", "DR", "WF"].includes(alert.eventType.toUpperCase())
+          ? "METEOROLOGICAL" as const
+          : "KINETIC" as const;
+      const severity = alert.alertLevel === "Red" ? 92 : alert.alertLevel === "Orange" ? 72 : Math.max(35, Math.round(alert.alertScore * 20));
+      return {
+        id: alert.id,
+        name: alert.title,
+        type,
+        category: "realistic" as const,
+        severity,
+        lat: alert.lat,
+        lng: alert.lng,
+        coords: geoToSvg(alert.lat, alert.lng),
+        region: alert.country || "Global",
+        desc: alert.desc || `${alert.eventTypeName} tracked by GDACS.`,
+        solution: "Review the GDACS event page and follow official instructions from authorities in the affected area.",
+        analysis: "RED QUEEN: GDACS provides event-level disaster monitoring. Personal relevance depends on distance, alert level and local instructions.",
+        source: "GDACS (EC JRC / UN)",
+        sourceUrl: alert.link,
+        confidence: 96,
+      };
+    }));
+
+    const [usgsNodes, nasaNodes, gdacsNodes] = await Promise.all([
       usgsPromise,
       nasaPromise,
-      noaaPromise,
-      googleNewsPromise,
-      exchangePromise
+      gdacsPromise,
     ]);
 
     nodes.push(...usgsNodes);
     nodes.push(...nasaNodes);
-    nodes.push(...noaaNodes);
-    nodes.push(...newsNodes);
-    nodes.push(...exchangeNodes);
+    nodes.push(...gdacsNodes);
 
     // Merge fallback data if API yields too few nodes
     if (!liveOnly && nodes.length < 2) {
@@ -491,7 +534,7 @@ export async function GET(request: NextRequest) {
 
   // The core Pulse must never mix scenario-library content with verified live signals.
   if (liveOnly) {
-    return NextResponse.json(sanitizeNodes(nodes, true));
+    return NextResponse.json(sanitizeNodes(nodes));
   }
 
   // --- Dynamic Mapping of the Entire Threat Archive ---
@@ -534,7 +577,7 @@ export async function GET(request: NextRequest) {
   nodes.push(...archiveMapping(ALGORITHMIC, "algorithmic"));
 
   // Ensure all node coordinates are formatted correctly
-  const sanitized = sanitizeNodes(nodes, false);
+  const sanitized = sanitizeNodes(nodes);
 
   return NextResponse.json(sanitized);
 }

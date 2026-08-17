@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BootSequence from "@/components/BootSequence";
 import DailyActionPanel from "@/components/DailyActionPanel";
+import SignalWatchPanel from "@/components/SignalWatchPanel";
 import {
   buildFirstContactPrompt,
   getFocusOption,
@@ -438,6 +439,8 @@ export default function HomePage() {
             <small>Area resolved with © OpenStreetMap contributors · absence of a mapped signal is not proof of safety.</small>
           </div>
         )}
+
+        <SignalWatchPanel nodes={nodes} area={localContext?.area} location={localContext?.location || null} />
 
         <div className="pulse-map-shell">
           {mapLoading ? (
