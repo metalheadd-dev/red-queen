@@ -89,6 +89,8 @@ export async function POST(request: Request) {
     clearance_level: clearance.level,
     response_depth: clearance.responseDepth,
     context_messages: clearance.contextMessages,
+    signal_watch_slots: clearance.signalWatchSlots,
+    comparison_signals: clearance.comparisonSignals,
     earned_xp_multiplier: clearance.earnedXpMultiplier,
     source: "SOLANA_RPC",
     cached: false,

@@ -436,19 +436,39 @@ export async function fetchSignalGrid(options: { sourceIds?: SignalSourceId[] } 
   };
 }
 
-export async function findVerifiedSignalById(signalId: string): Promise<NormalizedSignal | null> {
-  const prefixToSource: Partial<Record<string, SourceDefinition>> = {
-    usgs: SOURCES[0],
-    nasa: SOURCES[1],
-    gdacs: SOURCES[2],
-  };
-  const source = prefixToSource[signalId.split("-")[0]];
-  if (!source) return null;
-  try {
-    const now = Date.now();
-    const signals = (await source.fetcher()).map((signal) => rankSignal(signal, now));
-    return signals.find((signal) => signal.id === signalId && signal.confidence >= 90) || null;
-  } catch {
-    return null;
+function sourceForSignalId(signalId: string) {
+  if (signalId.startsWith("usgs-")) return SOURCES[0];
+  if (signalId.startsWith("nasa-")) return SOURCES[1];
+  if (signalId.startsWith("gdacs-")) return SOURCES[2];
+  if (signalId.startsWith("noaa-")) return SOURCES[3];
+  if (signalId.startsWith("cisa-")) return SOURCES[4];
+  if (signalId.startsWith("who-")) return SOURCES[5];
+  if (signalId.startsWith("solana-status-")) return SOURCES[6];
+  return null;
+}
+
+export async function findVerifiedSignalsByIds(signalIds: string[]): Promise<NormalizedSignal[]> {
+  const requestedIds = Array.from(new Set(signalIds)).slice(0, 6);
+  const sourceGroups = new Map<SourceDefinition, string[]>();
+  for (const signalId of requestedIds) {
+    const source = sourceForSignalId(signalId);
+    if (!source) continue;
+    sourceGroups.set(source, [...(sourceGroups.get(source) || []), signalId]);
   }
+
+  const now = Date.now();
+  const settled = await Promise.all(Array.from(sourceGroups.entries()).map(async ([source, ids]) => {
+    try {
+      const signals = (await source.fetcher()).map((signal) => rankSignal(signal, now));
+      return signals.filter((signal) => ids.includes(signal.id) && signal.confidence >= 90);
+    } catch {
+      return [];
+    }
+  }));
+  const byId = new Map(settled.flat().map((signal) => [signal.id, signal]));
+  return requestedIds.flatMap((id) => byId.has(id) ? [byId.get(id)!] : []);
+}
+
+export async function findVerifiedSignalById(signalId: string): Promise<NormalizedSignal | null> {
+  return (await findVerifiedSignalsByIds([signalId]))[0] || null;
 }

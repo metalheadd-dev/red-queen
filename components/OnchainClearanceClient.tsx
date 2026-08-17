@@ -34,6 +34,7 @@ type OnchainSnapshot = {
       responseDepth: string;
       contextMessages: number;
       signalWatchSlots: number;
+      comparisonSignals: number;
       earnedXpMultiplier: number;
     };
   };
@@ -143,8 +144,9 @@ export default function OnchainClearanceClient() {
             <div><span>RPC ROUNDTRIP</span><strong>{snapshot.rpcLatencyMs} MS</strong></div>
           </div>
           <div className="onchain-utility-result">
-            <span>ACTIVE UTILITY</span>
-            <p><strong>{snapshot.threat.clearance.contextMessages} messages</strong> of working context · <strong>{snapshot.threat.clearance.signalWatchSlots} signal watches</strong> · <strong>{snapshot.threat.clearance.responseDepth}</strong> analysis · <strong>×{snapshot.threat.clearance.earnedXpMultiplier.toFixed(2)}</strong> on genuinely earned XP.</p>
+            <span>OBSERVED TIER CAPACITY</span>
+            <p><strong>{snapshot.threat.clearance.contextMessages} messages</strong> of working context · <strong>{snapshot.threat.clearance.signalWatchSlots} signal watches</strong> · <strong>{snapshot.threat.clearance.comparisonSignals} verified signals</strong> per Queen synthesis · <strong>{snapshot.threat.clearance.responseDepth}</strong> analysis · <strong>×{snapshot.threat.clearance.earnedXpMultiplier.toFixed(2)}</strong> on genuinely earned XP.</p>
+            <small>Personalized holder utility activates only after ownership verification.</small>
           </div>
         </>
       ) : (

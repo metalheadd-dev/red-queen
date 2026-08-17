@@ -67,6 +67,7 @@ export async function readOnchainWalletSnapshot(address: string) {
         responseDepth: clearance.responseDepth,
         contextMessages: clearance.contextMessages,
         signalWatchSlots: clearance.signalWatchSlots,
+        comparisonSignals: clearance.comparisonSignals,
         earnedXpMultiplier: clearance.earnedXpMultiplier,
       },
     },

@@ -12,6 +12,7 @@ export interface SurvivalContext {
   focus: SurvivalFocus;
   mode: AgentMode;
   signalId?: string;
+  signalIds?: string[];
   location?: {
     lat: number;
     lng: number;
@@ -60,7 +61,14 @@ export function sanitizeArea(value: string) {
 export function sanitizeSignalId(value: unknown) {
   if (typeof value !== "string") return undefined;
   const normalized = value.trim();
-  return /^(usgs|nasa|gdacs)-[A-Za-z0-9._:%-]{1,180}$/.test(normalized) ? normalized : undefined;
+  return /^(usgs|nasa|gdacs|noaa|cisa|who|solana-status)-[A-Za-z0-9._:%-]{1,220}$/.test(normalized) ? normalized : undefined;
+}
+
+export function sanitizeSignalIds(value: unknown) {
+  const candidates = Array.isArray(value)
+    ? value
+    : typeof value === "string" ? value.split(",") : [];
+  return Array.from(new Set(candidates.map(sanitizeSignalId).filter((id): id is string => Boolean(id)))).slice(0, 6);
 }
 
 export function isSurvivalFocus(value: string | null | undefined): value is SurvivalFocus {

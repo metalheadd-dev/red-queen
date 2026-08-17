@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useAuth } from "@/components/AuthProvider";
 import {
   parseSignalWatchMemory,
   SIGNAL_WATCH_EVENT,
@@ -80,7 +80,7 @@ function matchReason(signal: WatchableSignal, memory: SignalWatchMemory, locatio
 }
 
 export default function SignalWatchPanel({ nodes, area, location }: SignalWatchPanelProps) {
-  const { publicKey } = useWallet();
+  const { session } = useAuth();
   const [memory, setMemory] = useState<SignalWatchMemory>({
     version: 1,
     types: [],
@@ -92,32 +92,41 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
   const [reviewSignalIds, setReviewSignalIds] = useState<string[]>([]);
   const [previousScanAt, setPreviousScanAt] = useState<string | undefined>();
   const [watchSlots, setWatchSlots] = useState(2);
+  const [comparisonSignals, setComparisonSignals] = useState(2);
   const [clearanceName, setClearanceName] = useState("CIVILIAN");
   const [limitMessage, setLimitMessage] = useState("");
 
   useEffect(() => {
-    const address = publicKey?.toBase58();
-    if (!address) {
+    const accessToken = session?.access_token;
+    if (!accessToken) {
       setWatchSlots(2);
+      setComparisonSignals(2);
       setClearanceName("CIVILIAN");
       return;
     }
     let active = true;
-    fetch(`/api/onchain/wallet?address=${encodeURIComponent(address)}`, { cache: "no-store" })
+    fetch("/api/profile/verify-holder", {
+      method: "POST",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({}),
+    })
       .then(async (response) => {
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "On-chain read unavailable");
+        if (!response.ok) throw new Error(data.error || "Holder verification unavailable");
         if (!active) return;
-        setWatchSlots(Number(data.threat?.clearance?.signalWatchSlots) || 2);
-        setClearanceName(data.threat?.clearance?.name || "CIVILIAN");
+        setWatchSlots(Number(data.signal_watch_slots) || 2);
+        setComparisonSignals(Number(data.comparison_signals) || 2);
+        setClearanceName(data.holder_status || "CIVILIAN");
       })
       .catch(() => {
         if (!active) return;
         setWatchSlots(2);
+        setComparisonSignals(2);
         setClearanceName("UNVERIFIED");
       });
     return () => { active = false; };
-  }, [publicKey]);
+  }, [session?.access_token]);
 
   useEffect(() => {
     setMemory(parseSignalWatchMemory(localStorage.getItem(SIGNAL_WATCH_STORAGE_KEY)));
@@ -218,12 +227,18 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
     const subject = signal
       ? `${signal.name} (${signal.type}, severity ${signal.severity}, ${signal.region}, source: ${signal.source || "pending"})`
       : "the current signals in my Signal Watch";
-    return `/terminal?${new URLSearchParams({
+    const params = new URLSearchParams({
       mode: "MONITOR",
       focus: "LOCAL_THREATS",
       area: area || "",
       prompt: `Review ${subject}. Separate verified facts from uncertainty, explain why it matters to my context, and give one proportionate action only if justified.`,
-    }).toString()}`;
+    });
+    if (signal) params.set("signal", signal.id);
+    else {
+      const comparisonIds = displayedSignals.slice(0, comparisonSignals).map((item) => item.id);
+      if (comparisonIds.length) params.set("signals", comparisonIds.join(","));
+    }
+    return `/terminal?${params.toString()}`;
   }
 
   const hasWatches = memory.localPriority || memory.types.length > 0;
@@ -236,7 +251,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
     <section id="signal-watch" className={`signal-watch-panel ${hasWatches ? "is-active" : ""}`}>
       <div className="signal-watch-heading">
         <div><span>QUEEN ALERT CENTER // ON-DEVICE</span><h3>{hasWatches ? `${matchedSignals.length} current matches · ${reviewSignalIds.length} need review` : "Choose what RED QUEEN should remember"}</h3></div>
-        <small>{memory.types.length + (memory.localPriority ? 1 : 0)}/{watchSlots} WATCH SLOTS · {clearanceName} · LAST SCAN {formatScanTime(previousScanAt)}</small>
+        <small>{memory.types.length + (memory.localPriority ? 1 : 0)}/{watchSlots} WATCH SLOTS · COMPARE {comparisonSignals} · {clearanceName} · LAST SCAN {formatScanTime(previousScanAt)}</small>
       </div>
       <div className="signal-watch-controls">
         <button type="button" disabled={!location} className={memory.localPriority ? "active" : ""} onClick={toggleLocal}>
@@ -277,7 +292,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
           <Link href={queenReviewHref()}>ASK QUEEN TO REVIEW WATCH →</Link>
         </div>
       )}
-      <footer>Review state stays on this device. This compares source-backed signals when you open Pulse; browser push and account sync are not enabled yet.</footer>
+      <footer>Review state stays on this device. Holder capacity requires a verified account session; connecting a public address alone does not unlock it. Browser push and account sync are not enabled yet.</footer>
     </section>
   );
 }

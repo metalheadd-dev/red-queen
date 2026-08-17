@@ -98,15 +98,15 @@ The server reads the canonical SPL mint on Solana mainnet, aggregates matching t
 
 Canonical mint: `3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump`
 
-| Level | Balance | Context | Signal watches | Analysis | Earned XP |
-| --- | ---: | ---: | ---: | --- | ---: |
-| Civilian | Public | 6 messages | 2 | Essential | ×1.00 |
-| Scout | 1+ | 10 messages | 3 | Standard | ×1.05 |
-| Analyst | 100K+ | 14 messages | 4 | Detailed | ×1.10 |
-| Sentinel | 500K+ | 18 messages | 5 | Advanced | ×1.15 |
-| Command | 1M+ | 24 messages | 6 | Strategic | ×1.20 |
+| Level | Balance | Context | Signal watches | Signals / synthesis | Analysis | Earned XP |
+| --- | ---: | ---: | ---: | ---: | --- | ---: |
+| Civilian | Public | 6 messages | 2 | 2 | Essential | ×1.00 |
+| Scout | 1+ | 10 messages | 3 | 3 | Standard | ×1.05 |
+| Analyst | 100K+ | 14 messages | 4 | 4 | Detailed | ×1.10 |
+| Sentinel | 500K+ | 18 messages | 5 | 5 | Advanced | ×1.15 |
+| Command | 1M+ | 24 messages | 6 | 6 | Strategic | ×1.20 |
 
-Token holdings expand intelligence capacity and engagement XP. They never create BIO-SCORE or prove survival competence.
+Token holdings expand intelligence capacity and engagement XP. Signal Watch passes source IDs rather than copied claims; the server resolves each signal again and includes only confidence-verified records up to the active comparison limit. Holdings never create BIO-SCORE or prove survival competence.
 
 Verified holders can also use **Queen Visage** in My Readiness: upload a portrait and generate a local RED QUEEN-style SOLvivor identity image. The source portrait is sent to the configured image provider only after explicit generation, and RED QUEEN stores the generated result only in that browser unless the user downloads or shares it.
 

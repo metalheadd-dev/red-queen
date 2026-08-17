@@ -33,6 +33,7 @@ import {
   READINESS_BASELINE_PROMPT,
   sanitizeArea,
   sanitizeSignalId,
+  sanitizeSignalIds,
   SurvivalContext,
 } from "@/lib/survival-context";
 
@@ -499,6 +500,7 @@ export default function TerminalPage() {
     verified: false,
     responseDepth: "essential",
     contextMessages: 6,
+    comparisonSignals: 2,
     earnedXpMultiplier: 1,
   });
   const [survivalContext, setSurvivalContext] = useState<SurvivalContext>({
@@ -525,6 +527,10 @@ export default function TerminalPage() {
   const stats = hasVerifiedIdentity ? (profileStats || localProgression.stats) : localProgression.stats;
   const clearance = getClearanceLevel(scoreNum);
   const scoreColor = scoreNum === 0 ? "var(--text-dim)" : clearance.color;
+  const requestedSignalCount = new Set([
+    ...(survivalContext.signalId ? [survivalContext.signalId] : []),
+    ...(survivalContext.signalIds || []),
+  ]).size;
 
   const userMessageCount = messages.filter((m) => m.role === "user").length;
   const isLocked = !hasVerifiedIdentity && (userMessageCount >= 4 || limitBlocked);
@@ -555,6 +561,7 @@ export default function TerminalPage() {
       focus,
       mode,
       signalId: sanitizeSignalId(params.get("signal")),
+      signalIds: sanitizeSignalIds(params.get("signals")),
       location: queryArea && queryArea !== storedArea ? undefined : storedLocation,
     };
 
@@ -1136,7 +1143,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
           <div className="rq-identity-metric rq-identity-metric--token">
             <span>$THREAT INTELLIGENCE CLEARANCE</span>
             <strong>LVL {agentClearance.level} · {agentClearance.name}</strong>
-            <small>{agentClearance.verified ? `${agentClearance.balance.toLocaleString()} $THREAT VERIFIED` : "WALLET OWNERSHIP NOT VERIFIED"}</small>
+            <small>{agentClearance.verified ? `${agentClearance.balance.toLocaleString()} $THREAT VERIFIED` : "WALLET OWNERSHIP NOT VERIFIED"} · COMPARE {agentClearance.comparisonSignals}</small>
           </div>
         </div>
       </div>
@@ -1172,6 +1179,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
               <span>SESSION CONTEXT</span>
               <strong>{survivalContext.area || "GLOBAL / AREA NOT SET"}</strong>
               <span>{getFocusOption(survivalContext.focus).label}</span>
+              {requestedSignalCount > 0 && <span>{requestedSignalCount} SIGNAL ID{requestedSignalCount === 1 ? "" : "S"} · SERVER RE-VERIFIES</span>}
               {survivalContext.area && (
                 <button
                   type="button"
