@@ -1,7 +1,7 @@
 import { fetchGDACS, fetchWithTimeout } from "@/lib/threats-fetchers";
 
-export type SignalKind = "GEOLOGICAL" | "WILDFIRE" | "SPACE_WEATHER" | "CYBER" | "HEALTH" | "DISASTER";
-export type SignalSourceId = "USGS" | "NASA_EONET" | "GDACS" | "NOAA_SWPC" | "CISA_KEV" | "WHO_DON";
+export type SignalKind = "GEOLOGICAL" | "WILDFIRE" | "SPACE_WEATHER" | "CYBER" | "HEALTH" | "DISASTER" | "SOLANA_NETWORK";
+export type SignalSourceId = "USGS" | "NASA_EONET" | "GDACS" | "NOAA_SWPC" | "CISA_KEV" | "WHO_DON" | "SOLANA_STATUS";
 
 export interface NormalizedSignal {
   id: string;
@@ -62,6 +62,7 @@ const SOURCE_LABELS: Record<SignalSourceId, string> = {
   NOAA_SWPC: "NOAA SWPC",
   CISA_KEV: "CISA KEV",
   WHO_DON: "WHO DON",
+  SOLANA_STATUS: "SOLANA STATUS",
 };
 
 const FRESHNESS_WINDOWS_HOURS: Record<SignalKind, number> = {
@@ -71,6 +72,7 @@ const FRESHNESS_WINDOWS_HOURS: Record<SignalKind, number> = {
   SPACE_WEATHER: 48,
   CYBER: 24 * 14,
   HEALTH: 24 * 30,
+  SOLANA_NETWORK: 72,
 };
 
 const ACTIONS: Record<SignalKind, string> = {
@@ -80,6 +82,7 @@ const ACTIONS: Record<SignalKind, string> = {
   SPACE_WEATHER: "Charge backup power, download essential information for offline access, and monitor official grid and communications advisories.",
   CYBER: "Check whether the affected product exists in your devices or organization, apply the vendor mitigation, revoke unused sessions, and never sign an unsolicited wallet transaction.",
   HEALTH: "Read the WHO notice and local public-health guidance. Do not self-diagnose or change treatment from a headline; prepare only measures justified for your area.",
+  SOLANA_NETWORK: "Check the official incident update before retrying. Do not repeatedly submit a transaction or x402 payment; verify the last signature and wallet activity first.",
 };
 
 const ASSESSMENTS: Record<SignalKind, string> = {
@@ -89,6 +92,7 @@ const ASSESSMENTS: Record<SignalKind, string> = {
   SPACE_WEATHER: "An official space-weather notice is active. Direct physical risk is usually limited, while communications, navigation and power systems may require monitoring.",
   CYBER: "CISA has added this vulnerability to its known-exploited catalog. Exposure depends on whether the affected product is actually present.",
   HEALTH: "WHO published an acute public-health event notice. It is a global verified signal, not proof of personal exposure or complete local coverage.",
+  SOLANA_NETWORK: "The official Solana status page reports a network or RPC incident. This can affect transaction delivery and data freshness without implying that your wallet is compromised.",
 };
 
 function stripHtml(value: unknown) {
@@ -323,6 +327,65 @@ async function fetchWHO(): Promise<RawSignal[]> {
   });
 }
 
+async function fetchSolanaStatus(): Promise<RawSignal[]> {
+  const sourceUrl = "https://status.solana.com/";
+  const endpoint = "https://status.solana.com/api/v2/summary.json";
+  const response = await fetchWithTimeout(endpoint);
+  if (!response.ok) throw new Error(`Solana Status ${response.status}`);
+  const data = await response.json();
+  const incidents = Array.isArray(data.incidents) ? data.incidents : [];
+  const incidentSignals = incidents.slice(0, 4).map((incident: any): RawSignal => {
+    const updates = Array.isArray(incident.incident_updates) ? incident.incident_updates : [];
+    const latest = updates.slice().sort((a: any, b: any) => String(b.updated_at).localeCompare(String(a.updated_at)))[0];
+    const impact = String(incident.impact || "minor").toLowerCase();
+    const severity = impact === "critical" ? 94 : impact === "major" ? 82 : impact === "minor" ? 66 : 52;
+    const observedAt = isoDate(latest?.created_at || incident.created_at || data.page?.updated_at);
+    const updatedAt = isoDate(latest?.updated_at || incident.updated_at || observedAt);
+    return {
+      id: `solana-status-${incident.id}-${latest?.id || "open"}`,
+      name: `Solana ${impact} incident: ${stripHtml(incident.name) || "network degradation"}`,
+      kind: "SOLANA_NETWORK",
+      severity,
+      location: "Solana Mainnet and RPC services",
+      region: "Solana network",
+      observedAt,
+      updatedAt,
+      sourceId: "SOLANA_STATUS",
+      source: "Official Solana Status",
+      sourceUrl: incident.shortlink || sourceUrl,
+      fact: excerpt(stripHtml(latest?.body) || `Official incident status: ${incident.status || "investigating"}.`),
+      assessment: ASSESSMENTS.SOLANA_NETWORK,
+      action: ACTIONS.SOLANA_NETWORK,
+      confidence: 99,
+    };
+  });
+  if (incidentSignals.length) return incidentSignals;
+
+  const degraded = (Array.isArray(data.components) ? data.components : [])
+    .filter((component: any) => component.status && component.status !== "operational" && component.group !== true);
+  if (!degraded.length || data.status?.indicator === "none") return [];
+  const indicator = String(data.status?.indicator || "minor").toLowerCase();
+  const severity = indicator === "critical" ? 92 : indicator === "major" ? 80 : 64;
+  const updatedAt = isoDate(data.page?.updated_at);
+  return [{
+    id: `solana-status-components-${updatedAt}`,
+    name: `Solana service degradation: ${degraded.map((component: any) => component.name).join(", ")}`,
+    kind: "SOLANA_NETWORK",
+    severity,
+    location: "Solana Mainnet and RPC services",
+    region: "Solana network",
+    observedAt: updatedAt,
+    updatedAt,
+    sourceId: "SOLANA_STATUS",
+    source: "Official Solana Status",
+    sourceUrl,
+    fact: `${data.status?.description || "Service degradation"}. Affected components: ${degraded.map((component: any) => `${component.name} (${component.status})`).join(", ")}.`,
+    assessment: ASSESSMENTS.SOLANA_NETWORK,
+    action: ACTIONS.SOLANA_NETWORK,
+    confidence: 99,
+  }];
+}
+
 const SOURCES: SourceDefinition[] = [
   { id: "USGS", label: SOURCE_LABELS.USGS, fetcher: fetchUSGS },
   { id: "NASA_EONET", label: SOURCE_LABELS.NASA_EONET, fetcher: fetchNASA },
@@ -330,6 +393,7 @@ const SOURCES: SourceDefinition[] = [
   { id: "NOAA_SWPC", label: SOURCE_LABELS.NOAA_SWPC, fetcher: fetchNOAA },
   { id: "CISA_KEV", label: SOURCE_LABELS.CISA_KEV, fetcher: fetchCISA },
   { id: "WHO_DON", label: SOURCE_LABELS.WHO_DON, fetcher: fetchWHO },
+  { id: "SOLANA_STATUS", label: SOURCE_LABELS.SOLANA_STATUS, fetcher: fetchSolanaStatus },
 ];
 
 export async function fetchSignalGrid(options: { sourceIds?: SignalSourceId[] } = {}): Promise<SignalGrid> {

@@ -59,7 +59,7 @@ interface SourceHealth {
 interface PulseSignal {
   id: string;
   name: string;
-  kind: "GEOLOGICAL" | "WILDFIRE" | "DISASTER" | "SPACE_WEATHER" | "CYBER" | "HEALTH";
+  kind: "GEOLOGICAL" | "WILDFIRE" | "DISASTER" | "SPACE_WEATHER" | "CYBER" | "HEALTH" | "SOLANA_NETWORK";
   severity: number;
   location: string;
   observedAt: string;
@@ -262,11 +262,11 @@ export default function HomePage() {
 
   const nonMapWatchSignals = useMemo(
     () => (pulse.signals || [])
-      .filter((signal) => signal.kind === "SPACE_WEATHER" || signal.kind === "CYBER" || signal.kind === "HEALTH")
+      .filter((signal) => signal.kind === "SPACE_WEATHER" || signal.kind === "CYBER" || signal.kind === "HEALTH" || signal.kind === "SOLANA_NETWORK")
       .map((signal) => ({
         id: signal.id,
         name: signal.name,
-        type: signal.kind === "CYBER" ? "ALGORITHMIC" : signal.kind === "HEALTH" ? "BIOLOGICAL" : "SPACE_WEATHER",
+        type: signal.kind === "CYBER" || signal.kind === "SOLANA_NETWORK" ? "ALGORITHMIC" : signal.kind === "HEALTH" ? "BIOLOGICAL" : "SPACE_WEATHER",
         severity: signal.severity,
         region: signal.location,
         source: signal.source,
@@ -303,7 +303,7 @@ export default function HomePage() {
       };
     });
     const nonMapped: RankedSignal[] = (pulse.signals || [])
-      .filter((signal) => signal.kind === "SPACE_WEATHER" || signal.kind === "CYBER" || signal.kind === "HEALTH")
+      .filter((signal) => signal.kind === "SPACE_WEATHER" || signal.kind === "CYBER" || signal.kind === "HEALTH" || signal.kind === "SOLANA_NETWORK")
       .map((signal) => ({
         id: signal.id,
         name: signal.name,
@@ -318,6 +318,8 @@ export default function HomePage() {
           ? `${signal.freshness || "CURRENT"} · WHO public-health notice`
           : signal.kind === "CYBER"
             ? `${signal.freshness || "CURRENT"} · actively exploited vulnerability`
+            : signal.kind === "SOLANA_NETWORK"
+              ? `${signal.freshness || "CURRENT"} · official Solana network incident`
             : `${signal.freshness || "CURRENT"} · official global systems notice`,
         freshness: signal.freshness,
       }));

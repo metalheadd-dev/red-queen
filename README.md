@@ -50,14 +50,15 @@ Local Pulse resolves only a user-entered city or region, never an exact address.
 
 ## Verified signal grid
 
-The core signal engine normalizes six public source families into one contract with source, timestamp, severity, confidence, freshness, assessment, and recommended action:
+The core signal engine normalizes seven public source families into one contract with source, timestamp, severity, confidence, freshness, assessment, and recommended action:
 
 - **USGS** — recent significant earthquake observations;
 - **NASA EONET** — open natural events with usable geospatial context;
 - **GDACS** — official global disaster alerts;
 - **NOAA SWPC** — space-weather notices affecting communications, navigation, or power monitoring;
 - **CISA KEV** — vulnerabilities with known exploitation evidence;
-- **WHO DON** — acute public-health event notices.
+- **WHO DON** — acute public-health event notices;
+- **Official Solana Status** — unresolved Mainnet/RPC incidents and component degradation. An operational network correctly produces `NO_SIGNALS`, not a fabricated alert.
 
 Source health is visible as `ONLINE`, `NO_SIGNALS`, or `OFFLINE`. “No matching signal” and “the source could not be reached” are intentionally different states.
 
