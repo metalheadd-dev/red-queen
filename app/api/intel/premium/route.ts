@@ -156,6 +156,7 @@ const handler = async (req: NextRequest) => {
 export const GET = withFriendlyX402(
   handler,
   {
+    productId: "global-source-synthesis",
     accepts: {
       scheme: "exact",
       price: "$0.01",

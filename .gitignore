@@ -56,9 +56,14 @@ SOUL.md
 # internal game documentation (never publish)
 GAME DOCS/
 
-# database migration scripts (never publish)
+# legacy one-off database scripts (never publish)
 supabase_migration.sql
 *.sql
+
+# reviewed, reproducible Supabase migrations belong with the application
+!supabase/
+!supabase/migrations/
+!supabase/migrations/*.sql
 
 # internal dev reports (never publish)
 *_REPORT.md

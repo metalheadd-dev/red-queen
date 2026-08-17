@@ -3,6 +3,14 @@ import { HTTPFacilitatorClient, x402ResourceServer } from "@x402/core/server";
 import { registerExactSvmScheme } from "@x402/svm/exact/server";
 import { NextRequest, NextResponse } from "next/server";
 import { withX402 } from "@x402/next";
+import { randomUUID } from "crypto";
+import {
+  checkX402OperationStore,
+  findX402Operation,
+  fingerprint,
+  persistX402Delivery,
+} from "@/lib/x402-operations";
+import { isValidSolanaPublicKey } from "@/lib/solana";
 
 // Fallback to PayAI's default facilitator endpoint if not configured
 const facilitatorUrl = process.env.PAYAI_FACILITATOR_URL || "https://facilitator.payai.network";
@@ -35,16 +43,96 @@ export function withFriendlyX402(
 ) {
   return async (req: NextRequest) => {
     const payTo = routeConfig?.accepts?.payTo;
-    if (typeof payTo !== "string" || !payTo.trim()) {
+    if (typeof payTo !== "string" || !isValidSolanaPublicKey(payTo.trim())) {
       return NextResponse.json({
-        error: "Paid intelligence is unavailable because the receiving SVM address is not configured.",
+        error: "Paid intelligence is unavailable because the receiving SVM address is missing or invalid.",
       }, { status: 503 });
+    }
+
+    const requestedOperationId = req.headers.get("x-operation-id")?.trim();
+    if (requestedOperationId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedOperationId)) {
+      return NextResponse.json({ error: "X-Operation-Id must be a valid UUID." }, { status: 400 });
+    }
+
+    const operationId = requestedOperationId || randomUUID();
+    const receiptStore = await checkX402OperationStore();
+    if (!receiptStore.available) {
+      return NextResponse.json({
+        error: receiptStore.reason || "x402 receipt storage is unavailable.",
+        operationId,
+      }, { status: 503, headers: { "X-Operation-Id": operationId } });
+    }
+
+    const productId = String(routeConfig?.productId || new URL(req.url).pathname);
+    const requestFingerprint = fingerprint(`${req.method}\n${new URL(req.url).pathname}${new URL(req.url).search}\n${productId}`);
+    const paymentHeader = req.headers.get("payment-signature") || req.headers.get("x-payment");
+    const paymentFingerprint = paymentHeader ? fingerprint(paymentHeader) : null;
+
+    let existing;
+    try {
+      existing = await findX402Operation(operationId);
+    } catch {
+      return NextResponse.json({
+        error: "x402 receipt lookup is unavailable. No payment was requested.",
+        operationId,
+      }, { status: 503, headers: { "X-Operation-Id": operationId } });
+    }
+    if (existing) {
+      const exactReplay = paymentFingerprint
+        && existing.product_id === productId
+        && existing.request_fingerprint === requestFingerprint
+        && existing.payment_fingerprint === paymentFingerprint;
+
+      if (!exactReplay) {
+        return NextResponse.json({
+          error: "This operation ID is already bound to another delivered payment.",
+          operationId,
+        }, { status: 409, headers: { "X-Operation-Id": operationId } });
+      }
+
+      return NextResponse.json(existing.response_body, {
+        status: 200,
+        headers: {
+          "X-Operation-Id": operationId,
+          "X-Idempotent-Replay": "true",
+          "X-Receipt-Status": "stored",
+          "Payment-Response": Buffer.from(JSON.stringify(existing.settlement)).toString("base64"),
+          "Cache-Control": "private, no-store",
+        },
+      });
     }
 
     // Initialize only for an actual paid resource request. Importing an API route
     // during build must never contact an external facilitator.
     const innerMiddleware = withX402(routeHandler, routeConfig, getX402Server());
     const res = await innerMiddleware(req);
+    res.headers.set("X-Operation-Id", operationId);
+    res.headers.set("Cache-Control", "private, no-store");
+
+    const settlementHeader = res.headers.get("payment-response") || res.headers.get("x-payment-response");
+    if (res.status === 200 && paymentHeader && paymentFingerprint && settlementHeader) {
+      try {
+        const settlement = JSON.parse(Buffer.from(settlementHeader, "base64").toString("utf-8"));
+        const responseBody = await res.clone().json();
+        const receipt = await persistX402Delivery({
+          operationId,
+          productId,
+          requestFingerprint,
+          paymentFingerprint,
+          scheme: String(routeConfig.accepts.scheme),
+          network: String(routeConfig.accepts.network),
+          price: String(routeConfig.accepts.price),
+          payTo,
+          settlement,
+          responseBody,
+        });
+        res.headers.set("X-Receipt-Status", receipt.stored ? "stored" : "failed");
+        if (!receipt.stored) console.error(`x402 operation ${operationId}: ${receipt.reason}`);
+      } catch (error) {
+        console.error(`x402 operation ${operationId}: receipt encoding failed`, error);
+        res.headers.set("X-Receipt-Status", "failed");
+      }
+    }
 
     if (res.status === 402) {
       const acceptsHtml = req.headers.get("accept")?.includes("text/html");

@@ -125,6 +125,7 @@ const handler = async (req: NextRequest) => {
 export const GET = withFriendlyX402(
   handler,
   {
+    productId: "solana-network-health",
     accepts: {
       scheme: "exact",
       price: "$0.02",

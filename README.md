@@ -51,13 +51,13 @@ The server reads the canonical SPL mint on Solana mainnet, aggregates matching t
 
 Canonical mint: `3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump`
 
-| Level | Balance | Context | Analysis | Earned XP |
-| --- | ---: | ---: | --- | ---: |
-| Civilian | Public | 6 messages | Essential | ×1.00 |
-| Scout | 1+ | 10 messages | Standard | ×1.05 |
-| Analyst | 100K+ | 14 messages | Detailed | ×1.10 |
-| Sentinel | 500K+ | 18 messages | Advanced | ×1.15 |
-| Command | 1M+ | 24 messages | Strategic | ×1.20 |
+| Level | Balance | Context | Signal watches | Analysis | Earned XP |
+| --- | ---: | ---: | ---: | --- | ---: |
+| Civilian | Public | 6 messages | 2 | Essential | ×1.00 |
+| Scout | 1+ | 10 messages | 3 | Standard | ×1.05 |
+| Analyst | 100K+ | 14 messages | 4 | Detailed | ×1.10 |
+| Sentinel | 500K+ | 18 messages | 5 | Advanced | ×1.15 |
+| Command | 1M+ | 24 messages | 6 | Strategic | ×1.20 |
 
 Token holdings expand intelligence capacity and engagement XP. They never create BIO-SCORE or prove survival competence.
 
@@ -65,7 +65,9 @@ Token holdings expand intelligence capacity and engagement XP. They never create
 
 Premium HTTP resources can request an exact USDC payment through the x402 SVM scheme. The network, asset, amount, and receiving wallet must be displayed before approval. Wallet connection and SIWS authentication never authorize payment.
 
-Current implementation uses x402 v2 packages with Solana CAIP-2 network identifiers. Production settlement requires a configured facilitator and receiving wallet.
+Current implementation uses x402 v2 packages with Solana CAIP-2 network identifiers. Each paid request carries an operation UUID; successful settlement proof and delivered output are stored server-side, and an exact replay of the same signed request returns the original delivery without another payment. Production settlement stays disabled unless the facilitator, explicit `SVM_ADDRESS`, and the `x402_operations` receipt store are all healthy.
+
+Apply `supabase/migrations/20260817170000_create_x402_operations.sql` to the linked Supabase project before enabling x402. The table has RLS enabled and intentionally exposes no browser policies; only the server service role can read payment receipts or paid outputs.
 
 Official references: [Solana Actions and Blinks](https://solana.com/developers/guides/advanced/actions), [Solana Mobile Wallet Adapter](https://docs.solanamobile.com/get-started/web/apps), [x402 specification](https://github.com/x402-foundation/x402/blob/main/specs/x402-specification-v2.md), [Supabase Web3 Auth](https://supabase.com/docs/guides/auth/auth-web3).
 

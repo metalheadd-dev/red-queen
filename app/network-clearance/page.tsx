@@ -73,8 +73,8 @@ export default function NetworkClearancePage() {
           <div className="onchain-production-gates">
             <div><span>LIVE RULE</span><strong>NO PAY-TO-EARN</strong><p>x402 purchases never award XP or BIO.</p></div>
             <div><span>LIVE RULE</span><strong>FAIL CLOSED</strong><p>Source failure returns unavailable, never synthetic paid intelligence.</p></div>
-            <div><span>PRODUCTION GATE</span><strong>RECEIPT + IDEMPOTENCY</strong><p>Persist operation ID, settlement proof and delivery state before launch.</p></div>
-            <div><span>PRODUCTION GATE</span><strong>FACILITATOR HEALTH</strong><p>Check supported SVM schemes and disable purchase UI when settlement is unavailable.</p></div>
+            <div><span>LIVE GATE</span><strong>RECEIPT + IDEMPOTENCY</strong><p>Every paid output gets an operation UUID, stored settlement proof and exact signed-request replay protection.</p></div>
+            <div><span>LIVE GATE</span><strong>FACILITATOR + STORAGE HEALTH</strong><p>Purchase UI stays disabled unless the SVM scheme, receiving wallet and receipt store are all ready.</p></div>
           </div>
         </section>
 

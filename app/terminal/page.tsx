@@ -115,6 +115,10 @@ export default function TerminalPage() {
   const [depinError, setDepinError] = useState<string | null>(null);
   const [premiumTxid, setPremiumTxid] = useState<string | null>(null);
   const [depinTxid, setDepinTxid] = useState<string | null>(null);
+  const [premiumOperationId, setPremiumOperationId] = useState<string | null>(null);
+  const [depinOperationId, setDepinOperationId] = useState<string | null>(null);
+  const [premiumReceiptStored, setPremiumReceiptStored] = useState<boolean | null>(null);
+  const [depinReceiptStored, setDepinReceiptStored] = useState<boolean | null>(null);
   const [x402Available, setX402Available] = useState<boolean | null>(null);
   const [x402StatusReason, setX402StatusReason] = useState("Checking settlement facilitator...");
 
@@ -182,7 +186,15 @@ export default function TerminalPage() {
 
     try {
       const token = session?.access_token;
-      let headers: Record<string, string> = {};
+      const operationId = crypto.randomUUID();
+      let headers: Record<string, string> = { "X-Operation-Id": operationId };
+      if (type === "premium") {
+        setPremiumOperationId(null);
+        setPremiumReceiptStored(null);
+      } else {
+        setDepinOperationId(null);
+        setDepinReceiptStored(null);
+      }
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -191,6 +203,15 @@ export default function TerminalPage() {
       if (res.status === 200) {
         const data = await res.json();
         setIntel(data);
+        const deliveredOperationId = res.headers.get("x-operation-id") || operationId;
+        const receiptStored = res.headers.get("x-receipt-status") === "stored";
+        if (type === "premium") {
+          setPremiumOperationId(deliveredOperationId);
+          setPremiumReceiptStored(receiptStored);
+        } else {
+          setDepinOperationId(deliveredOperationId);
+          setDepinReceiptStored(receiptStored);
+        }
         setLoading(null);
         fetchVaultBalances();
 
@@ -362,6 +383,15 @@ export default function TerminalPage() {
             if (retryRes.status === 200) {
               const data = await retryRes.json();
               setIntel(data);
+              const deliveredOperationId = retryRes.headers.get("x-operation-id") || operationId;
+              const receiptStored = retryRes.headers.get("x-receipt-status") === "stored";
+              if (type === "premium") {
+                setPremiumOperationId(deliveredOperationId);
+                setPremiumReceiptStored(receiptStored);
+              } else {
+                setDepinOperationId(deliveredOperationId);
+                setDepinReceiptStored(receiptStored);
+              }
               setLoading(null);
               fetchVaultBalances();
 
@@ -424,20 +454,6 @@ export default function TerminalPage() {
 
         if (!success) {
           throw new Error(`x402 payment facilitation failed after 8 attempts. Last error: ${retryError}`);
-        }
-        // Reload profile to update XP in UI
-        if (walletAddress) {
-          try {
-            const token = session?.access_token;
-            const h: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-            const profileRes = await fetch(`/api/profile?wallet=${walletAddress}`, { headers: h }).then((r) => r.json()).catch(() => ({}));
-            if (profileRes && profileRes.profile) {
-              if (profileRes.profile.stats) setProfileStats(profileRes.profile.stats);
-              if (profileRes.profile.last_bio_score !== null) setCurrentScore(profileRes.profile.last_bio_score.toString());
-            }
-          } catch (e) {
-            console.error("Failed to reload profile:", e);
-          }
         }
       } else {
         throw new Error(`Decryption portal returned status: HTTP ${res.status}`);
@@ -1427,6 +1443,15 @@ To decrypt or scan target files:
                         </a>
                       )}
 
+                      {premiumOperationId && premiumReceiptStored === true && (
+                        <span title={premiumOperationId} style={{ color: "rgba(255,255,255,0.55)", fontFamily: "var(--mono)", fontSize: "10px" }}>
+                          RECEIPT {premiumOperationId.slice(0, 8)}…
+                        </span>
+                      )}
+                      {premiumReceiptStored === false && (
+                        <span style={{ color: "#ff8080", fontFamily: "var(--mono)", fontSize: "10px" }}>RECEIPT UNCONFIRMED — DO NOT REPAY</span>
+                      )}
+
                       {premiumIntel.intel?.explorerUrl && (
                         <a
                           href={premiumIntel.intel.explorerUrl}
@@ -1592,6 +1617,15 @@ To decrypt or scan target files:
                         >
                           [ 🔗 SOLSCAN PROOF ]
                         </a>
+                      )}
+
+                      {depinOperationId && depinReceiptStored === true && (
+                        <span title={depinOperationId} style={{ color: "rgba(255,255,255,0.55)", fontFamily: "var(--mono)", fontSize: "10px" }}>
+                          RECEIPT {depinOperationId.slice(0, 8)}…
+                        </span>
+                      )}
+                      {depinReceiptStored === false && (
+                        <span style={{ color: "#ff8080", fontFamily: "var(--mono)", fontSize: "10px" }}>RECEIPT UNCONFIRMED — DO NOT REPAY</span>
                       )}
 
                       {depinIntel.depin?.explorerUrl && (

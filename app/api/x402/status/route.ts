@@ -1,4 +1,6 @@
 import { SOLANA_MAINNET_CAIP2 } from "@/lib/onchain";
+import { checkX402OperationStore } from "@/lib/x402-operations";
+import { isValidSolanaPublicKey } from "@/lib/solana";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,31 @@ export async function GET() {
       facilitator: facilitatorHost(),
       checkedAt: new Date().toISOString(),
       reason: "SVM_ADDRESS is not configured. Paid operations are disabled.",
+    }, { headers: { "Cache-Control": "no-store" } });
+  }
+
+  if (!isValidSolanaPublicKey(configuredRecipient)) {
+    return Response.json({
+      available: false,
+      x402Version: 2,
+      scheme: "exact",
+      network: configuredNetwork,
+      facilitator: facilitatorHost(),
+      checkedAt: new Date().toISOString(),
+      reason: "SVM_ADDRESS is not a valid Solana public key. Paid operations are disabled.",
+    }, { headers: { "Cache-Control": "no-store" } });
+  }
+
+  const receiptStore = await checkX402OperationStore();
+  if (!receiptStore.available) {
+    return Response.json({
+      available: false,
+      x402Version: 2,
+      scheme: "exact",
+      network: configuredNetwork,
+      facilitator: facilitatorHost(),
+      checkedAt: new Date().toISOString(),
+      reason: receiptStore.reason,
     }, { headers: { "Cache-Control": "no-store" } });
   }
 
