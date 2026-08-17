@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withFriendlyX402 } from "@/lib/x402";
 
-const svmAddress = process.env.SVM_ADDRESS || "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg";
+const svmAddress = process.env.SVM_ADDRESS || "";
 const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
 
 const handler = async (req: NextRequest) => {
@@ -150,50 +150,6 @@ const handler = async (req: NextRequest) => {
       sourceStatus: "UNAVAILABLE",
       syntheticData: false,
     }, { status: 503 });
-
-    // Legacy synthetic fixture retained temporarily for schema migration only.
-    // It is unreachable and must never be returned by a paid endpoint.
-    return NextResponse.json({
-      success: true,
-      timestamp: new Date().toISOString(),
-      clearance: "PAID COMPUTE // x402 VERIFIED",
-      intel: {
-        headline: "CRITICAL VECTOR ESCALATION BRIEFING: GLOBAL DECAY MULTIPLIERS (Fallback)",
-        summary: "Synthetic AI containment fields in Sector Delta are experiencing 14% higher adversarial pressure. Web2 metadata mapping shows active compliance tags being cross-referenced with on-chain wallet signatures. Prepare contingency airgaps.",
-        maxEvent: {
-          magnitude: "5.4",
-          location: "Honshu, Japan (Simulated)",
-          depthKm: "24.5",
-          latitude: "35.6762",
-          longitude: "139.6503"
-        },
-        t54Telemetry: {
-          identityStatus: "VERIFIED // SECURED",
-          complianceScore: "95.2% COMPLIANT (t54-grade KYA)",
-          activePromptMitigations: 12,
-          underwritingTier: "AA (MEDIUM RISK)",
-          riskShieldState: "SHIELD DEPLOYED"
-        },
-        threatVectors: [
-          { id: "T-VIRUS", rating: "94%", trend: "STABLE", status: "RED", description: "Pathogen Containment Field Delta Pressure", depthKm: "0.0", latitude: "35.6762", longitude: "139.6503", eventTime: new Date().toISOString() },
-          { id: "AI-TAKEOVER", rating: "91%", trend: "ACCELERATING", status: "RED", description: "Autonomous Compute Containment Breach Status", depthKm: "0.0", latitude: "37.7749", longitude: "-122.4194", eventTime: new Date().toISOString() },
-          { id: "EMP-STRIKE", rating: "82%", trend: "ELEVATED", status: "YELLOW", description: "Geomagnetic Induction Core Temperature Spike", depthKm: "10.0", latitude: "55.7558", longitude: "37.6173", eventTime: new Date().toISOString() },
-        ],
-        nasaEvents: [
-          { id: "EONET_9012", title: "Tropical Cyclone Freddy", category: "Severe Storms", date: new Date().toISOString(), longitude: 42.1, latitude: -21.4, source: "JTWC" },
-          { id: "EONET_9015", title: "Saskatchewan Wildfire complex", category: "Wildfires", date: new Date().toISOString(), longitude: -106.3, latitude: 54.8, source: "NASA_FIRMS" }
-        ],
-        biologicalContainment: {
-          activePathogens: 14820300,
-          criticalInfections: 38200,
-          dailyEscalations: 74100,
-          totalFatalities: 6890400,
-          recoveryRate: "96.4%"
-        },
-        combinedEntropyIndex: "74.8%",
-        directive: "Implement adversarial prompt jitter. Purge active OAuth cookies every 24 hours. Limit outbound wallet trace paths."
-      }
-    });
   }
 };
 

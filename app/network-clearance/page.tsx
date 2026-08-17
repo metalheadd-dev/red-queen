@@ -4,6 +4,7 @@ import OnchainClearanceClient from "@/components/OnchainClearanceClient";
 import { SOLANA_MAINNET_CAIP2 } from "@/lib/onchain";
 import { THREAT_CLEARANCE_LEVELS, THREAT_TOKEN_MINT } from "@/lib/threat-token";
 import { X402_INTELLIGENCE_PRODUCTS } from "@/lib/intelligence-products";
+import X402HealthBadge from "@/components/X402HealthBadge";
 
 const LEVEL_COLORS = ["#8a8a8a", "#d8d8d8", "#f0c929", "#ff884d", "#ff4d4d"];
 
@@ -57,6 +58,7 @@ export default function NetworkClearancePage() {
 
         <section className="onchain-products">
           <div className="onchain-section-head"><span>02 // x402 OPERATION CATALOG</span><h2>Pay for an output, not a vague premium tier.</h2><p>Each operation must declare its source inputs, exact or capped price, expected output and failure behavior before a wallet asks for approval.</p></div>
+          <X402HealthBadge />
           <div className="onchain-product-grid">
             {X402_INTELLIGENCE_PRODUCTS.map((product) => (
               <article key={product.id} className={`is-${product.status.toLowerCase()}`}>

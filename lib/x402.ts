@@ -12,10 +12,15 @@ const config = {
   url: facilitatorUrl,
 };
 
-const facilitatorClient = new HTTPFacilitatorClient(config);
+let x402Server: x402ResourceServer | null = null;
 
-export const x402Server = new x402ResourceServer(facilitatorClient);
-registerExactSvmScheme(x402Server);
+function getX402Server() {
+  if (x402Server) return x402Server;
+  const facilitatorClient = new HTTPFacilitatorClient(config);
+  x402Server = new x402ResourceServer(facilitatorClient);
+  registerExactSvmScheme(x402Server);
+  return x402Server;
+}
 
 /**
  * Enhanced x402 middleware wrapper.
@@ -28,9 +33,17 @@ export function withFriendlyX402(
   routeHandler: (req: NextRequest) => Promise<NextResponse>,
   routeConfig: any
 ) {
-  const innerMiddleware = withX402(routeHandler, routeConfig, x402Server);
-
   return async (req: NextRequest) => {
+    const payTo = routeConfig?.accepts?.payTo;
+    if (typeof payTo !== "string" || !payTo.trim()) {
+      return NextResponse.json({
+        error: "Paid intelligence is unavailable because the receiving SVM address is not configured.",
+      }, { status: 503 });
+    }
+
+    // Initialize only for an actual paid resource request. Importing an API route
+    // during build must never contact an external facilitator.
+    const innerMiddleware = withX402(routeHandler, routeConfig, getX402Server());
     const res = await innerMiddleware(req);
 
     if (res.status === 402) {

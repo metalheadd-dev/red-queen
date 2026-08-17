@@ -115,9 +115,12 @@ export default function TerminalPage() {
   const [depinError, setDepinError] = useState<string | null>(null);
   const [premiumTxid, setPremiumTxid] = useState<string | null>(null);
   const [depinTxid, setDepinTxid] = useState<string | null>(null);
+  const [x402Available, setX402Available] = useState<boolean | null>(null);
+  const [x402StatusReason, setX402StatusReason] = useState("Checking settlement facilitator...");
 
   const [vaultSolBalance, setVaultSolBalance] = useState<number | null>(null);
   const [vaultUsdcBalance, setVaultUsdcBalance] = useState<number | null>(null);
+  const [vaultError, setVaultError] = useState(false);
 
   const fetchVaultBalances = async () => {
     try {
@@ -126,14 +129,17 @@ export default function TerminalPage() {
       if (data.success || data.solBalance !== undefined) {
         setVaultSolBalance(data.solBalance);
         setVaultUsdcBalance(data.usdcBalance);
+        setVaultError(false);
       } else {
-        setVaultSolBalance(0.0969);
-        setVaultUsdcBalance(0.21);
+        setVaultSolBalance(null);
+        setVaultUsdcBalance(null);
+        setVaultError(true);
       }
     } catch (e) {
       console.error("Failed to fetch vault balances:", e);
-      setVaultSolBalance(0.0969);
-      setVaultUsdcBalance(0.21);
+      setVaultSolBalance(null);
+      setVaultUsdcBalance(null);
+      setVaultError(true);
     }
   };
 
@@ -143,10 +149,32 @@ export default function TerminalPage() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    fetch("/api/x402/status", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!active) return;
+        setX402Available(data.available === true);
+        setX402StatusReason(data.available ? "x402 v2 exact SVM available" : data.reason || "Settlement facilitator unavailable");
+      })
+      .catch(() => {
+        if (!active) return;
+        setX402Available(false);
+        setX402StatusReason("Settlement health check failed");
+      });
+    return () => { active = false; };
+  }, []);
+
   const decryptIntel = async (endpoint: "/api/intel/premium" | "/api/intel/depin", type: "premium" | "depin") => {
     const setLoading = type === "premium" ? setLoadingPremium : setLoadingDepin;
     const setIntel = type === "premium" ? setPremiumIntel : setDepinIntel;
     const setError = type === "premium" ? setPremiumError : setDepinError;
+
+    if (x402Available !== true) {
+      setError(x402StatusReason);
+      return;
+    }
 
     setLoading("Initiating request...");
     setError(null);
@@ -179,20 +207,6 @@ export default function TerminalPage() {
             }
           } catch (e) {
             console.error("Failed to parse payment-response header:", e);
-          }
-        }
-        // Reload profile to update XP in UI
-        if (walletAddress) {
-          try {
-            const token = session?.access_token;
-            const h: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-            const profileRes = await fetch(`/api/profile?wallet=${walletAddress}`, { headers: h }).then((r) => r.json()).catch(() => ({}));
-            if (profileRes && profileRes.profile) {
-              if (profileRes.profile.stats) setProfileStats(profileRes.profile.stats);
-              if (profileRes.profile.last_bio_score !== null) setCurrentScore(profileRes.profile.last_bio_score.toString());
-            }
-          } catch (e) {
-            console.error("Failed to reload profile:", e);
           }
         }
         return;
@@ -1435,12 +1449,15 @@ To decrypt or scan target files:
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     <div style={{ fontSize: "11.5px", color: "var(--accent)", fontWeight: "bold", fontFamily: "var(--mono)", background: "rgba(255, 77, 77, 0.05)", padding: "10px", border: "1px solid rgba(255, 77, 77, 0.2)", borderRadius: "2px", textAlign: "center" }}>
-                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : "[ LOCKED // x402 PROTOCOL: 0.01 USDC REQUIRED ]"}
+                      STATUS: {loadingPremium ? `[ ACTIVE: ${loadingPremium} ]` : x402Available === true ? "[ LOCKED // x402 PROTOCOL: 0.01 USDC REQUIRED ]" : x402Available === null ? "[ CHECKING SETTLEMENT RAIL ]" : "[ SETTLEMENT RAIL OFFLINE ]"}
                     </div>
                     {premiumError && (
                       <div style={{ fontSize: "11px", color: "#ff8080", fontFamily: "var(--mono)" }}>
                         ⚠️ ERROR: {premiumError}
                       </div>
+                    )}
+                    {x402Available === false && !premiumError && (
+                      <div style={{ fontSize: "11px", color: "#ff8080", fontFamily: "var(--mono)" }}>SETTLEMENT BLOCKED: {x402StatusReason}</div>
                     )}
                     <button
                       className="btn btn-primary"
@@ -1451,10 +1468,10 @@ To decrypt or scan target files:
                           decryptIntel("/api/intel/premium", "premium");
                         }
                       }}
-                      disabled={!!loadingPremium}
+                      disabled={!!loadingPremium || x402Available !== true}
                       style={{ padding: "10px", fontSize: "11.5px", fontWeight: "bold" }}
                     >
-                      {loadingPremium ? "PROCESSING PAYWALL..." : connected ? "DECRYPT DOSSIER A" : "CONNECT WALLET & DECRYPT"}
+                      {loadingPremium ? "PROCESSING PAYWALL..." : x402Available !== true ? "PAYMENT UNAVAILABLE" : connected ? "DECRYPT DOSSIER A" : "CONNECT WALLET & DECRYPT"}
                     </button>
                   </div>
                 )}
@@ -1599,12 +1616,15 @@ To decrypt or scan target files:
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     <div style={{ fontSize: "11.5px", color: "#f0c929", fontWeight: "bold", fontFamily: "var(--mono)", background: "rgba(240, 201, 41, 0.05)", padding: "10px", border: "1px solid rgba(240, 201, 41, 0.2)", borderRadius: "2px", textAlign: "center" }}>
-                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : "[ LOCKED // x402 PROTOCOL: 0.02 USDC REQUIRED ]"}
+                      STATUS: {loadingDepin ? `[ ACTIVE: ${loadingDepin} ]` : x402Available === true ? "[ LOCKED // x402 PROTOCOL: 0.02 USDC REQUIRED ]" : x402Available === null ? "[ CHECKING SETTLEMENT RAIL ]" : "[ SETTLEMENT RAIL OFFLINE ]"}
                     </div>
                     {depinError && (
                       <div style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>
                         ⚠️ ERROR: {depinError}
                       </div>
+                    )}
+                    {x402Available === false && !depinError && (
+                      <div style={{ fontSize: "11px", color: "var(--accent)", fontFamily: "var(--mono)" }}>SETTLEMENT BLOCKED: {x402StatusReason}</div>
                     )}
                     <button
                       className="btn"
@@ -1615,10 +1635,10 @@ To decrypt or scan target files:
                           decryptIntel("/api/intel/depin", "depin");
                         }
                       }}
-                      disabled={!!loadingDepin}
+                      disabled={!!loadingDepin || x402Available !== true}
                       style={{ padding: "10px", fontSize: "11.5px", fontWeight: "bold", background: "#f0c929", color: "#000", border: "none" }}
                     >
-                      {loadingDepin ? "PROCESSING PAYWALL..." : connected ? "DECRYPT DOSSIER B" : "CONNECT WALLET & DECRYPT"}
+                      {loadingDepin ? "PROCESSING PAYWALL..." : x402Available !== true ? "PAYMENT UNAVAILABLE" : connected ? "DECRYPT DOSSIER B" : "CONNECT WALLET & DECRYPT"}
                     </button>
                   </div>
                 )}
@@ -1699,14 +1719,14 @@ To decrypt or scan target files:
               <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px dashed rgba(240, 201, 41, 0.1)", paddingTop: "8px" }}>
                 <span>VAULT SOL:</span>
                 <span style={{ color: "#ffffff", fontWeight: "bold" }}>
-                  {vaultSolBalance !== null ? `${vaultSolBalance.toFixed(4)} SOL` : "LOADING..."}
+                  {vaultSolBalance !== null ? `${vaultSolBalance.toFixed(4)} SOL` : vaultError ? "UNAVAILABLE" : "LOADING..."}
                 </span>
               </div>
 
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>VAULT USDC:</span>
                 <span style={{ color: "#f0c929", fontWeight: "bold" }}>
-                  {vaultUsdcBalance !== null ? `${vaultUsdcBalance.toFixed(2)} USDC` : "LOADING..."}
+                  {vaultUsdcBalance !== null ? `${vaultUsdcBalance.toFixed(2)} USDC` : vaultError ? "UNAVAILABLE" : "LOADING..."}
                 </span>
               </div>
 

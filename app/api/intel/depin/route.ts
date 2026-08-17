@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withFriendlyX402 } from "@/lib/x402";
 import { Connection } from "@solana/web3.js";
 
-const svmAddress = process.env.SVM_ADDRESS || "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg";
+const svmAddress = process.env.SVM_ADDRESS || "";
 const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
 
 const handler = async (req: NextRequest) => {
@@ -119,39 +119,6 @@ const handler = async (req: NextRequest) => {
       sourceStatus: "UNAVAILABLE",
       syntheticData: false,
     }, { status: 503 });
-
-    // Legacy synthetic fixture retained temporarily for schema migration only.
-    // It is unreachable and must never be returned by a paid endpoint.
-    return NextResponse.json({
-      success: true,
-      timestamp: new Date().toISOString(),
-      clearance: "PAID COMPUTE // x402 VERIFIED",
-      depin: {
-        scannerName: "Sector 7 DePIN Mesh Scanner (Mainnet Fallback)",
-        onlineNodes: 1420,
-        compromisedNodes: 12,
-        bandwidthTaintIndex: "0.8%",
-        sensorAlerts: [
-          "Anomaly detected on Node #097 (Berlin, DE) - unexpected outbound metadata burst.",
-          "Node #304 (Tokyo, JP) experiencing homomorphic compute throttling.",
-        ],
-        networkHealth: "99.1% STABLE",
-        circulatingSol: 450120300,
-        totalSol: 574230400,
-        collateralRatio: "62.4%",
-        inflationPercentage: "5.12%",
-        liveTps: 2450,
-        topActiveNodes: [
-          { votePubkey: "VoteActive111111111111111111111111111111111", stakeSol: 1250000, commission: 8, lastVote: 215320490 },
-          { votePubkey: "VoteActive222222222222222222222222222222222", stakeSol: 980000, commission: 5, lastVote: 215320489 },
-          { votePubkey: "VoteActive333333333333333333333333333333333", stakeSol: 850000, commission: 0, lastVote: 215320488 },
-        ],
-        allDelinquentNodes: [
-          { votePubkey: "VoteDelinq111111111111111111111111111111111", stakeSol: 45000, commission: 10, lastVote: 215310000 },
-          { votePubkey: "VoteDelinq222222222222222222222222222222222", stakeSol: 12000, commission: 10, lastVote: 215309500 },
-        ]
-      }
-    });
   }
 };
 
