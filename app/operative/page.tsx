@@ -119,7 +119,13 @@ export default function OperativeProfilePage() {
   const [verifying, setVerifying] = useState(false);
   const [localChecks, setLocalChecks] = useState(0);
   const [preparednessPlans, setPreparednessPlans] = useState<PreparednessPlan[]>([]);
-  const [signalWatch, setSignalWatch] = useState<SignalWatchMemory>({ version: 1, types: [], localPriority: false, knownSignalIds: [] });
+  const [signalWatch, setSignalWatch] = useState<SignalWatchMemory>({
+    version: 1,
+    types: [],
+    localPriority: false,
+    knownSignalIds: [],
+    acknowledgedSignalIds: [],
+  });
   const [avatar, setAvatar] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");

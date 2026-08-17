@@ -9,6 +9,7 @@ export interface SignalWatchMemory {
   types: SignalWatchType[];
   localPriority: boolean;
   knownSignalIds: string[];
+  acknowledgedSignalIds: string[];
   lastScanAt?: string;
 }
 
@@ -28,7 +29,13 @@ export function isSignalWatchType(value: string): value is SignalWatchType {
 }
 
 export function parseSignalWatchMemory(value: string | null): SignalWatchMemory {
-  const fallback: SignalWatchMemory = { version: 1, types: [], localPriority: false, knownSignalIds: [] };
+  const fallback: SignalWatchMemory = {
+    version: 1,
+    types: [],
+    localPriority: false,
+    knownSignalIds: [],
+    acknowledgedSignalIds: [],
+  };
   if (!value) return fallback;
   try {
     const parsed = JSON.parse(value) as Partial<SignalWatchMemory>;
@@ -40,6 +47,9 @@ export function parseSignalWatchMemory(value: string | null): SignalWatchMemory 
       localPriority: parsed.localPriority === true,
       knownSignalIds: Array.isArray(parsed.knownSignalIds)
         ? parsed.knownSignalIds.filter((id): id is string => typeof id === "string").slice(-400)
+        : [],
+      acknowledgedSignalIds: Array.isArray(parsed.acknowledgedSignalIds)
+        ? parsed.acknowledgedSignalIds.filter((id): id is string => typeof id === "string").slice(-400)
         : [],
       lastScanAt: typeof parsed.lastScanAt === "string" ? parsed.lastScanAt : undefined,
     };

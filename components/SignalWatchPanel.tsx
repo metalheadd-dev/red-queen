@@ -63,11 +63,33 @@ function formatScanTime(value?: string) {
   return `${Math.floor(hours / 24)}D AGO`;
 }
 
+function severityLabel(severity: number) {
+  if (severity >= 80) return "HIGH";
+  if (severity >= 60) return "ELEVATED";
+  return "MONITOR";
+}
+
+function matchReason(signal: WatchableSignal, memory: SignalWatchMemory, location?: { lat: number; lng: number } | null) {
+  const reasons: string[] = [];
+  if (memory.types.includes(signal.type as SignalWatchType)) reasons.push("WATCHED CATEGORY");
+  if (memory.localPriority && location && Number.isFinite(signal.lat) && Number.isFinite(signal.lng)) {
+    const distance = Math.round(distanceInKm(location, { lat: signal.lat!, lng: signal.lng! }));
+    if (distance <= 1_000 && signal.severity >= 60) reasons.push(`${distance.toLocaleString()} KM FROM LOCAL VIEW`);
+  }
+  return reasons.join(" · ") || "VERIFIED GRID MATCH";
+}
+
 export default function SignalWatchPanel({ nodes, area, location }: SignalWatchPanelProps) {
   const { publicKey } = useWallet();
-  const [memory, setMemory] = useState<SignalWatchMemory>({ version: 1, types: [], localPriority: false, knownSignalIds: [] });
+  const [memory, setMemory] = useState<SignalWatchMemory>({
+    version: 1,
+    types: [],
+    localPriority: false,
+    knownSignalIds: [],
+    acknowledgedSignalIds: [],
+  });
   const [ready, setReady] = useState(false);
-  const [newSignalIds, setNewSignalIds] = useState<string[]>([]);
+  const [reviewSignalIds, setReviewSignalIds] = useState<string[]>([]);
   const [previousScanAt, setPreviousScanAt] = useState<string | undefined>();
   const [watchSlots, setWatchSlots] = useState(2);
   const [clearanceName, setClearanceName] = useState("CIVILIAN");
@@ -112,13 +134,15 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
 
   useEffect(() => {
     if (!ready || (!memory.localPriority && memory.types.length === 0)) {
-      setNewSignalIds([]);
+      setReviewSignalIds([]);
       return;
     }
     const stored = parseSignalWatchMemory(localStorage.getItem(SIGNAL_WATCH_STORAGE_KEY));
     const currentMatches = nodes.filter((node) => isWatched(node, memory, location));
     setPreviousScanAt(stored.lastScanAt);
-    setNewSignalIds(currentMatches.filter((node) => !stored.knownSignalIds.includes(node.id)).map((node) => node.id));
+    setReviewSignalIds(currentMatches
+      .filter((node) => !stored.acknowledgedSignalIds.includes(node.id))
+      .map((node) => node.id));
     const scannedMemory: SignalWatchMemory = {
       ...memory,
       knownSignalIds: Array.from(new Set([...stored.knownSignalIds, ...currentMatches.map((node) => node.id)])).slice(-400),
@@ -175,16 +199,43 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
     updateMemory({ ...memory, localPriority: !memory.localPriority });
   }
 
+  function acknowledgeSignal(signalId: string) {
+    const acknowledgedSignalIds = Array.from(new Set([...memory.acknowledgedSignalIds, signalId])).slice(-400);
+    updateMemory({ ...memory, acknowledgedSignalIds });
+    setReviewSignalIds((current) => current.filter((id) => id !== signalId));
+  }
+
+  function acknowledgeAll() {
+    const acknowledgedSignalIds = Array.from(new Set([
+      ...memory.acknowledgedSignalIds,
+      ...matchedSignals.map((signal) => signal.id),
+    ])).slice(-400);
+    updateMemory({ ...memory, acknowledgedSignalIds });
+    setReviewSignalIds([]);
+  }
+
+  function queenReviewHref(signal?: WatchableSignal) {
+    const subject = signal
+      ? `${signal.name} (${signal.type}, severity ${signal.severity}, ${signal.region}, source: ${signal.source || "pending"})`
+      : "the current signals in my Signal Watch";
+    return `/terminal?${new URLSearchParams({
+      mode: "MONITOR",
+      focus: "LOCAL_THREATS",
+      area: area || "",
+      prompt: `Review ${subject}. Separate verified facts from uncertainty, explain why it matters to my context, and give one proportionate action only if justified.`,
+    }).toString()}`;
+  }
+
   const hasWatches = memory.localPriority || memory.types.length > 0;
   const displayedSignals = [...matchedSignals].sort((a, b) => {
-    const newDifference = Number(newSignalIds.includes(b.id)) - Number(newSignalIds.includes(a.id));
+    const newDifference = Number(reviewSignalIds.includes(b.id)) - Number(reviewSignalIds.includes(a.id));
     return newDifference || b.severity - a.severity;
   });
 
   return (
     <section id="signal-watch" className={`signal-watch-panel ${hasWatches ? "is-active" : ""}`}>
       <div className="signal-watch-heading">
-        <div><span>QUEEN ALERT CENTER // ON-DEVICE</span><h3>{hasWatches ? `${matchedSignals.length} current matches · ${newSignalIds.length} new` : "Choose what RED QUEEN should remember"}</h3></div>
+        <div><span>QUEEN ALERT CENTER // ON-DEVICE</span><h3>{hasWatches ? `${matchedSignals.length} current matches · ${reviewSignalIds.length} need review` : "Choose what RED QUEEN should remember"}</h3></div>
         <small>{memory.types.length + (memory.localPriority ? 1 : 0)}/{watchSlots} WATCH SLOTS · {clearanceName} · LAST SCAN {formatScanTime(previousScanAt)}</small>
       </div>
       <div className="signal-watch-controls">
@@ -200,26 +251,33 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
       {limitMessage && <div className="signal-watch-limit"><span>{limitMessage}</span><Link href="/network-clearance">VERIFY CLEARANCE →</Link></div>}
       {hasWatches && (
         <div className="signal-watch-results">
+          <header>
+            <div><span>ACTIVE INBOX</span><strong>{reviewSignalIds.length ? "Queen is holding signals for your review." : "No unreviewed matches."}</strong></div>
+            {!!reviewSignalIds.length && <button type="button" onClick={acknowledgeAll}>MARK ALL REVIEWED</button>}
+          </header>
           <div>
             {displayedSignals.slice(0, 5).map((signal) => (
-              <article key={signal.id} className={newSignalIds.includes(signal.id) ? "is-new" : ""}>
-                <span>{newSignalIds.includes(signal.id) ? "NEW THIS SCAN" : signal.type}</span>
+              <article key={signal.id} className={reviewSignalIds.includes(signal.id) ? "is-new" : ""}>
+                <div className="signal-watch-card-top">
+                  <span>{reviewSignalIds.includes(signal.id) ? "NEEDS REVIEW" : "REVIEWED"}</span>
+                  <b data-severity={severityLabel(signal.severity).toLowerCase()}>{severityLabel(signal.severity)} · {signal.severity}</b>
+                </div>
                 <strong>{signal.name}</strong>
                 <small>{signal.source || "SOURCE PENDING"} · {signal.region}</small>
-                {signal.sourceUrl && <a href={signal.sourceUrl} target="_blank" rel="noopener noreferrer">OPEN SOURCE ↗</a>}
+                <p>{matchReason(signal, memory, location)}</p>
+                <div className="signal-watch-card-actions">
+                  {signal.sourceUrl && <a href={signal.sourceUrl} target="_blank" rel="noopener noreferrer">SOURCE ↗</a>}
+                  <Link href={queenReviewHref(signal)}>ASK QUEEN →</Link>
+                  {reviewSignalIds.includes(signal.id) && <button type="button" onClick={() => acknowledgeSignal(signal.id)}>MARK REVIEWED</button>}
+                </div>
               </article>
             ))}
             {!matchedSignals.length && <p>No current verified signals match this watch. This is not proof of safety; check official local alerts.</p>}
           </div>
-          <Link href={`/terminal?${new URLSearchParams({
-            mode: "MONITOR",
-            focus: "LOCAL_THREATS",
-            area: area || "",
-            prompt: "Review the signal categories I monitor. Explain what changed, separate verified facts from uncertainty, and give me one action only if it is justified.",
-          }).toString()}`}>ASK QUEEN TO REVIEW WATCH →</Link>
+          <Link href={queenReviewHref()}>ASK QUEEN TO REVIEW WATCH →</Link>
         </div>
       )}
-      <footer>This compares source-backed signals when you open Pulse. Browser push notifications and account sync are not enabled yet.</footer>
+      <footer>Review state stays on this device. This compares source-backed signals when you open Pulse; browser push and account sync are not enabled yet.</footer>
     </section>
   );
 }
