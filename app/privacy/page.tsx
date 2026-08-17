@@ -64,6 +64,7 @@ export default function PrivacyPage() {
               <li>Preparedness progress, saved protocols, conversation history, and evidence-based scores.</li>
               <li>Public token balances and transaction data required for holder or payment verification.</li>
               <li>Basic technical and abuse-prevention data needed to keep the service reliable.</li>
+              <li>For guest AI quotas, a salted network-identifier hash, request count, and 24-hour reset time. Guest prompts and responses are not stored in the account message table.</li>
             </ul>
           </section>
 

@@ -1,10 +1,12 @@
 import OpenAI from "openai";
+import { createHash, randomBytes } from "node:crypto";
 import { zodTextFormat } from "openai/helpers/zod";
 import { PublicKey } from "@solana/web3.js";
 import { SOUL_PROMPT } from "@/lib/soul";
 import { supabase } from "@/lib/supabase";
 import { getAuthIdentifier } from "@/lib/auth-helpers";
 import { getHashedWallet } from "@/lib/crypto";
+import { consumeGuestAgentRequest } from "@/lib/guest-agent-usage";
 import {
   applyStatGains,
   calculateBioScore,
@@ -27,6 +29,10 @@ import { AgentMode, isAgentMode, isSurvivalFocus, sanitizeArea, sanitizeSignalId
 
 export const maxDuration = 30;
 export const dynamic = "force-dynamic";
+
+// A configured secret keeps the quota stable across server instances. The
+// per-instance fallback deliberately favors privacy over durable tracking.
+const guestHashSalt = process.env.WALLET_SALT || randomBytes(32).toString("hex");
 
 const ZERO_GAINS = {
   threat_awareness: 0,
@@ -96,7 +102,7 @@ function normalizeMessages(input: unknown): ChatMessage[] {
 function getGuestIdentifier(req: Request) {
   const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const ip = forwarded || req.headers.get("x-real-ip") || "unknown";
-  return `IP_${getHashedWallet(ip)}`;
+  return `GUEST_${createHash("sha256").update(`${ip}:${guestHashSalt}`).digest("hex")}`;
 }
 
 async function getThreatBalance(walletAddress: string) {
@@ -234,17 +240,14 @@ export async function POST(req: Request) {
     const storageIdentifier = authIdentifier || getGuestIdentifier(req);
     const hashedIdentifier = authIdentifier ? getHashedWallet(authIdentifier) : storageIdentifier;
 
-    if (!persistentMemory && supabase) {
-      const guestWindowStart = new Date(Date.now() - 24 * 60 * 60 * 1_000).toISOString();
-      const { count } = await supabase
-        .from("messages")
-        .select("*", { count: "exact", head: true })
-        .eq("wallet_address", hashedIdentifier)
-        .eq("role", "user")
-        .gte("created_at", guestWindowStart);
-      if ((count || 0) >= 4) {
+    if (!persistentMemory) {
+      const guestUsage = await consumeGuestAgentRequest(hashedIdentifier);
+      if (!guestUsage.allowed) {
         return Response.json(
-          { error: "[LIMIT_EXCEEDED] Verify an account or wallet to continue with persistent RED QUEEN access." },
+          {
+            error: "[LIMIT_EXCEEDED] Verify an account or wallet to continue with persistent RED QUEEN access.",
+            resetAt: guestUsage.resetAt,
+          },
           { status: 403 },
         );
       }
@@ -385,7 +388,7 @@ ${buildLiveContext(livePulse)}`;
     }
 
     const message = formatAgentMessage(agentResponse);
-    if (supabase) {
+    if (supabase && persistentMemory) {
       const logRows = [
         { role: "user", content: latestUserMessage.content, wallet_address: hashedIdentifier },
         { role: "assistant", content: message, wallet_address: hashedIdentifier },
@@ -393,23 +396,21 @@ ${buildLiveContext(livePulse)}`;
       const { error: messageError } = await supabase.from("messages").insert(logRows);
       if (messageError) console.error("Failed to store conversation:", messageError);
 
-      if (persistentMemory) {
-        const chosenScenarios = updateStatsInScenarios(userProfile?.chosen_scenarios || [], updatedStats);
-        const { error: profileError } = await supabase.from("users").upsert(
-          {
-            wallet_address: hashedIdentifier,
-            chosen_scenarios: chosenScenarios,
-            last_bio_score: calculateBioScore(updatedStats),
-            last_interaction: new Date().toISOString(),
-            holder_tier: tokenClearance.tier,
-            holder_status: tokenClearance.name,
-            verified_balance: tokenBalance,
-            last_verification: verifiedWallet ? new Date().toISOString() : null,
-          },
-          { onConflict: "wallet_address" },
-        );
-        if (profileError) console.error("Failed to update operative memory:", profileError);
-      }
+      const chosenScenarios = updateStatsInScenarios(userProfile?.chosen_scenarios || [], updatedStats);
+      const { error: profileError } = await supabase.from("users").upsert(
+        {
+          wallet_address: hashedIdentifier,
+          chosen_scenarios: chosenScenarios,
+          last_bio_score: calculateBioScore(updatedStats),
+          last_interaction: new Date().toISOString(),
+          holder_tier: tokenClearance.tier,
+          holder_status: tokenClearance.name,
+          verified_balance: tokenBalance,
+          last_verification: verifiedWallet ? new Date().toISOString() : null,
+        },
+        { onConflict: "wallet_address" },
+      );
+      if (profileError) console.error("Failed to update operative memory:", profileError);
     }
 
     const verifiedSourceUrl = safeSourceUrl(livePulse?.sourceUrl);
