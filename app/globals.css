@@ -3559,7 +3559,7 @@ body:has(#game-player-root) .page-content {
 .community-mind-copy h2,.community-section-head h2,.community-origin h2 { margin: 12px 0 18px; font-size: clamp(32px,4vw,54px); line-height: 1.08; letter-spacing: -.025em; text-transform: none; }
 .community-mind-copy > p { max-width: 760px; color: rgba(255,255,255,.58); font-size: 16px; line-height: 1.75; }
 .community-mind-copy blockquote { max-width: 700px; margin-top: 28px; padding: 14px 18px; border-left: 1px solid var(--accent); color: rgba(255,255,255,.82); font: 500 14px/1.65 var(--mono); }
-.community-organ-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; }
+.community-organ-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
 .community-organ-grid article { min-height: 180px; display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 20px; border: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.3); }
 .community-organ-grid article > span { color: var(--accent); font: 700 9px var(--mono); }
 .community-organ-grid strong { display: block; font: 700 15px var(--title-font); }
@@ -3593,6 +3593,15 @@ body:has(#game-player-root) .page-content {
 .community-reader > div a span { color: var(--accent); }
 .community-reader > div small { display: block; margin-top: 7px; color: rgba(255,255,255,.34); font-size: 10px; }
 
+.community-network { padding-top: 110px; }
+.community-network-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; margin-top: 30px; }
+.community-network-grid article { display: flex; min-height: 300px; flex-direction: column; padding: 28px; border: 1px solid rgba(255,255,255,.09); background: linear-gradient(145deg,rgba(255,0,51,.035),transparent 38%),#07080a; }
+.community-network-grid article > span { color: var(--accent); font: 700 9px var(--mono); letter-spacing: .12em; }
+.community-network-grid h3 { margin: 22px 0 12px; color: #fff; font: 700 24px var(--title-font); text-transform: none; }
+.community-network-grid p { margin: 0 0 28px; color: rgba(255,255,255,.52); font-size: 14px; line-height: 1.7; }
+.community-network-grid a { margin-top: auto; color: rgba(255,255,255,.78); font: 700 10px var(--mono); letter-spacing: .06em; text-decoration: none; }
+.community-network-grid a:hover { color: var(--accent); }
+
 .community-origin { display: grid; grid-template-columns: minmax(340px,.72fr) minmax(0,1.28fr); gap: 70px; align-items: center; margin-top: 110px; padding: 42px; border-top: 1px solid rgba(255,0,51,.28); border-bottom: 1px solid rgba(255,0,51,.18); background: rgba(7,8,10,.72); }
 .community-origin-art { overflow: hidden; border: 1px solid rgba(255,255,255,.08); }
 .community-origin-art img { display: block; width: 100%; height: auto; }
@@ -3611,6 +3620,8 @@ body:has(#game-player-root) .page-content {
   .community-organ-grid { grid-template-columns: repeat(2,1fr); }
   .community-file-layout { grid-template-columns: 1fr; }
   .community-reader { position: relative; top: auto; min-height: auto; }
+  .community-network-grid { grid-template-columns: 1fr 1fr; }
+  .community-network-grid article:last-child { grid-column: 1 / -1; }
   .community-origin { gap: 38px; }
 }
 
@@ -3650,6 +3661,10 @@ body:has(#game-player-root) .page-content {
   .community-reader header { align-items: flex-start; flex-direction: column; gap: 4px; }
   .community-reader h2 { margin-top: 24px; font-size: 29px !important; }
   .community-reader > p { font-size: 14px; }
+  .community-network { padding-top: 72px; }
+  .community-network-grid { grid-template-columns: 1fr; }
+  .community-network-grid article,
+  .community-network-grid article:last-child { grid-column: auto; min-height: 240px; padding: 22px 18px; }
   .community-origin { grid-template-columns: 1fr; gap: 28px; margin-top: 72px; padding: 24px 18px; }
   .community-origin ul { grid-template-columns: 1fr; }
 }

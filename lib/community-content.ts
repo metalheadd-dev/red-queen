@@ -96,4 +96,32 @@ export const COMMUNITY_ENTRIES: CommunityEntry[] = [
     ],
     queenPrompt: "Help me turn a survival lesson or reliable source into a concise community field note, clearly labeled and useful to others.",
   },
+  {
+    id: "signal-submission",
+    lane: "FIELD_NOTE",
+    index: "FIELD-011",
+    title: "How to bring a signal into the network",
+    summary: "The minimum evidence a community report needs before anyone should treat it as intelligence.",
+    readTime: "4 MIN",
+    body: [
+      "Start with the closest primary source you can find. Record when it was published, what place or system it concerns and whether a second independent source confirms it. A screenshot without origin is a clue, not evidence.",
+      "Separate what you observed from what you infer. Describe the visible change first; put interpretation and possible consequences in their own sentences. If you do not know something, say so directly.",
+      "Never include exact home locations, private medical details, seed phrases or identifying household information. A community report may inform Queen's review, but it does not become a verified alert until provenance and moderation checks pass.",
+    ],
+    queenPrompt: "Help me assess a possible signal before I share it. Ask for the primary source, timestamp, affected area, independent confirmation and uncertainty. Do not treat my report as verified by default.",
+  },
+  {
+    id: "solvivor-network",
+    lane: "TRANSMISSION",
+    index: "NETWORK-006",
+    title: "The SOLvivor network is not a panic feed",
+    summary: "A network directive for sharing sources, tested lessons and product blind spots without amplifying noise.",
+    readTime: "3 MIN",
+    body: [
+      "SOLvivors do not compete to sound the most alarmed. The network exists to reduce uncertainty, preserve useful experience and make the next decision easier for someone else.",
+      "Bring a primary source, a tested preparedness lesson or a reproducible failure in the platform. Mark rumor as rumor, fiction as fiction and personal experience as limited evidence rather than universal truth.",
+      "RED QUEEN can organize the report and expose missing context. Human moderation and source provenance still decide whether it belongs in the verified intelligence layer.",
+    ],
+    queenPrompt: "Explain the SOLvivor contribution standard and help me decide whether my source, field lesson or product report is ready to share.",
+  },
 ];

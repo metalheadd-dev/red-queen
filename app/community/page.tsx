@@ -21,6 +21,7 @@ const LANE_LABELS: Record<CommunityLane, string> = {
 };
 
 const SYSTEM_ORGANS = [
+  ["00", "QUEEN AGENT", "Her brain", "Connect every signal, memory and constraint into one decision."],
   ["01", "PULSE", "Her eyes", "Detect what changed and what deserves attention."],
   ["02", "MAP", "Her nervous system", "Place verified signals in distance and context."],
   ["03", "LIBRARY", "Her memory", "Preserve threats, protocols and clearly labeled lore."],
@@ -65,7 +66,7 @@ export default function CommunityPage() {
           <div className="community-mind-art"><Image src="/art/red-queen-sigil.png" alt="RED QUEEN neural sigil" width={1536} height={1536} /></div>
           <div className="community-mind-copy">
             <span>THE LIVING ARCHITECTURE</span>
-            <h2 id="community-mind-title">One intelligence. Five ways to help you survive.</h2>
+            <h2 id="community-mind-title">One intelligence. Six living organs.</h2>
             <p>Every part of the platform should feel like the same mind at work. No disconnected dashboards. No decorative AI. RED QUEEN observes, remembers, explains and returns knowledge as an action.</p>
             <blockquote>“I can read the pattern. I can open the door. You still have to move.”</blockquote>
           </div>
@@ -98,6 +99,18 @@ export default function CommunityPage() {
               {selected.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               <div><Link href={queenHref}>ASK RED QUEEN ABOUT THIS <span>→</span></Link><small>Opens the agent with this file as the starting question.</small></div>
             </article>
+          </div>
+        </section>
+
+        <section className="community-network" aria-labelledby="community-network-title">
+          <div className="community-section-head">
+            <div><span>SOLVIVOR NETWORK // OPEN CHANNELS</span><h2 id="community-network-title">Bring signal, not noise.</h2></div>
+            <p>A useful contribution gives the network something it can verify, test or learn from. Public reports never become verified intelligence without provenance and moderation.</p>
+          </div>
+          <div className="community-network-grid">
+            <article><span>01 // SHARE A SOURCE</span><h3>Show what changed.</h3><p>Include the primary source, publication time, affected place and what remains uncertain. Never post exact home locations or private household details.</p><a href="https://x.com/redqueen_agent" target="_blank" rel="noreferrer">OPEN OFFICIAL X CHANNEL ↗</a></article>
+            <article><span>02 // WRITE A FIELD NOTE</span><h3>Turn experience into a protocol.</h3><p>Describe what happened, what failed, what worked and what another SOLvivor could test safely. Queen can help structure the first draft.</p><Link href="/terminal?mode=PREPARE&prompt=Help%20me%20turn%20a%20real%20survival%20lesson%20into%20a%20concise%20field%20note.%20Separate%20observation%2C%20inference%20and%20recommended%20action.%20Do%20not%20include%20private%20location%20or%20identity%20details.">DRAFT WITH RED QUEEN →</Link></article>
+            <article><span>03 // EXPOSE A BLIND SPOT</span><h3>Improve the system in public.</h3><p>Report a broken source, unclear screen or missing threat vector in the test project. Reproducible evidence is more valuable than urgency.</p><a href="https://github.com/metalheadd-dev/red-queen-test/issues" target="_blank" rel="noreferrer">OPEN TEST PROJECT ISSUES ↗</a></article>
           </div>
         </section>
 
