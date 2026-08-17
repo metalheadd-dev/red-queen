@@ -63,6 +63,7 @@ export interface RedQueenClientResponse extends RedQueenAgentResponse {
   memory: {
     persistent: boolean;
     identity: string;
+    deviceContextLoaded: boolean;
   };
 }
 

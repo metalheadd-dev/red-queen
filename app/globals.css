@@ -2136,6 +2136,7 @@ body:has(#game-player-root) .page-content {
   .signal-watch-results > div { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .pulse-source-grid > div { grid-template-columns:repeat(4,minmax(0,1fr)); }
 }
+.rq-signal--memory { border-color: rgba(168,255,96,.28) !important; color: #a8ff60 !important; }
 
 @media (max-width: 700px) {
   .navbar { z-index: 220; }

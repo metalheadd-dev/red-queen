@@ -43,6 +43,7 @@ export default function AgentResponseCard({
         </span>
         <span className="rq-signal">{GROUNDING_LABELS[response.grounding]}</span>
         <span className="rq-signal">CONFIDENCE {response.confidence}</span>
+        {response.memory.deviceContextLoaded && <span className="rq-signal rq-signal--memory">DEVICE CONTEXT LOADED</span>}
       </div>
 
       <div className="rq-response__situation">{response.situation}</div>

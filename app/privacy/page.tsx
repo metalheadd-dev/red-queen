@@ -90,6 +90,12 @@ export default function PrivacyPage() {
               <a href={OPENAI_DATA_CONTROLS}>OpenAI API data controls</a>.
             </p>
             <p>
+              When you invoke Queen, a bounded Device Survival Memory snapshot may accompany the prompt so she can
+              avoid repeating your active action and recognize plan progress. It can include one active action, up
+              to four plan summaries, baseline completion count, and Signal Watch categories. RED QUEEN does not
+              transmit your entire browser storage.
+            </p>
+            <p>
               Queen Visage is optional and reserved for verified $THREAT holders. When you press Generate, the
               selected portrait is sent to the configured image model for that generation request. The generated
               image is returned to your browser and stored locally; RED QUEEN does not add the source portrait or

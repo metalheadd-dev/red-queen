@@ -15,6 +15,7 @@ import { getWorkingConnection } from "@/lib/solana";
 import AgentResponseCard from "@/components/AgentResponseCard";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
 import { createDailyAction, DAILY_ACTION_EVENT, readDailyActions, saveDailyAction } from "@/lib/daily-action";
+import { buildDeviceSurvivalMemory } from "@/lib/device-survival-memory";
 import {
   createPreparednessPlan,
   PREPAREDNESS_PLANS_EVENT,
@@ -917,6 +918,7 @@ To decrypt or scan target files:
         body: JSON.stringify({
           messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
           context: survivalContext,
+          deviceMemory: buildDeviceSurvivalMemory(localStorage),
         }),
       });
 
