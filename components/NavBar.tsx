@@ -1,376 +1,171 @@
 "use client";
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import SolvivalIcon from "./SolvivalIcon";
-import dynamic from "next/dynamic";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useAuth } from "./AuthProvider";
+import SolvivalIcon from "./SolvivalIcon";
 
-const WalletMultiButton = dynamic(
-  () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
-  { ssr: false }
-);
+type NavIconName = "pulse" | "map" | "queen" | "prepare" | "me";
+
+const primaryLinks = [
+  { href: "/", label: "PULSE", subtitle: "Your daily intelligence brief", match: "pulse" },
+  { href: "/#live-map", label: "MAP", subtitle: "Verified signals on the live field", match: "map" },
+  { href: "/terminal", label: "QUEEN", subtitle: "Ask, analyze, prepare or simulate", match: "terminal" },
+  { href: "/survival-kit", label: "PREPARE", subtitle: "Build practical readiness", match: "prepare" },
+  { href: "/threat-vector", label: "LIBRARY", subtitle: "Open the threat intelligence archive", match: "library" },
+] as const;
+
+function NavIcon({ name }: { name: NavIconName }) {
+  if (name === "pulse") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6" /></svg>;
+  }
+  if (name === "map") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 5-2 8 3 5-2v13l-5 2-8-3-5 2Z" /><path d="M8 4v13M16 7v13" /></svg>;
+  }
+  if (name === "queen") {
+    return <span className="mobile-queen-core"><i /></span>;
+  }
+  if (name === "prepare") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7Z" /><path d="m9 12 2 2 4-5" /></svg>;
+  }
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3" /><path d="M5 20c.7-4 3-6 7-6s6.3 2 7 6" /></svg>;
+}
 
 export default function NavBar() {
   const pathname = usePathname();
-  const { connected, wallet, disconnect } = useWallet();
-  const { setVisible } = useWalletModal();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { connected } = useWallet();
   const { user, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [hash, setHash] = useState("");
 
-  const handleChangeWallet = async () => {
-    try {
-      await disconnect();
-      setVisible(true);
-    } catch (err) {
-      console.error("Failed to change wallet:", err);
-    }
+  useEffect(() => {
+    const syncHash = () => setHash(window.location.hash);
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, [pathname]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
+  const isActive = (match: string) => {
+    if (match === "pulse") return pathname === "/" && hash !== "#live-map";
+    if (match === "map") return pathname === "/" && hash === "#live-map";
+    if (match === "library") return pathname.startsWith("/threat-vector");
+    if (match === "terminal") return pathname.startsWith("/terminal");
+    if (match === "prepare") return pathname.startsWith("/survival-kit");
+    return false;
   };
 
-  const links = [
-    { href: "/", label: "PULSE", subtitle: "Your daily verified intelligence brief" },
-    { href: "/#live-map", label: "LIVE MAP", subtitle: "Verified signals from global source networks" },
-    { href: "/terminal", label: "ASK QUEEN", subtitle: "Ask what a threat means for your situation" },
-    { href: "/survival-kit", label: "PREPARE", subtitle: "Practical checklists and response protocols" },
-    { href: "/threat-vector", label: "LIBRARY", subtitle: "Explore real, fictional, and satirical scenarios" },
-  ];
-
-  const legalLinks = [
-    { href: "/license", label: "LICENSE" },
-    { href: "/copyright", label: "COPYRIGHT" },
-    { href: "/privacy", label: "PRIVACY POLICY" },
-    { href: "/terms", label: "TERMS OF SERVICE" },
-  ];
+  const accountHref = user ? "/operative" : "/login";
+  const accountLabel = user ? "MY READINESS" : connected ? "FINISH SIGN-IN" : "SIGN IN";
 
   return (
     <>
-      <nav className="navbar">
+      <nav className="navbar" aria-label="Primary navigation">
         <div className="navbar-inner">
-          <Link href="/" className="navbar-logo" onClick={() => setMenuOpen(false)}>
-            <div className="navbar-logo-icon">
-              <SolvivalIcon size={30} />
-            </div>
-            <span className="navbar-logo-text">RED QUEEN</span>
+          <Link href="/" className="navbar-logo" aria-label="Red Queen home">
+            <span className="navbar-logo-icon"><SolvivalIcon size={30} /></span>
+            <span className="navbar-logo-copy">
+              <strong>RED QUEEN</strong>
+              <small>SURVIVAL INTELLIGENCE</small>
+            </span>
           </Link>
 
-          {/* Desktop Links */}
           <ul className="navbar-nav desktop-only">
-            {links.map((l) => (
-              <li key={l.href} className="nav-item-wrap">
-                <Link href={l.href} className={pathname === l.href ? "active" : ""}>
-                  {l.label}
-                </Link>
-                <div className="nav-item-tooltip">
-                  {l.subtitle}
-                </div>
-              </li>
-            ))}
-            {(connected || user) && (
-              <li className="nav-item-wrap">
-                <Link
-                  href="/operative"
-                  className={pathname === "/operative" ? "active" : ""}
-                  style={{ color: "var(--accent)" }}
-                >
-                  READINESS
-                </Link>
-                <div className="nav-item-tooltip">
-                  Your BIO-SCORE and personal readiness profile
-                </div>
-              </li>
-            )}
+            {primaryLinks.map((link) => {
+              const active = isActive(link.match);
+              return (
+                <li key={link.match} className="nav-item-wrap">
+                  <Link href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>
+                    {link.label}
+                  </Link>
+                  <div className="nav-item-tooltip">{link.subtitle}</div>
+                </li>
+              );
+            })}
           </ul>
 
-          <div className="navbar-status desktop-only" style={{ display: "flex", alignItems: "center", gap: "15px", flexShrink: 0, whiteSpace: "nowrap" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0, whiteSpace: "nowrap" }}>
-              <span className="status-dot" />
-              <span className="navbar-status-text">RED QUEEN ONLINE</span>
-            </div>
-            
-            {!user && !connected ? (
-              <Link 
-                href="/login" 
-                style={{
-                  fontFamily: "var(--mono)",
-                  fontSize: "11px",
-                  color: "var(--accent)",
-                  border: "1px solid var(--accent)",
-                  padding: "6px 14px",
-                  textDecoration: "none",
-                  borderRadius: "2px",
-                  fontWeight: "bold",
-                  letterSpacing: "0.08em",
-                  boxShadow: "0 0 10px rgba(255, 77, 77, 0.15)",
-                  transition: "all 0.2s",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0
-                }}
-              >
-                [ CONNECT ]
-              </Link>
-            ) : (
-              <>
-
-
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0, whiteSpace: "nowrap" }}>
-                  <WalletMultiButton style={{
-                    background: "transparent",
-                    border: connected ? "1px solid var(--accent)" : "1px dashed rgba(255,255,255,0.2)",
-                    color: connected ? "var(--accent)" : "var(--text-dim)",
-                    fontFamily: "var(--mono)",
-                    fontSize: "12px",
-                    padding: "5px 15px",
-                    height: "auto",
-                    lineHeight: "1.5",
-                    whiteSpace: "nowrap",
-                    flexShrink: 0
-                  }} />
-                  {wallet && !connected && (
-                    <button
-                      onClick={handleChangeWallet}
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        color: "var(--text-dim)",
-                        textDecoration: "underline",
-                        fontSize: "11px",
-                        cursor: "pointer",
-                        fontFamily: "var(--mono)",
-                        padding: 0,
-                        whiteSpace: "nowrap",
-                        flexShrink: 0
-                      }}
-                    >
-                      [CHANGE]
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
+          <div className="navbar-actions desktop-only">
+            <span className="navbar-online" aria-label="Red Queen is online"><i />ONLINE</span>
+            <Link href={accountHref} className={`navbar-account${user ? " is-authenticated" : ""}`}>
+              {accountLabel}
+            </Link>
           </div>
 
-          {/* Mobile Menu Hamburger Button */}
-          <button 
-            className="mobile-menu-toggle"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle Menu"
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--accent)",
-              cursor: "pointer",
-              display: "none",
-              flexDirection: "column",
-              gap: "6px",
-              padding: "8px",
-              zIndex: 200,
-            }}
-          >
-            <span style={{ width: "24px", height: "2px", backgroundColor: "var(--accent)", transition: "all 0.3s", transform: menuOpen ? "rotate(45deg) translate(5px, 6px)" : "none" }} />
-            <span style={{ width: "24px", height: "2px", backgroundColor: "var(--accent)", transition: "all 0.3s", opacity: menuOpen ? 0 : 1 }} />
-            <span style={{ width: "24px", height: "2px", backgroundColor: "var(--accent)", transition: "all 0.3s", transform: menuOpen ? "rotate(-45deg) translate(5px, -6px)" : "none" }} />
-          </button>
+          <div className="navbar-mobile-state">
+            <span><i /> QUEEN ONLINE</span>
+            <button
+              className={`mobile-menu-toggle${menuOpen ? " is-open" : ""}`}
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+            >
+              <b /><b /><b />
+            </button>
+          </div>
         </div>
       </nav>
 
-      {/* Mobile Drawer Overlay */}
-      {menuOpen && (
-        <div className="mobile-drawer" style={{
-          position: "fixed",
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: "rgba(5, 5, 5, 0.98)",
-          zIndex: 150,
-          padding: "100px 24px 40px",
-          display: "flex",
-          flexDirection: "column",
-          overflowY: "auto",
-          backdropFilter: "blur(20px)",
-          borderBottom: "1px solid var(--border)",
-        }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "24px", flex: 1 }}>
-            <div style={{ borderBottom: "1px solid var(--border)", paddingBottom: "16px" }}>
-              <span className="tag tag-red">OPERATIVE NAV UPLINK</span>
-            </div>
-            
-            {/* Nav Links */}
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "16px" }}>
-              {links.map((l) => (
-                <li key={l.href} style={{ borderBottom: "1px dashed rgba(255, 0, 51, 0.1)", paddingBottom: "12px" }}>
-                  <Link 
-                    href={l.href} 
-                    onClick={() => setMenuOpen(false)}
-                    style={{
-                      fontFamily: "var(--mono)",
-                      fontSize: "18px",
-                      fontWeight: 700,
-                      color: pathname === l.href ? "var(--accent)" : "var(--text)",
-                      textDecoration: "none",
-                      letterSpacing: "0.1em",
-                      display: "block",
-                    }}
-                  >
-                    {pathname === l.href ? "▶ " : ""}{l.label}
-                  </Link>
-                  <div style={{
-                    fontFamily: "var(--sans)",
-                    fontSize: "11px",
-                    color: "var(--text-dim)",
-                    marginTop: "4px",
-                    lineHeight: "1.4",
-                    textTransform: "none",
-                    fontWeight: "normal",
-                    letterSpacing: "normal"
-                  }}>
-                    {l.subtitle}
-                  </div>
-                </li>
-              ))}
-              {(connected || user) && (
-                <li style={{ borderBottom: "1px dashed rgba(255, 0, 51, 0.1)", paddingBottom: "12px" }}>
-                  <Link 
-                    href="/operative" 
-                    onClick={() => setMenuOpen(false)}
-                    style={{
-                      fontFamily: "var(--mono)",
-                      fontSize: "18px",
-                      fontWeight: 700,
-                      color: "var(--accent)",
-                      textDecoration: "none",
-                      letterSpacing: "0.1em",
-                      display: "block",
-                    }}
-                  >
-                    {pathname === "/operative" ? "> " : ""}READINESS
-                  </Link>
-                  <div style={{
-                    fontFamily: "var(--sans)",
-                    fontSize: "11px",
-                    color: "var(--text-dim)",
-                    marginTop: "4px",
-                    lineHeight: "1.4",
-                    textTransform: "none",
-                    fontWeight: "normal",
-                    letterSpacing: "normal"
-                  }}>
-                    Your BIO-SCORE and personal readiness profile
-                  </div>
-                </li>
-              )}
-            </ul>
-
-            <div style={{ borderBottom: "1px solid var(--border)", margin: "16px 0" }} />
-
-            {/* Legal Links */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.2em" }}>CLASSIFIED PROTOCOLS</span>
-              {legalLinks.map((l) => (
-                <Link 
-                  key={l.href} 
-                  href={l.href}
-                  onClick={() => setMenuOpen(false)}
-                  style={{
-                    fontFamily: "var(--mono)",
-                    fontSize: "13px",
-                    color: "var(--text-muted)",
-                    textDecoration: "none",
-                    letterSpacing: "0.08em",
-                    display: "block",
-                  }}
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Footer of Mobile Drawer */}
-          <div style={{ marginTop: "40px", display: "flex", flexDirection: "column", gap: "16px" }}>
-            {!user && !connected ? (
-              <Link 
-                href="/login" 
-                onClick={() => setMenuOpen(false)}
-                className="btn btn-primary"
-                style={{
-                  width: "100%",
-                  justifyContent: "center",
-                  fontSize: "13px",
-                  padding: "12px",
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  letterSpacing: "0.1em"
-                }}
-              >
-                CONNECT
-              </Link>
-            ) : (
-              <>
-                {user && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", border: "1px dashed rgba(255, 77, 77, 0.2)", padding: "12px", background: "rgba(255, 77, 77, 0.02)" }}>
-                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text-dim)", wordBreak: "break-all" }}>OPERATIVE: {user.email}</span>
-                    <button 
-                      onClick={() => {
-                        logout();
-                        setMenuOpen(false);
-                      }}
-                      style={{
-                        background: "transparent",
-                        border: "1px solid var(--accent)",
-                        color: "var(--accent)",
-                        fontFamily: "var(--mono)",
-                        fontSize: "11px",
-                        padding: "8px 16px",
-                        cursor: "pointer",
-                        borderRadius: "2px",
-                        width: "100%",
-                        textAlign: "center"
-                      }}
-                    >
-                      LOGOUT UPLINK
-                    </button>
-                  </div>
-                )}
-
-                <WalletMultiButton style={{
-                  width: "100%",
-                  justifyContent: "center",
-                  background: connected ? "var(--accent)" : "rgba(255,255,255,0.05)",
-                  border: connected ? "none" : "1px dashed rgba(255,255,255,0.2)",
-                  color: connected ? "#000" : "var(--text-dim)",
-                  fontFamily: "var(--mono)",
-                  fontSize: "13px",
-                  padding: "12px",
-                  height: "auto",
-                  lineHeight: "1.5",
-                  fontWeight: "bold",
-                }} />
-                {wallet && !connected && (
-                  <button 
-                    onClick={handleChangeWallet}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      color: "var(--text-dim)",
-                      textDecoration: "underline",
-                      fontSize: "11px",
-                      cursor: "pointer",
-                      fontFamily: "var(--mono)",
-                      textAlign: "center",
-                    }}
-                  >
-                    [CHANGE WALLET]
-                  </button>
-                )}
-              </>
-            )}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)" }}>
-              <span className="status-dot" />
-              RED QUEEN CONNECTION SECURED
-            </div>
-          </div>
+      <div className={`mobile-drawer${menuOpen ? " is-open" : ""}`} aria-hidden={!menuOpen}>
+        <div className="mobile-drawer-heading">
+          <span>PLATFORM INDEX</span>
+          <strong>Everything you need, without the noise.</strong>
         </div>
-      )}
+
+        <nav aria-label="Mobile expanded navigation" className="mobile-drawer-links">
+          {primaryLinks.map((link, index) => (
+            <Link key={link.match} href={link.href} tabIndex={menuOpen ? 0 : -1}>
+              <span>0{index + 1}</span>
+              <div><strong>{link.label}</strong><small>{link.subtitle}</small></div>
+            </Link>
+          ))}
+          <Link href={accountHref} tabIndex={menuOpen ? 0 : -1}>
+            <span>06</span>
+            <div><strong>{accountLabel}</strong><small>Save context, readiness and clearance</small></div>
+          </Link>
+        </nav>
+
+        <div className="mobile-drawer-footer">
+          <div>
+            <Link href="/privacy" tabIndex={menuOpen ? 0 : -1}>PRIVACY</Link>
+            <Link href="/terms" tabIndex={menuOpen ? 0 : -1}>TERMS</Link>
+            <Link href="/license" tabIndex={menuOpen ? 0 : -1}>LICENSE</Link>
+          </div>
+          {user && (
+            <button onClick={() => { void logout(); setMenuOpen(false); }} tabIndex={menuOpen ? 0 : -1}>
+              SIGN OUT
+            </button>
+          )}
+          <p>Public intelligence is available without an account. A wallet is optional until you verify $THREAT clearance.</p>
+        </div>
+      </div>
+
+      <nav className="mobile-bottom-nav" aria-label="Core product navigation">
+        <Link href="/" className={isActive("pulse") ? "active" : ""} aria-current={isActive("pulse") ? "page" : undefined}>
+          <NavIcon name="pulse" /><span>PULSE</span>
+        </Link>
+        <Link href="/#live-map" className={isActive("map") ? "active" : ""} aria-current={isActive("map") ? "page" : undefined}>
+          <NavIcon name="map" /><span>MAP</span>
+        </Link>
+        <Link href="/terminal" className={`mobile-queen-link${isActive("terminal") ? " active" : ""}`} aria-current={isActive("terminal") ? "page" : undefined}>
+          <NavIcon name="queen" /><span>QUEEN</span>
+        </Link>
+        <Link href="/survival-kit" className={isActive("prepare") ? "active" : ""} aria-current={isActive("prepare") ? "page" : undefined}>
+          <NavIcon name="prepare" /><span>PREPARE</span>
+        </Link>
+        <Link href={accountHref} className={pathname === "/operative" || pathname === "/login" ? "active" : ""} aria-current={pathname === "/operative" ? "page" : undefined}>
+          <NavIcon name="me" /><span>ME</span>
+        </Link>
+      </nav>
     </>
   );
 }

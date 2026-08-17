@@ -2,9 +2,9 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Red Queen Survival Terminal",
+    name: "Red Queen Survival Intelligence",
     short_name: "Red Queen",
-    description: "Decentralized survival threat evaluation and secure neural link terminal.",
+    description: "Verified threat signals, practical preparedness and a context-aware survival intelligence agent.",
     start_url: "/",
     display: "standalone",
     background_color: "#050505",

@@ -12,33 +12,33 @@ export default function PrivacyPage() {
 
         <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "24px" }}>
           <p>
-            <strong>Last Updated: January 2026</strong>
+            <strong>Last Updated: August 2026</strong>
           </p>
           <p style={{ marginTop: "16px" }}>
-            Solvival Corp is committed to protecting the integrity of survivor data. This Privacy Policy details how we collect, store, and analyze the data processed through the Red Queen terminal.
+            Solvival Corp is committed to protecting the integrity of user data. This Privacy Policy describes the data processed when you choose to use Red Queen account, wallet, AI, and readiness features.
           </p>
 
-          <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>1. INFORMATION WE LOG</h2>
+          <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>1. INFORMATION WE PROCESS</h2>
           <p>
-            To perform accurate threat calculations and maintain neural link status, we collect:
-            <br />• **Wallet Credentials**: Your Solana public address (required for authorization).
-            <br />• **Operative Dossier**: Your custom username and chosen survival scenarios.
-            <br />• **Transmission logs**: Complete message history between you and the Red Queen AI.
-            <br />• **Survival metrics**: Your calculated bio-score ratings and interaction history.
+            Depending on the features you use, Red Queen may process:
+            <br />• Account information such as your email address.
+            <br />• Your public Solana address when you connect a wallet. Private keys and seed phrases are never requested.
+            <br />• The broad region, preparedness priorities, and prompts you choose to provide. An exact home address is not required.
+            <br />• Readiness metrics, BIO-SCORE evidence, and AI conversation history associated with your account.
           </p>
 
           <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>2. PURPOSE OF DATA UTILIZATION</h2>
           <p>
             Your collected data is used exclusively to:
-            <br />• Establish and restore your terminal chat history.
-            <br />• Calculate and update your bio-score assessment.
-            <br />• Filter your classified daily briefings.
-            <br />• Monitor terminal security and identify exploit attempts.
+            <br />• Establish and restore your Red Queen conversation history.
+            <br />• Calculate and update readiness evidence when you complete an evaluated action or decision drill.
+            <br />• Adapt preparedness guidance to the context you provide.
+            <br />• Protect the platform, prevent abuse, and maintain service reliability.
           </p>
 
           <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>3. NO THIRD-PARTY SALE</h2>
           <p>
-            Solvival Corp does not sell, rent, or distribute personal identity logs, wallet addresses, or transmission transcripts to any commercial entities.
+            Solvival Corp does not sell or rent personal identity data, wallet addresses, or AI conversation content to commercial data brokers.
           </p>
 
           <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>4. KEY SECURITY PROTOCOLS</h2>

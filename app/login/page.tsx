@@ -1,362 +1,166 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/components/AuthProvider";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import SolvivalIcon from "@/components/SolvivalIcon";
+
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useAuth } from "@/components/AuthProvider";
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
-  { ssr: false }
+  { ssr: false },
 );
 
 export default function LoginPage() {
   const { user, loginWithEmail, signUpWithEmail, loginWithWallet } = useAuth();
   const { connected } = useWallet();
   const router = useRouter();
-
+  const walletAttempted = useRef(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Authenticate wallet or redirect if user exists
   useEffect(() => {
-    if (connected && !user && loginWithWallet) {
-      setStatusMsg("SIGNING SECURE CHALLENGE WITH WALLET...");
-      loginWithWallet().then(({ error }) => {
-        if (error) {
-          setErrorMsg(`Wallet Authentication Failed: ${error.message || error}`);
-          setStatusMsg("");
-        } else {
-          setStatusMsg("ACCESS GRANTED. REDIRECTING...");
-          setTimeout(() => {
-            router.push("/operative");
-          }, 1000);
-        }
-      });
-    } else if (user) {
-      router.push("/operative");
+    if (user) {
+      router.replace("/operative");
+      return;
     }
+    if (!connected || walletAttempted.current) return;
+
+    walletAttempted.current = true;
+    setStatusMsg("Confirm the sign-in message in your wallet. No transaction will be sent.");
+    void loginWithWallet().then(({ error }) => {
+      if (error) {
+        setErrorMsg(`Wallet sign-in failed: ${error.message || error}`);
+        setStatusMsg("");
+        walletAttempted.current = false;
+      } else {
+        setStatusMsg("Identity confirmed. Opening My Readiness…");
+      }
+    });
   }, [connected, user, router, loginWithWallet]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setErrorMsg("");
     setStatusMsg("");
-    setLoading(true);
 
-    if (!email || !password) {
-      setErrorMsg("Error: Missing credentials.");
-      setLoading(false);
+    if (!email.trim() || !password) {
+      setErrorMsg("Enter your email and password.");
       return;
     }
-
     if (password.length < 6) {
-      setErrorMsg("Error: Password must be at least 6 characters.");
-      setLoading(false);
+      setErrorMsg("Password must contain at least 6 characters.");
       return;
     }
 
+    setLoading(true);
     try {
       if (isSignUp) {
-        setStatusMsg("ESTABLISHING ENCRYPTED SECURE CHANNEL...");
-        const { user: newUser, error } = await signUpWithEmail(email, password);
-        if (error) {
-          setErrorMsg(`Failed to register: ${error.message || error}`);
-          setLoading(false);
-          return;
-        }
-
-        if (newUser) {
-          setStatusMsg("SUCCESS. VERIFY EMAIL IF REQUIRED, OR SIGN IN.");
-          setTimeout(() => {
-            router.push("/operative");
-          }, 1500);
-        }
+        const { user: newUser, error } = await signUpWithEmail(email.trim(), password);
+        if (error) throw error;
+        setStatusMsg(newUser
+          ? "Account created. Check your inbox if email confirmation is required."
+          : "Check your inbox to confirm your account.");
       } else {
-        setStatusMsg("VERIFYING IDENTITY CREDENTIALS...");
-        const { error } = await loginWithEmail(email, password);
-        if (error) {
-          setErrorMsg(`Authentication failed: ${error.message || error}`);
-          setLoading(false);
-          return;
-        }
-        setStatusMsg("ACCESS GRANTED. REDIRECTING...");
-        setTimeout(() => {
-          router.push("/operative");
-        }, 1000);
+        const { error } = await loginWithEmail(email.trim(), password);
+        if (error) throw error;
+        setStatusMsg("Identity confirmed. Opening My Readiness…");
       }
-    } catch (err: any) {
-      setErrorMsg(`System Error: ${err.message || err}`);
+    } catch (error: any) {
+      setErrorMsg(error?.message || "Sign-in failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#050505",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "80px 24px 40px",
-      boxSizing: "border-box",
-      position: "relative"
-    }}>
-      {/* Reticle grid decor */}
-      <div style={{ position: "absolute", top: "10%", left: "10%", width: "40px", height: "40px", borderTop: "1px solid rgba(255, 0, 51, 0.2)", borderLeft: "1px solid rgba(255, 0, 51, 0.2)" }} />
-      <div style={{ position: "absolute", top: "10%", right: "10%", width: "40px", height: "40px", borderTop: "1px solid rgba(255, 0, 51, 0.2)", borderRight: "1px solid rgba(255, 0, 51, 0.2)" }} />
-      <div style={{ position: "absolute", bottom: "10%", left: "10%", width: "40px", height: "40px", borderBottom: "1px solid rgba(255, 0, 51, 0.2)", borderLeft: "1px solid rgba(255, 0, 51, 0.2)" }} />
-      <div style={{ position: "absolute", bottom: "10%", right: "10%", width: "40px", height: "40px", borderBottom: "1px solid rgba(255, 0, 51, 0.2)", borderRight: "1px solid rgba(255, 0, 51, 0.2)" }} />
+    <div className="rq-login-page">
+      <div className="rq-login-grid" aria-hidden="true" />
+      <section className="rq-login-intro">
+        <Link href="/" className="rq-login-back">← RETURN TO PULSE</Link>
+        <div className="rq-login-orb"><i /></div>
+        <span className="rq-login-kicker">PRIVATE CONTEXT CHANNEL</span>
+        <h1>Your survival context, remembered.</h1>
+        <p>
+          Sign in only when you want RED QUEEN to preserve your readiness, evidence and clearance across sessions.
+          The public intelligence platform remains open without an account.
+        </p>
+        <div className="rq-login-benefits">
+          <div><span>01</span><strong>Save your readiness</strong><small>Checklist progress, BIO-SCORE evidence and next actions.</small></div>
+          <div><span>02</span><strong>Keep Queen in context</strong><small>Your region, priorities and training history follow you.</small></div>
+          <div><span>03</span><strong>Verify $THREAT utility</strong><small>Connect Solana only when you want holder clearance and premium depth.</small></div>
+        </div>
+      </section>
 
-      <div className="panel" style={{
-        maxWidth: "420px",
-        width: "100%",
-        background: "rgba(10, 10, 10, 0.8)",
-        borderColor: "rgba(255, 0, 51, 0.2)",
-        boxShadow: "0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255, 0, 51, 0.05)",
-        padding: "40px 32px",
-        zIndex: 5
-      }}>
-        {/* Core bracket decorations */}
-        <div style={{ position: "absolute", top: "12px", left: "12px", width: "12px", height: "12px", borderTop: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
-        <div style={{ position: "absolute", top: "12px", right: "12px", width: "12px", height: "12px", borderTop: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
-        <div style={{ position: "absolute", bottom: "12px", left: "12px", width: "12px", height: "12px", borderBottom: "2px solid var(--accent)", borderLeft: "2px solid var(--accent)" }} />
-        <div style={{ position: "absolute", bottom: "12px", right: "12px", width: "12px", height: "12px", borderBottom: "2px solid var(--accent)", borderRight: "2px solid var(--accent)" }} />
-
-        {/* Logo and Header */}
-        <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <div style={{ display: "inline-flex", padding: "8px", background: "rgba(255, 0, 51, 0.05)", borderRadius: "50%", marginBottom: "16px", border: "1px dashed rgba(255, 0, 51, 0.2)" }}>
-            <SolvivalIcon size={36} />
-          </div>
-          <h2 style={{
-            fontFamily: "var(--title-font)",
-            fontSize: "20px",
-            fontWeight: "bold",
-            letterSpacing: "0.15em",
-            color: "var(--text)",
-            margin: "0 0 6px 0",
-            textTransform: "uppercase"
-          }}>
-            [ RED QUEEN UPLINK ]
-          </h2>
-          <p style={{
-            fontFamily: "var(--mono)",
-            fontSize: "10.5px",
-            color: "var(--text-dim)",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            margin: 0
-          }}>
-            {isSignUp ? "Generate new cryptographic operative passport" : "Establish secure operative session via credentials"}
-          </p>
+      <section className="rq-login-card">
+        <div className="rq-login-card-head">
+          <span>RED QUEEN ACCESS</span>
+          <strong>{isSignUp ? "Create your private readiness record" : "Continue your readiness record"}</strong>
+          <p>Choose email or Solana. Both lead to the same core platform.</p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {/* Email Input */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <label style={{
-              fontFamily: "var(--mono)",
-              fontSize: "11px",
-              color: "var(--text-muted)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase"
-            }}>
-              // OPERATIVE EMAIL:
-            </label>
+        <div className="rq-login-wallet">
+          <div><strong>Continue with Solana</strong><small>Sign a message to prove wallet ownership.</small></div>
+          <WalletMultiButton />
+          <p>READ-ONLY IDENTITY CHECK · NO TRANSACTION · NO SPENDING APPROVAL</p>
+        </div>
+
+        <div className="rq-login-divider"><span>OR USE EMAIL</span></div>
+
+        <form onSubmit={handleSubmit} className="rq-login-form">
+          <label>
+            <span>EMAIL</span>
             <input
               type="email"
-              placeholder="e.g., survivor@solvival.corp"
+              autoComplete="email"
+              placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
               disabled={loading}
               required
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: "13px",
-                background: "rgba(255, 255, 255, 0.02)",
-                border: "1px solid rgba(255, 0, 51, 0.2)",
-                borderRadius: "2px",
-                padding: "10px 14px",
-                color: "var(--text)",
-                outline: "none",
-                transition: "border-color 0.2s",
-                boxSizing: "border-box",
-                width: "100%"
-              }}
-              onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(255, 0, 51, 0.2)")}
             />
-          </div>
-
-          {/* Password Input */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <label style={{
-              fontFamily: "var(--mono)",
-              fontSize: "11px",
-              color: "var(--text-muted)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase"
-            }}>
-              // PASSPORT ACCESS DECRYPTOR:
-            </label>
+          </label>
+          <label>
+            <span>PASSWORD</span>
             <input
               type="password"
-              placeholder="••••••••"
+              autoComplete={isSignUp ? "new-password" : "current-password"}
+              placeholder="Minimum 6 characters"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               disabled={loading}
+              minLength={6}
               required
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: "13px",
-                background: "rgba(255, 255, 255, 0.02)",
-                border: "1px solid rgba(255, 0, 51, 0.2)",
-                borderRadius: "2px",
-                padding: "10px 14px",
-                color: "var(--text)",
-                outline: "none",
-                transition: "border-color 0.2s",
-                boxSizing: "border-box",
-                width: "100%"
-              }}
-              onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(255, 0, 51, 0.2)")}
             />
-          </div>
+          </label>
 
-          {/* Feedback Messages */}
-          {errorMsg && (
-            <div style={{
-              fontFamily: "var(--mono)",
-              fontSize: "11.5px",
-              color: "var(--accent)",
-              background: "rgba(255, 77, 77, 0.05)",
-              border: "1px solid rgba(255, 77, 77, 0.2)",
-              padding: "10px 12px",
-              borderRadius: "2px",
-              lineHeight: "1.4"
-            }}>
-              {errorMsg}
-            </div>
-          )}
+          {errorMsg && <div className="rq-login-message is-error" role="alert">{errorMsg}</div>}
+          {statusMsg && <div className="rq-login-message is-status" role="status">{statusMsg}</div>}
 
-          {statusMsg && (
-            <div style={{
-              fontFamily: "var(--mono)",
-              fontSize: "11px",
-              color: "#00ffcc",
-              background: "rgba(0, 255, 204, 0.03)",
-              border: "1px dashed rgba(0, 255, 204, 0.2)",
-              padding: "10px 12px",
-              borderRadius: "2px",
-              textAlign: "center"
-            }}>
-              <span className="loading-dots">{statusMsg}</span>
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-primary"
-            style={{
-              width: "100%",
-              justifyContent: "center",
-              padding: "12px",
-              fontFamily: "var(--mono)",
-              fontSize: "12.5px",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              boxShadow: "0 0 15px rgba(255, 0, 51, 0.15)",
-              cursor: loading ? "not-allowed" : "pointer"
-            }}
-          >
-            {isSignUp ? "INITIALIZE PASSPORT" : "ESTABLISH UPLINK"}
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "SECURING CHANNEL…" : isSignUp ? "CREATE ACCOUNT" : "SIGN IN WITH EMAIL"}
           </button>
         </form>
 
-        {/* Toggle Form Mode */}
-        <div style={{
-          marginTop: "24px",
-          paddingTop: "16px",
-          borderTop: "1px dashed var(--border)",
-          textAlign: "center"
-        }}>
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setErrorMsg("");
-              setStatusMsg("");
-            }}
-            style={{
-              background: "none",
-              border: "none",
-              fontFamily: "var(--mono)",
-              fontSize: "11.5px",
-              color: "var(--text-dim)",
-              textDecoration: "underline",
-              cursor: "pointer"
-            }}
-          >
-            {isSignUp ? "[ ALREADY REGISTERED? DECRYPT SESSION ]" : "[ NO PASSPORT? INITIALIZE NEW IDENTITY ]"}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="rq-login-switch"
+          onClick={() => { setIsSignUp((value) => !value); setErrorMsg(""); setStatusMsg(""); }}
+        >
+          {isSignUp ? "Already have an account? Sign in" : "New here? Create an account"}
+        </button>
 
-        {/* Wallet Connection Alternative */}
-        <div style={{
-          marginTop: "24px",
-          paddingTop: "20px",
-          borderTop: "1px dashed var(--border)",
-          textAlign: "center"
-        }}>
-          <div style={{
-            fontFamily: "var(--mono)",
-            fontSize: "10px",
-            color: "var(--text-muted)",
-            letterSpacing: "0.15em",
-            marginBottom: "12px",
-            textTransform: "uppercase"
-          }}>
-            // OR CONNECT CRYPTOGRAPHIC PASSPORT
-          </div>
-          <WalletMultiButton style={{
-            width: "100%",
-            justifyContent: "center",
-            background: "transparent",
-            border: "1px solid var(--accent)",
-            color: "var(--accent)",
-            fontFamily: "var(--mono)",
-            fontSize: "12px",
-            padding: "10px",
-            height: "auto",
-            lineHeight: "1.5",
-            fontWeight: "bold",
-            letterSpacing: "0.1em"
-          }} />
+        <div className="rq-login-public">
+          <strong>Just exploring?</strong>
+          <p>Pulse, Live Map, Queen, Prepare and the Library work before you sign in.</p>
+          <Link href="/">CONTINUE WITHOUT AN ACCOUNT →</Link>
         </div>
-
-        {/* Return to Hub */}
-        <div style={{ marginTop: "24px", textAlign: "center" }}>
-          <Link href="/" style={{
-            fontFamily: "var(--mono)",
-            fontSize: "11px",
-            color: "var(--text-muted)",
-            textDecoration: "none",
-            letterSpacing: "0.05em"
-          }}>
-            ← RETURN TO HUB TERMINAL
-          </Link>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

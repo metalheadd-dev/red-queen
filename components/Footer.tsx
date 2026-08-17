@@ -4,9 +4,8 @@ export default function Footer() {
   return (
     <footer className="footer">
       <p>
-        <span>[ RED QUEEN v7.4.1 ]</span> &nbsp;|&nbsp;
-        SOLVIVAL CORP ADVANCED INTELLIGENCE DIVISION &nbsp;|&nbsp;
-        <span>[ CLASSIFICATION: LEVEL 5 RESTRICTED ]</span>
+        <span>[ RED QUEEN // ONLINE ]</span> &nbsp;|&nbsp;
+        SURVIVAL INTELLIGENCE ECOSYSTEM ON SOLANA
       </p>
       <p style={{ marginTop: "12px", display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", fontSize: "10px" }}>
         <Link href="/license">LICENSE</Link>
@@ -15,7 +14,7 @@ export default function Footer() {
         <Link href="/terms">TERMS OF SERVICE</Link>
       </p>
       <p style={{ marginTop: "12px", fontSize: "10px" }}>
-        ALL SURVIVOR DATA IS LOGGED AND ANALYZED. UNAUTHORIZED ACCESS IS PUNISHABLE BY IMMEDIATE CONTAINMENT.
+        PUBLIC SIGNALS ARE INFORMATIONAL. RED QUEEN SEPARATES VERIFIED FACTS, ASSESSMENT AND UNCERTAINTY — YOU KEEP CONTROL OF YOUR DATA AND DECISIONS.
       </p>
     </footer>
   );

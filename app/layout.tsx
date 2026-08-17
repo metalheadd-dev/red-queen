@@ -3,6 +3,7 @@ import "./globals.css";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import SolanaProvider from "@/components/SolanaProvider";
+import QueenDock from "@/components/QueenDock";
 
 export const metadata: Metadata = {
   title: "RED QUEEN — Survival Intelligence on Solana",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="page-bg">
             <NavBar />
             <main className="page-content">{children}</main>
+            <QueenDock />
             <Footer />
           </div>
         </SolanaProvider>

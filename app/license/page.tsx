@@ -12,7 +12,7 @@ export default function LicensePage() {
 
         <div style={{ fontFamily: "var(--mono)", fontSize: "13px", color: "var(--text-dim)", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "24px" }}>
           <p>
-            <strong>Last Updated: January 2026</strong>
+            <strong>Last Updated: August 2026</strong>
           </p>
           <p style={{ marginTop: "16px" }}>
             The Red Queen is a proprietary tactical survival evaluation and artificial intelligence platform owned by Solvival Corp. This license agreement governs your access and use of the Red Queen terminal, database archives, and related services.
@@ -23,13 +23,13 @@ export default function LicensePage() {
             Solvival Corp grants you a limited, non-exclusive, non-transferable, revocable license to access the Red Queen interface and terminal system strictly for personal, non-commercial survival assessment purposes in accordance with these terms.
           </p>
 
-          <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>2. PERMITTED OPERATIONS</h2>
+          <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>2. PERMITTED USE</h2>
           <p>
             Subject to your compliance with this agreement, you are authorized to:
-            <br />• Connect your Solana wallet to authenticate your operative identity.
-            <br />• Initiate neural link and query the Red Queen AI terminal.
-            <br />• Query and display threat reports in the archives database.
-            <br />• Save and customize your survival scenario preferences.
+            <br />• Connect a Solana wallet to authenticate your account or verify token clearance.
+            <br />• Ask the Red Queen AI for threat analysis and preparedness guidance.
+            <br />• View and use threat intelligence reports in the library.
+            <br />• Save and customize your survival context and readiness preferences.
           </p>
 
           <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>3. RIGID RESTRICTIONS</h2>

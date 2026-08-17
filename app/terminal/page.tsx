@@ -574,7 +574,7 @@ export default function TerminalPage() {
     ctx.fillText(`CLEARANCE: ${clearanceInfo.label.toUpperCase()}`, w - 24, 32);
     ctx.textAlign = "left"; // reset alignment
 
-    // 5. Operative Info Panel
+    // 5. Readiness identity panel
     const opPanelY = 64;
     const opPanelH = 72;
     ctx.fillStyle = "rgba(255, 0, 51, 0.03)";
@@ -582,11 +582,11 @@ export default function TerminalPage() {
     ctx.strokeStyle = "rgba(255, 0, 51, 0.15)";
     ctx.strokeRect(16, opPanelY, w - 32, opPanelH);
 
-    // Operative Info Text inside panel
+    // Readiness identity text inside panel
     ctx.textBaseline = "top";
     ctx.fillStyle = "#ff4d4d";
     ctx.font = `bold 10px ${monoFont}`;
-    ctx.fillText("OPERATIVE IDENTIFICATION", 28, opPanelY + 14);
+    ctx.fillText("READINESS IDENTITY", 28, opPanelY + 14);
     ctx.fillStyle = "#ffffff";
     ctx.font = `bold 15px ${monoFont}`;
     ctx.fillText(apocalypticName || "SUBJECT", 28, opPanelY + 32);
@@ -1616,7 +1616,7 @@ To decrypt or scan target files:
             
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "#0c0c0c", border: "1px solid #161616", padding: "12px", borderRadius: "2px" }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>OPERATIVE:</span>
+                <span>IDENTITY:</span>
                 <span style={{ color: "var(--text)" }}>{apocalypticName || "SUBJECT"}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
