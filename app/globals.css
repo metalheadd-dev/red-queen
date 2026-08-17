@@ -2000,6 +2000,17 @@ body:has(#game-player-root) .page-content {
 .pulse-final-cta h2 { margin-top: 7px; font-size: 28px; text-transform: none; }
 
 .pulse-action-plan { padding-top: 28px; }
+.pulse-scan-delta { display: grid; grid-template-columns: minmax(280px,1fr) minmax(520px,1.25fr); gap: 20px; align-items: center; margin-top: 10px; padding-top: 14px; padding-bottom: 14px; border: 1px solid rgba(255,255,255,.08); background: linear-gradient(110deg,rgba(112,199,232,.04),rgba(7,8,10,.96) 42%); }
+.pulse-scan-delta.is-limited { border-color: rgba(240,201,41,.18); background: linear-gradient(110deg,rgba(240,201,41,.035),rgba(7,8,10,.96) 42%); }
+.pulse-scan-delta-copy > span { display: block; color: #70c7e8; font: 700 8px var(--mono); letter-spacing: .12em; }
+.pulse-scan-delta.is-limited .pulse-scan-delta-copy > span { color: #f0c929; }
+.pulse-scan-delta-copy > strong { display: block; margin-top: 6px; color: rgba(255,255,255,.76); font-size: 12px; line-height: 1.45; }
+.pulse-scan-delta-copy > small { display: block; margin-top: 5px; color: rgba(255,255,255,.28); font: 700 7px var(--mono); }
+.pulse-scan-delta dl { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); margin: 0; }
+.pulse-scan-delta dl > div { padding: 7px 12px; border-left: 1px solid rgba(255,255,255,.07); }
+.pulse-scan-delta dt { color: rgba(255,255,255,.3); font: 700 7px var(--mono); letter-spacing: .08em; }
+.pulse-scan-delta dd { margin: 7px 0 0; color: #fff; font: 700 20px var(--title-font); }
+.pulse-scan-delta p { grid-column: 1 / -1; margin: -5px 0 0; color: rgba(255,255,255,.26); font-size: 8px; }
 .daily-action-panel { position: relative; min-height: 230px; padding: 24px; overflow: hidden; border: 1px solid rgba(255,0,51,.3); background: radial-gradient(circle at 88% 20%,rgba(255,0,51,.13),transparent 30%),linear-gradient(115deg,rgba(34,4,12,.9),rgba(7,8,10,.97) 52%); box-shadow: 0 24px 70px rgba(0,0,0,.28); }
 .daily-action-panel::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .12; background-image: linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px); background-size: 44px 44px; }
 .daily-action-panel.is-loading { min-height: 160px; }
@@ -2161,6 +2172,9 @@ body:has(#game-player-root) .page-content {
   .pulse-focus-grid button:last-child { grid-column: auto; }
   .pulse-onboarding-actions { align-items: stretch; flex-direction: column; }
   .pulse-action-plan { padding-left: 16px; padding-right: 16px; }
+  .pulse-scan-delta { grid-template-columns: 1fr; margin-left: 16px; margin-right: 16px; }
+  .pulse-scan-delta dl { grid-template-columns: repeat(5,minmax(74px,1fr)); overflow-x: auto; }
+  .pulse-scan-delta dl > div:first-child { border-left: 0; }
   .daily-action-panel { min-height: 0; padding: 20px; }
   .daily-action-head,
   .daily-action-panel.is-empty > div { align-items: flex-start; flex-direction: column; gap: 6px; }
@@ -3488,6 +3502,10 @@ body:has(#game-player-root) .page-content {
   .pulse-onboarding p { font-size: 15px; }
   .pulse-first-contact > label,.pulse-text-button { font-size: 10px; }
   .pulse-field-note { font-size: 10px; }
+  .pulse-scan-delta-copy > span { font-size: 10px; }
+  .pulse-scan-delta-copy > strong { font-size: 14px; }
+  .pulse-scan-delta-copy > small,.pulse-scan-delta dt { font-size: 9px; }
+  .pulse-scan-delta p { font-size: 10px; }
   .pulse-focus-grid button strong { font-size: 13px; }
   .pulse-focus-grid button span { font-size: 12px; }
   .pulse-section-heading > div > p,.pulse-heading-copy { font-size: 15px; }

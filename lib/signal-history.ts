@@ -1,4 +1,5 @@
 export const SIGNAL_HISTORY_STORAGE_KEY = "rq-signal-history-v1";
+export const SIGNAL_SCAN_STORAGE_KEY = "rq-signal-scan-v1";
 
 export type SignalChange = "NEW" | "ESCALATED" | "REDUCED" | "STEADY";
 
@@ -29,6 +30,22 @@ export interface SignalHistoryView {
   observations: number;
 }
 
+interface StoredSignalScan {
+  scannedAt: string;
+  signals: Record<string, { name: string; severity: number }>;
+}
+
+export interface SignalScanSummary {
+  state: "BASELINE" | "COMPARED" | "LIMITED";
+  scannedAt?: string;
+  previousScanAt?: string;
+  activeCount: number;
+  newCount: number;
+  escalatedCount: number;
+  reducedCount: number;
+  absentCount: number;
+}
+
 const MAX_SIGNALS = 120;
 const MAX_SNAPSHOTS = 8;
 
@@ -46,6 +63,62 @@ function readHistory(storage: Storage): Record<string, StoredSignalHistory> {
   } catch {
     return {};
   }
+}
+
+function readPreviousScan(storage: Storage): StoredSignalScan | null {
+  try {
+    const parsed = JSON.parse(storage.getItem(SIGNAL_SCAN_STORAGE_KEY) || "null") as StoredSignalScan | null;
+    if (!parsed || !validDate(parsed.scannedAt) || !parsed.signals || typeof parsed.signals !== "object") return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function recordSignalScanSummary(
+  storage: Storage,
+  signals: TrackableSignal[],
+  comparable: boolean,
+  scannedAt = new Date().toISOString(),
+): SignalScanSummary {
+  const previous = readPreviousScan(storage);
+  if (!comparable) {
+    return {
+      state: "LIMITED",
+      previousScanAt: previous?.scannedAt,
+      activeCount: signals.length,
+      newCount: 0,
+      escalatedCount: 0,
+      reducedCount: 0,
+      absentCount: 0,
+    };
+  }
+
+  const scanTime = validDate(scannedAt) || new Date().toISOString();
+  const currentSignals = Object.fromEntries(signals
+    .filter((signal) => signal.id && Number.isFinite(signal.severity))
+    .map((signal) => [signal.id, { name: signal.name, severity: signal.severity }]));
+  const previousSignals = previous?.signals || {};
+  const currentIds = new Set(Object.keys(currentSignals));
+  const previousIds = new Set(Object.keys(previousSignals));
+
+  const summary: SignalScanSummary = {
+    state: previous ? "COMPARED" : "BASELINE",
+    scannedAt: scanTime,
+    previousScanAt: previous?.scannedAt,
+    activeCount: currentIds.size,
+    newCount: previous ? [...currentIds].filter((id) => !previousIds.has(id)).length : 0,
+    escalatedCount: previous ? [...currentIds].filter((id) => previousSignals[id] && currentSignals[id].severity > previousSignals[id].severity).length : 0,
+    reducedCount: previous ? [...currentIds].filter((id) => previousSignals[id] && currentSignals[id].severity < previousSignals[id].severity).length : 0,
+    absentCount: previous ? [...previousIds].filter((id) => !currentIds.has(id)).length : 0,
+  };
+
+  try {
+    storage.setItem(SIGNAL_SCAN_STORAGE_KEY, JSON.stringify({ scannedAt: scanTime, signals: currentSignals } satisfies StoredSignalScan));
+  } catch {
+    // The live scan remains available when local storage is unavailable.
+  }
+  return summary;
 }
 
 export function recordSignalScan(

@@ -14,6 +14,8 @@ Production: [redqueen.space](https://redqueen.space) · X: [@redqueen_agent](htt
 
 RED QUEEN is designed around one short daily question: **what changed, does it affect me, and what should I do next?** A useful session should take less than a minute to produce a broad-area status, a small set of ranked signals, one source-grounded Queen brief, and one action worth completing.
 
+The browser also keeps a bounded scan baseline and reports what is new, escalated, reduced, or no longer present in the current feed. A limited source grid never overwrites the last reliable baseline, and absence from the feed is never labeled “resolved.”
+
 ## Core product loop
 
 1. **Detect** — read a broad-area Local Pulse and explore verified signals on the live map.

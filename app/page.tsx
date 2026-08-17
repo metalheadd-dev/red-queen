@@ -21,7 +21,7 @@ import {
   SurvivalContext,
   SurvivalFocus,
 } from "@/lib/survival-context";
-import { recordSignalScan, SignalHistoryView } from "@/lib/signal-history";
+import { recordSignalScan, recordSignalScanSummary, SignalHistoryView, SignalScanSummary } from "@/lib/signal-history";
 
 interface PulseData {
   codename: string;
@@ -182,6 +182,7 @@ export default function HomePage() {
   const [nodes, setNodes] = useState<MapNode[]>([]);
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
   const [signalHistory, setSignalHistory] = useState<Record<string, SignalHistoryView>>({});
+  const [scanSummary, setScanSummary] = useState<SignalScanSummary | null>(null);
   const [mapLoading, setMapLoading] = useState(true);
   const [mapFilter, setMapFilter] = useState<"local" | "priority" | "all" | "verified">("priority");
   const [showStart, setShowStart] = useState(false);
@@ -227,13 +228,17 @@ export default function HomePage() {
       if (pulseResult.status === "fulfilled") setPulse(pulseResult.value);
       if (mapResult.status === "fulfilled" && Array.isArray(mapResult.value)) {
         const liveNodes = mapResult.value as MapNode[];
+        const scanTime = liveNodes[0]?.scannedAt || new Date().toISOString();
+        const onlineSources = pulseResult.status === "fulfilled" ? Number(pulseResult.value.coverage?.online || 0) : 0;
+        const comparableScan = onlineSources >= 4 && liveNodes.length > 0;
         setNodes(liveNodes);
         setSelectedNode(liveNodes[0] || null);
         setSignalHistory(recordSignalScan(
           localStorage,
           liveNodes,
-          liveNodes[0]?.scannedAt || new Date().toISOString(),
+          scanTime,
         ));
+        setScanSummary(recordSignalScanSummary(localStorage, liveNodes, comparableScan, scanTime));
       }
       setPulseLoading(false);
       setMapLoading(false);
@@ -528,6 +533,34 @@ export default function HomePage() {
       <div className="container pulse-action-plan">
         <DailyActionPanel context="PULSE" />
       </div>
+
+      {scanSummary && (
+        <section className={`container pulse-scan-delta is-${scanSummary.state.toLowerCase()}`} aria-label="Changes since the previous verified scan">
+          <div className="pulse-scan-delta-copy">
+            <span>SINCE YOUR LAST VERIFIED SCAN // THIS DEVICE</span>
+            <strong>
+              {scanSummary.state === "LIMITED"
+                ? scanSummary.previousScanAt
+                  ? "Comparison paused. The previous baseline is preserved."
+                  : "Comparison unavailable. A reliable baseline has not been captured yet."
+                : scanSummary.state === "BASELINE"
+                  ? "Baseline captured. Return after the next verified scan to see what changed."
+                  : scanSummary.newCount + scanSummary.escalatedCount + scanSummary.reducedCount + scanSummary.absentCount === 0
+                    ? "No changes detected in the current verified signal set."
+                    : "The field changed. RED QUEEN separated movement from noise."}
+            </strong>
+            <small>{scanSummary.previousScanAt ? `PREVIOUS ${relativeTime(scanSummary.previousScanAt).toUpperCase()}` : "FIRST RELIABLE OBSERVATION"}</small>
+          </div>
+          <dl>
+            <div><dt>ACTIVE</dt><dd>{scanSummary.activeCount}</dd></div>
+            <div><dt>NEW</dt><dd>{scanSummary.newCount}</dd></div>
+            <div><dt>ESCALATED</dt><dd>{scanSummary.escalatedCount}</dd></div>
+            <div><dt>REDUCED</dt><dd>{scanSummary.reducedCount}</dd></div>
+            <div><dt>OUT OF FEED</dt><dd>{scanSummary.absentCount}</dd></div>
+          </dl>
+          <p>“Out of feed” is not the same as resolved. Open the source before acting.</p>
+        </section>
+      )}
 
       <section className="container pulse-daily" aria-busy={pulseLoading}>
         <div className="pulse-section-heading">
