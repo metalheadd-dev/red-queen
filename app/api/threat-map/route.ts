@@ -182,7 +182,9 @@ function resolveRealisticType(id: string): "BIOLOGICAL" | "GEOLOGICAL" | "METEOR
 }
 
 export async function GET(request: NextRequest) {
-  const liveOnly = request.nextUrl.searchParams.get("scope") === "live";
+  // Live/source-backed data is the safe default. Scenario and lore markers must be
+  // requested explicitly so an omitted query parameter can never mix them into a live map.
+  const liveOnly = request.nextUrl.searchParams.get("scope") !== "archive";
   const nodes: ThreatNode[] = [];
 
   // Default fallback data in case external APIs fail or are offline

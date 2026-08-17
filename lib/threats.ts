@@ -203,9 +203,15 @@ export const ALGORITHMIC: Threat[] = [
   }
 ];
 
+const REALISTIC_LIBRARY = REALISTIC.filter((threat) => threat.id !== "T-VIRUS");
+const FICTIONAL_LIBRARY = [
+  ...REALISTIC.filter((threat) => threat.id === "T-VIRUS"),
+  ...FICTIONAL,
+];
+
 export const CATEGORIES = [
-  { key: "realistic", label: "☣ SECTOR ALPHA (KINETIC)", color: "#ff4d4d", threats: REALISTIC },
-  { key: "fictional", label: "👾 SECTOR BETA (ANOMALIES)", color: "#a855f7", threats: FICTIONAL },
+  { key: "realistic", label: "☣ SECTOR ALPHA (KINETIC)", color: "#ff4d4d", threats: REALISTIC_LIBRARY },
+  { key: "fictional", label: "👾 SECTOR BETA (ANOMALIES)", color: "#a855f7", threats: FICTIONAL_LIBRARY },
   { key: "satirical", label: "🎭 SECTOR GAMMA (DEGENERACY)", color: "#f0c929", threats: SATIRICAL },
   { key: "algorithmic", label: "⚡ SECTOR DELTA (ALGORITHMIC WARFARE)", color: "#00ffcc", threats: ALGORITHMIC },
 ];
