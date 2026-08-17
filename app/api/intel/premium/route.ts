@@ -4,149 +4,123 @@ import { withFriendlyX402 } from "@/lib/x402";
 const svmAddress = process.env.SVM_ADDRESS || "";
 const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
 
-const handler = async (req: NextRequest) => {
+const USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson";
+const NASA_URL = "https://eonet.gsfc.nasa.gov/api/v3/events?limit=12&status=open";
+
+const handler = async (_req: NextRequest) => {
   try {
-    // Fetch real-time physical seismic anomalies, NASA natural disaster events, and Disease.sh global pathogen stats concurrently
-    const [usgsRes, nasaRes, diseaseRes] = await Promise.all([
-      fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson", {
-        next: { revalidate: 60 } // Cache for 60 seconds
-      }),
-      fetch("https://eonet.gsfc.nasa.gov/api/v3/events?limit=8&status=open", {
-        next: { revalidate: 120 } // Cache for 2 minutes
-      }).catch(() => null),
-      fetch("https://disease.sh/v3/covid-19/all", {
-        next: { revalidate: 300 } // Cache for 5 minutes
-      }).catch(() => null)
+    const [usgsRes, nasaRes] = await Promise.all([
+      fetch(USGS_URL, { next: { revalidate: 60 } }),
+      fetch(NASA_URL, { next: { revalidate: 120 } }).catch(() => null),
     ]);
 
+    if (!usgsRes.ok) throw new Error(`USGS returned ${usgsRes.status}`);
+
     const usgsData = await usgsRes.json();
-    const anomalyCount = usgsData.metadata.count || 0;
-    const features = usgsData.features || [];
+    const features = Array.isArray(usgsData.features) ? usgsData.features : [];
+    const sortedFeatures = [...features].sort(
+      (a: any, b: any) => Number(b.properties?.mag || 0) - Number(a.properties?.mag || 0),
+    );
 
-    let nasaData = { events: [] };
-    if (nasaRes) {
-      nasaData = await nasaRes.json().catch(() => ({ events: [] }));
-    }
-
-    let diseaseData: any = {};
-    if (diseaseRes) {
-      diseaseData = await diseaseRes.json().catch(() => ({}));
-    }
-    
-    // Sort features by magnitude descending to get the most severe ones
-    const sortedFeatures = [...features].sort((a: any, b: any) => (b.properties.mag || 0) - (a.properties.mag || 0));
-    
-    const maxMag = sortedFeatures[0]?.properties?.mag || 0.0;
-    const maxPlace = sortedFeatures[0]?.properties?.place || "None";
-    const maxDepth = sortedFeatures[0]?.geometry?.coordinates?.[2] || 0.0;
-    const maxCoord = sortedFeatures[0]?.geometry?.coordinates?.slice(0, 2) || [0, 0];
-
-    const threatVectors = sortedFeatures.slice(0, 6).map((f: any) => {
-      const place = f.properties.place || "Unknown Sector";
-      const mag = f.properties.mag || 0.0;
-      const depth = f.geometry?.coordinates?.[2] || 0.0;
-      const coords = f.geometry?.coordinates?.slice(0, 2) || [0, 0];
-      const time = f.properties.time ? new Date(f.properties.time).toISOString() : new Date().toISOString();
-      
-      let status = "YELLOW";
-      let trend = "STABLE";
-      if (mag >= 5.0) {
-        status = "RED";
-        trend = "ACCELERATING";
-      } else if (mag >= 3.0) {
-        status = "YELLOW";
-        trend = "ELEVATED";
-      } else {
-        status = "GREEN";
-        trend = "DISSIPATING";
-      }
-      
+    const threatVectors = sortedFeatures.slice(0, 8).map((feature: any) => {
+      const magnitude = Number(feature.properties?.mag || 0);
+      const coordinates = feature.geometry?.coordinates || [];
       return {
-        id: `SYS-SEISMIC-${f.id || Math.floor(Math.random() * 10000)}`,
-        rating: `${(mag * 20).toFixed(0)}% SEVERITY`,
-        trend,
-        status,
-        description: `Tectonic rupture: ${place} (M ${mag.toFixed(1)})`,
-        depthKm: depth.toFixed(1),
-        latitude: coords[1]?.toFixed(4) || "0.0000",
-        longitude: coords[0]?.toFixed(4) || "0.0000",
-        eventTime: time
+        id: `usgs-${feature.id}`,
+        magnitude,
+        rating: `M ${magnitude.toFixed(1)}`,
+        status: magnitude >= 6 ? "RED" : magnitude >= 4.5 ? "YELLOW" : "GREEN",
+        description: feature.properties?.place || "USGS earthquake event",
+        depthKm: Number(coordinates[2] || 0).toFixed(1),
+        latitude: Number(coordinates[1] || 0).toFixed(4),
+        longitude: Number(coordinates[0] || 0).toFixed(4),
+        observedAt: feature.properties?.time
+          ? new Date(feature.properties.time).toISOString()
+          : null,
+        sourceUrl: feature.properties?.url || "https://earthquake.usgs.gov/earthquakes/map/",
       };
     });
 
-    if (threatVectors.length === 0) {
-      threatVectors.push({
-        id: "SYS-SEISMIC-CLEAN",
-        rating: "0% SEVERITY",
-        trend: "STABLE",
-        status: "GREEN",
-        description: "Zero global tectonic anomalies detected in the last active epoch.",
-        depthKm: "0.0",
-        latitude: "0.0000",
-        longitude: "0.0000",
-        eventTime: new Date().toISOString()
-      });
-    }
+    const nasaAvailable = Boolean(nasaRes?.ok);
+    const nasaData = nasaAvailable
+      ? await nasaRes!.json().catch(() => ({ events: [] }))
+      : { events: [] };
+    const nasaEvents = (Array.isArray(nasaData.events) ? nasaData.events : []).map((event: any) => {
+      const geometry = event.geometry?.[0];
+      const coordinates = Array.isArray(geometry?.coordinates) ? geometry.coordinates : [];
+      return {
+        id: event.id,
+        title: event.title,
+        category: event.categories?.[0]?.title || "Natural event",
+        date: geometry?.date || null,
+        longitude: Number(coordinates[0] || 0),
+        latitude: Number(coordinates[1] || 0),
+        source: event.sources?.[0]?.id || "NASA EONET",
+        sourceUrl: event.sources?.[0]?.url || `https://eonet.gsfc.nasa.gov/api/v3/events/${event.id}`,
+      };
+    });
 
-    // Parse NASA EONET events
-    const nasaEvents = (nasaData.events || []).map((e: any) => ({
-      id: e.id,
-      title: e.title,
-      category: e.categories?.[0]?.title || "Unknown Threat",
-      date: e.geometry?.[0]?.date || new Date().toISOString(),
-      longitude: e.geometry?.[0]?.coordinates?.[0] || 0,
-      latitude: e.geometry?.[0]?.coordinates?.[1] || 0,
-      source: e.sources?.[0]?.id || "NASA"
-    }));
-
-    // Parse biological pathogen data from disease.sh
-    const biologicalContainment = {
-      activePathogens: diseaseData.active || 14850900,
-      criticalInfections: diseaseData.critical || 38400,
-      dailyEscalations: diseaseData.todayCases || 74500,
-      totalFatalities: diseaseData.deaths || 6890000,
-      recoveryRate: diseaseData.cases ? ((diseaseData.recovered / diseaseData.cases) * 100).toFixed(1) + "%" : "96.4%"
-    };
-
-    // Calculate algorithmic global entropy score
-    const totalNasa = nasaEvents.length;
-    const activePathogenCount = biologicalContainment.activePathogens;
-    const entropyScore = Math.min(99.9, ((anomalyCount * 0.4) + (totalNasa * 3.5) + (activePathogenCount / 220000))).toFixed(1);
+    const strongest = threatVectors[0] || null;
+    const highAttentionQuakes = threatVectors.filter((event: any) => event.magnitude >= 4.5);
+    const liveSources = nasaAvailable ? 2 : 1;
+    const totalSignals = features.length + nasaEvents.length;
+    const prioritySignal = highAttentionQuakes[0]
+      ? `${highAttentionQuakes[0].rating} earthquake near ${highAttentionQuakes[0].description}`
+      : nasaEvents[0]
+        ? `${nasaEvents[0].category}: ${nasaEvents[0].title}`
+        : "No high-attention signal was identified in this source window.";
 
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      clearance: "PAID COMPUTE // x402 VERIFIED",
+      clearance: "PAID OUTPUT // x402 SETTLED",
       intel: {
-        headline: "CRITICAL EARTH CONTAINMENT & BIOLOGICAL DECAY BRIEFING",
-        summary: `The global seismic monitoring matrix detected ${anomalyCount} tectonic disruptions in the last hour. Concurrently, NASA natural trackers report ${totalNasa} open environmental hazards, and active pathogens count is ${biologicalContainment.activePathogens.toLocaleString()}. Risk tier calibrated to t54 protocols.`,
-        maxEvent: {
-          magnitude: maxMag.toFixed(1),
-          location: maxPlace,
-          depthKm: maxDepth.toFixed(1),
-          latitude: maxCoord[1]?.toFixed(4) || "0.0000",
-          longitude: maxCoord[0]?.toFixed(4) || "0.0000"
+        headline: `${totalSignals} source events reviewed. ${highAttentionQuakes.length} seismic signals need closer attention.`,
+        summary: `RED QUEEN compared the latest one-hour USGS earthquake feed with NASA EONET open events. ${prioritySignal}`,
+        sourceCoverage: {
+          liveSources,
+          totalSources: 2,
+          label: `${liveSources}/2 SOURCES LIVE`,
+          partial: liveSources < 2,
         },
-        t54Telemetry: {
-          identityStatus: "VERIFIED // SECURED",
-          complianceScore: "98.9% COMPLIANT (t54-grade KYA)",
-          activePromptMitigations: Math.floor(anomalyCount * 1.5 + totalNasa * 2 + 4),
-          underwritingTier: "AAA (LOW RISK)",
-          riskShieldState: "SHIELD DEPLOYED"
-        },
+        sourceStatus: [
+          {
+            id: "usgs",
+            name: "USGS Earthquake Hazards Program",
+            status: "LIVE",
+            eventCount: features.length,
+            window: "PAST HOUR",
+            url: "https://earthquake.usgs.gov/earthquakes/map/",
+          },
+          {
+            id: "nasa-eonet",
+            name: "NASA EONET",
+            status: nasaAvailable ? "LIVE" : "UNAVAILABLE",
+            eventCount: nasaEvents.length,
+            window: "OPEN EVENTS",
+            url: "https://eonet.gsfc.nasa.gov/",
+          },
+        ],
+        prioritySignal,
+        maxEvent: strongest ? {
+          magnitude: strongest.magnitude.toFixed(1),
+          location: strongest.description,
+          depthKm: strongest.depthKm,
+          latitude: strongest.latitude,
+          longitude: strongest.longitude,
+          observedAt: strongest.observedAt,
+          sourceUrl: strongest.sourceUrl,
+        } : null,
         threatVectors,
         nasaEvents,
-        biologicalContainment,
-        combinedEntropyIndex: `${entropyScore}%`,
-        directive: `Tectonic event count: ${anomalyCount}. Strongest: ${maxPlace} (M ${maxMag.toFixed(1)}). NASA active hazards: ${totalNasa}. Biological threat recovery index stands at ${biologicalContainment.recoveryRate}. Keep airgaps active.`,
-        explorerUrl: "https://www.x402scan.com/"
-      }
+        nextAction: "Open the live map, compare the priority signal with your broad area, and change a preparedness plan only if distance and official local guidance make it relevant.",
+      },
     });
   } catch (error) {
-    console.error("Failed to fetch live USGS and NASA tectonic telemetry:", error);
+    console.error("Global source synthesis failed:", error);
     return NextResponse.json({
       success: false,
-      error: "Required source data is temporarily unavailable. No synthetic paid dossier was generated.",
+      error: "Required USGS source data is temporarily unavailable. No paid synthesis was generated.",
       sourceStatus: "UNAVAILABLE",
       syntheticData: false,
     }, { status: 503 });
@@ -163,6 +137,6 @@ export const GET = withFriendlyX402(
       network,
       payTo: svmAddress,
     },
-    description: "Premium global apocalypse threat intelligence briefing.",
-  }
+    description: "Source-backed synthesis of current USGS and NASA EONET signals.",
+  },
 );

@@ -1293,7 +1293,7 @@ To decrypt or scan target files:
               <div style={{ background: "#080808", border: "1px solid #201010", padding: "20px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.05em" }}>
-                    DOSSIER A: GLOBAL CONTAINMENT
+                    DOSSIER A: GLOBAL SOURCE SYNTHESIS
                   </span>
                   <span className="tag" style={{ color: "var(--accent)", borderColor: "rgba(255,77,77,0.4)", padding: "3px 8px", fontSize: "10px" }}>
                     $0.01 USDC
@@ -1303,31 +1303,33 @@ To decrypt or scan target files:
                 {premiumIntel ? (
                   <div style={{ background: "rgba(255, 0, 51, 0.02)", border: "1px solid rgba(255, 0, 51, 0.25)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "12px", display: "flex", flexDirection: "column", gap: "12px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(255, 77, 77, 0.15)", paddingBottom: "6px" }}>
-                      <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</span>
-                      <span style={{ color: "#2ecc40", fontSize: "10px", fontWeight: "bold", background: "rgba(46, 204, 64, 0.1)", padding: "2px 6px", borderRadius: "2px" }}>✓ LIVE DATA: USGS & NASA & DISEASE.SH</span>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ PAID OUTPUT DELIVERED ]</span>
+                      <span style={{ color: premiumIntel.intel?.sourceCoverage?.partial ? "#f0c929" : "#2ecc40", fontSize: "10px", fontWeight: "bold", background: "rgba(46, 204, 64, 0.1)", padding: "2px 6px", borderRadius: "2px" }}>
+                        {premiumIntel.intel?.sourceCoverage?.label || "SOURCE STATUS UNKNOWN"}
+                      </span>
                     </div>
                     
                     <div style={{ display: "flex", justifyContent: "space-between", background: "rgba(255,77,77,0.06)", border: "1px solid rgba(255,77,77,0.2)", padding: "10px", borderRadius: "2px", fontSize: "11.5px", alignItems: "center" }}>
-                      <span style={{ color: "#ffffff", fontWeight: "bold" }}>☣️ GLOBAL THREAT ENTROPY INDEX:</span>
-                      <span style={{ color: "var(--accent)", fontWeight: "bold", fontSize: "13.5px", textShadow: "0 0 8px rgba(255,77,77,0.4)" }}>{premiumIntel.intel?.combinedEntropyIndex}</span>
+                      <span style={{ color: "#ffffff", fontWeight: "bold" }}>PRIORITY SIGNAL:</span>
+                      <span style={{ color: "var(--accent)", fontWeight: "bold", fontSize: "11px", textAlign: "right", maxWidth: "60%" }}>{premiumIntel.intel?.prioritySignal}</span>
                     </div>
 
                     <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "13px" }}>{premiumIntel.intel?.headline}</div>
                     <div style={{ color: "rgba(255, 255, 255, 0.95)", fontSize: "11.5px", lineHeight: "1.4" }}>{premiumIntel.intel?.summary}</div>
+
+                    {premiumIntel.intel?.sourceStatus && (
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }} className="responsive-grid-2">
+                        {premiumIntel.intel.sourceStatus.map((source: any) => (
+                          <a key={source.id} href={source.url} target="_blank" rel="noopener noreferrer" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", padding: "9px", color: "inherit", textDecoration: "none", display: "flex", flexDirection: "column", gap: "3px" }}>
+                            <strong style={{ color: source.status === "LIVE" ? "#2ecc40" : "#f0c929", fontSize: "10px" }}>{source.status} · {source.window}</strong>
+                            <span style={{ color: "#fff", fontSize: "11px" }}>{source.name}</span>
+                            <span style={{ color: "rgba(255,255,255,0.55)", fontSize: "10px" }}>{source.eventCount} events returned</span>
+                          </a>
+                        ))}
+                      </div>
+                    )}
                     
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }} className="responsive-grid-2">
-                      {/* Biological pathogen block */}
-                      {premiumIntel.intel?.biologicalContainment && (
-                        <div style={{ background: "rgba(0,255,204,0.02)", border: "1px solid rgba(0,255,204,0.15)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "5px", fontSize: "11px" }}>
-                          <div style={{ color: "#00ffcc", fontWeight: "bold", borderBottom: "1px dashed rgba(0,255,204,0.15)", paddingBottom: "4px", marginBottom: "4px" }}>🧬 BIOLOGY CONTAINMENT</div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>ACTIVE PATHOGENS:</span><span style={{ color: "#ffffff", fontWeight: "bold" }}>{premiumIntel.intel.biologicalContainment.activePathogens?.toLocaleString()}</span></div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>DAILY ESCALATIONS:</span><span style={{ color: "var(--accent)", fontWeight: "bold" }}>+{premiumIntel.intel.biologicalContainment.dailyEscalations?.toLocaleString()}</span></div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>CRITICAL PATHS:</span><span style={{ color: "var(--yellow)", fontWeight: "bold" }}>{premiumIntel.intel.biologicalContainment.criticalInfections?.toLocaleString()}</span></div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>FATAL TERMINATIONS:</span><span style={{ color: "rgba(255,255,255,0.8)" }}>{premiumIntel.intel.biologicalContainment.totalFatalities?.toLocaleString()}</span></div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>RECOVERY RATE:</span><span style={{ color: "#2ecc40", fontWeight: "bold" }}>{premiumIntel.intel.biologicalContainment.recoveryRate}</span></div>
-                        </div>
-                      )}
-                      
                       {/* USGS seismic block */}
                       {premiumIntel.intel?.maxEvent && (
                         <div style={{ background: "rgba(255,77,77,0.04)", border: "1px solid rgba(255,77,77,0.15)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "5px", fontSize: "11px" }}>
@@ -1340,16 +1342,6 @@ To decrypt or scan target files:
                         </div>
                       )}
                     </div>
-
-                    {premiumIntel.intel?.t54Telemetry && (
-                      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "11px" }}>
-                        <div style={{ color: "#ffffff", fontWeight: "bold", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "4px", marginBottom: "4px" }}>🛡️ t54 AGENT TRUST & AUDIT METRICS</div>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>KYA IDENTITY STATUS:</span><span style={{ color: "#00ffcc", fontWeight: "bold" }}>{premiumIntel.intel.t54Telemetry.identityStatus}</span></div>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>RISK COMPLIANCE SCORE:</span><span style={{ color: "#00ffcc", fontWeight: "bold" }}>{premiumIntel.intel.t54Telemetry.complianceScore}</span></div>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>PROMPT MITIGATIONS:</span><span style={{ color: "var(--accent)", fontWeight: "bold" }}>{premiumIntel.intel.t54Telemetry.activePromptMitigations} SECURED</span></div>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>UNDERWRITING TIER:</span><span style={{ color: "#ffffff", fontWeight: "bold" }}>{premiumIntel.intel.t54Telemetry.underwritingTier}</span></div>
-                      </div>
-                    )}
 
                     {premiumIntel.intel?.nasaEvents && premiumIntel.intel.nasaEvents.length > 0 && (
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
@@ -1379,7 +1371,7 @@ To decrypt or scan target files:
                             <line x1="12" y1="9" x2="12" y2="13" />
                             <line x1="12" y1="17" x2="12.01" y2="17" />
                           </svg>
-                          <span>DETECTED TECTONIC DECAY MULTIPLIERS (USGS):</span>
+                          <span>USGS EARTHQUAKES · PAST HOUR:</span>
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "140px", overflowY: "auto", paddingRight: "4px" }}>
                           {premiumIntel.intel.threatVectors.map((v: any, idx: number) => (
@@ -1390,7 +1382,7 @@ To decrypt or scan target files:
                               </div>
                               <div style={{ display: "flex", justifyContent: "space-between", color: "rgba(255,255,255,0.5)", fontSize: "10px" }}>
                                 <span>Depth: {v.depthKm} km | Lat: {v.latitude}, Lng: {v.longitude}</span>
-                                <span>Trend: {v.trend}</span>
+                                <span>{v.observedAt ? new Date(v.observedAt).toLocaleTimeString() : "Time unavailable"}</span>
                               </div>
                             </div>
                           ))}
@@ -1399,7 +1391,7 @@ To decrypt or scan target files:
                     )}
                     
                     <div style={{ fontSize: "11.5px", color: "#ffffff", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", lineHeight: "1.4" }}>
-                      <strong>Directive:</strong> <span style={{ color: "rgba(255,255,255,0.9)" }}>{premiumIntel.intel?.directive}</span>
+                      <strong>Next action:</strong> <span style={{ color: "rgba(255,255,255,0.9)" }}>{premiumIntel.intel?.nextAction}</span>
                     </div>
 
                     <div style={{ background: "rgba(0, 255, 204, 0.01)", border: "1px solid rgba(0, 255, 204, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11px", display: "flex", flexDirection: "column", gap: "3px", marginTop: "4px" }}>
@@ -1424,7 +1416,7 @@ To decrypt or scan target files:
                         onClick={() => {
                           const proofText = premiumTxid ? `\nProof: https://solscan.io/tx/${premiumTxid}` : "";
                           setShareModalData({
-                            content: `◉ DECRYPTED DOSSIER A: GLOBAL CONTAINMENT\n\nHeadline: ${premiumIntel.intel?.headline}\nSummary: ${premiumIntel.intel?.summary}\nUSGS Alerts: ${premiumIntel.intel?.threatVectors?.map((v: any) => v.description).join(" // ")}\nt54 Index: ${premiumIntel.intel?.t54Telemetry?.complianceScore}${proofText}`
+                            content: `◉ RED QUEEN GLOBAL SOURCE SYNTHESIS\n\nCoverage: ${premiumIntel.intel?.sourceCoverage?.label}\nHeadline: ${premiumIntel.intel?.headline}\nPriority: ${premiumIntel.intel?.prioritySignal}\nNext action: ${premiumIntel.intel?.nextAction}${proofText}`
                           });
                         }}
                         style={{ background: "none", border: "none", color: "var(--accent)", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: "bold" }}
@@ -1467,7 +1459,7 @@ To decrypt or scan target files:
                         onClick={() => decryptIntel("/api/intel/premium", "premium")}
                         style={{ background: "none", border: "none", color: "rgba(255, 255, 255, 0.7)", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", marginLeft: "auto", fontWeight: "bold" }}
                       >
-                        [ ↻ RUN AGAIN ]
+                        [ BUY FRESH SYNTHESIS · 0.01 USDC ]
                       </button>
                     </div>
                   </div>
@@ -1502,11 +1494,11 @@ To decrypt or scan target files:
                 )}
               </div>
 
-              {/* DePIN Sensor Panel */}
+              {/* Solana network health panel */}
               <div style={{ background: "#080808", border: "1px solid #201b10", padding: "20px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: "bold", color: "#ffffff", letterSpacing: "0.05em" }}>
-                    DOSSIER B: SOLANA SOLVIVAL REAL STATUS
+                    DOSSIER B: SOLANA NETWORK HEALTH
                   </span>
                   <span className="tag" style={{ color: "#f0c929", borderColor: "rgba(240,201,41,0.4)", padding: "3px 8px", fontSize: "10px" }}>
                     $0.02 USDC
@@ -1516,35 +1508,35 @@ To decrypt or scan target files:
                 {depinIntel ? (
                   <div style={{ background: "rgba(240, 201, 41, 0.02)", border: "1px solid rgba(240, 201, 41, 0.25)", padding: "16px", borderRadius: "2px", fontFamily: "var(--mono)", fontSize: "12px", display: "flex", flexDirection: "column", gap: "12px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px dashed rgba(240, 201, 41, 0.15)", paddingBottom: "6px" }}>
-                      <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ DECRYPTION GRANTED // LEVEL 5 ]</span>
-                      <span style={{ color: "#2ecc40", fontSize: "10px", fontWeight: "bold", background: "rgba(46, 204, 64, 0.1)", padding: "2px 6px", borderRadius: "2px" }}>✓ LIVE DATA: SOLANA MAINNET RPC</span>
+                      <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "12.5px" }}>[ PAID OUTPUT DELIVERED ]</span>
+                      <span style={{ color: "#2ecc40", fontSize: "10px", fontWeight: "bold", background: "rgba(46, 204, 64, 0.1)", padding: "2px 6px", borderRadius: "2px" }}>{depinIntel.network?.sourceCoverage}</span>
                     </div>
-                    <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "13.5px" }}>{depinIntel.depin?.scannerName}</div>
+                    <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "13.5px" }}>Solana Mainnet · confirmed RPC snapshot</div>
                     <div style={{ color: "rgba(255, 255, 255, 0.95)", fontSize: "12px" }}>
-                      Health Status: <span style={{ color: "#00ffcc", fontWeight: "bold" }}>{depinIntel.depin?.networkHealth}</span> | Monitored DePIN Nodes: <span style={{ color: "#ffffff", fontWeight: "bold" }}>{depinIntel.depin?.onlineNodes}</span>
+                      Vote accounts: <span style={{ color: "#ffffff", fontWeight: "bold" }}>{depinIntel.network?.voteAccounts?.total}</span> · Delinquent share: <span style={{ color: "#f0c929", fontWeight: "bold" }}>{depinIntel.network?.voteAccounts?.delinquentShare}%</span>
                     </div>
 
                     <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "11px" }}>
-                      <div style={{ color: "#ffffff", fontWeight: "bold", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "4px", marginBottom: "4px" }}>📈 SOLANA L1 & FAREMETER TELEMETRY</div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>LIVE PERFORMANCE TPS:</span><span style={{ color: "#00ffcc", fontWeight: "bold" }}>{depinIntel.depin?.liveTps} TPS</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>AVG PRIORITY FEE:</span><span style={{ color: "#f0c929", fontWeight: "bold" }}>{depinIntel.depin?.avgPriorityFee}</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>CIRCULATING / TOTAL SOL:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.circulatingSol?.toLocaleString()} / {depinIntel.depin?.totalSol?.toLocaleString()} SOL</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>NETWORK LOCKUP RATIO:</span><span style={{ color: "#00ffcc", fontWeight: "bold" }}>{depinIntel.depin?.collateralRatio}</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>STAKING INFLATION RATE:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.inflationPercentage}</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>EPOCH PROGRESS:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.epochProgress} (Epoch {depinIntel.depin?.epoch})</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>SOLANA SLOT:</span><span style={{ color: "#ffffff" }}>{depinIntel.depin?.slot}</span></div>
+                      <div style={{ color: "#ffffff", fontWeight: "bold", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "4px", marginBottom: "4px" }}>SOLANA RPC TELEMETRY</div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>SAMPLED TPS:</span><span style={{ color: "#00ffcc", fontWeight: "bold" }}>{depinIntel.network?.performance?.sampledTransactionsPerSecond ?? "UNAVAILABLE"}</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>AVG RECENT PRIORITY FEE:</span><span style={{ color: "#f0c929", fontWeight: "bold" }}>{depinIntel.network?.fees?.averageRecentPriorityFeeMicroLamports ?? "UNAVAILABLE"} microLamports/CU</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>CIRCULATING / TOTAL SOL:</span><span style={{ color: "#ffffff" }}>{depinIntel.network?.supply ? `${depinIntel.network.supply.circulatingSol.toLocaleString()} / ${depinIntel.network.supply.totalSol.toLocaleString()} SOL` : "UNAVAILABLE"}</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>NON-CIRCULATING SHARE:</span><span style={{ color: "#00ffcc", fontWeight: "bold" }}>{depinIntel.network?.supply ? `${depinIntel.network.supply.nonCirculatingShare}%` : "UNAVAILABLE"}</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>TOTAL INFLATION RATE:</span><span style={{ color: "#ffffff" }}>{depinIntel.network?.inflation ? `${depinIntel.network.inflation.totalPercent}%` : "UNAVAILABLE"}</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>EPOCH PROGRESS:</span><span style={{ color: "#ffffff" }}>{depinIntel.network?.epoch?.progress}% (Epoch {depinIntel.network?.epoch?.number})</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>ABSOLUTE SLOT:</span><span style={{ color: "#ffffff" }}>{depinIntel.network?.epoch?.absoluteSlot}</span></div>
                     </div>
 
-                    {depinIntel.depin?.topActiveNodes && (
+                    {depinIntel.network?.topCurrentValidators && (
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
-                        <div style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "11.5px" }}>✅ ACTIVE DEPIN INFRASTRUCTURE (TOP STAKE):</div>
+                        <div style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "11.5px" }}>CURRENT VOTE ACCOUNTS · TOP ACTIVATED STAKE:</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                          {depinIntel.depin.topActiveNodes.map((n: any, idx: number) => {
+                          {depinIntel.network.topCurrentValidators.map((n: any, idx: number) => {
                             const shortPubKey = n.votePubkey.slice(0, 8) + "..." + n.votePubkey.slice(-8);
                             return (
                               <div key={idx} style={{ display: "flex", justifyContent: "space-between", background: "rgba(255,255,255,0.02)", padding: "4px 8px", borderRadius: "2px", border: "1px solid rgba(255,255,255,0.05)", fontSize: "11px" }}>
-                                <span>{idx + 1}. Node: {shortPubKey}</span>
-                                <span>Comm: {n.commission}% | Stake: {n.stakeSol?.toLocaleString()} SOL</span>
+                                <span>{idx + 1}. Vote: {shortPubKey}</span>
+                                <span>Commission: {n.commission}% | Stake: {n.activatedStakeSol?.toLocaleString()} SOL</span>
                               </div>
                             );
                           })}
@@ -1552,16 +1544,16 @@ To decrypt or scan target files:
                       </div>
                     )}
 
-                    {depinIntel.depin?.allDelinquentNodes && (
+                    {depinIntel.network?.delinquentVoteAccounts && (
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
-                        <div style={{ color: "var(--accent)", fontWeight: "bold", fontSize: "11.5px" }}>⚠️ COMPROMISED / DELINQUENT DEPIN NODES:</div>
+                        <div style={{ color: "var(--accent)", fontWeight: "bold", fontSize: "11.5px" }}>DELINQUENT VOTE ACCOUNTS · NOT A COMPROMISE CLAIM:</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                          {depinIntel.depin.allDelinquentNodes.map((n: any, idx: number) => {
+                          {depinIntel.network.delinquentVoteAccounts.map((n: any, idx: number) => {
                             const shortPubKey = n.votePubkey.slice(0, 8) + "..." + n.votePubkey.slice(-8);
                             return (
                               <div key={idx} style={{ display: "flex", justifyContent: "space-between", background: "rgba(255, 77, 77, 0.02)", padding: "4px 8px", borderRadius: "2px", border: "1px solid rgba(255, 77, 77, 0.08)", fontSize: "11px" }}>
-                                <span style={{ color: "var(--accent)" }}>Node: {shortPubKey}</span>
-                                <span>Offline since: Slot {n.lastVote}</span>
+                                <span style={{ color: "var(--accent)" }}>Vote: {shortPubKey}</span>
+                                <span>Last vote: Slot {n.lastVote}</span>
                               </div>
                             );
                           })}
@@ -1570,12 +1562,8 @@ To decrypt or scan target files:
                     )}
 
                     <div style={{ fontSize: "11.5px", color: "rgba(255, 255, 255, 0.9)", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
-                      <strong>Active System Alerts:</strong>
-                      <ul style={{ margin: "4px 0 0 12px", padding: 0 }}>
-                        {depinIntel.depin?.sensorAlerts?.map((alert: string, i: number) => (
-                          <li key={i} style={{ marginBottom: "4px", listStyleType: "square", color: "var(--accent)" }}>{alert}</li>
-                        ))}
-                      </ul>
+                      <strong>Assessment:</strong> {depinIntel.network?.assessment}
+                      <div style={{ marginTop: "6px" }}><strong>Next action:</strong> {depinIntel.network?.nextAction}</div>
                     </div>
 
                     <div style={{ background: "rgba(0, 255, 204, 0.01)", border: "1px solid rgba(0, 255, 204, 0.1)", padding: "10px", borderRadius: "2px", fontSize: "11px", display: "flex", flexDirection: "column", gap: "3px", marginTop: "4px" }}>
@@ -1600,7 +1588,7 @@ To decrypt or scan target files:
                         onClick={() => {
                           const proofText = depinTxid ? `\nProof: https://solscan.io/tx/${depinTxid}` : "";
                           setShareModalData({
-                            content: `◉ DECRYPTED DOSSIER B: SOLANA SOLVIVAL REAL STATUS\n\nScanner: ${depinIntel.depin?.scannerName}\nHealth: ${depinIntel.depin?.networkHealth}\nOnline Nodes: ${depinIntel.depin?.onlineNodes}\nSolana Gas (Faremeter): ${depinIntel.depin?.avgPriorityFee}\nEpoch: ${depinIntel.depin?.epoch}${proofText}`
+                            content: `◉ RED QUEEN SOLANA NETWORK HEALTH\n\nCoverage: ${depinIntel.network?.sourceCoverage}\nVote accounts: ${depinIntel.network?.voteAccounts?.total}\nDelinquent share: ${depinIntel.network?.voteAccounts?.delinquentShare}%\nSampled TPS: ${depinIntel.network?.performance?.sampledTransactionsPerSecond ?? "unavailable"}\nEpoch: ${depinIntel.network?.epoch?.number}\nAssessment: ${depinIntel.network?.assessment}${proofText}`
                           });
                         }}
                         style={{ background: "none", border: "none", color: "#f0c929", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: "bold" }}
@@ -1628,22 +1616,11 @@ To decrypt or scan target files:
                         <span style={{ color: "#ff8080", fontFamily: "var(--mono)", fontSize: "10px" }}>RECEIPT UNCONFIRMED — DO NOT REPAY</span>
                       )}
 
-                      {depinIntel.depin?.explorerUrl && (
-                        <a
-                          href={depinIntel.depin.explorerUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: "#00e5ff", fontFamily: "var(--mono)", fontSize: "11px", textDecoration: "underline", fontWeight: "bold" }}
-                        >
-                          [ 🔍 EXPLORE x402 ]
-                        </a>
-                      )}
-
                       <button
                         onClick={() => decryptIntel("/api/intel/depin", "depin")}
                         style={{ background: "none", border: "none", color: "rgba(255, 255, 255, 0.7)", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", marginLeft: "auto", fontWeight: "bold" }}
                       >
-                        [ ↻ RUN AGAIN ]
+                        [ BUY FRESH SNAPSHOT · 0.02 USDC ]
                       </button>
                     </div>
                   </div>
