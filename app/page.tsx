@@ -357,14 +357,14 @@ export default function HomePage() {
         <div>
           <span className="pulse-eyebrow">$THREAT // INTELLIGENCE ACCESS PROTOCOL</span>
           <h2>Utility must unlock better survival intelligence</h2>
-          <p>Today, holdings determine RED QUEEN clearance and depth of interaction. The product direction is simple: token value should come from useful access, personalization, and action — never from decorative gating.</p>
+          <p>Holdings determine RED QUEEN context and analysis depth. Solana identity, live balance proof and x402 payments are separate, inspectable layers — never decorative wallet gating.</p>
         </div>
         <div className="pulse-utility-grid">
-          <div><span>LIVE</span><strong>Clearance-aware Queen</strong><p>Deeper analysis and agent behavior based on verified holdings.</p></div>
-          <div><span>NEXT</span><strong>Intelligence credits</strong><p>Advanced reports and wallet diagnostics with transparent compute cost.</p></div>
-          <div><span>NEXT</span><strong>Readiness rewards</strong><p>Earn utility by completing meaningful preparedness actions and proofs.</p></div>
+          <div><span>LIVE</span><strong>On-chain holder proof</strong><p>Canonical SPL balance, signed identity and measurable agent clearance.</p></div>
+          <div><span>BETA</span><strong>x402 compute payments</strong><p>Exact USDC pricing for specific premium AI operations on Solana.</p></div>
+          <div><span>NEXT</span><strong>Seeker + Blinks</strong><p>Mobile wallet access and shareable RED QUEEN intelligence actions.</p></div>
         </div>
-        <Link className="pulse-inline-link" href="/network-clearance">VIEW CLEARANCE LEVELS →</Link>
+        <Link className="pulse-inline-link" href="/network-clearance">OPEN SOLANA CONTROL PLANE →</Link>
       </section>
 
       <section className="container pulse-final-cta">

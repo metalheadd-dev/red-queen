@@ -25,9 +25,9 @@ export const DEFAULT_STATS: UserStats = {
 export const CLEARANCE_LEVELS = [
   { level: 1, label: "CIVILIAN", minScore: 0, maxScore: 20, color: "#e8e8e8" },
   { level: 2, label: "OBSERVER", minScore: 21, maxScore: 40, color: "#f0c929" },
-  { level: 3, label: "OPERATIVE", minScore: 41, maxScore: 60, color: "#00ffcc" },
-  { level: 4, label: "ANALYST", minScore: 61, maxScore: 80, color: "#a855f7" },
-  { level: 5, label: "DIRECTOR", minScore: 81, maxScore: 100, color: "#ff0033" }
+  { level: 3, label: "RESPONDER", minScore: 41, maxScore: 60, color: "#00ffcc" },
+  { level: 4, label: "SENTINEL", minScore: 61, maxScore: 80, color: "#a855f7" },
+  { level: 5, label: "VANGUARD", minScore: 81, maxScore: 100, color: "#ff0033" }
 ];
 
 export function getClearanceLevel(bioScore: number) {

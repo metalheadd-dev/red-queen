@@ -458,7 +458,7 @@ export default function TerminalPage() {
     verified: false,
     responseDepth: "essential",
     contextMessages: 6,
-    readinessMultiplier: 1,
+    earnedXpMultiplier: 1,
   });
   const [survivalContext, setSurvivalContext] = useState<SurvivalContext>({
     area: "",
@@ -1621,7 +1621,7 @@ To decrypt or scan target files:
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>UPLINK TIER:</span>
-                <span style={{ color: "var(--accent)" }}>{connected ? "LEVEL 5 (DIRECTOR)" : "LEVEL 1 (PUBLIC)"}</span>
+                <span style={{ color: "var(--accent)" }}>{agentClearance.verified ? `LEVEL ${agentClearance.level} (${agentClearance.name})` : hasVerifiedIdentity ? "IDENTITY VERIFIED / PUBLIC" : "LEVEL 1 (PUBLIC)"}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>STATUS:</span>
@@ -1709,7 +1709,7 @@ To decrypt or scan target files:
             </div>
             <div style={{ fontSize: "10px", display: "flex", flexDirection: "column", gap: "4px", color: "var(--text-muted)" }}>
               <div>• CORE TEMP: 34.2°C (STABLE)</div>
-              <div>• RPC LATENCY: 38ms (SOLANA MAINNET)</div>
+              <div>• RPC STATUS: VERIFY IN ON-CHAIN HUB</div>
               <div>• SHIELD STATE: BUFFER SECURED</div>
               <div>• MEMORY MATRIX: CONTEXT INJECTED</div>
             </div>

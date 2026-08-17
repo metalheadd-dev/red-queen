@@ -3,11 +3,11 @@ export const THREAT_TOKEN_MINT = "3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump";
 export interface ThreatClearance {
   tier: number;
   level: number;
-  name: "CIVILIAN" | "SCOUT" | "OPERATIVE" | "OVERSEER" | "DIRECTOR";
+  name: "CIVILIAN" | "SCOUT" | "ANALYST" | "SENTINEL" | "COMMAND";
   threshold: number;
   contextMessages: number;
   responseDepth: "essential" | "standard" | "detailed" | "advanced" | "strategic";
-  readinessMultiplier: number;
+  earnedXpMultiplier: number;
   description: string;
 }
 
@@ -19,7 +19,7 @@ export const THREAT_CLEARANCE_LEVELS: ThreatClearance[] = [
     threshold: 0,
     contextMessages: 6,
     responseDepth: "essential",
-    readinessMultiplier: 1,
+    earnedXpMultiplier: 1,
     description: "Public intelligence and essential actions.",
   },
   {
@@ -29,37 +29,37 @@ export const THREAT_CLEARANCE_LEVELS: ThreatClearance[] = [
     threshold: 1,
     contextMessages: 10,
     responseDepth: "standard",
-    readinessMultiplier: 1.05,
-    description: "Persistent context and expanded follow-up analysis.",
+    earnedXpMultiplier: 1.05,
+    description: "Expanded follow-up context and standard RED QUEEN analysis.",
   },
   {
     tier: 2,
     level: 3,
-    name: "OPERATIVE",
+    name: "ANALYST",
     threshold: 100_000,
     contextMessages: 14,
     responseDepth: "detailed",
-    readinessMultiplier: 1.1,
-    description: "Deeper risk decomposition and faster readiness progression.",
+    earnedXpMultiplier: 1.1,
+    description: "Detailed risk decomposition and a larger working context.",
   },
   {
     tier: 3,
     level: 4,
-    name: "OVERSEER",
+    name: "SENTINEL",
     threshold: 500_000,
     contextMessages: 18,
     responseDepth: "advanced",
-    readinessMultiplier: 1.15,
+    earnedXpMultiplier: 1.15,
     description: "Advanced diagnostics, longer context, and scenario comparison.",
   },
   {
     tier: 4,
     level: 5,
-    name: "DIRECTOR",
+    name: "COMMAND",
     threshold: 1_000_000,
     contextMessages: 24,
     responseDepth: "strategic",
-    readinessMultiplier: 1.2,
+    earnedXpMultiplier: 1.2,
     description: "Maximum context depth and strategic RED QUEEN analysis.",
   },
 ];

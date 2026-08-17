@@ -233,14 +233,14 @@ const handler = createMcpHandler(
       "analyze_wallet_security",
       {
         title: "Analyze Wallet Security",
-        description: "Perform security and privacy audit on a Solana wallet. Diagnoses wallet trail anonymity, AI profiling metrics, feed manipulation anomalies, voice/visual clone deepfake SE vectors, and blacklist reputational indexing.",
+        description: "Run an evidence-bounded Solana wallet safety triage. Returns live public RPC facts, explicit data limitations, and practical security actions without identity, geolocation, AML-vendor, or blacklist claims.",
         inputSchema: z.object({
           wallet: z.string().describe("Solana wallet address (base58) to diagnose"),
-          vector: z.enum(["WALLET-TRAIL", "AI-PROFILING", "FEED-MANIP", "DEEPFAKE-SE", "REPUTATION-X"]).describe("The diagnostic security scanner category to execute"),
-          operativeToken: z.string().optional().describe("Optional Bearer JWT token to verify wallet ownership for restricted analysis."),
+          vector: z.enum(["WALLET-TRAIL", "AI-PROFILING", "FEED-MANIP", "DEEPFAKE-SE", "REPUTATION-X"]).describe("The safety guidance category to apply to verified public RPC facts"),
+          operativeToken: z.string().optional().describe("Deprecated compatibility field; public on-chain reads do not require account credentials."),
         }),
         outputSchema: z.object({
-          report: z.string().optional().describe("Formated diagnostic analysis report text detailing identified tracking indicators and threat scores"),
+          report: z.string().optional().describe("Evidence-bounded report with observed public-chain facts, limitations, and safe actions"),
         }),
         annotations: {
           readOnlyHint: true,

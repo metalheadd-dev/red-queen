@@ -320,7 +320,7 @@ export default function OperativeProfilePage() {
           </div>
           <div className="rq-profile-metric"><span>EXPERIENCE</span><strong>{stats.xp} XP</strong><b>LEVEL {stats.level}{profile?.xp_rank ? ` · RANK #${profile.xp_rank}` : ""}</b><i><em style={{ width: `${xpProgress}%` }} /></i><p>Permanent evidence and drill record.</p></div>
           <div className="rq-profile-metric"><span>LOCAL PREPARE</span><strong>{localProgress}%</strong><b>{localChecks}/{PREPAREDNESS_CHECKLIST.length} SELF-CHECKS</b><i><em style={{ width: `${localProgress}%` }} /></i><p>Stored on this device; not BIO evidence.</p></div>
-          <div className="rq-profile-metric"><span>$THREAT CLEARANCE</span><strong>LVL {tokenClearance.level}</strong><b>{tokenClearance.name}</b><p>{tokenClearance.responseDepth.toUpperCase()} analysis · ×{tokenClearance.readinessMultiplier.toFixed(2)} earned XP.</p></div>
+          <div className="rq-profile-metric"><span>$THREAT CLEARANCE</span><strong>LVL {tokenClearance.level}</strong><b>{tokenClearance.name}</b><p>{tokenClearance.responseDepth.toUpperCase()} analysis · ×{tokenClearance.earnedXpMultiplier.toFixed(2)} earned XP.</p></div>
         </section>
 
         <div className="rq-profile-grid">
@@ -345,7 +345,7 @@ export default function OperativeProfilePage() {
             <section className="rq-profile-panel rq-profile-token">
               <div className="rq-profile-panel-heading"><div><span>02 // ON-CHAIN CLEARANCE</span><h2>$THREAT utility</h2></div></div>
               <div className="rq-profile-token-balance"><span>VERIFIED BALANCE</span><strong>{tokenBalance.toLocaleString()} $THREAT</strong><small>LAST CHECK {formatRelativeTime(profile?.last_verification)}</small></div>
-              <ul><li>{tokenClearance.contextMessages} context messages</li><li>{tokenClearance.responseDepth} response depth</li><li>×{tokenClearance.readinessMultiplier.toFixed(2)} multiplier on earned XP only</li></ul>
+              <ul><li>{tokenClearance.contextMessages} context messages</li><li>{tokenClearance.responseDepth} response depth</li><li>×{tokenClearance.earnedXpMultiplier.toFixed(2)} multiplier on earned XP only</li></ul>
               {nextTokenClearance ? <p>NEXT: {nextTokenClearance.name} at {formatThreshold(nextTokenClearance.threshold)} $THREAT</p> : <p>MAXIMUM CLEARANCE VERIFIED</p>}
               <button type="button" onClick={verifyHoldings} disabled={verifying || !verifiedWallet}>{verifying ? "VERIFYING..." : "REFRESH ON-CHAIN BALANCE"}</button>
               {verifyStatus && <small className="rq-profile-verify-status">{verifyStatus}</small>}

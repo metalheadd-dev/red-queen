@@ -134,7 +134,7 @@ const handler = async (req: NextRequest) => {
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      clearance: "LEVEL 5 DIRECTOR (USDC-PAID)",
+      clearance: "PAID COMPUTE // x402 VERIFIED",
       xpAwarded,
       intel: {
         headline: "CRITICAL EARTH CONTAINMENT & BIOLOGICAL DECAY BRIEFING",
@@ -167,7 +167,7 @@ const handler = async (req: NextRequest) => {
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      clearance: "LEVEL 5 DIRECTOR (USDC-PAID)",
+      clearance: "PAID COMPUTE // x402 VERIFIED",
       xpAwarded,
       intel: {
         headline: "CRITICAL VECTOR ESCALATION BRIEFING: GLOBAL DECAY MULTIPLIERS (Fallback)",

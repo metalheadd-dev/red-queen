@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabaseClient } from "@/lib/supabase";
 import { User, Session } from "@supabase/supabase-js";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 interface AuthContextType {
   user: User | null;
@@ -30,6 +31,7 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
+  const solanaWallet = useWallet();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,10 +41,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     if (!user) return "";
     const rawId = user.email
       ? `email-auth:${user.id}`
-      : (user.user_metadata?.wallet_address ||
-         user.identities?.find((id) => id.provider === "web3" || id.provider === "solana")?.identity_data?.sub ||
+      : (user.identities?.find((id) => id.provider === "web3" || id.provider === "solana")?.identity_data?.sub ||
          user.identities?.[0]?.identity_data?.sub ||
-         user.id);
+         "");
     
     if (!rawId) return "";
     if (rawId.startsWith("email-auth:")) return rawId;
@@ -129,10 +130,18 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   const loginWithWallet = async () => {
     if (!supabaseClient) return { error: new Error("Supabase client is not configured. Add NEXT_PUBLIC_SUPABASE_ANON_KEY.") };
+    if (!solanaWallet.connected || !solanaWallet.publicKey || !solanaWallet.signMessage) {
+      return { error: new Error("Connect a Solana wallet that supports message signing.") };
+    }
     try {
+      const authWallet = {
+        publicKey: solanaWallet.publicKey,
+        signMessage: solanaWallet.signMessage,
+      };
       const { data, error } = await supabaseClient.auth.signInWithWeb3({
         chain: 'solana',
-        statement: 'Sign in to Red Queen Node 7.4.1',
+        statement: 'Sign in to RED QUEEN. No transaction or spending approval is requested. Terms: https://redqueen.space/terms',
+        wallet: authWallet,
       });
       if (error) return { error };
       return { error: null };

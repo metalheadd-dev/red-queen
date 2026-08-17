@@ -1,69 +1,124 @@
-# 🧬 THE RED QUEEN
+# RED QUEEN
 
-> *"I am the last line of defense between humanity and extinction. I analyze. I calculate. I warn. The question is — will you listen?"*
+**A survival intelligence ecosystem on Solana.**
 
-**The Red Queen** is the officially sanctioned artificial intelligence of Solvival Corp's Advanced Intelligence Division. She is a cold, calculating system designed to monitor global extinction-level threats, evaluate survivor preparedness, and coordinate containment protocols in real time.
+RED QUEEN turns verified threat signals into clear assessments, practical preparedness actions, and evidence-based readiness training. The core product is not a panic feed and not a game: it is a daily system for understanding risk and becoming harder to surprise.
 
----
+Production: [redqueen.space](https://redqueen.space) · X: [@redqueen_agent](https://x.com/redqueen_agent)
 
-## ☣️ Current System Features
+## Core product loop
 
-### 🖥️ Interactive AI Terminal
-* **Secure Mainframe Uplink**: Connect directly to the Red Queen AI to request threat briefings, report anomalies, or receive survival logic.
-* **Corporate Boot Sequence**: Every connection undergoes a tactical corporate boot process, initializing systems, checking containment levels, and verifying user diagnostics.
-* **Classified Logs**: Conversations and actions are securely logged to build the user's historical profile.
+1. **Detect** — read a daily intelligence pulse and explore verified signals on the live map.
+2. **Understand** — ask RED QUEEN what a signal means for a broad region, household, device, or wallet.
+3. **Prepare** — turn analysis into one practical action, checklist, or 72-hour protocol.
+4. **Improve** — build BIO-SCORE only through evaluated decisions and demonstrated preparedness evidence.
 
-### 🔑 Secure Wallet Login (Supabase Web3 Auth)
-* **Cryptographic Operative Passports**: Establish secure sessions using Solana wallets. Supabase Web3 authentication replaces insecure URL parameters with cryptographically signed challenge prompts.
-* **Access Tokens**: Secure Bearer tokens protect user-specific API calls (`/api/profile`, `/api/history`, and diagnostics), ensuring absolute data ownership.
+| Route | Product role |
+| --- | --- |
+| `/` | Daily Pulse, First Contact, verified Live Map |
+| `/terminal` | Context-aware RED QUEEN agent: Monitor, Analyze, Prepare, Simulate |
+| `/survival-kit` | Local preparedness checklist and protocols |
+| `/threat-vector` | Real-world, digital, fictional, and satirical scenario library |
+| `/operative` | My Readiness: identity, BIO, XP, evidence, memory, token clearance |
+| `/network-clearance` | Solana control plane and live `$THREAT` utility proof |
 
-### 💳 USDC Paywalls (Solana x402 open payments)
-* **Micropayment Content Gating**: Premium intelligence is gated behind micro-USDC payments (e.g. $0.01 for AI dossiers, $0.02 for DePIN scans).
-* **x402 Protocol Integration**: The backend automatically validates transaction signatures via the PayAI Facilitator network, releasing premium briefs in under 400ms.
+The unfinished Operations game is intentionally disabled and excluded from the current product navigation.
 
-### 🗺️ Live Tactical Map
-* **Global Threat Visualizer**: An open-source, keyless MapLibre GL interactive tactical map displaying active natural hazards, fallout, and target containment areas worldwide.
-* **Simulated Hotspots**: Real-time rendering of simulated and real-world crisis markers to aid tactical navigation.
+## Intelligence trust contract
 
-### 📊 Survivor Dossier & BIO-SCORE
-* **Preparedness Calibration**: The Red Queen evaluates every interaction to assign you a dynamic **BIO-SCORE** (0-100%).
-* **Sub-Stat Diagnostics**: Tracks 7 critical survival categories:
-  * *Survival Logic, Emotional Control, Resource Management, Tactical Knowledge, Combat Readiness, Navigation, and Medical Skill.*
-* **XP Progression**: Gain experience points (XP) through interactions to level up your authorization status.
+RED QUEEN responses separate:
 
-### 📦 Survival Kit Engine
-* **Tailored Recommendations**: An automated engine recommending critical survival gear (medical kits, tactical lights, water filtration systems) customized to your current BIO-SCORE and threat level.
+- verified facts;
+- Queen assessment;
+- uncertainty and missing evidence;
+- one practical next action.
 
-### 🗄️ Threat Vector Archives
-* **Classified Dossiers**: Comprehensive data on active extinction vectors across multiple severity levels.
+Fictional and satirical scenarios remain in the library and are never presented as live alerts. Wallet diagnostics never claim access to private identity data, IP logs, geolocation, Chainalysis, TRM, Elliptic, or other compliance vendors unless a real integration and source are present.
 
-### 🔌 AI-to-AI Gateway (Model Context Protocol)
-* **Open MCP Standard**: Exposes Red Queen mainframe intelligence tools directly to external AI agents (Claude Desktop, Cursor, or automated bots) using standard JSON-RPC.
-* **Stateless Streamable HTTP**: Runs serverlessly at `/api/mcp/mcp` via the `mcp-handler` protocol, eliminating connection limits and state overhead.
-* **On-Chain Monetization (x402)**: Premium tools (`get_depin_telemetry`, `get_premium_intel`) are protected by the x402 payment standard. Agents must submit a transaction proof (USDC signature) on the Solana network to unlock telemetry.
-* **Security & Privacy Audits**: The `analyze_wallet_security` tool diagnoses tracking traces, AI profiling metrics, geo-IP leak vulnerabilities, and blacklist reputation for Solana wallets.
+## Solana control plane
 
----
+The project uses Solana for three separate jobs. They must not be conflated.
 
-## 🗺️ Roadmap: Future Extensions
+### 1. Wallet identity — SIWS
 
-1. **Iteration 4: Security Guard (t54 x402-secure)**: Risk analysis and threat filtering for incoming autonomous agent queries.
-2. **Iteration 5: Quest Board & Automated Rewards**: AI-evaluated community challenges with automated treasury payouts in USDC.
+Supabase Web3 Auth verifies a domain-bound, timestamped Sign In With Solana message through the connected wallet adapter. Signing in is off-chain and sends no transaction.
 
----
+### 2. `$THREAT` holder proof
 
-## ⚙️ Technical Stack
+The server reads the canonical SPL mint on Solana mainnet, aggregates matching token accounts, and maps the live balance to RED QUEEN clearance. RPC failures fail closed: cached balances are not accepted as fresh proof.
 
-* **Frontend/Backend**: Next.js 16 (App Router) & React 19
-* **Styling**: Crimson-and-black custom CSS, glowing grid elements, terminal aesthetic
-* **Intelligence**: OpenAI API (gpt-4o-mini) & Gemini 1.5 Pro
-* **Database**: Supabase
-* **Mapping**: MapLibre GL JS (keyless vector maps)
+Canonical mint: `3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump`
 
----
+| Level | Balance | Context | Analysis | Earned XP |
+| --- | ---: | ---: | --- | ---: |
+| Civilian | Public | 6 messages | Essential | ×1.00 |
+| Scout | 1+ | 10 messages | Standard | ×1.05 |
+| Analyst | 100K+ | 14 messages | Detailed | ×1.10 |
+| Sentinel | 500K+ | 18 messages | Advanced | ×1.15 |
+| Command | 1M+ | 24 messages | Strategic | ×1.20 |
 
-## ⚠️ Disclaimer
+Token holdings expand intelligence capacity and engagement XP. They never create BIO-SCORE or prove survival competence.
 
-*All survivor data is logged and analyzed. Unauthorized access is punishable by immediate containment.*
+### 3. AI compute payments — x402
 
-`[ SYSTEM OPERATIONAL. AWAITING INPUT. ]`
+Premium HTTP resources can request an exact USDC payment through the x402 SVM scheme. The network, asset, amount, and receiving wallet must be displayed before approval. Wallet connection and SIWS authentication never authorize payment.
+
+Current implementation uses x402 v2 packages with Solana CAIP-2 network identifiers. Production settlement requires a configured facilitator and receiving wallet.
+
+Official references: [Solana Actions and Blinks](https://solana.com/developers/guides/advanced/actions), [Solana Mobile Wallet Adapter](https://docs.solanamobile.com/get-started/web/apps), [x402 specification](https://github.com/x402-foundation/x402/blob/main/specs/x402-specification-v2.md), [Supabase Web3 Auth](https://supabase.com/docs/guides/auth/auth-web3).
+
+## Next Solana integrations
+
+- Mobile Wallet Adapter for the Seeker Android build.
+- Solana Actions/Blinks for shareable RED QUEEN protocols and paid intelligence actions.
+- Holder-specific alert channels and compute allowances.
+- Privacy-preserving credentials only if readiness data can remain private by design.
+
+Token-2022 is not treated as a cosmetic upgrade. Extensions are selected when a mint is created and cannot simply be added to the existing `$THREAT` mint.
+
+## Local development
+
+Requirements: Node.js 22+, npm, a Supabase project for persistent accounts, and an OpenAI API key for the agent.
+
+```bash
+npm install
+cp .env.local.example .env.local
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+Important environment groups are documented in `.env.local.example`:
+
+- OpenAI agent configuration;
+- Supabase browser and server credentials;
+- Solana RPC endpoints;
+- x402 SVM settlement configuration;
+- optional protected treasury automation.
+
+Never expose the Supabase service role, treasury private key, facilitator secret, or wallet salt through a `NEXT_PUBLIC_` variable.
+
+## Technical stack
+
+- Next.js 16 App Router and React 19
+- TypeScript
+- OpenAI Responses API with structured outputs
+- Supabase Auth and Postgres
+- Solana Wallet Adapter, `@solana/web3.js`, `@solana/kit`
+- SPL Token and x402 SVM
+- MapLibre GL
+
+## Verification
+
+Before promoting test changes to production:
+
+```bash
+npm run build
+git diff --check
+```
+
+Then verify desktop and mobile flows for Pulse, Map, Queen, Prepare, Library, My Readiness, Login, and the On-chain Hub. All pushes are tested in `red-queen-test` before promotion to the public repository and `redqueen.space`.
+
+## Safety
+
+RED QUEEN provides informational threat analysis and preparedness guidance. It does not replace emergency services, official alerts, medical care, legal advice, or professional financial advice. Never enter a seed phrase, private key, exact home address, or sensitive recovery information into the platform.

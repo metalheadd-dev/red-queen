@@ -52,7 +52,7 @@ export interface RedQueenClientResponse extends RedQueenAgentResponse {
     verified: boolean;
     responseDepth: string;
     contextMessages: number;
-    readinessMultiplier: number;
+    earnedXpMultiplier: number;
   };
   memory: {
     persistent: boolean;

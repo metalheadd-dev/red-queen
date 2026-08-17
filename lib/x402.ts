@@ -5,12 +5,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { withX402 } from "@x402/next";
 import { supabase } from "./supabase";
 import { getHashedWallet } from "./crypto";
-import { getStatsFromScenarios, applyStatGains, calculateBioScore, updateStatsInScenarios } from "./progression";
+import { getStatsFromScenarios, calculateBioScore, updateStatsInScenarios } from "./progression";
 import { PublicKey } from "@solana/web3.js";
-import { getAssociatedTokenAddress } from "@solana/spl-token";
-import { getWorkingConnection } from "./solana";
-
-const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
+import { readThreatBalance } from "./onchain";
+import { getThreatClearance } from "./threat-token";
 
 // Fallback to PayAI's default facilitator endpoint if not configured
 const facilitatorUrl = process.env.PAYAI_FACILITATOR_URL || "https://facilitator.payai.network";
@@ -30,7 +28,7 @@ registerExactSvmScheme(x402Server);
  * Intercepts 402 (Payment Required) status responses.
  * If the request comes from a standard browser (Accepts text/html),
  * it serves a gorgeous, user-friendly, theme-compliant HTML gate page
- * directing the user to the operative dashboard, while maintaining necessary x402 headers.
+ * directing the user to the on-chain hub, while maintaining necessary x402 headers.
  */
 export function withFriendlyX402(
   routeHandler: (req: NextRequest) => Promise<NextResponse>,
@@ -279,7 +277,7 @@ export function withFriendlyX402(
     <h1>Dossier Decryption Locked</h1>
 
     <p>
-      The Red Queen mainframe has gated this strategic briefing behind an on-chain **x402 micropayment** to prevent crawler saturation. To decrypt this file, please access the platform through the Operative Profile console.
+      This strategic briefing uses an on-chain x402 micropayment to fund the AI compute required to produce it. Review the network, exact USDC price and receiving wallet before approving any payment.
     </p>
 
     <div class="meta-box">
@@ -301,10 +299,10 @@ export function withFriendlyX402(
       </div>
     </div>
 
-    <a href="/operative" class="btn">Go to Operative Dashboard</a>
+    <a href="/network-clearance" class="btn">Open On-Chain Hub</a>
 
     <div class="footnote">
-      Operative session active. Authenticate and sign the decryption challenge at the <a href="/operative">Operative Console</a>.
+      A wallet connection alone does not authorize payment. Inspect and approve the exact request from the <a href="/network-clearance">On-Chain Hub</a>.
     </div>
   </div>
 
@@ -344,7 +342,7 @@ export async function awardXpForPaywall(
       authWallet = `email-auth:${user.id}`;
     } else {
       const web3Identity = user.identities?.find((id: any) => id.provider === "web3" || id.provider === "solana");
-      authWallet = web3Identity?.identity_data?.sub || user.user_metadata?.wallet_address || "";
+      authWallet = web3Identity?.identity_data?.sub || "";
     }
     if (!authWallet) return null;
 
@@ -365,36 +363,24 @@ export async function awardXpForPaywall(
 
     const currentStats = getStatsFromScenarios(scenarios);
     
-    // Apply multipliers (Threat Token Hold = 2x, Clearance Tier = 1.0x to 2.0x)
-    let tokenMultiplier = 1.0;
+    // x402 purchases may earn engagement XP, but never readiness stats or BIO-SCORE.
+    let threatBalance = 0;
     const rawWallet = authWallet.startsWith("email-auth:") ? profile.linked_wallet_address : authWallet;
     if (rawWallet) {
       try {
-        const connection = await getWorkingConnection(false);
-        const pubkey = new PublicKey(rawWallet);
-        const threatATA = await getAssociatedTokenAddress(THREAT_MINT, pubkey);
-        const tokenBalance = await connection.getTokenAccountBalance(threatATA);
-        if ((tokenBalance.value.uiAmount || 0) > 0) {
-          tokenMultiplier = 2.0;
-        }
+        threatBalance = await readThreatBalance(new PublicKey(rawWallet));
       } catch (e) {
         console.warn("x402 XP: Could not verify token balance:", e);
       }
     }
-    const level = currentStats.level || 1;
-    const clearanceMultiplier = level >= 5 ? 2.0 : 
-                                level >= 4 ? 1.75 : 
-                                level >= 3 ? 1.5 : 
-                                level >= 2 ? 1.25 : 1.0;
-    const totalMultiplier = tokenMultiplier * clearanceMultiplier;
-    
-    const boostedXp = Math.round(xpAmount * totalMultiplier);
-    
-    // Unlocking premium Intel awards 5 points to Technical Preparedness and Surveillance Resistance
-    const updatedStats = applyStatGains(currentStats, boostedXp, {
-      technical_preparedness: 5,
-      surveillance_resistance: 5
-    }, profile.last_interaction);
+    const tokenClearance = getThreatClearance(threatBalance);
+    const boostedXp = Math.round(xpAmount * tokenClearance.earnedXpMultiplier);
+    const nextXp = Math.max(0, currentStats.xp + boostedXp);
+    const updatedStats = {
+      ...currentStats,
+      xp: nextXp,
+      level: Math.floor(nextXp / 100) + 1,
+    };
 
     const newBioScore = calculateBioScore(updatedStats);
     const updatedScenarios = updateStatsInScenarios([...scenarios, paywallId], updatedStats);

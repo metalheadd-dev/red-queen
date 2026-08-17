@@ -1,121 +1,105 @@
-import { supabase } from "@/lib/supabase";
+import { readOnchainWalletSnapshot } from "@/lib/onchain";
+import { isValidSolanaPublicKey } from "@/lib/solana";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const vector = searchParams.get("vector");
-  const wallet = searchParams.get("wallet");
-  
-  if (!vector) {
-    return Response.json({ error: "vector ID required" }, { status: 400 });
+const VECTOR_GUIDANCE: Record<string, { title: string; actions: string[] }> = {
+  "WALLET-TRAIL": {
+    title: "PUBLIC TRANSACTION EXPOSURE",
+    actions: [
+      "Separate public receiving activity from long-term storage and high-value signing authority.",
+      "Review token approvals and recent transactions in a trusted explorer before signing again.",
+      "Do not reuse a public wallet as proof of identity across unrelated Web2 services.",
+    ],
+  },
+  "AI-PROFILING": {
+    title: "WALLET-TO-IDENTITY CORRELATION",
+    actions: [
+      "Avoid posting the same public address beside personal email, phone, or location data.",
+      "Use separate browser profiles for high-trust accounts and experimental dApps.",
+      "Treat wallet signatures as durable identity signals even when no transaction is sent.",
+    ],
+  },
+  "FEED-MANIP": {
+    title: "SOCIAL SIGNAL MANIPULATION",
+    actions: [
+      "Verify token, airdrop, and emergency claims through the project's canonical channels.",
+      "Never sign from an embedded social link before inspecting the domain and transaction simulation.",
+      "Use a time delay for urgent financial claims designed to provoke immediate action.",
+    ],
+  },
+  "DEEPFAKE-SE": {
+    title: "IMPERSONATION RESILIENCE",
+    actions: [
+      "Establish an offline family or team verification phrase for urgent requests.",
+      "Confirm wallet or fund requests over a second channel before acting.",
+      "Hardware-wallet screens and transaction simulation take priority over voice or video instructions.",
+    ],
+  },
+  "REPUTATION-X": {
+    title: "COUNTERPARTY AND CONTRACT RISK",
+    actions: [
+      "Check the exact program, mint, amount, and destination before approving a transaction.",
+      "Use a low-value sandbox wallet for unaudited programs and unfamiliar token claims.",
+      "Consult a qualified compliance provider for sanctions or AML screening; RED QUEEN does not query one here.",
+    ],
+  },
+  "META-LEAK": {
+    title: "WEB2 / WEB3 METADATA SEPARATION",
+    actions: [
+      "Do not store seed phrases, private keys, or recovery screenshots in cloud notes or AI chats.",
+      "Clear dormant wallet connections and revoke unnecessary site permissions.",
+      "Keep exact location and personal recovery details outside wallet-linked browser sessions.",
+    ],
+  },
+};
+
+export async function POST(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const vector = searchParams.get("vector") || "WALLET-TRAIL";
+  const wallet = searchParams.get("wallet")?.trim() || "";
+  const guidance = VECTOR_GUIDANCE[vector];
+
+  if (!guidance) {
+    return Response.json({ error: "Unsupported diagnostic vector." }, { status: 400 });
+  }
+  if (!isValidSolanaPublicKey(wallet)) {
+    return Response.json({ error: "A valid public Solana address is required." }, { status: 400 });
   }
 
-  // Security Check: Verify user owns the requested wallet profile if token is provided
-  const authHeader = req.headers.get("Authorization");
-  if (authHeader && authHeader.startsWith("Bearer ") && supabase && wallet) {
-    const token = authHeader.split(" ")[1];
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (!authError && user) {
-      let authWallet = "";
-      if (user.email) {
-        authWallet = `email-auth:${user.id}`;
-      } else {
-        const web3Identity = user.identities?.find((id: any) => id.provider === "web3" || id.provider === "solana");
-        authWallet = web3Identity?.identity_data?.sub || user.user_metadata?.wallet_address || "";
-      }
-      if (authWallet && authWallet !== wallet) {
-        return Response.json({ error: "Access Denied: Wallet ownership mismatch" }, { status: 403 });
-      }
-    }
-  }
+  try {
+    const snapshot = await readOnchainWalletSnapshot(wallet);
+    const masked = `${wallet.slice(0, 8)}…${wallet.slice(-8)}`;
+    const report = `[RED QUEEN // EVIDENCE-BOUNDED WALLET TRIAGE]
+TIMESTAMP: ${snapshot.updatedAt}
+VECTOR: ${guidance.title}
+TARGET: ${masked}
+NETWORK: SOLANA MAINNET · ${snapshot.commitment.toUpperCase()}
 
-  // Generate the report directly since the client verifies clearance level.
-  const report = generateReport(vector, wallet || "UNKNOWN_OPERATIVE");
-  return Response.json({ report });
-}
+OBSERVED ON-CHAIN FACTS
+- SOL BALANCE: ${snapshot.solBalance.toFixed(4)} SOL
+- $THREAT BALANCE: ${snapshot.threat.balance.toLocaleString()} across ${snapshot.threat.tokenAccounts} token account(s)
+- $THREAT PROGRAM: ${snapshot.threat.program}
+- OBSERVED SLOT: ${snapshot.slot}
+- TRANSACTION REQUESTED: NO
 
-function generateReport(vector: string, wallet: string): string {
-  const date = new Date().toISOString();
-  const rawKeyText = wallet !== "UNKNOWN_OPERATIVE" ? `${wallet.substring(0, 8)}...${wallet.substring(wallet.length - 8)}` : "ANONYMOUS";
-  
-  switch (vector) {
-    case "WALLET-TRAIL":
-      return `[RED QUEEN CO-PROCESSING UNIT // WALLET-TRAIL DIAGNOSTIC]
-TIMESTAMP: ${date}
-TARGET KEY: ${rawKeyText}
-ANALYSIS RESULT: SYSTEM SURVEILLANCE RISK IDENTIFIED.
+ASSESSMENT LIMIT
+RED QUEEN did not query private identity data, IP logs, exchange attribution, sanctions vendors, TRM, Chainalysis, Elliptic, or data-broker databases. No claim about identity, geography, AML status, or wallet reputation is made from this scan.
 
-[+] GAS SOURCE LINKAGE: Identified primary gas funding link to major centralized exchange hot-wallet.
-[+] CLUSTERING ENGINE MATCH: Co-correlated with 14 external addresses using common transfer hops.
-[+] GEO-IP LEAK RISK: Heuristic match suggests transaction broadcast timings align with GMT+2 timezone, exposing potential node location.
-[+] THREAT SCORE: 94% — TRANSACTION PATHWAY LACKS ANONYMITY SHIELDING.
-RECOMMENDATION: ROUTE ALL FUTURE SPL ACTIONS THROUGH A PRIVACY WRAPPER BEFORE OUTBOUND DISCHARGE.`;
+SAFE ACTIONS
+${guidance.actions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
 
-    case "AI-PROFILING":
-      return `[RED QUEEN CO-PROCESSING UNIT // COGNITIVE PROFILE DECRYPT]
-TIMESTAMP: ${date}
-TARGET KEY: ${rawKeyText}
-ANALYSIS RESULT: SYNTHETIC DOSSIER RETRIEVED.
+NEXT ACTION
+Review the connected address in a trusted Solana explorer and verify every active wallet connection before signing a new request.`;
 
-[+] SEMANTIC SCRAPE ENGINE: Retrieved 4 public forums where matching wallet keywords were mentioned.
-[+] PERSONA HARVESTING MODEL: Aggregated interest indicators index: [Solana DeFi: 88%, Privacy Tech: 92%, Adversarial Networks: 74%].
-[+] SOCIAL OUTLET MATCHING: AI mapping predicts user identity aligns with cryptographic development clusters.
-[+] THREAT SCORE: 91% — HIGH PROFILING COEFFICIENT.
-RECOMMENDATION: INJECT ADVERSARIAL PROMPT JITTER INTO LLM UPLINKS AND DECENTRALIZE CHAT PROFILES.`;
-
-    case "FEED-MANIP":
-      return `[RED QUEEN CO-PROCESSING UNIT // FEED-MANIP SCANNER]
-TIMESTAMP: ${date}
-TARGET KEY: ${rawKeyText}
-ANALYSIS RESULT: SENTIMENT COGNITIVE VECTORS ACTIVE.
-
-[+] OUTRAGE TARGETING MATRIX: Detected 12 bot cluster nodes actively pushing targeted controversy threads to your mapped interest nodes.
-[+] TIMELINE ANOMALY: Algorithmic weight values selectively filter out non-reactive educational posts.
-[+] ENGAGEMENT VELOCITY: Emotional loop triggers detected in 89% of visited social networks.
-[+] THREAT SCORE: 89% — HIGH COGNITIVE REWIRE COEFFICIENT.
-RECOMMENDATION: PURGE SOCIAL TRACKING PIXELS AND OPT FOR UNPERSONALIZED STATIC FEED CHANNELS.`;
-
-    case "DEEPFAKE-SE":
-      return `[RED QUEEN CO-PROCESSING UNIT // SOCIAL ENGINEERING SIMULATOR]
-TIMESTAMP: ${date}
-TARGET KEY: ${rawKeyText}
-ANALYSIS RESULT: VOICE & VISUAL CLONE VULNERABILITY DETECTED.
-
-[+] VERBAL AUDIO HARVEST: Checked public media channels. Mapped 3 vocal samples suitable for neural cloning.
-[+] IMPERSONATION PATHWAYS: Simulated deepfake spear-phishing attack exposes authentication confirmation vulnerability.
-[+] RISK VULNERABILITY: Level 5 system operator credentials lack physical dual-factor authorization keys.
-[+] THREAT SCORE: 86% — EXTREME VERBAL SPOOF RISK.
-RECOMMENDATION: ESTABLISH CRYPTOGRAPHIC PRE-SHARED PASSCODES FOR OUT-OF-BAND COMM CHANNELS.`;
-
-    case "REPUTATION-X":
-      return `[RED QUEEN CO-PROCESSING UNIT // BLACKLIST INDEX CHECK]
-TIMESTAMP: ${date}
-TARGET KEY: ${rawKeyText}
-ANALYSIS RESULT: SYSTEM COMPLIANCE METRICS SECURED.
-
-[+] AML DATABASE AUDIT: Checked TRM, Chainalysis, and elliptic blacklists. Mapped address: CLEAN.
-[+] INDIRECT DUST RISK: Detected 0.0004 SOL deposit from historical flagged contract.
-[+] LIQUIDITY RISK INDEX: Mapped interaction with decentralized router pools with 4% compliance taint.
-[+] THREAT SCORE: 82% — MODERATE HEURISTIC EXPOSURE.
-RECOMMENDATION: AVOID CO-MINGLING TRANSACTION UTILITY ROUTINES WITH UNAUDITED SMART CONTRACT HUBS.`;
-
-    case "META-LEAK":
-      return `[RED QUEEN CO-PROCESSING UNIT // WEB2 COMPROMISE TRACE]
-TIMESTAMP: ${date}
-TARGET KEY: ${rawKeyText}
-ANALYSIS RESULT: SENSITIVE METADATA CORRELATION REPORT.
-
-[+] WEB2-TO-WEB3 CORRELATIONS: Found 2 public data broker databases mapping raw Web2 email logins to wallet connection cookies.
-[+] PASSWORD EXPOSURE: Mapped hashed credentials present in historical database breaches.
-[+] COOKIE TRAIL: Detected active cross-domain trackers tracking Web3 session triggers.
-[+] THREAT SCORE: 80% — HIGH PRIVACY EXPOSURE INDEX.
-RECOMMENDATION: ROUTINELY PURGE WEB3 OAUTH SESSIONS AND UTILISED DEDICATED ANONYMIZED BROWSERS.`;
-
-    default:
-      return `[RED QUEEN CO-PROCESSING UNIT // DIAGNOSTIC COMPLETED]
-TIMESTAMP: ${date}
-VECTOR: ${vector}
-DATA: Decryption payload loaded successfully. No anomalies detected.`;
+    return Response.json({
+      report,
+      evidence: snapshot,
+      grounding: "SOLANA_RPC",
+      limitations: ["NO_PRIVATE_DATA", "NO_AML_VENDOR", "NO_GEOLOCATION", "NO_IDENTITY_INFERENCE"],
+    });
+  } catch (error) {
+    console.error("Wallet triage RPC failure:", error);
+    return Response.json({ error: "Solana RPC is temporarily unavailable. No synthetic report was generated." }, { status: 503 });
   }
 }

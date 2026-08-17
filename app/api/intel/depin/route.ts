@@ -107,7 +107,7 @@ const handler = async (req: NextRequest) => {
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      clearance: "LEVEL 5 DIRECTOR (USDC-PAID)",
+      clearance: "PAID COMPUTE // x402 VERIFIED",
       xpAwarded,
       depin: {
         scannerName: "Solana Mainnet DePIN Infrastructure Engine",
@@ -136,7 +136,7 @@ const handler = async (req: NextRequest) => {
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      clearance: "LEVEL 5 DIRECTOR (USDC-PAID)",
+      clearance: "PAID COMPUTE // x402 VERIFIED",
       xpAwarded,
       depin: {
         scannerName: "Sector 7 DePIN Mesh Scanner (Mainnet Fallback)",

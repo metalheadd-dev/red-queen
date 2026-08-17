@@ -226,7 +226,7 @@ export default function SurvivalKitPage() {
                 <strong>{tier.name}</strong>
                 <em>{formatTokenThreshold(tier.threshold)}</em>
                 <p>{tier.description}</p>
-                <b>{tier.contextMessages} context messages · ×{tier.readinessMultiplier.toFixed(2)} earned XP</b>
+                <b>{tier.contextMessages} context messages · ×{tier.earnedXpMultiplier.toFixed(2)} earned XP</b>
               </div>
             ))}
           </div>

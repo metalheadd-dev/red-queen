@@ -7,30 +7,9 @@ import { supabase } from "./supabase";
 export async function getAuthIdentifier(req: Request): Promise<string | null> {
   if (!supabase) return null;
 
-  // 1. Check for Solana signature credentials in headers
-  const solanaPublicKey = req.headers.get("X-Solana-PublicKey");
-  const solanaSignature = req.headers.get("X-Solana-Signature");
-  const solanaMessage = req.headers.get("X-Solana-Message");
-
-  if (solanaPublicKey && solanaSignature && solanaMessage) {
-    try {
-      const nacl = require("tweetnacl");
-      const bs58 = require("bs58");
-
-      const msgBytes = new TextEncoder().encode(solanaMessage);
-      const sigBytes = bs58.decode(solanaSignature);
-      const pkBytes = bs58.decode(solanaPublicKey);
-
-      const verified = nacl.sign.detached.verify(msgBytes, sigBytes, pkBytes);
-      if (verified && solanaMessage === "Sign in to Red Queen Node 7.4.1") {
-        return solanaPublicKey;
-      }
-    } catch (e) {
-      console.error("Solana signature verification failed in API helper:", e);
-    }
-  }
-
-  // 2. Fallback to standard Supabase session token verification
+  // Supabase validates the SIWS message structure, timestamp, domain and signature.
+  // Static client-supplied signatures are intentionally not accepted here because
+  // they are replayable without a server nonce.
   const authHeader = req.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;
@@ -47,11 +26,7 @@ export async function getAuthIdentifier(req: Request): Promise<string | null> {
       const web3Identity = user.identities?.find(
         (id: any) => id.provider === "web3" || id.provider === "solana"
       );
-      const rawId = (
-        web3Identity?.identity_data?.sub ||
-        user.user_metadata?.wallet_address ||
-        user.id
-      );
+      const rawId = web3Identity?.identity_data?.sub;
       
       if (rawId && typeof rawId === "string") {
         if (rawId.includes("web3:solana:")) {
@@ -61,7 +36,7 @@ export async function getAuthIdentifier(req: Request): Promise<string | null> {
           return rawId.split("web3:sol:")[1] || rawId;
         }
       }
-      return rawId;
+      return typeof rawId === "string" ? rawId : null;
     }
   } catch (err) {
     console.error("Error verifying auth identifier:", err);

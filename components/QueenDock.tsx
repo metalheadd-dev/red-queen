@@ -15,6 +15,16 @@ const dockContent: Array<{
   actions: DockAction[];
 }> = [
   {
+    match: (pathname) => pathname.startsWith("/network-clearance"),
+    eyebrow: "SOLANA CONTROL PLANE",
+    title: "Proof and preparedness are separate systems.",
+    note: "I can explain your wallet exposure, token utility, or the safest next on-chain action without requesting secrets.",
+    actions: [
+      { label: "AUDIT MY WALLET SAFETY", mode: "ANALYZE", prompt: "Run a safe Solana wallet security triage. Do not claim to query private vendor databases and never ask for a seed phrase or private key." },
+      { label: "EXPLAIN MY CLEARANCE", mode: "ANALYZE", prompt: "Explain how $THREAT clearance, BIO-SCORE, and x402 USDC payments differ inside RED QUEEN." },
+    ],
+  },
+  {
     match: (pathname) => pathname === "/",
     eyebrow: "DAILY PULSE",
     title: "I am watching the signal field.",
@@ -56,7 +66,7 @@ const dockContent: Array<{
   },
 ];
 
-const visibleCoreRoutes = ["/", "/terminal", "/survival-kit", "/threat-vector", "/operative"];
+const visibleCoreRoutes = ["/", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance"];
 
 function buildHref(action: DockAction, area: string) {
   const query = new URLSearchParams({ mode: action.mode, prompt: action.prompt });
