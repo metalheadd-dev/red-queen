@@ -18,8 +18,8 @@ RED QUEEN is designed around one short daily question: **what changed, does it a
 
 1. **Detect** — read a broad-area Local Pulse and explore verified signals on the live map.
 2. **Understand** — ask RED QUEEN what a signal means for a broad region, household, device, or wallet.
-3. **Prepare** — save one Queen action into My Action Plan, complete it, or adapt it into a checklist or 72-hour protocol.
-4. **Improve** — build BIO-SCORE only through evaluated decisions and demonstrated preparedness evidence.
+3. **Prepare** — save one Queen action into My Action Plan, complete it locally, or adapt it into a checklist or 72-hour protocol.
+4. **Prove and improve** — ask Queen to review what was actually done. Only eligible evaluated evidence can update BIO-SCORE; a local completion mark never does.
 
 | Route | Product role |
 | --- | --- |

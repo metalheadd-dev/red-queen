@@ -42,13 +42,28 @@ export default function ActionHistoryPanel() {
       </div>
       {completed.length > 0 ? (
         <div className="action-history-list">
-          {completed.slice(0, 6).map((action) => (
-            <article key={action.id}>
-              <span>COMPLETED · {action.completedAt ? formatActionAge(action.completedAt).replace("SAVED", "") : "RECENTLY"}</span>
-              <strong>{action.action}</strong>
-              <small>{action.area || "GLOBAL CONTEXT"} · {action.grounding.replaceAll("_", " ")}</small>
-            </article>
-          ))}
+          {completed.slice(0, 6).map((action) => {
+            const reviewPrompt = `I marked this action complete: ${action.action} Audit the evidence before awarding readiness. Ask me one concrete question about what I actually did, what I can verify, and what remains uncertain. Do not treat this message alone as proof.`;
+            const reviewParams = new URLSearchParams({
+              mode: "PREPARE",
+              focus: action.focus || "HOUSEHOLD",
+              prompt: reviewPrompt,
+              action: action.id,
+            });
+            if (action.area) reviewParams.set("area", action.area);
+            return (
+              <article key={action.id} className={action.reviewedAt ? "is-reviewed" : "is-review-pending"}>
+                <span>
+                  {action.reviewedAt
+                    ? action.reviewApplied ? "QUEEN REVIEWED · BIO SAVED" : "QUEEN REVIEWED · LOCAL ONLY"
+                    : "SELF-REPORTED · REVIEW PENDING"}
+                </span>
+                <strong>{action.action}</strong>
+                <small>{action.area || "GLOBAL CONTEXT"} · {action.grounding.replaceAll("_", " ")}</small>
+                {!action.reviewedAt && <Link href={`/terminal?${reviewParams.toString()}`}>REVIEW EVIDENCE →</Link>}
+              </article>
+            );
+          })}
         </div>
       ) : (
         <div className="action-history-empty">Complete your first saved action to start a practical readiness record.</div>

@@ -19,6 +19,9 @@ export interface DailyAction {
   sourceUrl?: string;
   createdAt: string;
   completedAt?: string;
+  reviewedAt?: string;
+  reviewApplied?: boolean;
+  reviewBioScore?: number;
   status: DailyActionStatus;
 }
 
@@ -40,6 +43,11 @@ export function parseDailyAction(value: string | null): DailyAction | null {
       sourceUrl: parsed.sourceUrl,
       createdAt: parsed.createdAt,
       completedAt: parsed.completedAt,
+      reviewedAt: typeof parsed.reviewedAt === "string" ? parsed.reviewedAt : undefined,
+      reviewApplied: parsed.reviewApplied === true,
+      reviewBioScore: typeof parsed.reviewBioScore === "number" && Number.isFinite(parsed.reviewBioScore)
+        ? Math.max(0, Math.min(100, Math.round(parsed.reviewBioScore)))
+        : undefined,
       status: parsed.status,
     };
   } catch {
@@ -83,7 +91,7 @@ export function saveDailyAction(storage: Pick<Storage, "getItem" | "setItem">, a
 export function updateDailyAction(
   storage: Pick<Storage, "getItem" | "setItem">,
   id: string,
-  update: Partial<Pick<DailyAction, "status" | "completedAt">>,
+  update: Partial<Pick<DailyAction, "status" | "completedAt" | "reviewedAt" | "reviewApplied" | "reviewBioScore">>,
 ) {
   const next = readDailyActions(storage).map((item) => item.id === id ? { ...item, ...update } : item);
   storage.setItem(DAILY_ACTIONS_STORAGE_KEY, JSON.stringify(next));

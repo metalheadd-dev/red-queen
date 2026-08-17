@@ -14,7 +14,7 @@ import { getAssociatedTokenAddress, createTransferCheckedInstruction } from "@so
 import { getWorkingConnection } from "@/lib/solana";
 import AgentResponseCard from "@/components/AgentResponseCard";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
-import { createDailyAction, DAILY_ACTION_EVENT, readDailyActions, saveDailyAction } from "@/lib/daily-action";
+import { createDailyAction, DAILY_ACTION_EVENT, readDailyActions, saveDailyAction, updateDailyAction } from "@/lib/daily-action";
 import { buildDeviceSurvivalMemory } from "@/lib/device-survival-memory";
 import {
   createPreparednessPlan,
@@ -508,6 +508,7 @@ export default function TerminalPage() {
   });
   const [firstContact, setFirstContact] = useState(false);
   const [savedActionText, setSavedActionText] = useState("");
+  const [reviewActionId, setReviewActionId] = useState("");
   const [savedPlanTitles, setSavedPlanTitles] = useState<string[]>([]);
   const [localPreparednessCount, setLocalPreparednessCount] = useState(0);
   const [apocalypticName, setApocalypticName] = useState<string>("");
@@ -562,6 +563,10 @@ export default function TerminalPage() {
     const queryPrompt = params.get("prompt");
     if (queryPrompt) setInput(queryPrompt.slice(0, 1_000));
     else if (params.get("first") === "1") setInput(buildFirstContactPrompt(nextContext));
+
+    const requestedActionId = (params.get("action") || "").slice(0, 100);
+    const reviewAction = readDailyActions(localStorage).find((action) => action.id === requestedActionId && action.status === "COMPLETED" && !action.reviewedAt);
+    setReviewActionId(reviewAction?.id || "");
   }, []);
 
   useEffect(() => {
@@ -1017,6 +1022,16 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
           xp: data.readiness.totalXp,
           level: data.readiness.level,
         }));
+      }
+
+      if (reviewActionId && data.readiness.eligible) {
+        updateDailyAction(localStorage, reviewActionId, {
+          reviewedAt: new Date().toISOString(),
+          reviewApplied: data.readiness.applied,
+          reviewBioScore: data.readiness.bioScore,
+        });
+        window.dispatchEvent(new Event(DAILY_ACTION_EVENT));
+        setReviewActionId("");
       }
 
       const newUserMsgCount = newMessages.filter((m) => m.role === "user").length;
@@ -1779,6 +1794,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
               <li><b>ASK</b><small>Get a clear brief from RED QUEEN.</small></li>
               <li><b>SAVE</b><small>Keep the next action or full Queen protocol.</small></li>
               <li><b>COMPLETE</b><small>Work through observable steps in Prepare.</small></li>
+              <li><b>PROVE</b><small>Let Queen evaluate what you actually did before BIO changes.</small></li>
             </ol>
             <a href="/survival-kit">{savedActionText || savedPlanTitles.length ? "OPEN SURVIVAL MEMORY →" : "OPEN MY PLAN →"}</a>
           </div>
