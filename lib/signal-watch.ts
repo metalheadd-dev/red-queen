@@ -1,7 +1,8 @@
 export const SIGNAL_WATCH_STORAGE_KEY = "rq-signal-watch-v1";
 export const SIGNAL_WATCH_EVENT = "rq-signal-watch-updated";
+export const SIGNAL_WATCH_REQUEST_EVENT = "rq-signal-watch-request";
 
-export type SignalWatchType = "GEOLOGICAL" | "METEOROLOGICAL" | "KINETIC" | "ALGORITHMIC" | "SPACE_WEATHER";
+export type SignalWatchType = "GEOLOGICAL" | "METEOROLOGICAL" | "KINETIC" | "ALGORITHMIC" | "SPACE_WEATHER" | "BIOLOGICAL";
 
 export interface SignalWatchMemory {
   version: 1;
@@ -17,9 +18,14 @@ export const SIGNAL_WATCH_OPTIONS: Array<{ id: SignalWatchType; label: string; d
   { id: "KINETIC", label: "Infrastructure", description: "Humanitarian and infrastructure disruption" },
   { id: "ALGORITHMIC", label: "Digital", description: "CISA cyber and Solana security signals" },
   { id: "SPACE_WEATHER", label: "Space weather", description: "NOAA grid, radio and navigation notices" },
+  { id: "BIOLOGICAL", label: "Health", description: "WHO acute public-health event notices" },
 ];
 
 const WATCH_TYPES = new Set(SIGNAL_WATCH_OPTIONS.map((option) => option.id));
+
+export function isSignalWatchType(value: string): value is SignalWatchType {
+  return WATCH_TYPES.has(value as SignalWatchType);
+}
 
 export function parseSignalWatchMemory(value: string | null): SignalWatchMemory {
   const fallback: SignalWatchMemory = { version: 1, types: [], localPriority: false, knownSignalIds: [] };

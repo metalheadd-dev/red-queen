@@ -7,7 +7,9 @@ import {
   parseSignalWatchMemory,
   SIGNAL_WATCH_EVENT,
   SIGNAL_WATCH_OPTIONS,
+  SIGNAL_WATCH_REQUEST_EVENT,
   SIGNAL_WATCH_STORAGE_KEY,
+  isSignalWatchType,
   SignalWatchMemory,
   SignalWatchType,
   writeSignalWatchMemory,
@@ -146,6 +148,22 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
     });
   }
 
+  useEffect(() => {
+    const handleRequestedWatch = (event: Event) => {
+      const requestedType = (event as CustomEvent<{ type?: string }>).detail?.type;
+      if (!requestedType || !isSignalWatchType(requestedType) || memory.types.includes(requestedType)) return;
+      const usedSlots = memory.types.length + (memory.localPriority ? 1 : 0);
+      if (usedSlots >= watchSlots) {
+        setLimitMessage(`${clearanceName} clearance supports ${watchSlots} simultaneous watches. Remove one or verify a higher $THREAT tier.`);
+        return;
+      }
+      setLimitMessage("");
+      updateMemory({ ...memory, types: [...memory.types, requestedType] });
+    };
+    window.addEventListener(SIGNAL_WATCH_REQUEST_EVENT, handleRequestedWatch);
+    return () => window.removeEventListener(SIGNAL_WATCH_REQUEST_EVENT, handleRequestedWatch);
+  }, [clearanceName, memory, watchSlots]);
+
   function toggleLocal() {
     if (!location) return;
     const usedSlots = memory.types.length + (memory.localPriority ? 1 : 0);
@@ -158,11 +176,15 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
   }
 
   const hasWatches = memory.localPriority || memory.types.length > 0;
+  const displayedSignals = [...matchedSignals].sort((a, b) => {
+    const newDifference = Number(newSignalIds.includes(b.id)) - Number(newSignalIds.includes(a.id));
+    return newDifference || b.severity - a.severity;
+  });
 
   return (
-    <section className={`signal-watch-panel ${hasWatches ? "is-active" : ""}`}>
+    <section id="signal-watch" className={`signal-watch-panel ${hasWatches ? "is-active" : ""}`}>
       <div className="signal-watch-heading">
-        <div><span>MY SIGNAL WATCH // ON-DEVICE</span><h3>{hasWatches ? `${matchedSignals.length} current matches · ${newSignalIds.length} new` : "Choose what RED QUEEN should remember"}</h3></div>
+        <div><span>QUEEN ALERT CENTER // ON-DEVICE</span><h3>{hasWatches ? `${matchedSignals.length} current matches · ${newSignalIds.length} new` : "Choose what RED QUEEN should remember"}</h3></div>
         <small>{memory.types.length + (memory.localPriority ? 1 : 0)}/{watchSlots} WATCH SLOTS · {clearanceName} · LAST SCAN {formatScanTime(previousScanAt)}</small>
       </div>
       <div className="signal-watch-controls">
@@ -179,7 +201,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
       {hasWatches && (
         <div className="signal-watch-results">
           <div>
-            {matchedSignals.slice(0, 3).map((signal) => (
+            {displayedSignals.slice(0, 5).map((signal) => (
               <article key={signal.id} className={newSignalIds.includes(signal.id) ? "is-new" : ""}>
                 <span>{newSignalIds.includes(signal.id) ? "NEW THIS SCAN" : signal.type}</span>
                 <strong>{signal.name}</strong>

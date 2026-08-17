@@ -9,6 +9,11 @@ import BootSequence from "@/components/BootSequence";
 import DailyActionPanel from "@/components/DailyActionPanel";
 import SignalWatchPanel from "@/components/SignalWatchPanel";
 import {
+  isSignalWatchType,
+  SIGNAL_WATCH_REQUEST_EVENT,
+  SignalWatchType,
+} from "@/lib/signal-watch";
+import {
   buildFirstContactPrompt,
   getFocusOption,
   sanitizeArea,
@@ -40,7 +45,7 @@ interface PulseData {
 interface PulseSignal {
   id: string;
   name: string;
-  kind: "GEOLOGICAL" | "WILDFIRE" | "SPACE_WEATHER" | "CYBER";
+  kind: "GEOLOGICAL" | "WILDFIRE" | "SPACE_WEATHER" | "CYBER" | "HEALTH";
   severity: number;
   location: string;
   observedAt: string;
@@ -48,6 +53,20 @@ interface PulseSignal {
   sourceUrl: string;
   fact: string;
   confidence: number;
+}
+
+interface RankedSignal {
+  id: string;
+  name: string;
+  type: string;
+  severity: number;
+  region: string;
+  source: string;
+  sourceUrl?: string;
+  verified: boolean;
+  score: number;
+  reason: string;
+  node?: MapNode;
 }
 
 interface MapNode {
@@ -110,6 +129,17 @@ function distanceInKm(a: { lat: number; lng: number }, b: { lat: number; lng: nu
   const value = Math.sin(latitudeDelta / 2) ** 2
     + Math.cos(toRadians(a.lat)) * Math.cos(toRadians(b.lat)) * Math.sin(longitudeDelta / 2) ** 2;
   return radius * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+}
+
+function toWatchType(type: string): SignalWatchType | null {
+  const normalized = type === "WILDFIRE"
+    ? "METEOROLOGICAL"
+    : type === "CYBER"
+      ? "ALGORITHMIC"
+      : type === "HEALTH"
+        ? "BIOLOGICAL"
+        : type;
+  return isSignalWatchType(normalized) ? normalized : null;
 }
 
 export default function HomePage() {
@@ -193,11 +223,11 @@ export default function HomePage() {
 
   const nonMapWatchSignals = useMemo(
     () => (pulse.signals || [])
-      .filter((signal) => signal.kind === "SPACE_WEATHER" || signal.kind === "CYBER")
+      .filter((signal) => signal.kind === "SPACE_WEATHER" || signal.kind === "CYBER" || signal.kind === "HEALTH")
       .map((signal) => ({
         id: signal.id,
         name: signal.name,
-        type: signal.kind === "CYBER" ? "ALGORITHMIC" : "SPACE_WEATHER",
+        type: signal.kind === "CYBER" ? "ALGORITHMIC" : signal.kind === "HEALTH" ? "BIOLOGICAL" : "SPACE_WEATHER",
         severity: signal.severity,
         region: signal.location,
         source: signal.source,
@@ -205,6 +235,57 @@ export default function HomePage() {
         verified: signal.confidence >= 90,
       })),
     [pulse.signals],
+  );
+
+  const rankedSignals = useMemo<RankedSignal[]>(() => {
+    const location = localContext?.location;
+    const mapped: RankedSignal[] = nodes.map((node) => {
+      const distance = location ? distanceInKm(location, node) : undefined;
+      const proximity = distance === undefined ? 0 : distance <= 100 ? 30 : distance <= 300 ? 24 : distance <= 1_000 ? 16 : 0;
+      const score = node.severity * .65 + (node.verified ? 12 : 0) + proximity;
+      const reason = distance !== undefined && distance <= 1_000
+        ? `${Math.round(distance)} km from your broad area`
+        : node.verified
+          ? "High-priority verified source"
+          : "Elevated global signal";
+      return {
+        id: node.id,
+        name: node.name,
+        type: node.type,
+        severity: node.severity,
+        region: node.region,
+        source: node.source || "SOURCE PENDING",
+        sourceUrl: node.sourceUrl,
+        verified: node.verified === true,
+        score,
+        reason,
+        node,
+      };
+    });
+    const nonMapped: RankedSignal[] = (pulse.signals || [])
+      .filter((signal) => signal.kind === "SPACE_WEATHER" || signal.kind === "CYBER" || signal.kind === "HEALTH")
+      .map((signal) => ({
+        id: signal.id,
+        name: signal.name,
+        type: signal.kind,
+        severity: signal.severity,
+        region: signal.location,
+        source: signal.source,
+        sourceUrl: signal.sourceUrl,
+        verified: signal.confidence >= 90,
+        score: signal.severity * .65 + (signal.confidence >= 90 ? 12 : 0),
+        reason: signal.kind === "HEALTH"
+          ? "New WHO public-health notice"
+          : signal.kind === "CYBER"
+            ? "Actively exploited vulnerability"
+            : "Official global systems notice",
+      }));
+    return [...mapped, ...nonMapped].sort((a, b) => b.score - a.score).slice(0, 3);
+  }, [localContext, nodes, pulse.signals]);
+
+  const signalRail = useMemo(
+    () => [...visibleNodes].sort((a, b) => b.severity - a.severity).slice(0, 6),
+    [visibleNodes],
   );
 
   const finishBoot = () => {
@@ -279,6 +360,20 @@ export default function HomePage() {
     } finally {
       setStartResolving(false);
     }
+  }
+
+  function requestSignalWatch(type: string) {
+    const watchType = toWatchType(type);
+    if (!watchType) return;
+    window.dispatchEvent(new CustomEvent(SIGNAL_WATCH_REQUEST_EVENT, { detail: { type: watchType } }));
+    window.requestAnimationFrame(() => document.getElementById("signal-watch")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  }
+
+  function focusRankedSignal(signal: RankedSignal) {
+    if (!signal.node) return;
+    setSelectedNode(signal.node);
+    setMapFilter("all");
+    document.getElementById("live-map")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   if (!booted) return <BootSequence onComplete={finishBoot} />;
@@ -431,6 +526,35 @@ export default function HomePage() {
             </div>
           </article>
         </div>
+
+        <div className="pulse-ranked-signals">
+          <div className="pulse-ranked-heading">
+            <div><span className="pulse-eyebrow">QUEEN PRIORITY // PERSONAL TOP 3</span><h3>{hasResolvedArea ? `What deserves attention near ${localContext!.area}` : "What deserves attention in the signal field"}</h3></div>
+            <small>RANKED BY SEVERITY · SOURCE CONFIDENCE{hasResolvedArea ? " · PROXIMITY" : ""}</small>
+          </div>
+          <div className="pulse-ranked-grid">
+            {rankedSignals.map((signal, index) => (
+              <article key={signal.id} className={signal.node ? "is-mapped" : "is-global"}>
+                <button type="button" onClick={() => focusRankedSignal(signal)} disabled={!signal.node} aria-label={signal.node ? `Show ${signal.name} on map` : undefined}>
+                  <span>0{index + 1} // {signal.type}</span>
+                  <strong>{signal.name}</strong>
+                  <p>{signal.reason}</p>
+                  <small>{signal.source} · INDEX {Math.round(signal.score)}</small>
+                </button>
+                <div>
+                  {signal.node && <button type="button" onClick={() => focusRankedSignal(signal)}>SHOW ON MAP</button>}
+                  <Link href={`/terminal?${new URLSearchParams({
+                    mode: "ANALYZE",
+                    focus: "LOCAL_THREATS",
+                    area: localContext?.area || "",
+                    prompt: `Brief me on this signal: ${signal.name}. Explain why it matters to my context, separate verified fact from assessment, and give one justified action.`,
+                  }).toString()}`}>ASK QUEEN →</Link>
+                </div>
+              </article>
+            ))}
+            {!rankedSignals.length && <p className="pulse-ranked-empty">The verified grid is temporarily limited. Queen will not invent a priority.</p>}
+          </div>
+        </div>
       </section>
 
       <section id="live-map" className="container pulse-map-section">
@@ -484,6 +608,19 @@ export default function HomePage() {
 
         <SignalWatchPanel nodes={[...nodes, ...nonMapWatchSignals]} area={localContext?.area} location={localContext?.location || null} />
 
+        {!!signalRail.length && (
+          <div className="pulse-signal-rail" aria-label="Visible map signals">
+            <div><span>VISIBLE SIGNALS</span><small>SELECT TO FOCUS THE MAP</small></div>
+            {signalRail.map((node) => (
+              <button key={node.id} type="button" className={selectedNode?.id === node.id ? "active" : ""} onClick={() => setSelectedNode(node)}>
+                <i data-severity={node.severity >= 75 ? "high" : node.severity >= 60 ? "elevated" : "monitor"} />
+                <span><strong>{node.name}</strong><small>{node.type} · {node.region}</small></span>
+                <b>{node.severity}</b>
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="pulse-map-shell">
           {mapLoading ? (
             <div className="pulse-map-loading">CONNECTING TO VERIFIED SIGNAL GRID...</div>
@@ -503,9 +640,13 @@ export default function HomePage() {
         {selectedNode && (
           <article className="pulse-selected-signal">
             <div>
-              <span className="pulse-eyebrow">SELECTED SIGNAL // {selectedNode.type}</span>
+              <span className="pulse-eyebrow">SELECTED SIGNAL // {selectedNode.type} · {selectedNode.verified ? "VERIFIED" : "SOURCE REVIEW"}</span>
               <h3>{selectedNode.name}</h3>
               <p>{selectedNode.desc}</p>
+              <div className="pulse-selected-actions">
+                {selectedNode.sourceUrl && <a href={selectedNode.sourceUrl} target="_blank" rel="noreferrer">OPEN SOURCE ↗</a>}
+                {toWatchType(selectedNode.type) && <button type="button" onClick={() => requestSignalWatch(selectedNode.type)}>WATCH THIS CATEGORY</button>}
+              </div>
             </div>
             <div className="pulse-signal-side">
               <strong>{selectedNode.severity}</strong><span>RELEVANCE INDEX</span>

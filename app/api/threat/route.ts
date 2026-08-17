@@ -3,7 +3,7 @@ import { fetchWithTimeout } from "@/lib/threats-fetchers";
 
 export const dynamic = "force-dynamic";
 
-type SignalKind = "GEOLOGICAL" | "WILDFIRE" | "SPACE_WEATHER" | "CYBER";
+type SignalKind = "GEOLOGICAL" | "WILDFIRE" | "SPACE_WEATHER" | "CYBER" | "HEALTH";
 
 interface SourceSignal {
   id: string;
@@ -27,6 +27,8 @@ const ACTIONS: Record<SignalKind, string> = {
     "Charge backup power, download essential information for offline access, and monitor official grid and communications advisories.",
   CYBER:
     "Update exposed software, revoke unused sessions, verify wallet approvals, and never sign a transaction prompted by an unsolicited alert.",
+  HEALTH:
+    "Read the WHO notice and your local public-health guidance. Do not self-diagnose or change treatment from a headline; prepare only the measures justified for your area.",
 };
 
 const ASSESSMENTS: Record<SignalKind, string> = {
@@ -38,7 +40,24 @@ const ASSESSMENTS: Record<SignalKind, string> = {
     "An official space-weather notice is active. Most people face low direct physical risk, but communications, navigation, and power systems may require monitoring.",
   CYBER:
     "A vulnerability has been added to the official exploited-vulnerabilities catalog. Exposure depends on whether the affected product exists in your devices or organization.",
+  HEALTH:
+    "WHO has published an acute public-health event notice. It is a verified global signal, not proof of personal exposure; location, transmission route and local health guidance determine relevance.",
 };
+
+function stripHtml(value: unknown) {
+  return String(value || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function excerpt(value: string, maxLength = 260) {
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, maxLength).replace(/\s+\S*$/, "").trim()}…`;
+}
 
 function statusFor(severity: number) {
   if (severity >= 85) return "CRITICAL";
@@ -168,6 +187,36 @@ async function fetchCISA(): Promise<SourceSignal[]> {
   }
 }
 
+async function fetchWHO(): Promise<SourceSignal[]> {
+  try {
+    const sourceUrl = "https://www.who.int/emergencies/disease-outbreak-news";
+    const endpoint = "https://www.who.int/api/news/diseaseoutbreaknews?$top=3&$orderby=PublicationDate%20desc";
+    const res = await fetchWithTimeout(endpoint);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (Array.isArray(data.value) ? data.value : []).slice(0, 3).map((item: any, index: number) => {
+      const title = stripHtml(item.OverrideTitle || item.Title) || "WHO disease outbreak notice";
+      const summary = stripHtml(item.Summary);
+      const urgent = /intense transmission|rapidly|expanding|emergency|sustained transmission|increase in.+deaths/i.test(summary);
+      const itemPath = typeof item.ItemDefaultUrl === "string" ? item.ItemDefaultUrl : "";
+      return {
+        id: `who-${item.DonId || item.Id || index}`,
+        name: title,
+        kind: "HEALTH" as const,
+        severity: urgent ? 74 : 58,
+        location: title.includes(" - ") ? title.split(" - ").at(-1) || "Global health watch" : "Global health watch",
+        observedAt: formatDate(item.PublicationDate || item.LastModified || new Date()),
+        source: "WHO Disease Outbreak News",
+        sourceUrl: itemPath.startsWith("/") ? `https://www.who.int/emergencies/disease-outbreak-news/item${itemPath}` : sourceUrl,
+        fact: excerpt(summary) || "WHO published a new acute public-health event notice.",
+        confidence: 99,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 function sensorLimitedPayload() {
   const generatedAt = new Date().toISOString();
   return {
@@ -195,7 +244,7 @@ function sensorLimitedPayload() {
 }
 
 export async function POST() {
-  const settled = await Promise.allSettled([fetchUSGS(), fetchNASA(), fetchNOAA(), fetchCISA()]);
+  const settled = await Promise.allSettled([fetchUSGS(), fetchNASA(), fetchNOAA(), fetchCISA(), fetchWHO()]);
   const signals = settled.flatMap((result) => (result.status === "fulfilled" ? result.value : []));
 
   if (signals.length === 0) {
