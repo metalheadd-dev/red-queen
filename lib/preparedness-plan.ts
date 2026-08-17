@@ -162,6 +162,45 @@ export function updatePreparednessPlanStep(
   return next;
 }
 
+export function removePreparednessPlan(
+  storage: Pick<Storage, "getItem" | "setItem">,
+  planId: string,
+) {
+  const next = readPreparednessPlans(storage).filter((plan) => plan.id !== planId);
+  writePreparednessPlans(storage, next);
+  return next;
+}
+
+export function formatPreparednessPlanText(plan: PreparednessPlan) {
+  const context = [plan.area || "Global context", plan.focus || "General preparedness"].join(" · ");
+  const steps = plan.steps.map((step, index) => `${step.completed ? "[x]" : "[ ]"} ${index + 1}. ${step.text}`).join("\n");
+  const source = plan.sourceLabel
+    ? `${plan.sourceLabel}${plan.sourceUrl ? ` — ${plan.sourceUrl}` : ""}`
+    : "General preparedness knowledge";
+  return [
+    "RED QUEEN // OFFLINE PREPAREDNESS PROTOCOL",
+    "===========================================",
+    "",
+    plan.title.toUpperCase(),
+    plan.objective,
+    "",
+    `STATUS: ${plan.status}`,
+    `CONTEXT: ${context}`,
+    `CREATED: ${formatPlanReviewDate(plan.createdAt)}`,
+    `REVIEW: ${formatPlanReviewDate(plan.reviewAt)}`,
+    `GROUNDING: ${plan.grounding.replaceAll("_", " ")}`,
+    `SOURCE: ${source}`,
+    "",
+    "EXECUTION CHECKLIST",
+    steps,
+    "",
+    "FIELD NOTE",
+    "This is a personal memory aid, not an emergency alert or proof of readiness. Verify critical decisions with official local authorities and qualified professionals.",
+    "",
+    "RED QUEEN // Intelligence is the last line of defense.",
+  ].join("\n");
+}
+
 export function formatPlanReviewDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "REVIEW DATE UNAVAILABLE";

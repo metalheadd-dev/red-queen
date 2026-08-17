@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  formatPreparednessPlanText,
   formatPlanReviewDate,
   PREPAREDNESS_PLANS_EVENT,
   PreparednessPlan,
   readPreparednessPlans,
+  removePreparednessPlan,
   updatePreparednessPlanStep,
 } from "@/lib/preparedness-plan";
 
@@ -21,6 +23,7 @@ function reviewState(plan: PreparednessPlan) {
 export default function PreparednessPlansPanel() {
   const [plans, setPlans] = useState<PreparednessPlan[]>([]);
   const [ready, setReady] = useState(false);
+  const [confirmRemoveId, setConfirmRemoveId] = useState("");
 
   const sync = useCallback(() => {
     setPlans(readPreparednessPlans(localStorage));
@@ -42,6 +45,29 @@ export default function PreparednessPlansPanel() {
 
   function toggleStep(planId: string, stepId: string, completedStep: boolean) {
     setPlans(updatePreparednessPlanStep(localStorage, planId, stepId, completedStep));
+    window.dispatchEvent(new Event(PREPAREDNESS_PLANS_EVENT));
+  }
+
+  function exportPlan(plan: PreparednessPlan) {
+    const blob = new Blob([formatPreparednessPlanText(plan)], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const filename = plan.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "red-queen-protocol";
+    link.href = url;
+    link.download = `${filename}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  function removePlan(planId: string) {
+    if (confirmRemoveId !== planId) {
+      setConfirmRemoveId(planId);
+      return;
+    }
+    setPlans(removePreparednessPlan(localStorage, planId));
+    setConfirmRemoveId("");
     window.dispatchEvent(new Event(PREPAREDNESS_PLANS_EVENT));
   }
 
@@ -91,8 +117,12 @@ export default function PreparednessPlansPanel() {
                   ))}
                 </div>
                 <footer>
-                  {plan.sourceLabel && plan.sourceUrl ? <a href={plan.sourceUrl} target="_blank" rel="noreferrer">SOURCE · {plan.sourceLabel} ↗</a> : <span>GENERAL PREPAREDNESS KNOWLEDGE</span>}
-                  <Link href={`/terminal?${new URLSearchParams({ mode: "PREPARE", focus: plan.focus || "HOUSEHOLD", area: plan.area, prompt: queenPrompt }).toString()}`}>REVIEW WITH QUEEN →</Link>
+                  <div>{plan.sourceLabel && plan.sourceUrl ? <a href={plan.sourceUrl} target="_blank" rel="noreferrer">SOURCE · {plan.sourceLabel} ↗</a> : <span>GENERAL PREPAREDNESS KNOWLEDGE</span>}</div>
+                  <div className="preparedness-plan-actions">
+                    <button type="button" onClick={() => exportPlan(plan)}>EXPORT OFFLINE</button>
+                    <Link href={`/terminal?${new URLSearchParams({ mode: "PREPARE", focus: plan.focus || "HOUSEHOLD", area: plan.area, prompt: queenPrompt }).toString()}`}>REVIEW WITH QUEEN →</Link>
+                    <button type="button" className={confirmRemoveId === plan.id ? "confirm" : ""} onClick={() => removePlan(plan.id)} onBlur={() => setConfirmRemoveId("")}>{confirmRemoveId === plan.id ? "CONFIRM REMOVE" : "REMOVE"}</button>
+                  </div>
                 </footer>
               </article>
             );
