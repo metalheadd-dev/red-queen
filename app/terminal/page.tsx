@@ -12,6 +12,18 @@ import { getAssociatedTokenAddress, createTransferCheckedInstruction } from "@so
 import { getWorkingConnection } from "@/lib/solana";
 import AgentResponseCard from "@/components/AgentResponseCard";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
+import {
+  AGENT_MODES,
+  AgentMode,
+  buildFirstContactPrompt,
+  getFocusOption,
+  isAgentMode,
+  isSurvivalFocus,
+  MODE_STARTERS,
+  READINESS_BASELINE_PROMPT,
+  sanitizeArea,
+  SurvivalContext,
+} from "@/lib/survival-context";
 
 
 const WalletMultiButton = dynamic(
@@ -52,19 +64,6 @@ function renderContent(text: string) {
     return <span key={i}>{part}</span>;
   });
 }
-
-const INTRO_MESSAGE = `[OK_0x00] UPLINK ESTABLISHED.
-
-I am the RED QUEEN — central intelligence of Solvival Corp's global survival network.
-
-I monitor unlimited active extinction scenarios simultaneously. I have assessed 2,847,193 survivors since activation. Most of them are dead now.
-
->> State your purpose, SUBJECT.
->> Ask about survival protocols, active threats, or classified intel.
->> Your responses will be evaluated for survival intelligence.
-
-[BIO-SCORE: PENDING — ASSESSMENT REQUIRED]
-[WARN_0x4F] Every second of inaction reduces your survival probability.`;
 
 const CORE_INTRO_MESSAGE = `[UPLINK ESTABLISHED]
 
@@ -461,6 +460,12 @@ export default function TerminalPage() {
     contextMessages: 6,
     readinessMultiplier: 1,
   });
+  const [survivalContext, setSurvivalContext] = useState<SurvivalContext>({
+    area: "",
+    focus: "LOCAL_THREATS",
+    mode: "ANALYZE",
+  });
+  const [firstContact, setFirstContact] = useState(false);
   const [apocalypticName, setApocalypticName] = useState<string>("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -478,6 +483,30 @@ export default function TerminalPage() {
 
   const userMessageCount = messages.filter((m) => m.role === "user").length;
   const isLocked = !hasVerifiedIdentity && (userMessageCount >= 4 || limitBlocked);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    let stored: Partial<SurvivalContext> = {};
+    try {
+      stored = JSON.parse(localStorage.getItem("rq-survival-context-v1") || "{}");
+    } catch {
+      stored = {};
+    }
+
+    const queryArea = sanitizeArea(params.get("area") || "");
+    const storedArea = sanitizeArea(typeof stored.area === "string" ? stored.area : "");
+    const rawFocus = params.get("focus") || stored.focus;
+    const rawMode = params.get("mode") || stored.mode;
+    const focus = isSurvivalFocus(rawFocus) ? rawFocus : "LOCAL_THREATS";
+    const mode = isAgentMode(rawMode) ? rawMode : getFocusOption(focus).mode;
+    const nextContext: SurvivalContext = { area: queryArea || storedArea, focus, mode };
+
+    setSurvivalContext(nextContext);
+    setFirstContact(params.get("first") === "1");
+    const queryPrompt = params.get("prompt");
+    if (queryPrompt) setInput(queryPrompt.slice(0, 1_000));
+    else if (params.get("first") === "1") setInput(buildFirstContactPrompt(nextContext));
+  }, []);
 
   useEffect(() => {
     if (hasVerifiedIdentity) {
@@ -820,6 +849,7 @@ To decrypt or scan target files:
         headers,
         body: JSON.stringify({
           messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+          context: survivalContext,
         }),
       });
 
@@ -855,6 +885,10 @@ To decrypt or scan target files:
       ]);
 
       setAgentClearance(data.clearance);
+      if (firstContact) {
+        setFirstContact(false);
+        localStorage.setItem("rq-core-onboarding-v1", "done");
+      }
       if (data.readiness.applied) {
         setCurrentScore(String(data.readiness.bioScore));
         setProfileStats((previous: any) => ({
@@ -891,6 +925,20 @@ To decrypt or scan target files:
       e.preventDefault();
       sendMessage();
     }
+  }
+
+  function changeAgentMode(mode: AgentMode) {
+    setSurvivalContext((current) => {
+      const next = { ...current, mode };
+      localStorage.setItem("rq-survival-context-v1", JSON.stringify(next));
+      return next;
+    });
+  }
+
+  function startReadinessBaseline() {
+    changeAgentMode("SIMULATE");
+    setInput(READINESS_BASELINE_PROMPT);
+    setFirstContact(false);
   }
 
 
@@ -937,6 +985,54 @@ To decrypt or scan target files:
         
         {/* Left Side: Chat Panel */}
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+          <div className="rq-session-bar">
+            <div className="rq-mode-selector" role="tablist" aria-label="RED QUEEN mode">
+              {AGENT_MODES.map((mode) => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={survivalContext.mode === mode.id}
+                  className={survivalContext.mode === mode.id ? "active" : ""}
+                  onClick={() => changeAgentMode(mode.id)}
+                  title={mode.description}
+                >
+                  <strong>{mode.label}</strong>
+                  <span>{mode.description}</span>
+                </button>
+              ))}
+            </div>
+            <div className="rq-context-line">
+              <span>SESSION CONTEXT</span>
+              <strong>{survivalContext.area || "GLOBAL / AREA NOT SET"}</strong>
+              <span>{getFocusOption(survivalContext.focus).label}</span>
+              {survivalContext.area && (
+                <button
+                  type="button"
+                  onClick={() => setSurvivalContext((current) => {
+                    const next = { ...current, area: "" };
+                    localStorage.setItem("rq-survival-context-v1", JSON.stringify(next));
+                    return next;
+                  })}
+                >
+                  CLEAR AREA
+                </button>
+              )}
+            </div>
+          </div>
+
+          {firstContact && (
+            <div className="rq-first-contact-brief">
+              <div className="queen-core queen-core-small"><span /></div>
+              <div>
+                <span>FIRST CONTACT READY</span>
+                <strong>{survivalContext.area} · {getFocusOption(survivalContext.focus).label}</strong>
+                <p>Your brief is prepared below. Review the prompt, then run it. This first question creates an action — it does not award BIO-SCORE.</p>
+              </div>
+              <button type="button" onClick={() => setFirstContact(false)}>DISMISS</button>
+            </div>
+          )}
+
           {/* Messages */}
           <div ref={chatContainerRef} style={{
             flex: 1,
@@ -964,7 +1060,11 @@ To decrypt or scan target files:
                       : `[ RED QUEEN — ${msg.intel?.clearance.name || agentClearance.name} ANALYSIS ]`}
                   </div>
                   {msg.intel ? (
-                    <AgentResponseCard response={msg.intel} onFollowUp={setInput} />
+                    <AgentResponseCard
+                      response={msg.intel}
+                      onFollowUp={setInput}
+                      onStartReadiness={i === messages.length - 1 && scoreNum === 0 ? startReadinessBaseline : undefined}
+                    />
                   ) : (
                     <div className="message-bubble">
                       {renderContent(msg.content)}
@@ -1091,7 +1191,7 @@ To decrypt or scan target files:
             background: "#050505",
             borderTop: "1px solid var(--border)"
           }}>
-            {["What threats matter near me?", "Build a 72-hour blackout plan", "Audit my emergency kit", "How should I secure my wallet?", "Run a readiness decision drill"].map((hint) => (
+            {MODE_STARTERS[survivalContext.mode].map((hint) => (
               <button
                 key={hint}
                 onClick={() => setInput(hint)}

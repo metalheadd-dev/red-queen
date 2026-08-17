@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const RED_QUEEN_RESPONSE_SCHEMA = z.object({
   situation: z.string().min(1).max(320),
+  facts: z.array(z.string().min(1).max(260)).max(4),
   answer: z.string().min(1).max(1400),
+  uncertainty: z.string().min(1).max(360),
   action: z.string().min(1).max(420),
   urgency: z.enum(["NONE", "MONITOR", "PREPARE", "ACT_NOW"]),
   confidence: z.enum(["LOW", "MEDIUM", "HIGH"]),
@@ -59,8 +61,9 @@ export interface RedQueenClientResponse extends RedQueenAgentResponse {
 }
 
 export function formatAgentMessage(response: RedQueenAgentResponse) {
+  const facts = response.facts.length ? `\n\nVERIFIED FACTS:\n${response.facts.map((fact) => `- ${fact}`).join("\n")}` : "";
   const readiness = response.readiness.eligible
     ? `\n\nREADINESS: ${response.readiness.xp >= 0 ? "+" : ""}${response.readiness.xp} XP · ${response.readiness.reason}`
     : "";
-  return `${response.situation}\n\n${response.answer}\n\nNEXT ACTION: ${response.action}${readiness}`;
+  return `${response.situation}${facts}\n\nQUEEN ASSESSMENT: ${response.answer}\n\nUNCERTAINTY: ${response.uncertainty}\n\nNEXT ACTION: ${response.action}${readiness}`;
 }

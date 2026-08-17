@@ -5,6 +5,7 @@ import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
 interface AgentResponseCardProps {
   response: RedQueenClientResponse;
   onFollowUp: (question: string) => void;
+  onStartReadiness?: () => void;
 }
 
 const URGENCY_LABELS: Record<RedQueenClientResponse["urgency"], string> = {
@@ -20,7 +21,7 @@ const GROUNDING_LABELS: Record<RedQueenClientResponse["grounding"], string> = {
   SCENARIO_SIMULATION: "SCENARIO SIMULATION",
 };
 
-export default function AgentResponseCard({ response, onFollowUp }: AgentResponseCardProps) {
+export default function AgentResponseCard({ response, onFollowUp, onStartReadiness }: AgentResponseCardProps) {
   return (
     <div className="rq-response">
       <div className="rq-response__meta">
@@ -32,7 +33,21 @@ export default function AgentResponseCard({ response, onFollowUp }: AgentRespons
       </div>
 
       <div className="rq-response__situation">{response.situation}</div>
+
+      {response.facts.length > 0 && (
+        <div className="rq-facts">
+          <span>VERIFIED FACTS</span>
+          <ul>{response.facts.map((fact) => <li key={fact}>{fact}</li>)}</ul>
+        </div>
+      )}
+
+      <span className="rq-section-label">QUEEN ASSESSMENT</span>
       <div className="rq-response__answer">{response.answer}</div>
+
+      <div className="rq-uncertainty">
+        <span>UNCERTAINTY</span>
+        <p>{response.uncertainty}</p>
+      </div>
 
       <div className="rq-action">
         <span>NEXT BEST ACTION</span>
@@ -70,6 +85,17 @@ export default function AgentResponseCard({ response, onFollowUp }: AgentRespons
           ))}
         </div>
       </div>
+
+      {onStartReadiness && (
+        <div className="rq-readiness-bridge">
+          <div>
+            <span>NEXT LOOP</span>
+            <strong>Establish your readiness baseline</strong>
+            <p>RED QUEEN will present one decision at a time. BIO changes only after your answer is evaluated.</p>
+          </div>
+          <button type="button" onClick={onStartReadiness}>START 3-MIN DRILL</button>
+        </div>
+      )}
     </div>
   );
 }

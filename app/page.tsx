@@ -3,7 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import BootSequence from "@/components/BootSequence";
+import {
+  buildFirstContactPrompt,
+  getFocusOption,
+  sanitizeArea,
+  SURVIVAL_FOCUS_OPTIONS,
+  SurvivalFocus,
+} from "@/lib/survival-context";
 
 interface PulseData {
   codename: string;
@@ -76,6 +84,7 @@ function relativeTime(value?: string) {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const [booted, setBooted] = useState(false);
   const [pulse, setPulse] = useState<PulseData>(SENSOR_LIMITED);
   const [pulseLoading, setPulseLoading] = useState(true);
@@ -84,6 +93,9 @@ export default function HomePage() {
   const [mapLoading, setMapLoading] = useState(true);
   const [mapFilter, setMapFilter] = useState<"priority" | "all" | "verified">("priority");
   const [showStart, setShowStart] = useState(false);
+  const [startArea, setStartArea] = useState("");
+  const [startFocus, setStartFocus] = useState<SurvivalFocus>("LOCAL_THREATS");
+  const [startError, setStartError] = useState("");
 
   useEffect(() => {
     if (sessionStorage.getItem("rq-booted") === "1") setBooted(true);
@@ -131,8 +143,28 @@ export default function HomePage() {
   };
 
   const dismissStart = () => {
-    localStorage.setItem("rq-core-onboarding-v1", "done");
+    localStorage.setItem("rq-core-onboarding-v1", "skipped");
     setShowStart(false);
+  };
+
+  const beginFirstContact = () => {
+    const area = sanitizeArea(startArea);
+    if (area.length < 2) {
+      setStartError("Enter a city or region — never an exact address.");
+      return;
+    }
+    const focus = getFocusOption(startFocus);
+    const context = { area, focus: focus.id, mode: focus.mode } as const;
+    localStorage.setItem("rq-survival-context-v1", JSON.stringify(context));
+    localStorage.setItem("rq-core-onboarding-v1", "done");
+    const params = new URLSearchParams({
+      area,
+      focus: focus.id,
+      mode: focus.mode,
+      first: "1",
+      prompt: buildFirstContactPrompt(context),
+    });
+    router.push(`/terminal?${params.toString()}`);
   };
 
   if (!booted) return <BootSequence onComplete={finishBoot} />;
@@ -181,14 +213,42 @@ export default function HomePage() {
 
       {showStart && (
         <section className="container pulse-onboarding" aria-label="Start with Red Queen">
-          <div>
+          <div className="pulse-onboarding-copy">
             <span className="pulse-eyebrow">FIRST CONTACT // 60 SECONDS</span>
-            <h2>Start with one useful answer</h2>
-            <p>Tell RED QUEEN where you are and what you need to prepare for. She will explain the relevant signal, give you a first action, and begin your readiness profile.</p>
+            <h2>Get one useful action for your situation</h2>
+            <p>Choose a broad area and your immediate priority. RED QUEEN will separate live facts from general guidance and produce one action — without requesting an exact address.</p>
           </div>
-          <div className="pulse-onboarding-actions">
-            <Link className="btn btn-primary" href="/terminal">START WITH THE QUEEN</Link>
-            <button className="pulse-text-button" onClick={dismissStart}>I KNOW THE SYSTEM</button>
+          <div className="pulse-first-contact">
+            <label htmlFor="first-contact-area">CITY OR REGION</label>
+            <input
+              id="first-contact-area"
+              value={startArea}
+              onChange={(event) => { setStartArea(event.target.value); setStartError(""); }}
+              placeholder="Barcelona, Catalonia"
+              maxLength={80}
+              autoComplete="address-level2"
+            />
+            <span className="pulse-field-note">Saved on this device. Sent only with your RED QUEEN requests. Never enter a street address.</span>
+            <div className="pulse-focus-grid" role="radiogroup" aria-label="Preparedness priority">
+              {SURVIVAL_FOCUS_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={startFocus === option.id}
+                  className={startFocus === option.id ? "active" : ""}
+                  onClick={() => setStartFocus(option.id)}
+                >
+                  <strong>{option.label}</strong>
+                  <span>{option.description}</span>
+                </button>
+              ))}
+            </div>
+            {startError && <div className="pulse-field-error" role="alert">{startError}</div>}
+            <div className="pulse-onboarding-actions">
+              <button className="btn btn-primary" type="button" onClick={beginFirstContact}>RUN FIRST BRIEF</button>
+              <button className="pulse-text-button" type="button" onClick={dismissStart}>SKIP FOR NOW</button>
+            </div>
           </div>
         </section>
       )}

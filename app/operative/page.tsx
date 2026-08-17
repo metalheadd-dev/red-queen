@@ -11,6 +11,7 @@ import { getClearanceLevel, DEFAULT_STATS, parseStatsFromAI } from "@/lib/progre
 import { Connection, PublicKey, TransactionMessage, VersionedTransaction, ComputeBudgetProgram, TransactionInstruction } from "@solana/web3.js";
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferCheckedInstruction } from "@solana/spl-token";
 import { isValidSolanaPublicKey, getWorkingConnection } from "@/lib/solana";
+import { getThreatClearance } from "@/lib/threat-token";
 
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump");
 
@@ -742,6 +743,7 @@ export default function OperativeProfilePage() {
   const displayScore = scoreNum ?? 0;
   const stats = profile?.stats || DEFAULT_STATS;
   const clearance = getClearanceLevel(displayScore);
+  const tokenClearance = getThreatClearance(threatBalance || 0);
   const scoreColor = clearance.color;
 
   const filteredScenarios = activeFilter === "ALL"
@@ -1111,12 +1113,12 @@ export default function OperativeProfilePage() {
                 [ SYSTEM DIAGNOSTIC XP REPORT ]
               </div>
               <h3 style={{ fontFamily: "var(--mono)", fontSize: "20px", margin: 0, textTransform: "uppercase" }}>
-                🛡️ PERMANENT SYSTEM CLEARANCE
+                PERMANENT EXPERIENCE RECORD
               </h3>
             </div>
 
             <p style={{ fontSize: "14.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
-              <strong>What is this?</strong> Your Level and Experience Points (XP) represent your permanent training record on the platform. You earn XP by checking in, talking to the terminal, and performing audits. This score <strong>never decreases or decays</strong>. Raising your XP unlocks higher clearance tiers.
+              <strong>What is this?</strong> XP records completed drills, preparedness decisions and structured audits. Ordinary questions do not earn experience. XP is permanent; BIO-SCORE separately measures current readiness across seven domains.
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }} className="responsive-grid-2">
@@ -1147,7 +1149,7 @@ export default function OperativeProfilePage() {
                     borderRadius: "2px",
                     fontWeight: "bold"
                   }}>
-                    $THREAT HODL: {threatBalance && threatBalance > 0 ? "2.0x BOOST" : "1.0x BASE"}
+                    $THREAT: {tokenClearance.name} ×{tokenClearance.readinessMultiplier.toFixed(2)} EARNED XP
                   </span>
                   <span style={{
                     fontFamily: "var(--mono)",
@@ -1159,13 +1161,7 @@ export default function OperativeProfilePage() {
                     borderRadius: "2px",
                     fontWeight: "bold"
                   }}>
-                    CLEARANCE: {
-                      stats.level >= 5 ? "2.0x BOOST" : 
-                      stats.level >= 4 ? "1.75x BOOST" : 
-                      stats.level >= 3 ? "1.5x BOOST" : 
-                      stats.level >= 2 ? "1.25x BOOST" : 
-                      "1.0x BASE"
-                    }
+                    READINESS LEVEL: {stats.level}
                   </span>
                   <span style={{
                     fontFamily: "var(--mono)",
@@ -1177,24 +1173,19 @@ export default function OperativeProfilePage() {
                     borderRadius: "2px",
                     fontWeight: "bold"
                   }}>
-                    COMBINED: {((threatBalance && threatBalance > 0 ? 2.0 : 1.0) * 
-                      (stats.level >= 5 ? 2.0 : 
-                       stats.level >= 4 ? 1.75 : 
-                       stats.level >= 3 ? 1.5 : 
-                       stats.level >= 2 ? 1.25 : 
-                       1.0)).toFixed(2)}x XP
+                    BIO-SCORE: {displayScore}%
                   </span>
                 </div>
 
                 <div style={{ fontFamily: "var(--sans)", fontSize: "13.5px", color: "var(--text-dim)", lineHeight: "1.6" }}>
-                  Permanently track training metrics in the database. Engage in terminal actions, audits, and checks to increase system clearance. Permanent status <strong>never decays or decreases</strong> over time.
+                  Complete decision drills and preparedness actions to build an evidence-based record. Token holdings can modestly multiply XP that was actually earned; they never create readiness by themselves.
                 </div>
               </div>
 
               {/* Right Column: Clearance Tier Unlock checklist */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px" }}>
-                  [ CLEARANCE TIER LOCKS ]
+                  [ EXPERIENCE RANKS ]
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontFamily: "var(--mono)", fontSize: "12.5px" }}>
                   {[
@@ -1328,7 +1319,7 @@ export default function OperativeProfilePage() {
                 </div>
 
                 <p style={{ fontSize: "15.5px", color: "var(--text-dim)", lineHeight: "1.7", marginBottom: "24px" }}>
-              <strong>What is this?</strong> Your BIO-SCORE is a dynamic rating between 0% and 100% that measures your current survival preparedness. It is calculated by averaging your 7 individual sub-stats. <strong>Warning: If you do not interact with the terminal for 24 hours, this score will decay by 5% per day.</strong> Check in daily to stop decay and restore your stats.
+              <strong>What is this?</strong> Your BIO-SCORE is a 0-100 readiness rating calculated from seven preparedness domains. It changes through structured drills, decisions and completed preparedness evidence — not because the agent printed a score in ordinary chat.
                 </p>
 
                 {(() => {
@@ -1362,9 +1353,9 @@ export default function OperativeProfilePage() {
                         <p style={{ fontFamily: "var(--sans)", fontSize: "14px", color: "var(--text-dim)", maxWidth: "420px", lineHeight: "1.6", margin: "0 0 24px 0" }}>
                           Operative cognitive parameters and survival readiness ratings are not yet established. Speak to the terminal interface to execute active check-ins and establish calibration parameters.
                         </p>
-                        <Link href="/terminal" style={{ textDecoration: "none" }}>
+                        <Link href={`/terminal?mode=SIMULATE&prompt=${encodeURIComponent("Run a short survival readiness baseline. Give me one realistic decision scenario at a time, wait for my answer, then score only the evidence in my decision.")}`} style={{ textDecoration: "none" }}>
                           <button className="btn btn-primary" style={{ padding: "10px 24px", fontSize: "12px", fontWeight: "bold", fontFamily: "var(--mono)" }}>
-                            TALK TO THE TERMINAL TO BEGIN CALIBRATION
+                            START READINESS BASELINE
                           </button>
                         </Link>
                       </div>
