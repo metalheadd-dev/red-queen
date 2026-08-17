@@ -41,7 +41,16 @@ export default function PrivacyPage() {
             Solvival Corp does not sell or rent personal identity data, wallet addresses, or AI conversation content to commercial data brokers.
           </p>
 
-          <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>4. KEY SECURITY PROTOCOLS</h2>
+          <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>4. SERVICE PROVIDERS</h2>
+          <p>
+            Red Queen uses infrastructure providers to operate selected features:
+            <br />• OpenAI processes the prompts and context you send to RED QUEEN.
+            <br />• Supabase provides account authentication and persistent account data.
+            <br />• The configured geocoding provider receives a city or region only when you explicitly set Local View. The current default is OpenStreetMap Nominatim. Do not submit an exact address or confidential location.
+            <br />• Solana RPC providers process public-chain reads such as wallet and token balances.
+          </p>
+
+          <h2 style={{ color: "#fff", fontSize: "18px", marginTop: "32px", marginBottom: "12px" }}>5. KEY SECURITY PROTOCOLS</h2>
           <p>
             All communications are encrypted in transit and logged in a secure database infrastructure. Solvival Corp does NOT collect, prompt, or store your private key or seed phrase; all wallet signatures are executed client-side.
           </p>

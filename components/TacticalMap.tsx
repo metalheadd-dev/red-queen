@@ -21,6 +21,17 @@ interface TacticalMapProps {
   nodes: MapNode[];
   onSelectNode: (node: MapNode) => void;
   selectedNode: MapNode | null;
+  focus?: { lat: number; lng: number; label: string } | null;
+  focusMode?: boolean;
+}
+
+function escapeHtml(value: string | number) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function getNodeColor(node: MapNode): string {
@@ -42,16 +53,41 @@ function getSectorLabel(node: MapNode): string {
   return node.type;
 }
 
-export default function TacticalMap({ nodes, onSelectNode, selectedNode }: TacticalMapProps) {
+export default function TacticalMap({ nodes, onSelectNode, selectedNode, focus = null, focusMode = false }: TacticalMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const focusMarkerRef = useRef<maplibregl.Marker | null>(null);
   const nodesRef = useRef<MapNode[]>(nodes);
   const onSelectRef = useRef(onSelectNode);
+  const focusModeRef = useRef(focusMode);
+  const focusRef = useRef(focus);
   const [mapError, setMapError] = useState<string | null>(null);
 
   nodesRef.current = nodes;
   onSelectRef.current = onSelectNode;
+  focusModeRef.current = focusMode;
+  focusRef.current = focus;
+
+  function rebuildFocus(map: maplibregl.Map) {
+    focusMarkerRef.current?.remove();
+    focusMarkerRef.current = null;
+    const currentFocus = focusRef.current;
+    if (!currentFocus || !Number.isFinite(currentFocus.lat) || !Number.isFinite(currentFocus.lng)) return;
+
+    const element = document.createElement("div");
+    element.className = "tactical-focus-marker";
+    element.setAttribute("aria-label", `Broad monitoring area: ${currentFocus.label}`);
+    element.innerHTML = '<span></span><i></i>';
+    focusMarkerRef.current = new maplibregl.Marker({ element, anchor: "center" })
+      .setLngLat([currentFocus.lng, currentFocus.lat])
+      .setPopup(new maplibregl.Popup({ offset: 20, closeButton: false }).setText(`BROAD AREA // ${currentFocus.label}`))
+      .addTo(map);
+
+    if (focusModeRef.current) {
+      try { map.flyTo({ center: [currentFocus.lng, currentFocus.lat], zoom: 4.6, pitch: 28, speed: 1.1, essential: true }); } catch {}
+    }
+  }
 
   function rebuildMarkers(map: maplibregl.Map) {
     markersRef.current.forEach(m => m.remove());
@@ -80,11 +116,11 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
           className: "tactical-popup tactical-popup-" + (node.category || "realistic")
         }).setHTML(`
           <div style="font-family:var(--mono);font-size:10px;color:${color};border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:4px;margin-bottom:4px;text-transform:uppercase;">
-            [${sectorLabel} // ${node.region}]
+            [${escapeHtml(sectorLabel)} // ${escapeHtml(node.region)}]
           </div>
-          <div style="font-family:var(--sans);font-size:12px;font-weight:bold;color:#fff;">${node.name}</div>
+          <div style="font-family:var(--sans);font-size:12px;font-weight:bold;color:#fff;">${escapeHtml(node.name)}</div>
           <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:4px;">
-            Severity: <span style="color:${color};font-weight:bold;">${node.severity}%</span>
+            Severity: <span style="color:${color};font-weight:bold;">${escapeHtml(node.severity)}%</span>
           </div>
         `);
 
@@ -106,7 +142,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
       }
     });
 
-    if (nodesRef.current.length > 25) {
+    if (nodesRef.current.length > 25 && !focusModeRef.current) {
       try { map.flyTo({ center: [15, 20], zoom: 1.4, speed: 1.0, essential: true }); } catch {}
     }
   }
@@ -129,7 +165,10 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
       map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
 
       map.on("load", () => {
-        setTimeout(() => rebuildMarkers(map), 100);
+        setTimeout(() => {
+          rebuildMarkers(map);
+          rebuildFocus(map);
+        }, 100);
       });
 
       return () => { map.remove(); };
@@ -162,6 +201,12 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
     } catch {}
   }, [selectedNode]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    rebuildFocus(map);
+  }, [focus, focusMode]);
+
   if (mapError) {
     return (
       <div style={{
@@ -193,12 +238,16 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode }: Tacti
   }
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "500px", borderRadius: "2px", overflow: "hidden" }}>
+    <div style={{ position: "relative", width: "100%", height: "clamp(540px, 68vh, 760px)", borderRadius: "2px", overflow: "hidden" }}>
       <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
       <style jsx global>{`
         .tactical-marker { display:flex;align-items:center;justify-content:center; }
         .pulse-ring { position:absolute;width:24px;height:24px;border:2px solid #ff4d4d;border-radius:50%;animation:marker-pulse 2.5s infinite ease-out; }
         .marker-core { width:8px;height:8px;border-radius:50%;z-index:2; }
+        .tactical-focus-marker { position:relative;width:34px;height:34px;display:grid;place-items:center;cursor:help; }
+        .tactical-focus-marker > span { position:absolute;inset:0;border:1px solid rgba(112,199,232,.85);border-radius:50%;box-shadow:0 0 20px rgba(112,199,232,.5);animation:focus-pulse 2.8s infinite ease-out; }
+        .tactical-focus-marker > i { width:10px;height:10px;border:2px solid #fff;border-radius:50%;background:#70c7e8;box-shadow:0 0 16px #70c7e8; }
+        @keyframes focus-pulse { 0%,100% { transform:scale(.72);opacity:.85; } 70% { transform:scale(1.65);opacity:.12; } }
         @keyframes marker-pulse {
           0%   { transform:scale(0.3);opacity:0.8; }
           70%  { transform:scale(1.8);opacity:0; }

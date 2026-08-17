@@ -5,11 +5,13 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BootSequence from "@/components/BootSequence";
+import DailyActionPanel from "@/components/DailyActionPanel";
 import {
   buildFirstContactPrompt,
   getFocusOption,
   sanitizeArea,
   SURVIVAL_FOCUS_OPTIONS,
+  SurvivalContext,
   SurvivalFocus,
 } from "@/lib/survival-context";
 
@@ -83,6 +85,16 @@ function relativeTime(value?: string) {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
+function distanceInKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const radius = 6_371;
+  const toRadians = (value: number) => value * Math.PI / 180;
+  const latitudeDelta = toRadians(b.lat - a.lat);
+  const longitudeDelta = toRadians(b.lng - a.lng);
+  const value = Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(toRadians(a.lat)) * Math.cos(toRadians(b.lat)) * Math.sin(longitudeDelta / 2) ** 2;
+  return radius * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+}
+
 export default function HomePage() {
   const router = useRouter();
   const [booted, setBooted] = useState(false);
@@ -91,11 +103,13 @@ export default function HomePage() {
   const [nodes, setNodes] = useState<MapNode[]>([]);
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
   const [mapLoading, setMapLoading] = useState(true);
-  const [mapFilter, setMapFilter] = useState<"priority" | "all" | "verified">("priority");
+  const [mapFilter, setMapFilter] = useState<"local" | "priority" | "all" | "verified">("priority");
   const [showStart, setShowStart] = useState(false);
   const [startArea, setStartArea] = useState("");
   const [startFocus, setStartFocus] = useState<SurvivalFocus>("LOCAL_THREATS");
   const [startError, setStartError] = useState("");
+  const [startResolving, setStartResolving] = useState(false);
+  const [localContext, setLocalContext] = useState<SurvivalContext | null>(null);
 
   useEffect(() => {
     if (sessionStorage.getItem("rq-booted") === "1") setBooted(true);
@@ -103,7 +117,18 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!booted) return;
-    setShowStart(localStorage.getItem("rq-core-onboarding-v1") !== "done");
+    const onboardingState = localStorage.getItem("rq-core-onboarding-v1");
+    setShowStart(onboardingState !== "done" && onboardingState !== "skipped");
+    try {
+      const saved = JSON.parse(localStorage.getItem("rq-survival-context-v1") || "null") as SurvivalContext | null;
+      if (saved?.area) {
+        setLocalContext(saved);
+        setStartArea(saved.area);
+        if (Number.isFinite(saved.location?.lat) && Number.isFinite(saved.location?.lng)) setMapFilter("local");
+      }
+    } catch {
+      setLocalContext(null);
+    }
 
     async function loadIntelligence() {
       setPulseLoading(true);
@@ -132,10 +157,22 @@ export default function HomePage() {
   }, [booted]);
 
   const visibleNodes = useMemo(() => {
+    if (mapFilter === "local" && localContext?.location) {
+      return nodes
+        .filter((node) => distanceInKm(localContext.location!, node) <= 1_000)
+        .sort((a, b) => distanceInKm(localContext.location!, a) - distanceInKm(localContext.location!, b));
+    }
     if (mapFilter === "priority") return nodes.filter((node) => node.severity >= 60);
     if (mapFilter === "verified") return nodes.filter((node) => node.verified);
     return nodes;
-  }, [mapFilter, nodes]);
+  }, [localContext, mapFilter, nodes]);
+
+  const nearbyNodes = useMemo(() => {
+    if (!localContext?.location) return [];
+    return nodes
+      .filter((node) => distanceInKm(localContext.location!, node) <= 1_000)
+      .sort((a, b) => distanceInKm(localContext.location!, a) - distanceInKm(localContext.location!, b));
+  }, [localContext, nodes]);
 
   const finishBoot = () => {
     sessionStorage.setItem("rq-booted", "1");
@@ -147,16 +184,33 @@ export default function HomePage() {
     setShowStart(false);
   };
 
-  const beginFirstContact = () => {
+  async function resolveBroadArea(area: string): Promise<SurvivalContext["location"]> {
+    const response = await fetch(`/api/location/resolve?q=${encodeURIComponent(area)}`);
+    const data = await response.json();
+    if (!response.ok || !Number.isFinite(data.lat) || !Number.isFinite(data.lng)) {
+      throw new Error(data.error || "Broad area could not be resolved.");
+    }
+    return { lat: data.lat, lng: data.lng, label: data.label || area };
+  }
+
+  const beginFirstContact = async () => {
     const area = sanitizeArea(startArea);
     if (area.length < 2) {
       setStartError("Enter a city or region — never an exact address.");
       return;
     }
+    setStartResolving(true);
     const focus = getFocusOption(startFocus);
-    const context = { area, focus: focus.id, mode: focus.mode } as const;
+    let location: SurvivalContext["location"];
+    try {
+      location = await resolveBroadArea(area);
+    } catch {
+      location = undefined;
+    }
+    const context: SurvivalContext = { area, focus: focus.id, mode: focus.mode, location };
     localStorage.setItem("rq-survival-context-v1", JSON.stringify(context));
     localStorage.setItem("rq-core-onboarding-v1", "done");
+    setLocalContext(context);
     const params = new URLSearchParams({
       area,
       focus: focus.id,
@@ -165,12 +219,48 @@ export default function HomePage() {
       prompt: buildFirstContactPrompt(context),
     });
     router.push(`/terminal?${params.toString()}`);
+    setStartResolving(false);
   };
+
+  async function activateLocalView() {
+    const area = sanitizeArea(startArea || localContext?.area || "");
+    if (area.length < 2) {
+      setStartError("Enter a city or region — never an exact address.");
+      return;
+    }
+    setStartResolving(true);
+    setStartError("");
+    try {
+      const location = await resolveBroadArea(area);
+      const context: SurvivalContext = {
+        area,
+        focus: localContext?.focus || "LOCAL_THREATS",
+        mode: localContext?.mode || "MONITOR",
+        location,
+      };
+      localStorage.setItem("rq-survival-context-v1", JSON.stringify(context));
+      setLocalContext(context);
+      setMapFilter("local");
+    } catch (error) {
+      setStartError(error instanceof Error ? error.message : "Area lookup is temporarily unavailable.");
+    } finally {
+      setStartResolving(false);
+    }
+  }
 
   if (!booted) return <BootSequence onComplete={finishBoot} />;
 
-  const signalCount = pulse.signalCount ?? nodes.length;
   const pulseDate = relativeTime(pulse.generatedAt || pulse.publishDate);
+  const hasResolvedArea = Boolean(localContext?.area && localContext.location);
+  const globalPriorityCount = nodes.filter((node) => node.severity >= 60).length;
+  const localHeadline = hasResolvedArea
+    ? nearbyNodes.length
+      ? `${localContext!.area}: ${nearbyNodes.length} nearby signal${nearbyNodes.length === 1 ? "" : "s"} deserve attention.`
+      : `${localContext!.area}: no nearby verified escalation detected.`
+    : `${nodes.length} active signals monitored globally.`;
+  const mapFilters: Array<"local" | "priority" | "all" | "verified"> = hasResolvedArea
+    ? ["local", "priority", "all", "verified"]
+    : ["priority", "all", "verified"];
 
   return (
     <div className="pulse-page">
@@ -246,12 +336,16 @@ export default function HomePage() {
             </div>
             {startError && <div className="pulse-field-error" role="alert">{startError}</div>}
             <div className="pulse-onboarding-actions">
-              <button className="btn btn-primary" type="button" onClick={beginFirstContact}>RUN FIRST BRIEF</button>
-              <button className="pulse-text-button" type="button" onClick={dismissStart}>SKIP FOR NOW</button>
+              <button className="btn btn-primary" type="button" onClick={() => void beginFirstContact()} disabled={startResolving}>{startResolving ? "LOCATING BROAD AREA..." : "RUN FIRST BRIEF"}</button>
+              <button className="pulse-text-button" type="button" onClick={dismissStart}>EXPLORE WITHOUT SETUP</button>
             </div>
           </div>
         </section>
       )}
+
+      <div className="container pulse-action-plan">
+        <DailyActionPanel context="PULSE" />
+      </div>
 
       <section className="container pulse-daily" aria-busy={pulseLoading}>
         <div className="pulse-section-heading">
@@ -299,26 +393,65 @@ export default function HomePage() {
       <section id="live-map" className="container pulse-map-section">
         <div className="pulse-section-heading">
           <div>
-            <span className="pulse-eyebrow">LIVE SIGNAL FIELD</span>
-            <h2>{mapLoading ? "Scanning global sources" : `${nodes.length} active signals monitored`}</h2>
-            <p>Live telemetry is kept separate from simulations and scenario-library content.</p>
+            <span className="pulse-eyebrow">DAILY INTELLIGENCE PULSE // {hasResolvedArea ? "LOCAL RELEVANCE" : "GLOBAL VIEW"}</span>
+            <h2>{mapLoading ? "Scanning verified sources" : localHeadline}</h2>
+            <p>{hasResolvedArea
+              ? `Broad-area relevance uses a 1,000 km monitoring radius. ${globalPriorityCount} priority signals remain visible in the global view.`
+              : "Set a broad city or region during First Contact to add local relevance. Live telemetry stays separate from simulations and archive content."}</p>
           </div>
           <div className="pulse-filter-group" aria-label="Map filters">
-            {(["priority", "all", "verified"] as const).map((filter) => (
-              <button key={filter} className={mapFilter === filter ? "active" : ""} onClick={() => setMapFilter(filter)}>
-                {filter === "priority" ? "PRIORITY" : filter === "all" ? "ALL LIVE" : "VERIFIED"}
+            {mapFilters.map((filter) => (
+              <button
+                key={filter}
+                className={mapFilter === filter ? "active" : ""}
+                onClick={() => {
+                  setMapFilter(filter);
+                  if (filter === "local") setSelectedNode(nearbyNodes[0] || null);
+                }}
+              >
+                {filter === "local" ? "RELEVANT" : filter === "priority" ? "PRIORITY" : filter === "all" ? "ALL LIVE" : "VERIFIED"}
               </button>
             ))}
           </div>
         </div>
 
+        {!hasResolvedArea && (
+          <div className="pulse-local-setup">
+            <div><span>LOCAL RELEVANCE</span><strong>Center the signal field on a broad area.</strong><p>City or region only. RED QUEEN does not need an exact address.</p></div>
+            <input
+              value={startArea}
+              onChange={(event) => { setStartArea(event.target.value); setStartError(""); }}
+              placeholder="Barcelona, Spain"
+              maxLength={80}
+              aria-label="City or region for local signal relevance"
+            />
+            <button type="button" onClick={() => void activateLocalView()} disabled={startResolving}>{startResolving ? "RESOLVING..." : "SET LOCAL VIEW"}</button>
+            {startError && <small role="alert">{startError}</small>}
+          </div>
+        )}
+
+        {hasResolvedArea && (
+          <div className="pulse-local-proof">
+            <div><span>YOUR BROAD AREA</span><strong>{localContext!.area}</strong></div>
+            <div><span>NEARBY SIGNALS</span><strong>{nearbyNodes.length}</strong></div>
+            <div><span>PRIVACY MODE</span><strong>NO EXACT ADDRESS</strong></div>
+            <small>Area resolved with © OpenStreetMap contributors · absence of a mapped signal is not proof of safety.</small>
+          </div>
+        )}
+
         <div className="pulse-map-shell">
           {mapLoading ? (
             <div className="pulse-map-loading">CONNECTING TO VERIFIED SIGNAL GRID...</div>
-          ) : visibleNodes.length ? (
-            <TacticalMap nodes={visibleNodes} onSelectNode={setSelectedNode} selectedNode={selectedNode} />
+          ) : nodes.length || localContext?.location ? (
+            <TacticalMap
+              nodes={visibleNodes}
+              onSelectNode={setSelectedNode}
+              selectedNode={selectedNode}
+              focus={localContext?.location || null}
+              focusMode={mapFilter === "local"}
+            />
           ) : (
-            <div className="pulse-map-loading">NO PRIORITY SIGNALS IN THIS VIEW // SELECT ALL LIVE</div>
+            <div className="pulse-map-loading">NO VERIFIED SIGNALS AVAILABLE // CHECK OFFICIAL LOCAL ALERTS</div>
           )}
         </div>
 
@@ -332,6 +465,12 @@ export default function HomePage() {
             <div className="pulse-signal-side">
               <strong>{selectedNode.severity}</strong><span>RELEVANCE INDEX</span>
               <small>{selectedNode.source || "SOURCE PENDING"} · {selectedNode.region}</small>
+              <Link href={`/terminal?${new URLSearchParams({
+                mode: "ANALYZE",
+                focus: "LOCAL_THREATS",
+                area: localContext?.area || "",
+                prompt: `Explain the relevance of this live signal to my context: ${selectedNode.name}. Separate the verified source fact from assessment and give me one safe action.`,
+              }).toString()}`}>ASK QUEEN ABOUT THIS →</Link>
             </div>
           </article>
         )}
@@ -362,7 +501,7 @@ export default function HomePage() {
         <div className="pulse-utility-grid">
           <div><span>LIVE</span><strong>On-chain holder proof</strong><p>Canonical SPL balance, signed identity and measurable agent clearance.</p></div>
           <div><span>BETA</span><strong>x402 compute payments</strong><p>Exact USDC pricing for specific premium AI operations on Solana.</p></div>
-          <div><span>NEXT</span><strong>Seeker + Blinks</strong><p>Mobile wallet access and shareable RED QUEEN intelligence actions.</p></div>
+          <div><span>AFTER CORE</span><strong>Solana Actions / Blinks</strong><p>Shareable RED QUEEN protocols after the daily product loop is stable.</p></div>
         </div>
         <Link className="pulse-inline-link" href="/network-clearance">OPEN SOLANA CONTROL PLANE →</Link>
       </section>

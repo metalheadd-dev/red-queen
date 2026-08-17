@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import DailyActionPanel from "@/components/DailyActionPanel";
 import {
   PREPAREDNESS_CHECKLIST,
   PREPAREDNESS_DOMAINS,
@@ -68,7 +69,8 @@ export default function SurvivalKitPage() {
     setArea(safeArea);
     try {
       const saved = JSON.parse(localStorage.getItem(CONTEXT_STORAGE_KEY) || "{}");
-      localStorage.setItem(CONTEXT_STORAGE_KEY, JSON.stringify({ ...saved, area: safeArea }));
+      const sameArea = sanitizeArea(typeof saved.area === "string" ? saved.area : "") === safeArea;
+      localStorage.setItem(CONTEXT_STORAGE_KEY, JSON.stringify({ ...saved, area: safeArea, location: sameArea ? saved.location : undefined }));
     } catch {
       localStorage.setItem(CONTEXT_STORAGE_KEY, JSON.stringify({ area: safeArea, focus: "HOUSEHOLD", mode: "PREPARE" }));
     }
@@ -126,21 +128,23 @@ export default function SurvivalKitPage() {
         </div>
       </header>
 
-      <main className="container prepare-main">
+      <div className="container prepare-main">
         <section className="prepare-trust-strip">
           <strong>SELF-CHECK ≠ BIO-SCORE</strong>
           <p>Checklist progress stays in this browser. It becomes readiness evidence only after an evaluated Queen drill or verified action.</p>
           <Link href={terminalHref(PREPAREDNESS_PROTOCOLS[5].prompt, "SIMULATE")}>RUN READINESS DRILL →</Link>
         </section>
 
+        <DailyActionPanel context="PREPARE" />
+
         <section className="prepare-next-action">
           <div className="queen-core queen-core-small"><span /></div>
           <div>
-            <span>RED QUEEN // NEXT BEST ACTION</span>
+            <span>BASELINE // NEXT OPEN GAP</span>
             <h2>{nextItem ? nextItem.title : "Audit the baseline you completed"}</h2>
             <p>{nextItem?.evidence || "A completed list is only useful if the assumptions still match your household and local risks."}</p>
           </div>
-          <Link href={terminalHref(nextActionPrompt)}>ADAPT THIS ACTION →</Link>
+          <Link href={terminalHref(nextActionPrompt)}>ASK QUEEN TO ADAPT →</Link>
         </section>
 
         <div className="prepare-layout">
@@ -231,7 +235,7 @@ export default function SurvivalKitPage() {
             ))}
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 }

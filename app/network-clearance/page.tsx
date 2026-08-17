@@ -79,8 +79,8 @@ export default function NetworkClearancePage() {
             <article className="is-live"><span>LIVE</span><strong>Sign In With Solana</strong><p>Domain-bound, timestamped wallet authentication through Supabase Web3 Auth and the connected wallet adapter.</p></article>
             <article className="is-live"><span>LIVE</span><strong>SPL holder proof</strong><p>Server-side canonical mint read, aggregated token accounts, confirmed commitment, and fail-closed persistence.</p></article>
             <article className="is-beta"><span>BETA</span><strong>x402 exact SVM</strong><p>USDC-gated HTTP resources with exact prices. Available when the production facilitator and receiving wallet are configured.</p></article>
-            <article className="is-next"><span>NEXT</span><strong>Seeker + Mobile Wallet Adapter</strong><p>Local Android wallet connection for the existing Seeker build, without browser-extension assumptions.</p></article>
-            <article className="is-next"><span>NEXT</span><strong>Solana Actions / Blinks</strong><p>Share a verified RED QUEEN protocol or paid intelligence action as a wallet-readable link from X and mobile.</p></article>
+            <article className="is-next"><span>AFTER CORE</span><strong>Solana Actions / Blinks</strong><p>Share a verified RED QUEEN protocol or paid intelligence action after the daily web loop is stable.</p></article>
+            <article className="is-research"><span>LATER</span><strong>Seeker + Mobile Wallet Adapter</strong><p>Deferred until the web product, agent value and payment flow are production-ready.</p></article>
             <article className="is-research"><span>RESEARCH</span><strong>Private readiness credentials</strong><p>Only if privacy can be preserved. Personal survival data will not be pushed on-chain for cosmetic gamification.</p></article>
           </div>
         </section>

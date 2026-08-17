@@ -11,6 +11,11 @@ export interface SurvivalContext {
   area: string;
   focus: SurvivalFocus;
   mode: AgentMode;
+  location?: {
+    lat: number;
+    lng: number;
+    label: string;
+  };
 }
 
 export const AGENT_MODES: Array<{ id: AgentMode; label: string; description: string }> = [

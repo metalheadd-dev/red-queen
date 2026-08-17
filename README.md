@@ -8,9 +8,9 @@ Production: [redqueen.space](https://redqueen.space) · X: [@redqueen_agent](htt
 
 ## Core product loop
 
-1. **Detect** — read a daily intelligence pulse and explore verified signals on the live map.
+1. **Detect** — read a broad-area Local Pulse and explore verified signals on the live map.
 2. **Understand** — ask RED QUEEN what a signal means for a broad region, household, device, or wallet.
-3. **Prepare** — turn analysis into one practical action, checklist, or 72-hour protocol.
+3. **Prepare** — save one Queen action into My Action Plan, complete it, or adapt it into a checklist or 72-hour protocol.
 4. **Improve** — build BIO-SCORE only through evaluated decisions and demonstrated preparedness evidence.
 
 | Route | Product role |
@@ -23,6 +23,8 @@ Production: [redqueen.space](https://redqueen.space) · X: [@redqueen_agent](htt
 | `/network-clearance` | Solana control plane and live `$THREAT` utility proof |
 
 The unfinished Operations game is intentionally disabled and excluded from the current product navigation.
+
+Local Pulse resolves only a user-entered city or region, never an exact address. Broad-area geocoding is user-triggered, cached, provider-swappable, and currently uses OpenStreetMap Nominatim with attribution. The public endpoint is suitable only for moderate use under its usage policy; production scale should use a dedicated or commercial provider.
 
 ## Intelligence trust contract
 
@@ -69,8 +71,8 @@ Official references: [Solana Actions and Blinks](https://solana.com/developers/g
 
 ## Next Solana integrations
 
-- Mobile Wallet Adapter for the Seeker Android build.
-- Solana Actions/Blinks for shareable RED QUEEN protocols and paid intelligence actions.
+- Solana Actions/Blinks for shareable RED QUEEN protocols and paid intelligence actions, after the core daily loop is stable.
+- Mobile Wallet Adapter and the Seeker Android build are intentionally deferred until the web product is production-ready.
 - Holder-specific alert channels and compute allowances.
 - Privacy-preserving credentials only if readiness data can remain private by design.
 

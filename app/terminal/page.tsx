@@ -12,6 +12,7 @@ import { getAssociatedTokenAddress, createTransferCheckedInstruction } from "@so
 import { getWorkingConnection } from "@/lib/solana";
 import AgentResponseCard from "@/components/AgentResponseCard";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
+import { createDailyAction, DAILY_ACTION_EVENT, DAILY_ACTION_STORAGE_KEY, parseDailyAction } from "@/lib/daily-action";
 import {
   AGENT_MODES,
   AgentMode,
@@ -466,6 +467,7 @@ export default function TerminalPage() {
     mode: "ANALYZE",
   });
   const [firstContact, setFirstContact] = useState(false);
+  const [savedActionText, setSavedActionText] = useState("");
   const [apocalypticName, setApocalypticName] = useState<string>("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -499,7 +501,18 @@ export default function TerminalPage() {
     const rawMode = params.get("mode") || stored.mode;
     const focus = isSurvivalFocus(rawFocus) ? rawFocus : "LOCAL_THREATS";
     const mode = isAgentMode(rawMode) ? rawMode : getFocusOption(focus).mode;
-    const nextContext: SurvivalContext = { area: queryArea || storedArea, focus, mode };
+    const storedLocation = stored.location
+      && Number.isFinite(stored.location.lat)
+      && Number.isFinite(stored.location.lng)
+      && typeof stored.location.label === "string"
+      ? stored.location
+      : undefined;
+    const nextContext: SurvivalContext = {
+      area: queryArea || storedArea,
+      focus,
+      mode,
+      location: queryArea && queryArea !== storedArea ? undefined : storedLocation,
+    };
 
     setSurvivalContext(nextContext);
     setFirstContact(params.get("first") === "1");
@@ -714,6 +727,11 @@ export default function TerminalPage() {
       return lines;
     }
   }, [shareModalData, apocalypticName, currentScore, hasVerifiedIdentity, agentClearance, stats, scoreNum]);
+
+  useEffect(() => {
+    const savedAction = parseDailyAction(localStorage.getItem(DAILY_ACTION_STORAGE_KEY));
+    setSavedActionText(savedAction?.action || "");
+  }, []);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -941,6 +959,13 @@ To decrypt or scan target files:
     setFirstContact(false);
   }
 
+  function saveAction(response: RedQueenClientResponse) {
+    const action = createDailyAction(response, survivalContext);
+    localStorage.setItem(DAILY_ACTION_STORAGE_KEY, JSON.stringify(action));
+    setSavedActionText(action.action);
+    window.dispatchEvent(new Event(DAILY_ACTION_EVENT));
+  }
+
 
   return (
     <div style={{ padding: "60px 0 0", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -1010,7 +1035,7 @@ To decrypt or scan target files:
                 <button
                   type="button"
                   onClick={() => setSurvivalContext((current) => {
-                    const next = { ...current, area: "" };
+                    const next = { ...current, area: "", location: undefined };
                     localStorage.setItem("rq-survival-context-v1", JSON.stringify(next));
                     return next;
                   })}
@@ -1064,6 +1089,8 @@ To decrypt or scan target files:
                       response={msg.intel}
                       onFollowUp={setInput}
                       onStartReadiness={i === messages.length - 1 && scoreNum === 0 ? startReadinessBaseline : undefined}
+                      onSaveAction={() => saveAction(msg.intel!)}
+                      actionSaved={savedActionText === msg.intel.action}
                     />
                   ) : (
                     <div className="message-bubble">

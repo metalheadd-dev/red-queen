@@ -6,6 +6,8 @@ interface AgentResponseCardProps {
   response: RedQueenClientResponse;
   onFollowUp: (question: string) => void;
   onStartReadiness?: () => void;
+  onSaveAction?: () => void;
+  actionSaved?: boolean;
 }
 
 const URGENCY_LABELS: Record<RedQueenClientResponse["urgency"], string> = {
@@ -21,7 +23,13 @@ const GROUNDING_LABELS: Record<RedQueenClientResponse["grounding"], string> = {
   SCENARIO_SIMULATION: "SCENARIO SIMULATION",
 };
 
-export default function AgentResponseCard({ response, onFollowUp, onStartReadiness }: AgentResponseCardProps) {
+export default function AgentResponseCard({
+  response,
+  onFollowUp,
+  onStartReadiness,
+  onSaveAction,
+  actionSaved = false,
+}: AgentResponseCardProps) {
   return (
     <div className="rq-response">
       <div className="rq-response__meta">
@@ -50,7 +58,14 @@ export default function AgentResponseCard({ response, onFollowUp, onStartReadine
       </div>
 
       <div className="rq-action">
-        <span>NEXT BEST ACTION</span>
+        <div>
+          <span>NEXT BEST ACTION</span>
+          {onSaveAction && (
+            <button type="button" onClick={onSaveAction} disabled={actionSaved}>
+              {actionSaved ? "SAVED TO MY PLAN" : "SAVE TO MY PLAN"}
+            </button>
+          )}
+        </div>
         <strong>{response.action}</strong>
       </div>
 
