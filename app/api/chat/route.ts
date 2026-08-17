@@ -180,6 +180,7 @@ function selfHarmResponse(): RedQueenAgentResponse {
     grounding: "GENERAL_KNOWLEDGE",
     usesLiveContext: false,
     followUps: ["Help me find a crisis line", "Help me write the message", "Stay with me for the next step"],
+    plan: null,
     readiness: {
       eligible: false,
       xp: 0,

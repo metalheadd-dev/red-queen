@@ -8,7 +8,9 @@ interface AgentResponseCardProps {
   onFollowUp: (question: string) => void;
   onStartReadiness?: () => void;
   onSaveAction?: () => void;
+  onSavePlan?: () => void;
   actionSaved?: boolean;
+  planSaved?: boolean;
 }
 
 const URGENCY_LABELS: Record<RedQueenClientResponse["urgency"], string> = {
@@ -29,7 +31,9 @@ export default function AgentResponseCard({
   onFollowUp,
   onStartReadiness,
   onSaveAction,
+  onSavePlan,
   actionSaved = false,
+  planSaved = false,
 }: AgentResponseCardProps) {
   return (
     <div className="rq-response">
@@ -71,6 +75,23 @@ export default function AgentResponseCard({
         </div>
         <strong>{response.action}</strong>
       </div>
+
+      {response.plan && (
+        <div className="rq-preparedness-plan">
+          <div>
+            <span>QUEEN PROTOCOL // {response.plan.steps.length} STEPS</span>
+            {planSaved ? (
+              <Link href="/survival-kit">OPEN SAVED PROTOCOL →</Link>
+            ) : onSavePlan ? (
+              <button type="button" onClick={onSavePlan}>SAVE FULL PLAN</button>
+            ) : null}
+          </div>
+          <h3>{response.plan.title}</h3>
+          <p>{response.plan.objective}</p>
+          <ol>{response.plan.steps.map((step) => <li key={step}>{step}</li>)}</ol>
+          <small>REVIEW IN {response.plan.reviewInDays} DAYS · LOCAL COMPLETION IS NOT AUTOMATIC BIO EVIDENCE</small>
+        </div>
+      )}
 
       {response.sources.length > 0 && (
         <div className="rq-sources">

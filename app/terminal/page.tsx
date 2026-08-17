@@ -16,6 +16,12 @@ import AgentResponseCard from "@/components/AgentResponseCard";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
 import { createDailyAction, DAILY_ACTION_EVENT, readDailyActions, saveDailyAction } from "@/lib/daily-action";
 import {
+  createPreparednessPlan,
+  PREPAREDNESS_PLANS_EVENT,
+  readPreparednessPlans,
+  savePreparednessPlan,
+} from "@/lib/preparedness-plan";
+import {
   AGENT_MODES,
   AgentMode,
   buildFirstContactPrompt,
@@ -500,6 +506,7 @@ export default function TerminalPage() {
   });
   const [firstContact, setFirstContact] = useState(false);
   const [savedActionText, setSavedActionText] = useState("");
+  const [savedPlanTitles, setSavedPlanTitles] = useState<string[]>([]);
   const [localPreparednessCount, setLocalPreparednessCount] = useState(0);
   const [apocalypticName, setApocalypticName] = useState<string>("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -764,6 +771,7 @@ export default function TerminalPage() {
   useEffect(() => {
     const savedAction = readDailyActions(localStorage).find((action) => action.status === "ACTIVE") || null;
     setSavedActionText(savedAction?.action || "");
+    setSavedPlanTitles(readPreparednessPlans(localStorage).map((plan) => plan.title));
     try {
       const checklist = JSON.parse(localStorage.getItem("rq-preparedness-checklist-v1") || "{}");
       setLocalPreparednessCount(Object.values(checklist).filter(Boolean).length);
@@ -1005,6 +1013,14 @@ To decrypt or scan target files:
     window.dispatchEvent(new Event(DAILY_ACTION_EVENT));
   }
 
+  function savePlan(response: RedQueenClientResponse) {
+    const plan = createPreparednessPlan(response, survivalContext);
+    if (!plan) return;
+    savePreparednessPlan(localStorage, plan);
+    setSavedPlanTitles((current) => Array.from(new Set([plan.title, ...current])));
+    window.dispatchEvent(new Event(PREPAREDNESS_PLANS_EVENT));
+  }
+
 
   return (
     <div className="rq-terminal-page">
@@ -1029,6 +1045,7 @@ To decrypt or scan target files:
         <div className="rq-terminal-memory-state">
           <div><span>SOLVIVOR CONTEXT</span><strong>{survivalContext.area || "GLOBAL / NOT SET"}</strong></div>
           <div><span>ACTIVE ACTION</span><strong>{savedActionText ? "SAVED IN PREPARE" : "NOT YET CREATED"}</strong></div>
+          <div><span>QUEEN PROTOCOLS</span><strong>{savedPlanTitles.length ? `${savedPlanTitles.length} IN SURVIVAL MEMORY` : "NONE SAVED"}</strong></div>
           <div><span>LOCAL BASELINE</span><strong>{localPreparednessCount}/18 CHECKS</strong></div>
         </div>
       </header>
@@ -1143,7 +1160,9 @@ To decrypt or scan target files:
                       onFollowUp={setInput}
                       onStartReadiness={i === messages.length - 1 && scoreNum === 0 ? startReadinessBaseline : undefined}
                       onSaveAction={() => saveAction(msg.intel!)}
+                      onSavePlan={msg.intel.plan ? () => savePlan(msg.intel!) : undefined}
                       actionSaved={savedActionText === msg.intel.action}
+                      planSaved={Boolean(msg.intel.plan && savedPlanTitles.includes(msg.intel.plan.title))}
                     />
                   ) : (
                     <div className="message-bubble">
@@ -1699,13 +1718,13 @@ To decrypt or scan target files:
         }}>
           <div className="rq-loop-card">
             <span>YOUR SURVIVAL LOOP</span>
-            <strong>One useful action at a time.</strong>
+            <strong>One useful action. One plan that survives the chat.</strong>
             <ol>
               <li><b>ASK</b><small>Get a clear brief from RED QUEEN.</small></li>
-              <li><b>SAVE</b><small>Keep the single next best action.</small></li>
-              <li><b>COMPLETE</b><small>Build real readiness in My Plan.</small></li>
+              <li><b>SAVE</b><small>Keep the next action or full Queen protocol.</small></li>
+              <li><b>COMPLETE</b><small>Work through observable steps in Prepare.</small></li>
             </ol>
-            <a href="/survival-kit">{savedActionText ? "OPEN SAVED ACTION →" : "OPEN MY PLAN →"}</a>
+            <a href="/survival-kit">{savedActionText || savedPlanTitles.length ? "OPEN SURVIVAL MEMORY →" : "OPEN MY PLAN →"}</a>
           </div>
 
           <div>

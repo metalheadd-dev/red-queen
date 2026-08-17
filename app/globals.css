@@ -668,7 +668,7 @@ h1, h2, h3, h4, h5 {
 .rq-terminal-neural-grid span { display: block; color: var(--accent); font: 700 7px var(--mono); letter-spacing: .14em; }
 .rq-terminal-neural-grid strong { display: block; margin: 13px 0 4px; color: #fff; font: 700 12px var(--mono); letter-spacing: .08em; }
 .rq-terminal-neural-grid small { color: rgba(255,255,255,.34); font-size: 9px; }
-.rq-terminal-memory-state { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3,1fr); border: 1px solid rgba(255,255,255,.075); background: rgba(5,6,8,.75); }
+.rq-terminal-memory-state { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4,1fr); border: 1px solid rgba(255,255,255,.075); background: rgba(5,6,8,.75); }
 .rq-terminal-memory-state > div { padding: 12px 15px; border-right: 1px solid rgba(255,255,255,.07); }
 .rq-terminal-memory-state > div:last-child { border-right: 0; }
 .rq-terminal-memory-state span { color: rgba(255,255,255,.3); font: 700 7px var(--mono); letter-spacing: .12em; }
@@ -2753,6 +2753,37 @@ body:has(#game-player-root) .page-content {
 .prepare-trust-strip strong { color: #a8ff60; font: 700 10px var(--mono); letter-spacing: .08em; }
 .prepare-trust-strip p { margin: 0; color: rgba(255,255,255,.5); font-size: 12px; }
 .prepare-trust-strip a { color: #fff; font: 700 9px var(--mono); text-decoration: none; }
+.preparedness-plans { min-height: 150px; margin-top: 24px; padding: 24px; border: 1px solid rgba(112,199,232,.18); background: linear-gradient(115deg,rgba(7,10,13,.97),rgba(9,10,12,.94) 54%,rgba(30,3,10,.78)); }
+.preparedness-plans.is-loading { opacity: .6; }
+.preparedness-plans .prepare-section-heading > strong { font-size: 10px; }
+.preparedness-plans-empty { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; padding: 20px; border: 1px solid rgba(255,255,255,.07); background: #07080a; }
+.preparedness-plans-empty strong { color: #fff; font-size: 15px; }
+.preparedness-plans-empty p { max-width: 780px; margin: 6px 0 0; color: rgba(255,255,255,.46); font-size: 11px; line-height: 1.6; }
+.preparedness-plans-empty a { padding: 10px 12px; border: 1px solid rgba(112,199,232,.35); color: #fff; font: 700 8px var(--mono); text-decoration: none; }
+.preparedness-plan-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+.preparedness-plan-list article { padding: 18px; border: 1px solid rgba(255,255,255,.08); background: rgba(5,7,9,.94); }
+.preparedness-plan-list article.is-complete { border-color: rgba(168,255,96,.22); background: rgba(168,255,96,.025); }
+.preparedness-plan-head { display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+.preparedness-plan-head span { color: #70c7e8; font: 700 7px var(--mono); letter-spacing: .09em; }
+.preparedness-plan-head h3 { margin: 7px 0 0; color: #fff; font-size: 16px; text-transform: none; }
+.preparedness-plan-head > b { flex: 0 0 auto; padding: 5px 7px; border: 1px solid rgba(240,201,41,.25); color: #f0c929; font: 700 7px var(--mono); }
+.preparedness-plan-list article.is-complete .preparedness-plan-head > b { border-color: rgba(168,255,96,.25); color: #a8ff60; }
+.preparedness-plan-list article > p { margin: 12px 0; color: rgba(255,255,255,.53); font-size: 11px; line-height: 1.55; }
+.preparedness-plan-progress { height: 4px; overflow: hidden; background: rgba(255,255,255,.07); }
+.preparedness-plan-progress i { display: block; height: 100%; background: #70c7e8; box-shadow: 0 0 12px rgba(112,199,232,.55); transition: width .2s ease; }
+.preparedness-plan-list article > small { display: block; margin-top: 7px; color: rgba(255,255,255,.3); font: 700 7px var(--mono); }
+.preparedness-plan-steps { display: grid; gap: 5px; margin-top: 14px; }
+.preparedness-plan-steps button { display: grid; grid-template-columns: 18px 1fr; gap: 9px; align-items: start; width: 100%; padding: 9px; border: 1px solid rgba(255,255,255,.06); background: rgba(255,255,255,.012); color: rgba(255,255,255,.7); text-align: left; cursor: pointer; }
+.preparedness-plan-steps button:hover { border-color: rgba(112,199,232,.3); }
+.preparedness-plan-steps button > i { display: grid; place-items: center; width: 17px; height: 17px; border: 1px solid rgba(255,255,255,.2); color: #071006; font: 700 10px var(--mono); font-style: normal; }
+.preparedness-plan-steps button > span { font-size: 10px; line-height: 1.45; }
+.preparedness-plan-steps button.checked { color: rgba(255,255,255,.38); }
+.preparedness-plan-steps button.checked > i { border-color: #a8ff60; background: #a8ff60; }
+.preparedness-plan-list article > footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 14px; padding-top: 11px; border-top: 1px solid rgba(255,255,255,.06); }
+.preparedness-plan-list article > footer a,
+.preparedness-plan-list article > footer span { color: rgba(255,255,255,.4); font: 700 7px var(--mono); text-decoration: none; }
+.preparedness-plan-list article > footer a:last-child { color: var(--accent); }
+.preparedness-plans-contract { margin-top: 13px; color: rgba(255,255,255,.27); font: 700 7px/1.5 var(--mono); letter-spacing: .06em; }
 .prepare-next-action { display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center; margin: 24px 0; padding: 20px; border: 1px solid rgba(255,0,51,.25); background: linear-gradient(105deg,rgba(255,0,51,.09),rgba(8,9,11,.92) 62%); }
 .prepare-next-action > div:nth-child(2) > span { color: var(--accent); font: 700 9px var(--mono); letter-spacing: .14em; }
 .prepare-next-action h2 { margin: 5px 0; color: #fff; font-size: 18px; }
@@ -2919,6 +2950,7 @@ body:has(#game-player-root) .page-content {
   .prepare-token-utility,
   .dossier-grid { grid-template-columns: 1fr; }
   .prepare-tier-list { grid-template-columns: repeat(5,minmax(120px,1fr)); overflow-x: auto; }
+  .preparedness-plan-list { grid-template-columns: 1fr; }
   .library-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .dossier-queen-panel { position: static; }
 }
@@ -2939,7 +2971,11 @@ body:has(#game-player-root) .page-content {
   .dossier-main { padding-left: 16px; padding-right: 16px; }
   .prepare-trust-strip,
   .prepare-next-action,
+  .preparedness-plans-empty,
   .dossier-trust { grid-template-columns: 1fr; }
+  .preparedness-plans { padding: 18px; }
+  .preparedness-plan-head,
+  .preparedness-plan-list article > footer { align-items: flex-start; flex-direction: column; }
   .prepare-next-action .queen-core { display: none; }
   .prepare-domain-summary { grid-template-columns: repeat(3,1fr); }
   .prepare-domain-block { grid-template-columns: 1fr; }
@@ -3270,6 +3306,17 @@ body:has(#game-player-root) .page-content {
   .onchain-safety-actions { flex-direction:column; }
   .onchain-safety-actions .btn { justify-content:center; }
 }
+
+.rq-preparedness-plan { margin-top: 12px; padding: 15px; border: 1px solid rgba(112,199,232,.22); background: linear-gradient(135deg,rgba(112,199,232,.055),rgba(6,9,12,.9)); }
+.rq-preparedness-plan > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rq-preparedness-plan > div > span { color: #70c7e8; font: 700 9px var(--mono); letter-spacing: .13em; }
+.rq-preparedness-plan > div > button,
+.rq-preparedness-plan > div > a { padding: 6px 9px; border: 1px solid rgba(112,199,232,.36); background: rgba(112,199,232,.05); color: #fff; font: 700 8px var(--mono); text-decoration: none; cursor: pointer; }
+.rq-preparedness-plan > div > a { border-color: rgba(168,255,96,.32); color: #a8ff60; }
+.rq-preparedness-plan h3 { margin: 14px 0 5px; color: #fff; font-size: 16px; text-transform: none; }
+.rq-preparedness-plan > p { margin: 0; color: rgba(255,255,255,.56); font-size: 11px; line-height: 1.55; }
+.rq-preparedness-plan ol { display: grid; gap: 5px; margin: 13px 0; padding-left: 24px; color: rgba(255,255,255,.76); font-size: 11px; line-height: 1.5; }
+.rq-preparedness-plan > small { color: rgba(255,255,255,.32); font: 700 7px var(--mono); letter-spacing: .05em; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    RED QUEEN PRESENCE // DESKTOP READABILITY + LIVING PLATFORM

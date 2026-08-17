@@ -11,6 +11,12 @@ export const RED_QUEEN_RESPONSE_SCHEMA = z.object({
   grounding: z.enum(["GENERAL_KNOWLEDGE", "VERIFIED_LIVE", "SCENARIO_SIMULATION"]),
   usesLiveContext: z.boolean(),
   followUps: z.array(z.string().min(1).max(140)).min(2).max(3),
+  plan: z.object({
+    title: z.string().min(1).max(100),
+    objective: z.string().min(1).max(280),
+    steps: z.array(z.string().min(1).max(220)).min(2).max(5),
+    reviewInDays: z.number().int().min(1).max(365),
+  }).nullable(),
   readiness: z.object({
     eligible: z.boolean(),
     xp: z.number().int().min(-5).max(20),
@@ -62,8 +68,11 @@ export interface RedQueenClientResponse extends RedQueenAgentResponse {
 
 export function formatAgentMessage(response: RedQueenAgentResponse) {
   const facts = response.facts.length ? `\n\nVERIFIED FACTS:\n${response.facts.map((fact) => `- ${fact}`).join("\n")}` : "";
+  const plan = response.plan
+    ? `\n\nPREPAREDNESS PLAN: ${response.plan.title}\n${response.plan.steps.map((step, index) => `${index + 1}. ${step}`).join("\n")}\nReview in ${response.plan.reviewInDays} days.`
+    : "";
   const readiness = response.readiness.eligible
     ? `\n\nREADINESS: ${response.readiness.xp >= 0 ? "+" : ""}${response.readiness.xp} XP · ${response.readiness.reason}`
     : "";
-  return `${response.situation}${facts}\n\nQUEEN ASSESSMENT: ${response.answer}\n\nUNCERTAINTY: ${response.uncertainty}\n\nNEXT ACTION: ${response.action}${readiness}`;
+  return `${response.situation}${facts}\n\nQUEEN ASSESSMENT: ${response.answer}\n\nUNCERTAINTY: ${response.uncertainty}\n\nNEXT ACTION: ${response.action}${plan}${readiness}`;
 }

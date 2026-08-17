@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import DailyActionPanel from "@/components/DailyActionPanel";
 import ActionHistoryPanel from "@/components/ActionHistoryPanel";
+import PreparednessPlansPanel from "@/components/PreparednessPlansPanel";
 import {
   PREPAREDNESS_CHECKLIST,
   PREPAREDNESS_DOMAINS,
@@ -137,6 +138,7 @@ export default function SurvivalKitPage() {
         </section>
 
         <DailyActionPanel context="PREPARE" />
+        <PreparednessPlansPanel />
         <ActionHistoryPanel />
 
         <section className="prepare-next-action">

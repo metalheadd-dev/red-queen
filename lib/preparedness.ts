@@ -77,8 +77,8 @@ export const PREPAREDNESS_PROTOCOLS: PreparednessProtocol[] = [
     id: "outbreak",
     label: "Outbreak",
     description: "Source verification, household exposure reduction and care escalation.",
-    mode: "ANALYZE",
-    prompt: "Create an evidence-grounded outbreak preparedness baseline. Separate verified public-health guidance from uncertainty and tell me what would require professional medical care.",
+    mode: "PREPARE",
+    prompt: "Create an evidence-grounded outbreak preparedness plan. Separate verified public-health guidance from uncertainty, define observable household steps, and state what would require professional medical care.",
   },
   {
     id: "wallet",
