@@ -758,6 +758,8 @@ h1, h2, h3, h4, h5 {
 .rq-action > div > button { padding: 6px 9px; border: 1px solid rgba(255,0,51,.45); background: rgba(255,0,51,.08); color: #fff; font: 700 8px var(--mono); letter-spacing: .08em; cursor: pointer; }
 .rq-action > div > button:hover { background: rgba(255,0,51,.18); }
 .rq-action > div > button:disabled { border-color: rgba(168,255,96,.25); background: rgba(168,255,96,.04); color: #a8ff60; cursor: default; }
+.rq-action > div > a { padding: 6px 9px; border: 1px solid rgba(168,255,96,.32); background: rgba(168,255,96,.055); color: #a8ff60; font: 700 8px var(--mono); letter-spacing: .08em; text-decoration: none; }
+.rq-action > div > a:hover { border-color: rgba(168,255,96,.7); background: rgba(168,255,96,.1); }
 
 .rq-action strong {
   display: block;
@@ -845,6 +847,30 @@ h1, h2, h3, h4, h5 {
 .rq-first-contact-brief p { margin: 4px 0 0; color: rgba(255,255,255,.48); font-size: 10px; line-height: 1.45; }
 .rq-first-contact-brief > button { border: 0; background: none; color: rgba(255,255,255,.4); font: 700 8px var(--mono); cursor: pointer; }
 
+.rq-advanced-compute { border-top: 1px solid var(--border); background: rgba(4,5,7,.98); }
+.rq-advanced-compute > summary { position: relative; display: grid; grid-template-columns: minmax(210px,.75fr) minmax(220px,1fr) minmax(260px,1.25fr); gap: 18px; align-items: center; padding: 17px 24px; cursor: pointer; list-style: none; }
+.rq-advanced-compute > summary::-webkit-details-marker { display: none; }
+.rq-advanced-compute > summary::after { content: "+"; position: absolute; right: 20px; color: var(--accent); font: 700 18px var(--mono); }
+.rq-advanced-compute[open] > summary::after { content: "−"; }
+.rq-advanced-compute > summary:hover { background: rgba(255,0,51,.035); }
+.rq-advanced-compute > summary span { color: var(--accent); font: 700 9px var(--mono); letter-spacing: .12em; }
+.rq-advanced-compute > summary strong { color: #fff; font-size: 12px; }
+.rq-advanced-compute > summary small { padding-right: 24px; color: rgba(255,255,255,.42); font-size: 9px; line-height: 1.45; }
+
+.rq-loop-card { padding: 16px; border: 1px solid rgba(255,0,51,.24); background: linear-gradient(145deg,rgba(255,0,51,.07),rgba(255,255,255,.015)); }
+.rq-loop-card > span { color: var(--accent); font: 700 9px var(--mono); letter-spacing: .13em; }
+.rq-loop-card > strong { display: block; margin-top: 6px; color: #fff; font-size: 13px; }
+.rq-loop-card ol { display: grid; gap: 8px; margin: 14px 0; padding: 0; list-style: none; counter-reset: loop; }
+.rq-loop-card li { position: relative; display: grid; grid-template-columns: 42px 1fr; gap: 7px; padding-left: 22px; counter-increment: loop; }
+.rq-loop-card li::before { content: "0" counter(loop); position: absolute; left: 0; color: rgba(255,0,51,.75); font: 700 9px var(--mono); }
+.rq-loop-card li b { color: #fff; font: 700 9px var(--mono); }
+.rq-loop-card li small { color: rgba(255,255,255,.42); font-size: 9px; line-height: 1.35; }
+.rq-loop-card > a { display: block; padding: 9px 10px; border: 1px solid rgba(255,0,51,.5); color: #fff; background: rgba(255,0,51,.08); font: 700 9px var(--mono); text-align: center; text-decoration: none; }
+.rq-loop-card > a:hover { background: rgba(255,0,51,.17); }
+.rq-terminal-diagnostics { border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.012); }
+.rq-terminal-diagnostics > summary { padding: 11px; color: rgba(255,255,255,.55); cursor: pointer; font: 700 9px var(--mono); letter-spacing: .12em; }
+.rq-terminal-diagnostics > div { padding: 12px; border-top: 1px solid rgba(255,255,255,.07); }
+
 @media (max-width: 640px) {
   .rq-identity-strip {
     width: 100%;
@@ -865,6 +891,8 @@ h1, h2, h3, h4, h5 {
   .rq-first-contact-brief { grid-template-columns: auto 1fr; }
   .rq-first-contact-brief > button { grid-column: 2; justify-self: start; }
   .rq-readiness-bridge { margin: 16px -14px -14px; flex-direction: column; align-items: stretch; }
+  .rq-advanced-compute > summary { grid-template-columns: 1fr; gap: 5px; padding: 14px 18px; }
+  .rq-advanced-compute > summary small { padding-right: 26px; }
 
   .clearance-tier-card {
     grid-template-columns: 1fr !important;

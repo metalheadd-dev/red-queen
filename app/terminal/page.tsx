@@ -1052,7 +1052,7 @@ To decrypt or scan target files:
               <div>
                 <span>FIRST CONTACT READY</span>
                 <strong>{survivalContext.area} · {getFocusOption(survivalContext.focus).label}</strong>
-                <p>Your brief is prepared below. Review the prompt, then run it. This first question creates an action — it does not award BIO-SCORE.</p>
+                <p>Run the brief → save RED QUEEN&apos;s next action → complete it in My Plan. This first question creates an action; it does not change BIO-SCORE.</p>
               </div>
               <button type="button" onClick={() => setFirstContact(false)}>DISMISS</button>
             </div>
@@ -1192,7 +1192,7 @@ To decrypt or scan target files:
               <textarea
                 className="chat-input"
                 rows={2}
-                placeholder="> STATE YOUR QUERY, SUBJECT..."
+                placeholder="> Ask about a live signal, risk, decision, or preparedness plan..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKey}
@@ -1239,7 +1239,13 @@ To decrypt or scan target files:
             ))}
           </div>
 
-          {/* ACCESS RESTRICTED APOCALYPSE DOSSIERS */}
+          {/* Optional x402 compute — intentionally outside the first-use core loop. */}
+          <details className="rq-advanced-compute">
+            <summary>
+              <span>ADVANCED COMPUTE // x402 USDC</span>
+              <strong>Optional paid intelligence operations</strong>
+              <small>Exact price is shown before wallet approval. Core RED QUEEN guidance remains available above.</small>
+            </summary>
           <div style={{
             padding: "24px",
             borderTop: "1px solid var(--border)",
@@ -1619,9 +1625,10 @@ To decrypt or scan target files:
               </div>
             </div>
           </div>
+          </details>
         </div>
 
-        {/* Right Side: Compute Allocation HUD Sidebar */}
+        {/* Right Side: the user loop first; diagnostics stay available on demand. */}
         <aside className="desktop-only" style={{
           width: "320px",
           borderLeft: "1px solid var(--border)",
@@ -1636,9 +1643,20 @@ To decrypt or scan target files:
           color: "var(--text-dim)",
           flexShrink: 0
         }}>
+          <div className="rq-loop-card">
+            <span>YOUR SURVIVAL LOOP</span>
+            <strong>One useful action at a time.</strong>
+            <ol>
+              <li><b>ASK</b><small>Get a clear brief from RED QUEEN.</small></li>
+              <li><b>SAVE</b><small>Keep the single next best action.</small></li>
+              <li><b>COMPLETE</b><small>Build real readiness in My Plan.</small></li>
+            </ol>
+            <a href="/survival-kit">{savedActionText ? "OPEN SAVED ACTION →" : "OPEN MY PLAN →"}</a>
+          </div>
+
           <div>
             <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "12px" }}>
-              [ COMPUTE ALLOCATION HUD ]
+              [ SESSION STATUS ]
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "#0c0c0c", border: "1px solid #161616", padding: "12px", borderRadius: "2px" }}>
@@ -1657,6 +1675,8 @@ To decrypt or scan target files:
             </div>
           </div>
 
+          <details className="rq-terminal-diagnostics">
+            <summary>ADVANCED SYSTEMS</summary>
           {/* Treasury Buyback Module */}
           <div>
             <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#f0c929", letterSpacing: "0.15em", marginBottom: "12px" }}>
@@ -1729,6 +1749,7 @@ To decrypt or scan target files:
               </div>
             </div>
           </div>
+          </details>
 
           <div style={{ marginTop: "auto", borderTop: "1px dashed var(--border)", paddingTop: "16px" }}>
             <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--text-muted)", letterSpacing: "0.15em", marginBottom: "6px" }}>

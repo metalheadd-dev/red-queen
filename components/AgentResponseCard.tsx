@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
 
 interface AgentResponseCardProps {
@@ -60,11 +61,13 @@ export default function AgentResponseCard({
       <div className="rq-action">
         <div>
           <span>NEXT BEST ACTION</span>
-          {onSaveAction && (
+          {actionSaved ? (
+            <Link href="/survival-kit">OPEN MY PLAN →</Link>
+          ) : onSaveAction ? (
             <button type="button" onClick={onSaveAction} disabled={actionSaved}>
-              {actionSaved ? "SAVED TO MY PLAN" : "SAVE TO MY PLAN"}
+              SAVE TO MY PLAN
             </button>
-          )}
+          ) : null}
         </div>
         <strong>{response.action}</strong>
       </div>
