@@ -47,9 +47,9 @@ export async function getWorkingConnection(isDevnet = false): Promise<Connection
       console.log(`[SOLANA RPC] Testing connectivity for: ${url}`);
       const connection = new Connection(url, "confirmed");
       
-      // Test with a real account balance query — the treasury address — to confirm
+      // Test with the native System Program account to confirm
       // the endpoint allows user-account lookups (some nodes block these with 403)
-      const testKey = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg");
+      const testKey = new PublicKey("11111111111111111111111111111111");
       await Promise.race([
         connection.getBalance(testKey),
         new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000))

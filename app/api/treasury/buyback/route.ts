@@ -8,14 +8,13 @@ export const dynamic = "force-dynamic";
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"); // USDC on Mainnet
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump"); // $THREAT Token
-const VAULT_OWNER = new PublicKey("AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg");
 
 /**
  * Robust balance fetching helper that safely handles RPC congestion, timeouts, and fallbacks
  */
 async function fetchBalances(connection: Connection, vaultOwner: PublicKey) {
-  let solBalance = 0.0969; // Safe default matching current vault state
-  let usdcBalance = 0.21;  // Safe default matching current vault state
+  let solBalance: number | null = null;
+  let usdcBalance: number | null = null;
 
   try {
     const solBal = await connection.getBalance(vaultOwner);
@@ -48,6 +47,9 @@ async function fetchBalances(connection: Connection, vaultOwner: PublicKey) {
     }
   }
 
+  if (solBalance === null && usdcBalance === null) {
+    throw new Error("Treasury RPC balances are unavailable. No cached or synthetic values were returned.");
+  }
   return { solBalance, usdcBalance };
 }
 
@@ -73,6 +75,10 @@ async function executeBuyback(req: NextRequest) {
       }
     } catch (err: any) {
       return NextResponse.json({ success: false, error: `System Error: Failed to load Keypair: ${err.message || err}` }, { status: 500 });
+    }
+    const configuredVault = process.env.TREASURY_PUBLIC_ADDRESS?.trim();
+    if (configuredVault && keypair.publicKey.toBase58() !== configuredVault) {
+      return NextResponse.json({ success: false, error: "TREASURY_PRIVATE_KEY does not match TREASURY_PUBLIC_ADDRESS." }, { status: 503 });
     }
 
     const connection = process.env.SOLANA_RPC_URL
@@ -220,14 +226,15 @@ export async function POST(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const secretParam = searchParams.get("secret");
   const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return NextResponse.json({ error: "Buyback execution is disabled because CRON_SECRET is not configured." }, { status: 503 });
+  }
   
   const authHeader = req.headers.get("Authorization");
   const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
   
-  if (cronSecret) {
-    if (secretParam !== cronSecret && bearerToken !== cronSecret) {
-      return NextResponse.json({ error: "Unauthorized: Invalid secret key" }, { status: 401 });
-    }
+  if (secretParam !== cronSecret && bearerToken !== cronSecret) {
+    return NextResponse.json({ error: "Unauthorized: Invalid secret key" }, { status: 401 });
   }
 
   return executeBuyback(req);
@@ -252,25 +259,31 @@ export async function GET(req: NextRequest) {
     console.log("[CRON] Authorized GET request received. Running buyback swap...");
     return executeBuyback(req);
   } else {
-    // Just fetch and return the balances (used by frontend HUD widget)
+    // Public read-only audit. The address is explicit configuration and never a fallback constant.
     try {
+      const configuredVault = process.env.TREASURY_PUBLIC_ADDRESS?.trim() || "";
+      if (!configuredVault) {
+        return NextResponse.json({ success: false, error: "TREASURY_PUBLIC_ADDRESS is not configured." }, { status: 503 });
+      }
+      const vaultOwner = new PublicKey(configuredVault);
       const connection = process.env.SOLANA_RPC_URL
         ? new Connection(process.env.SOLANA_RPC_URL, "confirmed")
         : await getWorkingConnection(false);
-      const balances = await fetchBalances(connection, VAULT_OWNER);
+      const balances = await fetchBalances(connection, vaultOwner);
       return NextResponse.json({
         success: true,
+        address: vaultOwner.toBase58(),
         solBalance: balances.solBalance,
-        usdcBalance: balances.usdcBalance
+        usdcBalance: balances.usdcBalance,
+        syntheticData: false,
       });
     } catch (err: any) {
       console.error("GET balances handler failed:", err);
       return NextResponse.json({
         success: false,
         error: err.message || err,
-        solBalance: 0.0969,
-        usdcBalance: 0.21
-      });
+        syntheticData: false,
+      }, { status: 503 });
     }
   }
 }

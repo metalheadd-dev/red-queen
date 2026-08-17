@@ -18,8 +18,8 @@ export const X402_INTELLIGENCE_PRODUCTS: IntelligenceProduct[] = [
     name: "Global source synthesis",
     price: "0.01 USDC",
     scheme: "SVM EXACT",
-    value: "One paid aggregation of current USGS and NASA event data with explicit source status.",
-    output: "Machine-readable dossier + source links",
+    value: "One paid synthesis across the seven-source verified signal grid with explicit coverage, confidence, freshness and source status.",
+    output: "Ranked machine-readable dossier + source links",
     endpoint: "/api/intel/premium",
   },
   {

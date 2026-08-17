@@ -1,128 +1,95 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withFriendlyX402 } from "@/lib/x402";
+import { fetchSignalGrid, SignalSourceId } from "@/lib/signal-engine";
 
 const svmAddress = process.env.SVM_ADDRESS || "";
 const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
+const MINIMUM_REACHABLE_SOURCES = 4;
 
-const USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson";
-const NASA_URL = "https://eonet.gsfc.nasa.gov/api/v3/events?limit=12&status=open";
+const SOURCE_URLS: Record<SignalSourceId, string> = {
+  USGS: "https://earthquake.usgs.gov/earthquakes/map/",
+  NASA_EONET: "https://eonet.gsfc.nasa.gov/",
+  GDACS: "https://www.gdacs.org/",
+  NOAA_SWPC: "https://www.swpc.noaa.gov/products/alerts-watches-and-warnings",
+  CISA_KEV: "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+  WHO_DON: "https://www.who.int/emergencies/disease-outbreak-news",
+  SOLANA_STATUS: "https://status.solana.com/",
+};
 
 const handler = async (_req: NextRequest) => {
   try {
-    const [usgsRes, nasaRes] = await Promise.all([
-      fetch(USGS_URL, { next: { revalidate: 60 } }),
-      fetch(NASA_URL, { next: { revalidate: 120 } }).catch(() => null),
-    ]);
+    const grid = await fetchSignalGrid();
+    if (grid.coverage.online < MINIMUM_REACHABLE_SOURCES) {
+      return NextResponse.json({
+        success: false,
+        error: `Only ${grid.coverage.online}/${grid.coverage.total} verified source families responded. Minimum paid-delivery coverage is ${MINIMUM_REACHABLE_SOURCES}/${grid.coverage.total}.`,
+        sourceStatus: grid.sourceHealth,
+        syntheticData: false,
+        settlementRule: "HANDLER_FAILED_BEFORE_SETTLEMENT",
+      }, { status: 503 });
+    }
 
-    if (!usgsRes.ok) throw new Error(`USGS returned ${usgsRes.status}`);
-
-    const usgsData = await usgsRes.json();
-    const features = Array.isArray(usgsData.features) ? usgsData.features : [];
-    const sortedFeatures = [...features].sort(
-      (a: any, b: any) => Number(b.properties?.mag || 0) - Number(a.properties?.mag || 0),
-    );
-
-    const threatVectors = sortedFeatures.slice(0, 8).map((feature: any) => {
-      const magnitude = Number(feature.properties?.mag || 0);
-      const coordinates = feature.geometry?.coordinates || [];
-      return {
-        id: `usgs-${feature.id}`,
-        magnitude,
-        rating: `M ${magnitude.toFixed(1)}`,
-        status: magnitude >= 6 ? "RED" : magnitude >= 4.5 ? "YELLOW" : "GREEN",
-        description: feature.properties?.place || "USGS earthquake event",
-        depthKm: Number(coordinates[2] || 0).toFixed(1),
-        latitude: Number(coordinates[1] || 0).toFixed(4),
-        longitude: Number(coordinates[0] || 0).toFixed(4),
-        observedAt: feature.properties?.time
-          ? new Date(feature.properties.time).toISOString()
-          : null,
-        sourceUrl: feature.properties?.url || "https://earthquake.usgs.gov/earthquakes/map/",
-      };
-    });
-
-    const nasaAvailable = Boolean(nasaRes?.ok);
-    const nasaData = nasaAvailable
-      ? await nasaRes!.json().catch(() => ({ events: [] }))
-      : { events: [] };
-    const nasaEvents = (Array.isArray(nasaData.events) ? nasaData.events : []).map((event: any) => {
-      const geometry = event.geometry?.[0];
-      const coordinates = Array.isArray(geometry?.coordinates) ? geometry.coordinates : [];
-      return {
-        id: event.id,
-        title: event.title,
-        category: event.categories?.[0]?.title || "Natural event",
-        date: geometry?.date || null,
-        longitude: Number(coordinates[0] || 0),
-        latitude: Number(coordinates[1] || 0),
-        source: event.sources?.[0]?.id || "NASA EONET",
-        sourceUrl: event.sources?.[0]?.url || `https://eonet.gsfc.nasa.gov/api/v3/events/${event.id}`,
-      };
-    });
-
-    const strongest = threatVectors[0] || null;
-    const highAttentionQuakes = threatVectors.filter((event: any) => event.magnitude >= 4.5);
-    const liveSources = nasaAvailable ? 2 : 1;
-    const totalSignals = features.length + nasaEvents.length;
-    const prioritySignal = highAttentionQuakes[0]
-      ? `${highAttentionQuakes[0].rating} earthquake near ${highAttentionQuakes[0].description}`
-      : nasaEvents[0]
-        ? `${nasaEvents[0].category}: ${nasaEvents[0].title}`
-        : "No high-attention signal was identified in this source window.";
+    const signals = grid.signals.slice(0, 12);
+    const priority = signals[0] || null;
+    const elevatedCount = grid.signals.filter((signal) => signal.severity >= 60).length;
+    const sourceStatus = grid.sourceHealth.map((source) => ({
+      id: source.id.toLowerCase().replaceAll("_", "-"),
+      name: source.label,
+      status: source.status === "OFFLINE" ? "UNAVAILABLE" : source.status === "NO_SIGNALS" ? "NO SIGNALS" : "LIVE",
+      eventCount: source.signalCount,
+      window: source.latestObservedAt ? `LATEST ${source.latestObservedAt}` : "CURRENT SOURCE WINDOW",
+      url: SOURCE_URLS[source.id],
+    }));
 
     return NextResponse.json({
       success: true,
-      timestamp: new Date().toISOString(),
+      timestamp: grid.generatedAt,
       clearance: "PAID OUTPUT // x402 SETTLED",
       intel: {
-        headline: `${totalSignals} source events reviewed. ${highAttentionQuakes.length} seismic signals need closer attention.`,
-        summary: `RED QUEEN compared the latest one-hour USGS earthquake feed with NASA EONET open events. ${prioritySignal}`,
+        headline: `${grid.signals.length} verified signals normalized across ${grid.coverage.online}/${grid.coverage.total} reachable source families.`,
+        summary: priority
+          ? `RED QUEEN ranked the current source grid by severity, confidence, and freshness. ${elevatedCount} signals meet the elevated-attention threshold; the highest-ranked record is ${priority.name} from ${priority.source}.`
+          : "The verified source grid responded, but no qualifying active signal was returned in the current source windows. This is not proof of safety or complete local coverage.",
         sourceCoverage: {
-          liveSources,
-          totalSources: 2,
-          label: `${liveSources}/2 SOURCES LIVE`,
-          partial: liveSources < 2,
+          liveSources: grid.coverage.online,
+          totalSources: grid.coverage.total,
+          label: `${grid.coverage.online}/${grid.coverage.total} SOURCES REACHABLE`,
+          partial: grid.coverage.online < grid.coverage.total,
+          minimumForDelivery: MINIMUM_REACHABLE_SOURCES,
         },
-        sourceStatus: [
-          {
-            id: "usgs",
-            name: "USGS Earthquake Hazards Program",
-            status: "LIVE",
-            eventCount: features.length,
-            window: "PAST HOUR",
-            url: "https://earthquake.usgs.gov/earthquakes/map/",
-          },
-          {
-            id: "nasa-eonet",
-            name: "NASA EONET",
-            status: nasaAvailable ? "LIVE" : "UNAVAILABLE",
-            eventCount: nasaEvents.length,
-            window: "OPEN EVENTS",
-            url: "https://eonet.gsfc.nasa.gov/",
-          },
-        ],
-        prioritySignal,
-        maxEvent: strongest ? {
-          magnitude: strongest.magnitude.toFixed(1),
-          location: strongest.description,
-          depthKm: strongest.depthKm,
-          latitude: strongest.latitude,
-          longitude: strongest.longitude,
-          observedAt: strongest.observedAt,
-          sourceUrl: strongest.sourceUrl,
-        } : null,
-        threatVectors,
-        nasaEvents,
-        nextAction: "Open the live map, compare the priority signal with your broad area, and change a preparedness plan only if distance and official local guidance make it relevant.",
+        sourceStatus,
+        prioritySignal: priority
+          ? `${priority.kind.replaceAll("_", " ")} · ${priority.severity}/100 · ${priority.name}`
+          : "No qualifying active signal in the current verified windows.",
+        signals: signals.map((signal) => ({
+          id: signal.id,
+          name: signal.name,
+          kind: signal.kind,
+          severity: signal.severity,
+          confidence: signal.confidence,
+          freshness: signal.freshness,
+          observedAt: signal.observedAt,
+          region: signal.region,
+          source: signal.source,
+          sourceUrl: signal.sourceUrl,
+          fact: signal.fact,
+          assessment: signal.assessment,
+          recommendedAction: signal.action,
+        })),
+        nextAction: priority
+          ? "Open the highest-ranked source record, compare its geography and official local guidance with your broad area, and change a preparedness plan only if relevance is justified."
+          : "Check official local alerts and repeat the synthesis later if you need a fresh operational decision.",
+        trustBoundary: "Source reachability is not complete local coverage. Fictional library scenarios are excluded. No BIO-SCORE or XP is awarded for this purchase.",
       },
     });
   } catch (error) {
     console.error("Global source synthesis failed:", error);
     return NextResponse.json({
       success: false,
-      error: "Required USGS source data is temporarily unavailable. No paid synthesis was generated.",
+      error: "The verified signal engine could not produce the minimum source-backed paid output. No synthetic telemetry was substituted.",
       sourceStatus: "UNAVAILABLE",
       syntheticData: false,
+      settlementRule: "HANDLER_FAILED_BEFORE_SETTLEMENT",
     }, { status: 503 });
   }
 };
@@ -137,6 +104,6 @@ export const GET = withFriendlyX402(
       network,
       payTo: svmAddress,
     },
-    description: "Source-backed synthesis of current USGS and NASA EONET signals.",
+    description: "Seven-source verified signal synthesis with explicit source health, confidence, freshness, and trust boundaries.",
   },
 );

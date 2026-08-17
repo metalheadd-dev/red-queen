@@ -135,11 +135,12 @@ export function withFriendlyX402(
     }
 
     if (res.status === 402) {
-      const acceptsHtml = req.headers.get("accept")?.includes("text/html");
+        const acceptsHtml = req.headers.get("accept")?.includes("text/html");
       if (acceptsHtml) {
         const paymentRequiredHeader = res.headers.get("payment-required") || res.headers.get("x-payment-required");
-        let amountStr = "0.01 USDC";
-        let destination = "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg";
+        const configuredPrice = String(routeConfig.accepts?.price || "PRICE UNAVAILABLE");
+        let amountStr = `${configuredPrice} USDC`;
+        let destination = payTo;
         
         if (paymentRequiredHeader) {
           try {

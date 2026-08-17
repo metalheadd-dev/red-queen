@@ -1,229 +1,211 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Red Queen Intelligence & Containment API",
-    "description": "Premium real-time apocalypse telemetry and survival containment data feeds. Protected by x402 open-protocol stablecoin micropayments.",
-    "version": "1.0.0"
+    "title": "RED QUEEN Intelligence API",
+    "description": "Source-bounded survival intelligence and Solana telemetry. Paid operations use runtime x402 v2 exact-SVM requirements and never award XP or BIO-SCORE.",
+    "version": "2.0.0"
   },
   "servers": [
     {
       "url": "https://redqueen.space",
-      "description": "Production Red Queen Mainframe Gateway"
+      "description": "Production RED QUEEN gateway"
     }
   ],
   "paths": {
     "/api/intel/premium": {
       "get": {
-        "summary": "Premium Global Threat Briefing",
-        "description": "Returns real-time USGS earthquake, NASA natural hazard, and Disease.sh global pathogen metrics, calculated through the Red Queen global entropy matrix.",
-        "operationId": "getPremiumIntel",
+        "summary": "Seven-source verified signal synthesis",
+        "description": "Ranks current normalized signals from USGS, NASA EONET, GDACS, NOAA SWPC, CISA KEV, WHO DON, and Official Solana Status. Delivery requires at least four reachable source families.",
+        "operationId": "getGlobalSourceSynthesis",
         "x-payment-required": true,
-        "x-payment-info": {
-          "protocols": [
-            "x402"
-          ],
-          "pricingMode": "fixed",
-          "price": "0.01",
-          "chains": [
-            {
-              "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-              "name": "Solana"
-            }
-          ]
-        },
         "x-x402Version": 2,
-        "x-resource": {
-          "url": "https://redqueen.space/api/intel/premium",
-          "description": "GET /api/intel/premium",
-          "mimeType": "application/json"
+        "x-payment-info": {
+          "protocol": "x402",
+          "scheme": "exact",
+          "price": "0.01 USDC",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "requirements": "Recipient, asset, amount, fee payer, and timeout are returned by the runtime HTTP 402 challenge."
         },
-        "x-accepts": [
-          {
-            "scheme": "exact",
-            "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-            "payTo": "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg",
-            "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-            "amount": "10000",
-            "maxTimeoutSeconds": 300,
-            "extra": {}
-          }
-        ],
         "parameters": [
           {
-            "name": "X-Operative-Token",
-            "in": "header",
-            "required": false,
-            "description": "Optional Bearer JWT token to award XP directly to the operative's profile.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/OperationId"
           },
           {
-            "name": "Payment-Signature",
-            "in": "header",
-            "required": false,
-            "description": "Standard x402 payment proof containing the transaction signature for the 0.01 USDC transfer.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/PaymentSignature"
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful decryption of global threat dossier.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "timestamp": { "type": "string" },
-                    "clearance": { "type": "string" },
-                    "intel": {
-                      "type": "object",
-                      "properties": {
-                        "headline": { "type": "string" },
-                        "summary": { "type": "string" },
-                        "combinedEntropyIndex": { "type": "string" },
-                        "directive": { "type": "string" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "Payment Required. Returns standard x402 exact SVM scheme challenge details for 0.01 USDC payment routing.",
+            "description": "Settled and delivered source-backed synthesis.",
             "headers": {
-              "Payment-Required": {
-                "description": "Base64 encoded payment requirement challenge",
-                "required": true,
-                "schema": {
-                  "type": "string"
-                }
-              }
+              "X-Operation-Id": { "$ref": "#/components/headers/OperationId" },
+              "X-Receipt-Status": { "$ref": "#/components/headers/ReceiptStatus" },
+              "Payment-Response": { "$ref": "#/components/headers/PaymentResponse" }
             },
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": { "type": "string", "example": "PAYMENT_REQUIRED" },
-                    "challenge": { "type": "string", "description": "Base64 encoded payment requirement challenge" }
-                  }
-                }
+                "schema": { "$ref": "#/components/schemas/GlobalSynthesis" }
               }
             }
-          }
+          },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
         }
       }
     },
     "/api/intel/depin": {
       "get": {
-        "summary": "Live DePIN Mesh Network Diagnostic Telemetry",
-        "description": "Returns live node stability percentage, delinquent validator list, vote performance thresholds, and average priority fee metrics queried directly from Solana Mainnet Beta.",
-        "operationId": "getDepinIntel",
+        "summary": "Solana network health snapshot",
+        "description": "Returns current validator, epoch, performance, fee, supply, and inflation telemetry from the configured Solana Mainnet RPC.",
+        "operationId": "getSolanaNetworkHealth",
         "x-payment-required": true,
-        "x-payment-info": {
-          "protocols": [
-            "x402"
-          ],
-          "pricingMode": "fixed",
-          "price": "0.02",
-          "chains": [
-            {
-              "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-              "name": "Solana"
-            }
-          ]
-        },
         "x-x402Version": 2,
-        "x-resource": {
-          "url": "https://redqueen.space/api/intel/depin",
-          "description": "GET /api/intel/depin",
-          "mimeType": "application/json"
+        "x-payment-info": {
+          "protocol": "x402",
+          "scheme": "exact",
+          "price": "0.02 USDC",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "requirements": "Recipient, asset, amount, fee payer, and timeout are returned by the runtime HTTP 402 challenge."
         },
-        "x-accepts": [
-          {
-            "scheme": "exact",
-            "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-            "payTo": "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg",
-            "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-            "amount": "20000",
-            "maxTimeoutSeconds": 300,
-            "extra": {}
-          }
-        ],
         "parameters": [
           {
-            "name": "X-Operative-Token",
-            "in": "header",
-            "required": false,
-            "description": "Optional Bearer JWT token to award XP directly to the operative's profile.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/OperationId"
           },
           {
-            "name": "Payment-Signature",
-            "in": "header",
-            "required": false,
-            "description": "Standard x402 payment proof containing the transaction signature for the 0.02 USDC transfer.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/PaymentSignature"
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful decryption of live validator and node analytics.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "timestamp": { "type": "string" },
-                    "clearance": { "type": "string" },
-                    "depin": {
-                      "type": "object",
-                      "properties": {
-                        "scannerName": { "type": "string" },
-                        "onlineNodes": { "type": "integer" },
-                        "compromisedNodes": { "type": "integer" },
-                        "bandwidthTaintIndex": { "type": "string" },
-                        "networkHealth": { "type": "string" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "Payment Required. Returns standard x402 exact SVM scheme challenge details for 0.02 USDC payment routing.",
+            "description": "Settled and delivered Solana network snapshot.",
             "headers": {
-              "Payment-Required": {
-                "description": "Base64 encoded payment requirement challenge",
-                "required": true,
-                "schema": {
-                  "type": "string"
-                }
-              }
+              "X-Operation-Id": { "$ref": "#/components/headers/OperationId" },
+              "X-Receipt-Status": { "$ref": "#/components/headers/ReceiptStatus" },
+              "Payment-Response": { "$ref": "#/components/headers/PaymentResponse" }
             },
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": { "type": "string", "example": "PAYMENT_REQUIRED" },
-                    "challenge": { "type": "string", "description": "Base64 encoded payment requirement challenge" }
-                  }
-                }
+                "schema": { "$ref": "#/components/schemas/SolanaNetworkSnapshot" }
               }
             }
+          },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "OperationId": {
+        "name": "X-Operation-Id",
+        "in": "header",
+        "required": true,
+        "description": "Client-generated UUID binding payment, request fingerprint, receipt, and delivered output for idempotent replay.",
+        "schema": { "type": "string", "format": "uuid" }
+      },
+      "PaymentSignature": {
+        "name": "Payment-Signature",
+        "in": "header",
+        "required": false,
+        "description": "Base64-encoded x402 v2 payment payload. Omit on the first request to receive the runtime 402 challenge.",
+        "schema": { "type": "string" }
+      }
+    },
+    "headers": {
+      "OperationId": {
+        "description": "Operation UUID used for the delivered receipt.",
+        "schema": { "type": "string", "format": "uuid" }
+      },
+      "ReceiptStatus": {
+        "description": "Whether the settlement receipt and exact delivered response were stored.",
+        "schema": { "type": "string", "enum": ["stored", "failed"] }
+      },
+      "PaymentResponse": {
+        "description": "Base64-encoded x402 settlement response.",
+        "schema": { "type": "string" }
+      }
+    },
+    "responses": {
+      "PaymentRequired": {
+        "description": "Runtime x402 v2 exact-SVM payment requirements.",
+        "headers": {
+          "X-Operation-Id": { "$ref": "#/components/headers/OperationId" },
+          "Payment-Required": {
+            "description": "Base64-encoded payment requirements declaring the exact network, asset, amount, recipient, and facilitator fields.",
+            "schema": { "type": "string" }
           }
+        }
+      },
+      "Unavailable": {
+        "description": "Settlement rail, receipt store, required RPC telemetry, or minimum source coverage is unavailable. No paid output is delivered.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Signal": {
+        "type": "object",
+        "required": ["id", "name", "kind", "severity", "confidence", "freshness", "observedAt", "region", "source", "sourceUrl", "fact", "assessment", "recommendedAction"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "kind": { "type": "string" },
+          "severity": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "confidence": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "freshness": { "type": "string", "enum": ["FRESH", "CURRENT", "AGING", "STALE"] },
+          "observedAt": { "type": "string", "format": "date-time" },
+          "region": { "type": "string" },
+          "source": { "type": "string" },
+          "sourceUrl": { "type": "string", "format": "uri" },
+          "fact": { "type": "string" },
+          "assessment": { "type": "string" },
+          "recommendedAction": { "type": "string" }
+        }
+      },
+      "GlobalSynthesis": {
+        "type": "object",
+        "required": ["success", "timestamp", "clearance", "intel"],
+        "properties": {
+          "success": { "const": true },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "clearance": { "type": "string" },
+          "intel": {
+            "type": "object",
+            "required": ["headline", "summary", "sourceCoverage", "sourceStatus", "prioritySignal", "signals", "nextAction", "trustBoundary"],
+            "properties": {
+              "headline": { "type": "string" },
+              "summary": { "type": "string" },
+              "sourceCoverage": { "type": "object", "additionalProperties": true },
+              "sourceStatus": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+              "prioritySignal": { "type": "string" },
+              "signals": { "type": "array", "items": { "$ref": "#/components/schemas/Signal" } },
+              "nextAction": { "type": "string" },
+              "trustBoundary": { "type": "string" }
+            }
+          }
+        }
+      },
+      "SolanaNetworkSnapshot": {
+        "type": "object",
+        "required": ["success", "timestamp", "clearance", "network"],
+        "properties": {
+          "success": { "const": true },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "clearance": { "type": "string" },
+          "network": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": { "const": false },
+          "error": { "type": "string" },
+          "syntheticData": { "type": "boolean" }
         }
       }
     }

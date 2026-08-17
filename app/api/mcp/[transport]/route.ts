@@ -54,22 +54,18 @@ const handler = createMcpHandler(
       "get_depin_telemetry",
       {
         title: "Get DePIN Telemetry",
-        description: "Retrieve live DePIN mesh network diagnostic telemetry from Solana Mainnet Beta, including active/delinquent nodes, vote performance thresholds, and average priority fee metrics. Protected by x402 micropayment standard.",
+        description: "Retrieve current Solana Mainnet validator, epoch, performance, supply, inflation, and priority-fee telemetry. Protected by a runtime x402 payment challenge.",
         inputSchema: z.object({
-          paymentSignature: z.string().optional().describe("Optional transaction signature proving payment of $0.02 USDC to SVM address AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg. Required to unlock telemetry."),
-          operativeToken: z.string().optional().describe("Deprecated compatibility field. Purchasing intelligence never awards readiness or XP."),
+          operationId: z.string().uuid().optional().describe("Reuse the X-Operation-Id returned with the payment challenge for receipt-safe retries."),
+          paymentSignature: z.string().optional().describe("Base64-encoded x402 v2 payment payload created from the exact runtime challenge. It is not a bare transaction signature."),
+          operativeToken: z.string().optional().describe("Deprecated and ignored. Purchasing intelligence never awards readiness or XP."),
         }),
         outputSchema: z.object({
           success: z.boolean().describe("Operation success indicator"),
-          timestamp: z.string().describe("Timestamp of the audit"),
-          clearance: z.string().describe("Access clearance status"),
-          depin: z.object({
-            scannerName: z.string(),
-            onlineNodes: z.number(),
-            compromisedNodes: z.number(),
-            bandwidthTaintIndex: z.string(),
-            networkHealth: z.string(),
-          }).optional().describe("DePIN network diagnostic metrics"),
+          timestamp: z.string().optional().describe("Timestamp of the audit"),
+          clearance: z.string().optional().describe("Delivery status"),
+          network: z.any().optional().describe("Source-backed Solana network telemetry"),
+          error: z.string().optional(),
         }),
         annotations: {
           readOnlyHint: true,
@@ -77,14 +73,12 @@ const handler = createMcpHandler(
           openWorldHint: true,
         }
       },
-      async ({ paymentSignature, operativeToken }) => {
+      async ({ operationId, paymentSignature }) => {
         try {
           const headers: Record<string, string> = {};
+          if (operationId) headers["X-Operation-Id"] = operationId;
           if (paymentSignature) {
             headers["Payment-Signature"] = paymentSignature;
-          }
-          if (operativeToken) {
-            headers["Authorization"] = `Bearer ${operativeToken}`;
           }
 
           // Create a mock NextRequest and call the router directly
@@ -97,10 +91,11 @@ const handler = createMcpHandler(
           if (response.status === 402) {
             const data = await response.json().catch(() => ({}));
             const paymentRequiredHeader = response.headers.get("payment-required") || response.headers.get("x-payment-required");
+            const responseOperationId = response.headers.get("x-operation-id") || operationId || "";
             return {
               content: [{
                 type: "text",
-                text: `PAYMENT_REQUIRED: This tool is gated by x402. To unlock this telemetry, please submit a payment of $0.02 USDC to SVM address AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg.\n\nChallenge details (Base64): ${paymentRequiredHeader || ""}\nJSON Payload: ${JSON.stringify(data, null, 2)}\n\nAfter paying, re-call this tool and supply the transaction signature in the 'paymentSignature' parameter.`
+                text: `PAYMENT_REQUIRED: Decode and inspect the runtime x402 challenge before approval. It declares the exact network, asset, amount, recipient, fee payer, and timeout.\n\nX-Operation-Id: ${responseOperationId}\nChallenge (Base64): ${paymentRequiredHeader || ""}\nJSON Payload: ${JSON.stringify(data, null, 2)}\n\nRe-call this tool with the same operationId and the complete base64 x402 payment payload in paymentSignature.`
               }],
             };
           }
@@ -108,6 +103,7 @@ const handler = createMcpHandler(
           const data = await response.json();
           return {
             content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+            isError: !response.ok,
           };
         } catch (err: any) {
           return {
@@ -123,63 +119,18 @@ const handler = createMcpHandler(
       "get_premium_intel",
       {
         title: "Get Premium Intel",
-        description: "Retrieve premium global threat briefing containing physical seismic anomalies, NASA natural disaster events, and Disease.sh pathogen analytics. Protected by x402 micropayment standard.",
+        description: "Retrieve a ranked synthesis across RED QUEEN's seven-source verified signal grid. Delivery requires at least four reachable source families and a runtime x402 payment challenge.",
         inputSchema: z.object({
-          paymentSignature: z.string().optional().describe("Optional transaction signature proving payment of $0.01 USDC to SVM address AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg. Required to unlock premium briefing."),
-          operativeToken: z.string().optional().describe("Deprecated compatibility field. Purchasing intelligence never awards readiness or XP."),
+          operationId: z.string().uuid().optional().describe("Reuse the X-Operation-Id returned with the payment challenge for receipt-safe retries."),
+          paymentSignature: z.string().optional().describe("Base64-encoded x402 v2 payment payload created from the exact runtime challenge. It is not a bare transaction signature."),
+          operativeToken: z.string().optional().describe("Deprecated and ignored. Purchasing intelligence never awards readiness or XP."),
         }),
         outputSchema: z.object({
           success: z.boolean().describe("Operation success indicator"),
-          timestamp: z.string().describe("Timestamp of the brief"),
-          clearance: z.string().describe("Clearance authentication level"),
-          intel: z.object({
-            headline: z.string(),
-            summary: z.string(),
-            maxEvent: z.object({
-              magnitude: z.string(),
-              location: z.string(),
-              depthKm: z.string(),
-              latitude: z.string(),
-              longitude: z.string(),
-            }),
-            t54Telemetry: z.object({
-              identityStatus: z.string(),
-              complianceScore: z.string(),
-              activePromptMitigations: z.number(),
-              underwritingTier: z.string(),
-              riskShieldState: z.string(),
-            }),
-            threatVectors: z.array(z.object({
-              id: z.string(),
-              rating: z.string(),
-              trend: z.string(),
-              status: z.string(),
-              description: z.string(),
-              depthKm: z.string(),
-              latitude: z.string(),
-              longitude: z.string(),
-              eventTime: z.string(),
-            })),
-            nasaEvents: z.array(z.object({
-              id: z.string(),
-              title: z.string(),
-              category: z.string(),
-              date: z.string(),
-              longitude: z.number(),
-              latitude: z.number(),
-              source: z.string(),
-            })),
-            biologicalContainment: z.object({
-              activePathogens: z.number(),
-              criticalInfections: z.number(),
-              dailyEscalations: z.number(),
-              totalFatalities: z.number(),
-              recoveryRate: z.string(),
-            }),
-            combinedEntropyIndex: z.string(),
-            directive: z.string(),
-            explorerUrl: z.string(),
-          }).optional().describe("Premium global apocalypse and biological diagnostics data"),
+          timestamp: z.string().optional().describe("Timestamp of the synthesis"),
+          clearance: z.string().optional().describe("Delivery status"),
+          intel: z.any().optional().describe("Seven-source ranked signal dossier with coverage and trust boundaries"),
+          error: z.string().optional(),
         }),
         annotations: {
           readOnlyHint: true,
@@ -187,14 +138,12 @@ const handler = createMcpHandler(
           openWorldHint: true,
         }
       },
-      async ({ paymentSignature, operativeToken }) => {
+      async ({ operationId, paymentSignature }) => {
         try {
           const headers: Record<string, string> = {};
+          if (operationId) headers["X-Operation-Id"] = operationId;
           if (paymentSignature) {
             headers["Payment-Signature"] = paymentSignature;
-          }
-          if (operativeToken) {
-            headers["Authorization"] = `Bearer ${operativeToken}`;
           }
 
           // Create a mock NextRequest and call the router directly
@@ -207,10 +156,11 @@ const handler = createMcpHandler(
           if (response.status === 402) {
             const data = await response.json().catch(() => ({}));
             const paymentRequiredHeader = response.headers.get("payment-required") || response.headers.get("x-payment-required");
+            const responseOperationId = response.headers.get("x-operation-id") || operationId || "";
             return {
               content: [{
                 type: "text",
-                text: `PAYMENT_REQUIRED: This tool is gated by x402. To unlock this intelligence brief, please submit a payment of $0.01 USDC to SVM address AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg.\n\nChallenge details (Base64): ${paymentRequiredHeader || ""}\nJSON Payload: ${JSON.stringify(data, null, 2)}\n\nAfter paying, re-call this tool and supply the transaction signature in the 'paymentSignature' parameter.`
+                text: `PAYMENT_REQUIRED: Decode and inspect the runtime x402 challenge before approval. It declares the exact network, asset, amount, recipient, fee payer, and timeout.\n\nX-Operation-Id: ${responseOperationId}\nChallenge (Base64): ${paymentRequiredHeader || ""}\nJSON Payload: ${JSON.stringify(data, null, 2)}\n\nRe-call this tool with the same operationId and the complete base64 x402 payment payload in paymentSignature.`
               }],
             };
           }
@@ -218,6 +168,7 @@ const handler = createMcpHandler(
           const data = await response.json();
           return {
             content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+            isError: !response.ok,
           };
         } catch (err: any) {
           return {

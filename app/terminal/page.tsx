@@ -133,37 +133,6 @@ export default function TerminalPage() {
   const [x402Available, setX402Available] = useState<boolean | null>(null);
   const [x402StatusReason, setX402StatusReason] = useState("Checking settlement facilitator...");
 
-  const [vaultSolBalance, setVaultSolBalance] = useState<number | null>(null);
-  const [vaultUsdcBalance, setVaultUsdcBalance] = useState<number | null>(null);
-  const [vaultError, setVaultError] = useState(false);
-
-  const fetchVaultBalances = async () => {
-    try {
-      const res = await fetch("/api/treasury/buyback");
-      const data = await res.json();
-      if (data.success || data.solBalance !== undefined) {
-        setVaultSolBalance(data.solBalance);
-        setVaultUsdcBalance(data.usdcBalance);
-        setVaultError(false);
-      } else {
-        setVaultSolBalance(null);
-        setVaultUsdcBalance(null);
-        setVaultError(true);
-      }
-    } catch (e) {
-      console.error("Failed to fetch vault balances:", e);
-      setVaultSolBalance(null);
-      setVaultUsdcBalance(null);
-      setVaultError(true);
-    }
-  };
-
-  useEffect(() => {
-    fetchVaultBalances();
-    const interval = setInterval(fetchVaultBalances, 30000); // refresh every 30s
-    return () => clearInterval(interval);
-  }, []);
-
   useEffect(() => {
     let active = true;
     fetch("/api/x402/status", { cache: "no-store" })
@@ -194,16 +163,16 @@ export default function TerminalPage() {
     setLoading("Initiating request...");
     setError(null);
     setIntel(null);
+    const operationId = crypto.randomUUID();
 
     try {
       const token = session?.access_token;
-      const operationId = crypto.randomUUID();
       let headers: Record<string, string> = { "X-Operation-Id": operationId };
       if (type === "premium") {
-        setPremiumOperationId(null);
+        setPremiumOperationId(operationId);
         setPremiumReceiptStored(null);
       } else {
-        setDepinOperationId(null);
+        setDepinOperationId(operationId);
         setDepinReceiptStored(null);
       }
       if (token) {
@@ -224,7 +193,6 @@ export default function TerminalPage() {
           setDepinReceiptStored(receiptStored);
         }
         setLoading(null);
-        fetchVaultBalances();
 
         const responseHeader = res.headers.get("payment-response") || res.headers.get("PAYMENT-RESPONSE");
         if (responseHeader) {
@@ -404,7 +372,6 @@ export default function TerminalPage() {
                 setDepinReceiptStored(receiptStored);
               }
               setLoading(null);
-              fetchVaultBalances();
 
               // Extract payment response header if present
               const responseHeader = retryRes.headers.get("payment-response") || retryRes.headers.get("PAYMENT-RESPONSE");
@@ -471,7 +438,7 @@ export default function TerminalPage() {
       }
     } catch (err: any) {
       console.error("Decryption failed:", err);
-      setError(err?.message || "Secure connection decryption failure.");
+      setError(`${err?.message || "Secure connection decryption failure."} Operation ID: ${operationId}`);
       setLoading(null);
     }
   };
@@ -1450,65 +1417,31 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                       </div>
                     )}
                     
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }} className="responsive-grid-2">
-                      {/* USGS seismic block */}
-                      {premiumIntel.intel?.maxEvent && (
-                        <div style={{ background: "rgba(255,77,77,0.04)", border: "1px solid rgba(255,77,77,0.15)", padding: "10px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "5px", fontSize: "11px" }}>
-                          <div style={{ color: "var(--accent)", fontWeight: "bold", borderBottom: "1px dashed rgba(255,77,77,0.15)", paddingBottom: "4px", marginBottom: "4px" }}>💥 SEISMIC EVENT MATRIX</div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>LOCATION:</span><span style={{ color: "#ffffff", fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "90px" }} title={premiumIntel.intel.maxEvent.location}>{premiumIntel.intel.maxEvent.location}</span></div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>MAGNITUDE:</span><span style={{ color: "var(--accent)", fontWeight: "bold" }}>M {premiumIntel.intel.maxEvent.magnitude}</span></div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>ANOMALY DEPTH:</span><span style={{ color: "#ffffff" }}>{premiumIntel.intel.maxEvent.depthKm} km</span></div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>LATITUDE:</span><span style={{ color: "#ffffff" }}>{premiumIntel.intel.maxEvent.latitude}</span></div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.7)" }}>LONGITUDE:</span><span style={{ color: "#ffffff" }}>{premiumIntel.intel.maxEvent.longitude}</span></div>
+                    {premiumIntel.intel?.signals && premiumIntel.intel.signals.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
+                        <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "11.5px", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <span>VERIFIED SIGNAL RANKING · SEVERITY / CONFIDENCE / FRESHNESS</span>
                         </div>
-                      )}
-                    </div>
-
-                    {premiumIntel.intel?.nasaEvents && premiumIntel.intel.nasaEvents.length > 0 && (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
-                        <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "11.5px" }}>🌍 ACTIVE NASA ENVIRONMENTAL HAZARDS (EONET):</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "140px", overflowY: "auto", paddingRight: "4px" }}>
-                          {premiumIntel.intel.nasaEvents.map((e: any, idx: number) => (
-                            <div key={idx} style={{ background: "rgba(0, 229, 255, 0.02)", border: "1px solid rgba(0, 229, 255, 0.06)", padding: "8px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "2px", fontSize: "11px" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "260px", overflowY: "auto", paddingRight: "4px" }}>
+                          {premiumIntel.intel.signals.map((signal: any) => (
+                            <a key={signal.id} href={signal.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "10px", color: "inherit", textDecoration: "none", display: "flex", flexDirection: "column", gap: "5px", fontSize: "11px" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", color: "#ffffff" }}>
-                                <span style={{ fontWeight: "bold" }}>{e.title}</span>
-                                <span style={{ color: "#00e5ff", fontWeight: "bold" }}>{e.category}</span>
+                                <span style={{ fontWeight: "bold" }}>{signal.name}</span>
+                                <span style={{ color: signal.severity >= 80 ? "var(--accent)" : signal.severity >= 60 ? "#f0c929" : "#2ecc40", fontWeight: "bold" }}>{signal.severity}/100</span>
                               </div>
-                              <div style={{ display: "flex", justifyContent: "space-between", color: "rgba(255,255,255,0.5)", fontSize: "10px" }}>
-                                <span>Source: {e.source} | Lat: {e.latitude.toFixed(2)}, Lng: {e.longitude.toFixed(2)}</span>
-                                <span>Date: {new Date(e.date).toLocaleDateString()}</span>
+                              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", color: "rgba(255,255,255,0.5)", fontSize: "10px" }}>
+                                <span>{signal.source} · {signal.kind.replaceAll("_", " ")} · {signal.region}</span>
+                                <span>{signal.confidence}% CONF · {signal.freshness}</span>
                               </div>
-                            </div>
+                              <p style={{ margin: 0, color: "rgba(255,255,255,0.68)", lineHeight: 1.45 }}>{signal.fact}</p>
+                            </a>
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {premiumIntel.intel?.threatVectors && (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px" }}>
-                        <div style={{ color: "#ffffff", fontWeight: "bold", fontSize: "11.5px", display: "flex", alignItems: "center", gap: "6px" }}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, filter: "drop-shadow(0 0 2px var(--accent))" }}>
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                            <line x1="12" y1="9" x2="12" y2="13" />
-                            <line x1="12" y1="17" x2="12.01" y2="17" />
-                          </svg>
-                          <span>USGS EARTHQUAKES · PAST HOUR:</span>
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "140px", overflowY: "auto", paddingRight: "4px" }}>
-                          {premiumIntel.intel.threatVectors.map((v: any, idx: number) => (
-                            <div key={idx} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "8px", borderRadius: "2px", display: "flex", flexDirection: "column", gap: "2px", fontSize: "11px" }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", color: "#ffffff" }}>
-                                <span style={{ fontWeight: "bold" }}>{v.description}</span>
-                                <span style={{ color: v.status === "RED" ? "var(--accent)" : v.status === "YELLOW" ? "#f0c929" : "#2ecc40", fontWeight: "bold" }}>{v.rating}</span>
-                              </div>
-                              <div style={{ display: "flex", justifyContent: "space-between", color: "rgba(255,255,255,0.5)", fontSize: "10px" }}>
-                                <span>Depth: {v.depthKm} km | Lat: {v.latitude}, Lng: {v.longitude}</span>
-                                <span>{v.observedAt ? new Date(v.observedAt).toLocaleTimeString() : "Time unavailable"}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                    {premiumIntel.intel?.trustBoundary && (
+                      <div style={{ color: "rgba(255,255,255,0.48)", fontSize: "10px", lineHeight: 1.5 }}>{premiumIntel.intel.trustBoundary}</div>
                     )}
                     
                     <div style={{ fontSize: "11.5px", color: "#ffffff", borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: "10px", lineHeight: "1.4" }}>
@@ -1525,10 +1458,9 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                         <span>x402 PROTOCOL PAYMENT RECEIPT</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Standard Version:</span><span>x402 V2 (Exact SVM Scheme)</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Facilitator Gate:</span><span>https://facilitator.payai.network</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>USDC Mint Address:</span><span style={{ fontSize: "10px" }}>EPjFWdd...t1v (Solana Mainnet)</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Operation ID:</span><span style={{ fontSize: "10px", wordBreak: "break-all" }}>{premiumOperationId || "UNAVAILABLE"}</span></div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Settlement Price:</span><span style={{ fontWeight: "bold", color: "#f0c929" }}>0.01 USDC</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Verification State:</span><span style={{ color: "#2ecc40", fontWeight: "bold" }}>✓ SETTLED // ON-CHAIN</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Receipt State:</span><span style={{ color: premiumReceiptStored ? "#2ecc40" : "#ff8080", fontWeight: "bold" }}>{premiumReceiptStored ? "✓ STORED // REPLAY SAFE" : "UNCONFIRMED // DO NOT REPAY"}</span></div>
                     </div>
 
                     {/* Actions Row */}
@@ -1578,7 +1510,9 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
 
                       <button
                         onClick={() => decryptIntel("/api/intel/premium", "premium")}
-                        style={{ background: "none", border: "none", color: "rgba(255, 255, 255, 0.7)", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", marginLeft: "auto", fontWeight: "bold" }}
+                        disabled={premiumReceiptStored === false}
+                        title={premiumReceiptStored === false ? "Receipt storage is unconfirmed. Keep this delivered output and do not submit another payment." : "Purchase a new source synthesis"}
+                        style={{ background: "none", border: "none", color: "rgba(255, 255, 255, 0.7)", fontFamily: "var(--mono)", fontSize: "11px", cursor: premiumReceiptStored === false ? "not-allowed" : "pointer", opacity: premiumReceiptStored === false ? 0.35 : 1, padding: 0, textDecoration: "underline", marginLeft: "auto", fontWeight: "bold" }}
                       >
                         [ BUY FRESH SYNTHESIS · 0.01 USDC ]
                       </button>
@@ -1697,10 +1631,9 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                         <span>x402 PROTOCOL PAYMENT RECEIPT</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Standard Version:</span><span>x402 V2 (Exact SVM Scheme)</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Facilitator Gate:</span><span>https://facilitator.payai.network</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>USDC Mint Address:</span><span style={{ fontSize: "10px" }}>EPjFWdd...t1v (Solana Mainnet)</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Operation ID:</span><span style={{ fontSize: "10px", wordBreak: "break-all" }}>{depinOperationId || "UNAVAILABLE"}</span></div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Settlement Price:</span><span style={{ fontWeight: "bold", color: "#f0c929" }}>0.02 USDC</span></div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Verification State:</span><span style={{ color: "#2ecc40", fontWeight: "bold" }}>✓ SETTLED // ON-CHAIN</span></div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "rgba(255,255,255,0.6)" }}>Receipt State:</span><span style={{ color: depinReceiptStored ? "#2ecc40" : "#ff8080", fontWeight: "bold" }}>{depinReceiptStored ? "✓ STORED // REPLAY SAFE" : "UNCONFIRMED // DO NOT REPAY"}</span></div>
                     </div>
 
                     {/* Actions Row */}
@@ -1739,7 +1672,9 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
 
                       <button
                         onClick={() => decryptIntel("/api/intel/depin", "depin")}
-                        style={{ background: "none", border: "none", color: "rgba(255, 255, 255, 0.7)", fontFamily: "var(--mono)", fontSize: "11px", cursor: "pointer", padding: 0, textDecoration: "underline", marginLeft: "auto", fontWeight: "bold" }}
+                        disabled={depinReceiptStored === false}
+                        title={depinReceiptStored === false ? "Receipt storage is unconfirmed. Keep this delivered output and do not submit another payment." : "Purchase a new network snapshot"}
+                        style={{ background: "none", border: "none", color: "rgba(255, 255, 255, 0.7)", fontFamily: "var(--mono)", fontSize: "11px", cursor: depinReceiptStored === false ? "not-allowed" : "pointer", opacity: depinReceiptStored === false ? 0.35 : 1, padding: 0, textDecoration: "underline", marginLeft: "auto", fontWeight: "bold" }}
                       >
                         [ BUY FRESH SNAPSHOT · 0.02 USDC ]
                       </button>
@@ -1830,78 +1765,26 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
 
           <details className="rq-terminal-diagnostics">
             <summary>ADVANCED SYSTEMS</summary>
-          {/* Treasury Buyback Module */}
-          <div>
-            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#f0c929", letterSpacing: "0.15em", marginBottom: "12px" }}>
-              [ TREASURY BUYBACK AUDIT ]
-            </div>
-            
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px", background: "#0c0a05", border: "1px solid rgba(240, 201, 41, 0.15)", padding: "12px", borderRadius: "2px" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "9px" }}>VAULT ADDRESS:</span>
-                <a 
-                  href="https://solscan.io/account/AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{ color: "#00e5ff", fontSize: "10px", textDecoration: "underline", wordBreak: "break-all" }}
-                >
-                  AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg
-                </a>
+            <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
+              <div style={{ padding: "10px", border: "1px solid rgba(255,255,255,.08)", background: "#0b0b0b" }}>
+                <span style={{ color: x402Available === true ? "#a8ff60" : "#f0c929", fontWeight: "bold" }}>x402 SETTLEMENT RAIL · {x402Available === true ? "READY" : x402Available === null ? "CHECKING" : "BLOCKED"}</span>
+                <div style={{ marginTop: "4px", color: "var(--text-muted)", fontSize: "10px", lineHeight: 1.45 }}>{x402StatusReason}</div>
               </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px dashed rgba(240, 201, 41, 0.1)", paddingTop: "8px" }}>
-                <span>VAULT SOL:</span>
-                <span style={{ color: "#ffffff", fontWeight: "bold" }}>
-                  {vaultSolBalance !== null ? `${vaultSolBalance.toFixed(4)} SOL` : vaultError ? "UNAVAILABLE" : "LOADING..."}
-                </span>
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>VAULT USDC:</span>
-                <span style={{ color: "#f0c929", fontWeight: "bold" }}>
-                  {vaultUsdcBalance !== null ? `${vaultUsdcBalance.toFixed(2)} USDC` : vaultError ? "UNAVAILABLE" : "LOADING..."}
-                </span>
-              </div>
-
-
-            </div>
-          </div>
-
-          <div>
-            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text)", letterSpacing: "0.15em", marginBottom: "8px" }}>
-              COMMAND PROTOCOL INDEX
-            </div>
-            
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "6px" }}>
-                <span style={{ color: "#2ecc40", fontWeight: "bold" }}>/help</span>
-                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
-                  Display technical helper documentation (FREE).
+              <div style={{ color: "var(--text)", fontSize: "10px", letterSpacing: ".12em" }}>LOCAL COMMAND INDEX</div>
+              {[
+                ["/memory", "Show the bounded Survival Memory on this device."],
+                ["/context", "Show broad area, focus, and Queen mode."],
+                ["/mode monitor|analyze|prepare|simulate", "Change the next reasoning mode without consuming AI."],
+                ["/pulse", "Return to the verified Daily Pulse and map."],
+                ["/bio", "Explain evidence-based readiness and persistence."],
+                ["/help", "Show the complete command index."],
+              ].map(([command, description]) => (
+                <div key={command} style={{ paddingBottom: "7px", borderBottom: "1px dashed var(--border)" }}>
+                  <span style={{ color: "#a8ff60", fontWeight: "bold" }}>{command}</span>
+                  <div style={{ marginTop: "2px", color: "var(--text-muted)", fontSize: "10px", lineHeight: 1.4 }}>{description}</div>
                 </div>
-              </div>
-
-              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "6px" }}>
-                <span style={{ color: "#2ecc40", fontWeight: "bold" }}>/bio</span>
-                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
-                  Retrieve active Bio-Score security scans (FREE).
-                </div>
-              </div>
-
-              <div style={{ borderBottom: "1px dashed var(--border)", paddingBottom: "6px" }}>
-                <span style={{ color: "var(--accent)", fontWeight: "bold" }}>/scan</span>
-                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
-                  Run deep metadata leak analysis.
-                </div>
-              </div>
-
-              <div>
-                <span style={{ color: "var(--accent)", fontWeight: "bold" }}>/decrypt [ID]</span>
-                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
-                  Decrypt classified threat records.
-                </div>
-              </div>
+              ))}
             </div>
-          </div>
           </details>
 
           <div style={{ marginTop: "auto", borderTop: "1px dashed var(--border)", paddingTop: "16px" }}>
@@ -1909,10 +1792,10 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
               SYSTEM TELEMETRY INTEGRITY
             </div>
             <div style={{ fontSize: "10px", display: "flex", flexDirection: "column", gap: "4px", color: "var(--text-muted)" }}>
-              <div>• CORE TEMP: 34.2°C (STABLE)</div>
-              <div>• RPC STATUS: VERIFY IN ON-CHAIN HUB</div>
-              <div>• SHIELD STATE: BUFFER SECURED</div>
-              <div>• MEMORY MATRIX: CONTEXT INJECTED</div>
+              <div>• LIVE SOURCES: VERIFY IN PULSE</div>
+              <div>• SOLANA RPC: VERIFY IN ON-CHAIN HUB</div>
+              <div>• LOCATION: BROAD AREA ONLY</div>
+              <div>• DEVICE MEMORY: SENT ONLY WITH A QUEEN REQUEST</div>
             </div>
           </div>
 

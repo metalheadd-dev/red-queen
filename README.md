@@ -116,6 +116,8 @@ Premium HTTP resources can request an exact USDC payment through the x402 SVM sc
 
 Current implementation uses x402 v2 packages with Solana CAIP-2 network identifiers. Each paid request carries an operation UUID; successful settlement proof and delivered output are stored server-side, and an exact replay of the same signed request returns the original delivery without another payment. Production settlement stays disabled unless the facilitator, explicit `SVM_ADDRESS`, and the `x402_operations` receipt store are all healthy.
 
+The 0.01 USDC global synthesis now uses the same seven-source normalized signal engine as Pulse. It requires at least four reachable source families before delivery; a `503` handler response cancels settlement and never substitutes fictional or cached “safe default” telemetry. Payment requirements, including the current recipient and asset, come from the runtime HTTP 402 challenge rather than static documentation.
+
 Apply `supabase/migrations/20260817170000_create_x402_operations.sql` to the linked Supabase project before enabling x402. The table has RLS enabled and intentionally exposes no browser policies; only the server service role can read payment receipts or paid outputs.
 
 Official references: [Solana Actions and Blinks](https://solana.com/developers/guides/advanced/actions), [Solana Mobile Wallet Adapter](https://docs.solanamobile.com/get-started/web/apps), [x402 specification](https://github.com/x402-foundation/x402/blob/main/specs/x402-specification-v2.md), [Supabase Web3 Auth](https://supabase.com/docs/guides/auth/auth-web3).
