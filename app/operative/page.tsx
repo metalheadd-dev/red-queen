@@ -123,6 +123,7 @@ export default function OperativeProfilePage() {
     version: 1,
     types: [],
     localPriority: false,
+    browserAlerts: false,
     knownSignalIds: [],
     acknowledgedSignalIds: [],
   });

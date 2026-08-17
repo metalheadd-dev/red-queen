@@ -2067,6 +2067,13 @@ body:has(#game-player-root) .page-content {
 .signal-watch-limit { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin: 0 12px 12px; padding: 10px 12px; border: 1px solid rgba(240,201,41,.24); background: rgba(240,201,41,.045); }
 .signal-watch-limit span { color: rgba(255,255,255,.6); font-size: 9px; line-height: 1.45; }
 .signal-watch-limit a { flex: 0 0 auto; color: #f0c929; font: 700 8px var(--mono); text-decoration: none; }
+.signal-watch-delivery { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin: 0 12px 12px; padding: 11px 12px; border: 1px solid rgba(112,199,232,.16); background: rgba(112,199,232,.025); }
+.signal-watch-delivery.is-armed { border-color: rgba(168,255,96,.22); background: rgba(168,255,96,.028); }
+.signal-watch-delivery span { display: block; color: #70c7e8; font: 700 7px var(--mono); letter-spacing: .11em; }
+.signal-watch-delivery.is-armed span { color: #a8ff60; }
+.signal-watch-delivery strong { display: block; margin-top: 4px; color: rgba(255,255,255,.55); font-size: 9px; line-height: 1.45; }
+.signal-watch-delivery button { flex: 0 0 auto; padding: 8px 10px; border: 1px solid rgba(112,199,232,.35); background: rgba(112,199,232,.05); color: #b8e9fb; font: 700 8px var(--mono); cursor: pointer; }
+.signal-watch-delivery.is-armed button { border-color: rgba(168,255,96,.28); color: #a8ff60; }
 .signal-watch-panel > footer { padding: 10px 18px; border-top: 1px solid rgba(255,255,255,.06); color: rgba(255,255,255,.27); font: 700 7px var(--mono); letter-spacing: .06em; }
 
 .onchain-products { margin-top: 24px; padding: 26px; border: 1px solid rgba(255,255,255,.09); background: rgba(8,9,11,.94); }
@@ -2160,6 +2167,7 @@ body:has(#game-player-root) .page-content {
   .signal-watch-heading { align-items: flex-start; flex-direction: column; }
   .signal-watch-controls { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .signal-watch-results > header { align-items: flex-start; flex-direction: column; }
+  .signal-watch-delivery { align-items: flex-start; flex-direction: column; }
   .signal-watch-results > div,
   .action-history-list { grid-template-columns: 1fr; }
   .action-history-summary { grid-template-columns: repeat(2,1fr); }
@@ -3504,6 +3512,8 @@ body:has(#game-player-root) .page-content {
   .signal-watch-controls span { font-size: 10px; }
   .signal-watch-panel > footer { font-size: 9px; }
   .signal-watch-limit span { font-size: 11px; }
+  .signal-watch-delivery span { font-size: 9px; }
+  .signal-watch-delivery strong { font-size: 11px; }
 
   .onchain-hero-grid > div:first-child > p { font-size: 17px; }
   .onchain-hero-tags span { font-size: 9px; }

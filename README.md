@@ -41,6 +41,7 @@ Local Pulse resolves only a user-entered city or region, never an exact address.
 | --- | --- | --- |
 | Daily Pulse and ranked signal grid | **Live** | Falls back to an explicit sensors-limited state when upstream sources are unreachable. |
 | Interactive Map and incident dossiers | **Live** | Geospatial coverage depends on source coordinates; no marker is presented as proof of personal danger. |
+| Signal Watch and browser alerts | **Live / foreground** | Watch state stays on-device. Opt-in notifications fire only for new matches while RED QUEEN is open; background push and account sync are not claimed yet. |
 | RED QUEEN Monitor / Analyze / Prepare / Simulate | **Live** | Live claims require selected source context; general knowledge and simulation are labeled separately. |
 | Preparedness checklist and saved Queen protocols | **Live** | Private plans currently persist in the browser; they are not published on-chain. |
 | BIO-SCORE and SOLvivor profile | **Live** | BIO changes only through eligible evaluated evidence, never from holdings or ordinary chat volume. |

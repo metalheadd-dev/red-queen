@@ -8,6 +8,7 @@ export interface SignalWatchMemory {
   version: 1;
   types: SignalWatchType[];
   localPriority: boolean;
+  browserAlerts: boolean;
   knownSignalIds: string[];
   acknowledgedSignalIds: string[];
   lastScanAt?: string;
@@ -33,6 +34,7 @@ export function parseSignalWatchMemory(value: string | null): SignalWatchMemory 
     version: 1,
     types: [],
     localPriority: false,
+    browserAlerts: false,
     knownSignalIds: [],
     acknowledgedSignalIds: [],
   };
@@ -45,6 +47,7 @@ export function parseSignalWatchMemory(value: string | null): SignalWatchMemory 
         ? parsed.types.filter((type): type is SignalWatchType => WATCH_TYPES.has(type as SignalWatchType))
         : [],
       localPriority: parsed.localPriority === true,
+      browserAlerts: parsed.browserAlerts === true,
       knownSignalIds: Array.isArray(parsed.knownSignalIds)
         ? parsed.knownSignalIds.filter((id): id is string => typeof id === "string").slice(-400)
         : [],

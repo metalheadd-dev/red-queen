@@ -85,6 +85,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
     version: 1,
     types: [],
     localPriority: false,
+    browserAlerts: false,
     knownSignalIds: [],
     acknowledgedSignalIds: [],
   });
@@ -95,6 +96,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
   const [comparisonSignals, setComparisonSignals] = useState(2);
   const [clearanceName, setClearanceName] = useState("CIVILIAN");
   const [limitMessage, setLimitMessage] = useState("");
+  const [browserAlertPermission, setBrowserAlertPermission] = useState<NotificationPermission | "unsupported">("unsupported");
 
   useEffect(() => {
     const accessToken = session?.access_token;
@@ -130,6 +132,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
 
   useEffect(() => {
     setMemory(parseSignalWatchMemory(localStorage.getItem(SIGNAL_WATCH_STORAGE_KEY)));
+    setBrowserAlertPermission("Notification" in window ? Notification.permission : "unsupported");
     setReady(true);
   }, []);
 
@@ -148,6 +151,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
     }
     const stored = parseSignalWatchMemory(localStorage.getItem(SIGNAL_WATCH_STORAGE_KEY));
     const currentMatches = nodes.filter((node) => isWatched(node, memory, location));
+    const newMatches = currentMatches.filter((node) => !stored.knownSignalIds.includes(node.id));
     setPreviousScanAt(stored.lastScanAt);
     setReviewSignalIds(currentMatches
       .filter((node) => !stored.acknowledgedSignalIds.includes(node.id))
@@ -159,6 +163,21 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
     };
     writeSignalWatchMemory(localStorage, scannedMemory);
     setMemory(scannedMemory);
+
+    if (stored.browserAlerts && "Notification" in window && Notification.permission === "granted") {
+      newMatches.slice(0, 3).forEach((signal) => {
+        const notification = new Notification(`RED QUEEN ALERT · ${severityLabel(signal.severity)}`, {
+          body: `${signal.name} · ${signal.source || "verified signal grid"}`,
+          tag: `red-queen-${signal.id}`,
+          icon: "/logo.png",
+        });
+        notification.onclick = () => {
+          window.focus();
+          document.getElementById("signal-watch")?.scrollIntoView({ behavior: "smooth", block: "center" });
+          notification.close();
+        };
+      });
+    }
   }, [location, nodeKey, ready, watchKey]);
 
   function updateMemory(next: SignalWatchMemory) {
@@ -223,6 +242,22 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
     setReviewSignalIds([]);
   }
 
+  async function enableBrowserAlerts() {
+    if (!("Notification" in window)) {
+      setBrowserAlertPermission("unsupported");
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    setBrowserAlertPermission(permission);
+    if (permission === "granted") {
+      updateMemory({ ...memory, browserAlerts: true });
+    }
+  }
+
+  function disableBrowserAlerts() {
+    updateMemory({ ...memory, browserAlerts: false });
+  }
+
   function queenReviewHref(signal?: WatchableSignal) {
     const subject = signal
       ? `${signal.name} (${signal.type}, severity ${signal.severity}, ${signal.region}, source: ${signal.source || "pending"})`
@@ -265,6 +300,27 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
       </div>
       {limitMessage && <div className="signal-watch-limit"><span>{limitMessage}</span><Link href="/network-clearance">VERIFY CLEARANCE →</Link></div>}
       {hasWatches && (
+        <div className={`signal-watch-delivery ${memory.browserAlerts && browserAlertPermission === "granted" ? "is-armed" : ""}`}>
+          <div>
+            <span>BROWSER ALERT CHANNEL</span>
+            <strong>
+              {browserAlertPermission === "unsupported"
+                ? "Notifications are unavailable in this browser."
+                : browserAlertPermission === "denied"
+                  ? "Notifications are blocked in browser settings."
+                  : memory.browserAlerts
+                    ? "Armed for new watched signals while RED QUEEN is open."
+                    : "Get an alert when the open platform detects a new match."}
+            </strong>
+          </div>
+          {browserAlertPermission !== "unsupported" && browserAlertPermission !== "denied" && (
+            memory.browserAlerts
+              ? <button type="button" onClick={disableBrowserAlerts}>DISARM</button>
+              : <button type="button" onClick={enableBrowserAlerts}>ENABLE ALERTS</button>
+          )}
+        </div>
+      )}
+      {hasWatches && (
         <div className="signal-watch-results">
           <header>
             <div><span>ACTIVE INBOX</span><strong>{reviewSignalIds.length ? "Queen is holding signals for your review." : "No unreviewed matches."}</strong></div>
@@ -292,7 +348,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
           <Link href={queenReviewHref()}>ASK QUEEN TO REVIEW WATCH →</Link>
         </div>
       )}
-      <footer>Review state stays on this device. Holder capacity requires a verified account session; connecting a public address alone does not unlock it. Browser push and account sync are not enabled yet.</footer>
+      <footer>Watch and review state stay on this device. Browser alerts work only while RED QUEEN is open; background push and account sync are not enabled yet. Holder capacity requires a verified account session.</footer>
     </section>
   );
 }
