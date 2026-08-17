@@ -20,6 +20,8 @@ interface ThreatNode {
   source?: string;
   sourceUrl?: string;
   confidence?: number;
+  observedAt?: string;
+  updatedAt?: string;
 }
 
 function liveProvenance(node: ThreatNode) {
@@ -48,13 +50,22 @@ function liveProvenance(node: ThreatNode) {
 }
 
 function sanitizeNodes(nodes: ThreatNode[]) {
+  const scannedAt = new Date().toISOString();
   return nodes.map((node) => ({
     ...node,
     coords: geoToSvg(node.lat, node.lng),
     ...liveProvenance(node),
     verified: liveProvenance(node).confidence >= 90 && !node.id.startsWith("archive-") && !node.id.startsWith("fallback-"),
-    updatedAt: new Date().toISOString(),
+    observedAt: normalizeTimestamp(node.observedAt),
+    updatedAt: normalizeTimestamp(node.updatedAt),
+    scannedAt,
   }));
+}
+
+function normalizeTimestamp(value?: string) {
+  if (!value) return undefined;
+  const timestamp = new Date(value);
+  return Number.isFinite(timestamp.getTime()) ? timestamp.toISOString() : undefined;
 }
 
 // Geographic to SVG coordinates (width 800, height 400) - used for fallback SVG views
@@ -292,14 +303,14 @@ export async function GET(request: NextRequest) {
           .sort((a: any, b: any) => (b.properties.mag || 0) - (a.properties.mag || 0))
           .slice(0, 12);
         
-        return topEvents.map((e: any, index: number) => {
+        return topEvents.map((e: any) => {
           const lat = e.geometry.coordinates[1];
           const lng = e.geometry.coordinates[0];
           const mag = e.properties.mag;
           const severity = Math.min(100, Math.round(mag * 15));
           
           return {
-            id: `usgs-${index}-${e.id}`,
+            id: `usgs-${e.id}`,
             name: `M ${mag} Earthquake`,
             type: "GEOLOGICAL" as const,
             category: "realistic" as const,
@@ -314,6 +325,8 @@ export async function GET(request: NextRequest) {
             source: "USGS",
             sourceUrl: e.properties.url || "https://earthquake.usgs.gov/earthquakes/map/",
             confidence: 98,
+            observedAt: e.properties.time ? new Date(e.properties.time).toISOString() : undefined,
+            updatedAt: e.properties.updated ? new Date(e.properties.updated).toISOString() : undefined,
           };
         });
       })
@@ -324,16 +337,17 @@ export async function GET(request: NextRequest) {
       .then(res => res.json())
       .then(data => {
         const events = data.events || [];
-        return events.map((e: any, index: number) => {
+        return events.map((e: any) => {
           const cat = e.categories[0]?.title || "Natural Hazard";
-          const geom = e.geometries?.[e.geometries.length - 1];
-          if (!geom || !geom.coordinates) return null;
+          const geometry = Array.isArray(e.geometry) ? e.geometry : Array.isArray(e.geometries) ? e.geometries : [];
+          const geom = geometry[geometry.length - 1];
+          if (!geom || !Array.isArray(geom.coordinates) || !Number.isFinite(geom.coordinates[0]) || !Number.isFinite(geom.coordinates[1])) return null;
           const lng = geom.coordinates[0];
           const lat = geom.coordinates[1];
           const type = cat.toLowerCase().includes("fire") ? "METEOROLOGICAL" : "GEOLOGICAL";
           
           return {
-            id: `nasa-${index}-${e.id}`,
+            id: `nasa-${e.id}`,
             name: `${cat} Detected`,
             type: type as any,
             category: "realistic" as const,
@@ -348,6 +362,8 @@ export async function GET(request: NextRequest) {
             source: "NASA EONET",
             sourceUrl: e.sources?.[0]?.url || "https://eonet.gsfc.nasa.gov/",
             confidence: 92,
+            observedAt: geom.date,
+            updatedAt: geom.date,
           };
         }).filter(Boolean);
       })
@@ -510,6 +526,8 @@ export async function GET(request: NextRequest) {
         source: "GDACS (EC JRC / UN)",
         sourceUrl: alert.link,
         confidence: 96,
+        observedAt: alert.pubDate,
+        updatedAt: alert.pubDate,
       };
     }));
 

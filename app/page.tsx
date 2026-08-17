@@ -21,6 +21,7 @@ import {
   SurvivalContext,
   SurvivalFocus,
 } from "@/lib/survival-context";
+import { recordSignalScan, SignalHistoryView } from "@/lib/signal-history";
 
 interface PulseData {
   codename: string;
@@ -85,7 +86,9 @@ interface MapNode {
   sourceUrl?: string;
   confidence?: number;
   verified?: boolean;
+  observedAt?: string;
   updatedAt?: string;
+  scannedAt?: string;
 }
 
 const TacticalMap = dynamic(() => import("@/components/TacticalMap"), {
@@ -131,6 +134,13 @@ function distanceInKm(a: { lat: number; lng: number }, b: { lat: number; lng: nu
   return radius * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
 }
 
+function absoluteSignalTime(value?: string) {
+  if (!value) return "NOT PROVIDED BY SOURCE";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "NOT PROVIDED BY SOURCE";
+  return `${date.toISOString().slice(0, 16).replace("T", " ")} UTC`;
+}
+
 function toWatchType(type: string): SignalWatchType | null {
   const normalized = type === "WILDFIRE"
     ? "METEOROLOGICAL"
@@ -149,6 +159,7 @@ export default function HomePage() {
   const [pulseLoading, setPulseLoading] = useState(true);
   const [nodes, setNodes] = useState<MapNode[]>([]);
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
+  const [signalHistory, setSignalHistory] = useState<Record<string, SignalHistoryView>>({});
   const [mapLoading, setMapLoading] = useState(true);
   const [mapFilter, setMapFilter] = useState<"local" | "priority" | "all" | "verified">("priority");
   const [showStart, setShowStart] = useState(false);
@@ -193,8 +204,14 @@ export default function HomePage() {
 
       if (pulseResult.status === "fulfilled") setPulse(pulseResult.value);
       if (mapResult.status === "fulfilled" && Array.isArray(mapResult.value)) {
-        setNodes(mapResult.value);
-        setSelectedNode(mapResult.value[0] || null);
+        const liveNodes = mapResult.value as MapNode[];
+        setNodes(liveNodes);
+        setSelectedNode(liveNodes[0] || null);
+        setSignalHistory(recordSignalScan(
+          localStorage,
+          liveNodes,
+          liveNodes[0]?.scannedAt || new Date().toISOString(),
+        ));
       }
       setPulseLoading(false);
       setMapLoading(false);
@@ -287,6 +304,7 @@ export default function HomePage() {
     () => [...visibleNodes].sort((a, b) => b.severity - a.severity).slice(0, 6),
     [visibleNodes],
   );
+  const selectedHistory = selectedNode ? signalHistory[selectedNode.id] : undefined;
 
   const finishBoot = () => {
     sessionStorage.setItem("rq-booted", "1");
@@ -638,26 +656,57 @@ export default function HomePage() {
         </div>
 
         {selectedNode && (
-          <article className="pulse-selected-signal">
-            <div>
-              <span className="pulse-eyebrow">SELECTED SIGNAL // {selectedNode.type} · {selectedNode.verified ? "VERIFIED" : "SOURCE REVIEW"}</span>
-              <h3>{selectedNode.name}</h3>
-              <p>{selectedNode.desc}</p>
-              <div className="pulse-selected-actions">
-                {selectedNode.sourceUrl && <a href={selectedNode.sourceUrl} target="_blank" rel="noreferrer">OPEN SOURCE ↗</a>}
-                {toWatchType(selectedNode.type) && <button type="button" onClick={() => requestSignalWatch(selectedNode.type)}>WATCH THIS CATEGORY</button>}
+          <article className="pulse-signal-dossier">
+            <header className="pulse-dossier-header">
+              <div>
+                <span className="pulse-eyebrow">SIGNAL DOSSIER // {selectedNode.type} · {selectedNode.verified ? "VERIFIED SOURCE" : "SOURCE REVIEW"}</span>
+                <h3>{selectedNode.name}</h3>
+                <p>{selectedNode.region}</p>
+              </div>
+              <div className="pulse-signal-side">
+                <strong>{selectedNode.severity}</strong><span>PRIORITY INDEX</span>
+                <small>{selectedNode.source || "SOURCE PENDING"}</small>
+              </div>
+            </header>
+
+            <div className="pulse-dossier-grid">
+              <section><span>01 // SOURCE FACT</span><p>{selectedNode.desc}</p></section>
+              <section><span>02 // QUEEN ASSESSMENT</span><p>{selectedNode.analysis}</p></section>
+              <section className="is-action"><span>03 // SAFEST NEXT MOVE</span><p>{selectedNode.solution}</p></section>
+            </div>
+
+            <div className="pulse-dossier-evidence">
+              <dl>
+                <div><dt>SOURCE</dt><dd>{selectedNode.sourceUrl ? <a href={selectedNode.sourceUrl} target="_blank" rel="noreferrer">{selectedNode.source || "OPEN SOURCE"} ↗</a> : selectedNode.source || "PENDING"}</dd></div>
+                <div><dt>CONFIDENCE</dt><dd>{selectedNode.confidence ? `${selectedNode.confidence}%` : "NOT SCORED"}</dd></div>
+                <div><dt>EVENT OBSERVED</dt><dd>{absoluteSignalTime(selectedNode.observedAt)}</dd></div>
+                <div><dt>SOURCE UPDATED</dt><dd>{absoluteSignalTime(selectedNode.updatedAt)}</dd></div>
+                <div><dt>QUEEN SCANNED</dt><dd>{absoluteSignalTime(selectedNode.scannedAt)}</dd></div>
+              </dl>
+              <div className="pulse-device-history">
+                <span>THIS DEVICE // SCAN HISTORY</span>
+                <strong data-change={selectedHistory?.change || "NEW"}>{selectedHistory?.change || "NEW"}</strong>
+                <p>{selectedHistory?.change === "ESCALATED"
+                  ? `Priority moved from ${selectedHistory.previousSeverity} to ${selectedNode.severity} since this device's previous scan.`
+                  : selectedHistory?.change === "REDUCED"
+                    ? `Priority moved from ${selectedHistory.previousSeverity} to ${selectedNode.severity} since this device's previous scan.`
+                    : selectedHistory?.change === "STEADY"
+                      ? `No priority change across ${selectedHistory.observations} local observations.`
+                      : "First observed by this browser. A change state will appear after a later scan."}</p>
+                <small>Local memory only — not an official event timeline.</small>
               </div>
             </div>
-            <div className="pulse-signal-side">
-              <strong>{selectedNode.severity}</strong><span>RELEVANCE INDEX</span>
-              <small>{selectedNode.source || "SOURCE PENDING"} · {selectedNode.region}</small>
+
+            <footer className="pulse-selected-actions">
+              {selectedNode.sourceUrl && <a href={selectedNode.sourceUrl} target="_blank" rel="noreferrer">OPEN PRIMARY SOURCE ↗</a>}
+              {toWatchType(selectedNode.type) && <button type="button" onClick={() => requestSignalWatch(selectedNode.type)}>WATCH THIS CATEGORY</button>}
               <Link href={`/terminal?${new URLSearchParams({
                 mode: "ANALYZE",
                 focus: "LOCAL_THREATS",
                 area: localContext?.area || "",
                 prompt: `Explain the relevance of this live signal to my context: ${selectedNode.name}. Separate the verified source fact from assessment and give me one safe action.`,
               }).toString()}`}>ASK QUEEN ABOUT THIS →</Link>
-            </div>
+            </footer>
           </article>
         )}
       </section>
