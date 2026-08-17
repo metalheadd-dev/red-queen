@@ -3516,6 +3516,99 @@ body:has(#game-player-root) .page-content {
   .queen-dock-panel > p { font-size: 13px; }
   .queen-dock-actions a { font-size: 10px; }
   .queen-dock-open-terminal { font-size: 9px; }
+
+  /* Core desktop information should remain readable beyond the hero layer. */
+  .rq-terminal-neural-grid span,
+  .rq-terminal-memory-state span { font-size: 9px; }
+  .rq-terminal-neural-grid small,
+  .rq-terminal-memory-state strong { font-size: 11px; }
+  .rq-identity-metric > span,
+  .rq-response__meta,
+  .rq-action > div > span,
+  .rq-sources > span,
+  .rq-readiness > span,
+  .rq-followups > span,
+  .rq-section-label,
+  .rq-facts > span,
+  .rq-uncertainty > span,
+  .rq-readiness-bridge span { font-size: 10px; }
+  .rq-identity-metric > small,
+  .rq-context-line { font-size: 10px; }
+  .rq-response { width: min(900px,100%); padding: 22px; }
+  .rq-response__answer { font-size: 16px; }
+  .rq-facts ul { font-size: 13px; }
+  .rq-uncertainty p { font-size: 12px; }
+  .rq-action strong { font-size: 14px; }
+  .rq-sources a { font-size: 12px; }
+  .rq-mode-selector button strong { font-size: 11px; }
+  .rq-mode-selector button span { font-size: 11px; }
+  .rq-first-contact-brief p { font-size: 12px; }
+  .rq-advanced-compute > summary small,
+  .rq-loop-card li small { font-size: 11px; }
+
+  .prepare-status-panel > p { font-size: 12px; }
+  .prepare-area small { font-size: 10px; }
+  .preparedness-plan-steps button > span { font-size: 12px; }
+  .prepare-section-heading span,
+  .prepare-domain-block > div:first-child > span { font-size: 10px; }
+  .prepare-domain-block > div:first-child > p,
+  .prepare-protocol-list p { font-size: 12px; }
+  .prepare-check-items small { font-size: 11px; }
+  .prepare-protocol-list span,
+  .prepare-tier-list span,
+  .prepare-tier-list em { font-size: 9px; }
+  .prepare-tier-list p { font-size: 10px; }
+
+  .library-trust-banner div span,
+  .library-lanes span,
+  .library-results-heading span { font-size: 10px; }
+  .library-lanes p { font-size: 12px; }
+  .library-tabs strong { font-size: 11px; }
+  .library-card-meta { font-size: 9px; }
+  .library-severity > strong { font-size: 11px; }
+  .library-card > small { font-size: 11px; }
+  .dossier-questions p { font-size: 12px; }
+  .dossier-queen-panel > span { font-size: 10px; }
+  .dossier-queen-panel p { font-size: 13px; }
+  .dossier-queen-panel > small,
+  .dossier-related a small { font-size: 10px; }
+
+  .rq-profile-id-line { font-size: 10px; }
+  .rq-profile-visage-copy > span,
+  .rq-profile-panel-heading span { font-size: 10px; }
+  .rq-profile-visage-copy > p { font-size: 13px; }
+  .rq-profile-visage-copy ul { font-size: 11px; }
+  .rq-profile-visage-copy > a,
+  .rq-profile-visage-actions button,
+  .rq-profile-visage-actions a { font-size: 10px; }
+  .rq-profile-visage-preview > div span { font-size: 9px; }
+  .rq-profile-visage-preview > i { font-size: 8px; }
+  .rq-profile-visage-status { font-size: 10px; }
+  .rq-profile-metric > span { font-size: 9px; }
+  .rq-profile-metric > b { font-size: 10px; }
+  .rq-profile-metric > p { font-size: 10px; }
+  .rq-profile-panel-heading > small,
+  .rq-profile-panel-heading > a { font-size: 9px; }
+  .rq-profile-domain-list strong { font-size: 12px; }
+  .rq-profile-domain-list span { font-size: 10px; }
+  .rq-profile-domain-list p { font-size: 10px; }
+  .rq-profile-score-contract strong { font-size: 10px; }
+  .rq-profile-score-contract p { font-size: 11px; }
+  .rq-profile-token-balance span,
+  .rq-profile-memory > div > span { font-size: 9px; }
+  .rq-profile-token-balance small { font-size: 9px; }
+  .rq-profile-token ul { font-size: 11px; }
+  .rq-profile-token > p,
+  .rq-profile-token > button { font-size: 10px; }
+  .rq-profile-token > small,
+  .rq-profile-memory > div > strong { font-size: 10px; }
+  .rq-profile-memory > p { font-size: 11px; }
+  .rq-profile-memory > a { font-size: 10px; }
+  .rq-profile-evidence-list span { font-size: 9px; }
+  .rq-profile-evidence-list strong,
+  .rq-profile-evidence-list p { font-size: 11px; }
+  .rq-profile-guest-card > p { font-size: 14px; }
+  .rq-profile-guest-card > small { font-size: 10px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
