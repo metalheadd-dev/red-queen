@@ -642,29 +642,7 @@ export default function OperativeProfilePage() {
 
   async function linkSolanaWallet() {
     if (!authIdentifier || !solanaWalletAddress) return;
-    setSaving(true);
-    try {
-      const token = session?.access_token;
-      const res = await fetch("/api/profile", {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({
-          wallet_address: authIdentifier,
-          linked_wallet_address: solanaWalletAddress,
-          email: user?.email
-        })
-      });
-      const data = await res.json();
-      if (data.error) {
-        alert("Failed to link wallet: " + data.error);
-      } else {
-        alert("Success: Solana wallet linked to your operative profile!");
-        fetchProfile();
-      }
-    } catch (e: any) {
-      alert("Error linking wallet: " + e.message);
-    }
-    setSaving(false);
+    alert("Secure wallet linking requires an ownership signature. Until that flow is enabled, sign in with your Solana wallet to verify $THREAT clearance; a connected address will not be attached to an email profile automatically.");
   }
 
   useEffect(() => {

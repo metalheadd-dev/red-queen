@@ -10,6 +10,8 @@ import { DEFAULT_STATS, calculateBioScore, parseStatsFromAI, applyStatGains, get
 import { Connection, PublicKey, TransactionMessage, VersionedTransaction, ComputeBudgetProgram, TransactionInstruction } from "@solana/web3.js";
 import { getAssociatedTokenAddress, createTransferCheckedInstruction } from "@solana/spl-token";
 import { getWorkingConnection } from "@/lib/solana";
+import AgentResponseCard from "@/components/AgentResponseCard";
+import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
 
 
 const WalletMultiButton = dynamic(
@@ -21,6 +23,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   bioScore?: string;
+  intel?: RedQueenClientResponse;
 }
 
 function extractBioScore(text: string): { clean: string; score: string | null } {
@@ -63,6 +66,14 @@ I monitor unlimited active extinction scenarios simultaneously. I have assessed 
 [BIO-SCORE: PENDING — ASSESSMENT REQUIRED]
 [WARN_0x4F] Every second of inaction reduces your survival probability.`;
 
+const CORE_INTRO_MESSAGE = `[UPLINK ESTABLISHED]
+
+I am RED QUEEN — your survival intelligence system.
+
+I can explain a threat, turn it into a practical plan, audit your preparation, or run a decision drill. When live intelligence is available, I will label it and show the source. Everything else is clearly marked as general knowledge or simulation.
+
+Ask what matters now. I will give you one clear next action.`;
+
 function getLocalStatsAndScore(messages: Message[]) {
   let stats = { ...DEFAULT_STATS };
   for (const msg of messages) {
@@ -91,7 +102,7 @@ function getLocalStatsAndScore(messages: Message[]) {
 export default function TerminalPage() {
   const { publicKey, connected, wallet, disconnect, signTransaction } = useWallet();
   const { setVisible } = useWalletModal();
-  const { user, authIdentifier, session } = useAuth();
+  const { user, authIdentifier, session, loginWithWallet } = useAuth();
   
   const solanaWalletAddress = publicKey ? publicKey.toString() : null;
   const walletAddress = authIdentifier || solanaWalletAddress;
@@ -434,12 +445,22 @@ export default function TerminalPage() {
   };
 
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: INTRO_MESSAGE, bioScore: "PENDING" },
+    { role: "assistant", content: CORE_INTRO_MESSAGE, bioScore: "PENDING" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentScore, setCurrentScore] = useState<string | null>(null);
   const [profileStats, setProfileStats] = useState<any>(null);
+  const [agentClearance, setAgentClearance] = useState<RedQueenClientResponse["clearance"]>({
+    tier: 0,
+    level: 1,
+    name: "CIVILIAN",
+    balance: 0,
+    verified: false,
+    responseDepth: "essential",
+    contextMessages: 6,
+    readinessMultiplier: 1,
+  });
   const [apocalypticName, setApocalypticName] = useState<string>("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -449,19 +470,20 @@ export default function TerminalPage() {
   const [copySuccess, setCopySuccess] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const localProgression = getLocalStatsAndScore(messages);
-  const scoreNum = connected ? (currentScore ? parseInt(currentScore) : localProgression.score) : localProgression.score;
-  const stats = connected ? (profileStats || localProgression.stats) : localProgression.stats;
+  const hasVerifiedIdentity = Boolean(session?.access_token);
+  const scoreNum = hasVerifiedIdentity ? (currentScore ? parseInt(currentScore) : localProgression.score) : localProgression.score;
+  const stats = hasVerifiedIdentity ? (profileStats || localProgression.stats) : localProgression.stats;
   const clearance = getClearanceLevel(scoreNum);
   const scoreColor = scoreNum === 0 ? "var(--text-dim)" : clearance.color;
 
   const userMessageCount = messages.filter((m) => m.role === "user").length;
-  const isLocked = !connected && (userMessageCount >= 4 || limitBlocked);
+  const isLocked = !hasVerifiedIdentity && (userMessageCount >= 4 || limitBlocked);
 
   useEffect(() => {
-    if (connected || user) {
+    if (hasVerifiedIdentity) {
       setLimitBlocked(false);
     }
-  }, [connected, user]);
+  }, [hasVerifiedIdentity]);
 
   useEffect(() => {
     if (!shareModalData || !canvasRef.current) return;
@@ -558,9 +580,13 @@ export default function TerminalPage() {
     ctx.fillStyle = "#ff4d4d";
     ctx.font = `bold 10px ${monoFont}`;
     ctx.fillText("UPLINK STATUS", 580, opPanelY + 14);
-    ctx.fillStyle = connected ? "#2ecc40" : "#f0c929";
+    ctx.fillStyle = hasVerifiedIdentity ? "#2ecc40" : "#f0c929";
     ctx.font = `bold 13px ${monoFont}`;
-    ctx.fillText(connected ? "DIRECTOR clearance" : "UNVERIFIED PUBLIC", 580, opPanelY + 32);
+    ctx.fillText(
+      agentClearance.verified ? `$THREAT ${agentClearance.name}` : (hasVerifiedIdentity ? "IDENTITY VERIFIED" : "UNVERIFIED PUBLIC"),
+      580,
+      opPanelY + 32,
+    );
 
     // 6. Question Section (if exists)
     let textStartY = 155;
@@ -658,7 +684,7 @@ export default function TerminalPage() {
       });
       return lines;
     }
-  }, [shareModalData, apocalypticName, currentScore, connected, stats, scoreNum]);
+  }, [shareModalData, apocalypticName, currentScore, hasVerifiedIdentity, agentClearance, stats, scoreNum]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -668,7 +694,10 @@ export default function TerminalPage() {
 
   useEffect(() => {
     async function loadProfileAndHistory() {
-      if (!walletAddress) return;
+      if (!walletAddress || !session?.access_token) {
+        setMessages([{ role: "assistant", content: CORE_INTRO_MESSAGE, bioScore: "PENDING" }]);
+        return;
+      }
       setLoadingHistory(true);
 
       const generated = generateApocalypticName(walletAddress);
@@ -712,7 +741,7 @@ export default function TerminalPage() {
           }
         } else {
           setMessages([
-            { role: "assistant", content: INTRO_MESSAGE, bioScore: "PENDING" },
+            { role: "assistant", content: CORE_INTRO_MESSAGE, bioScore: "PENDING" },
           ]);
         }
       } catch (err) {
@@ -721,7 +750,7 @@ export default function TerminalPage() {
       setLoadingHistory(false);
     }
     loadProfileAndHistory();
-  }, [walletAddress]);
+  }, [walletAddress, session?.access_token]);
 
   async function sendMessage() {
     const text = input.trim();
@@ -784,12 +813,13 @@ To decrypt or scan target files:
     setLoading(true);
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
-          walletAddress,
         }),
       });
 
@@ -801,7 +831,7 @@ To decrypt or scan target files:
             ...prev,
             {
               role: "assistant",
-              content: `[ TELEMETRY LIMIT REACHED ] Unregistered trace quota exceeded. Connect Solana wallet to verify clearance and bypass IP limit.`,
+              content: `[ TELEMETRY LIMIT REACHED ] Guest analysis quota reached. Verify your identity to save memory, readiness, and continue.`,
             },
           ]);
           setLoading(false);
@@ -809,7 +839,7 @@ To decrypt or scan target files:
         }
         throw new Error(errJson.error || `Server error ${res.status}`);
       }
-      const data = await res.json();
+      const data = await res.json() as RedQueenClientResponse;
       if (!data.message) throw new Error("No message returned");
 
       const accumulated = data.message;
@@ -819,29 +849,28 @@ To decrypt or scan target files:
         {
           role: "assistant",
           content: accumulated,
+          intel: data,
+          bioScore: data.readiness.applied ? String(data.readiness.bioScore) : undefined,
         },
       ]);
 
-      const { score } = extractBioScore(accumulated);
-      if (score) setCurrentScore(score);
-
-      setMessages((prev) => {
-        const updated = [...prev];
-        const last = updated[updated.length - 1];
-        updated[updated.length - 1] = {
-          ...last,
-          bioScore: score || undefined,
-        };
-        return updated;
-      });
+      setAgentClearance(data.clearance);
+      if (data.readiness.applied) {
+        setCurrentScore(String(data.readiness.bioScore));
+        setProfileStats((previous: any) => ({
+          ...(previous || localProgression.stats),
+          xp: data.readiness.totalXp,
+          level: data.readiness.level,
+        }));
+      }
 
       const newUserMsgCount = newMessages.filter((m) => m.role === "user").length;
-      if (!connected && newUserMsgCount === 2) {
+      if (!hasVerifiedIdentity && newUserMsgCount === 2) {
         setMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            content: "[SYSTEM NOTICE: Connect wallet to preserve your operative profile and continue BIO SCORE progression.]"
+            content: "[SYSTEM NOTICE] Verify an account or sign a wallet challenge to preserve memory and readiness. Simply connecting a wallet does not grant token clearance."
           }
         ]);
       }
@@ -850,9 +879,7 @@ To decrypt or scan target files:
         ...prev,
         {
           role: "assistant",
-          content:
-            "[ERR_0x9B] COMMUNICATION LINK CORRUPTED.\n\nEnsure your OPENAI_API_KEY is set in .env.local and restart the server.\n\n[BIO-SCORE: 0%] Failure to establish uplink is terminal.",
-          bioScore: "0",
+          content: "[UPLINK ERROR] RED QUEEN could not complete this analysis. No readiness changes were applied. Try again in a moment.",
         },
       ]);
     }
@@ -886,56 +913,23 @@ To decrypt or scan target files:
           </div>
           <h1 className="glow-text" style={{ fontSize: "24px", margin: 0 }}>RED QUEEN TERMINAL</h1>
         </div>
-        {connected ? (
-          <div style={{ marginLeft: "auto", textAlign: "right" }}>
-            <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text-dim)", letterSpacing: "0.2em", marginBottom: "4px" }}>
-              ACTIVE BIO-SCORE (READINESS)
-            </div>
-            <div style={{
-              fontFamily: "var(--mono)",
-              fontSize: "32px",
-              fontWeight: 700,
-              color: scoreColor,
-              lineHeight: 1,
-            }}>
-              {scoreNum}%
-            </div>
-            <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: scoreColor, letterSpacing: "0.1em", marginTop: "4px" }}>
-              LEVEL {stats?.level || 1} ({stats?.xp || 0} XP) // {clearance.label}
-            </div>
+        <div className="rq-identity-strip">
+          <div className="rq-identity-metric">
+            <span>{hasVerifiedIdentity ? "SAVED READINESS" : "UNSAVED READINESS"}</span>
+            <strong style={{ color: scoreColor }}>{scoreNum}%</strong>
+            <small>LVL {stats?.level || 1} · {stats?.xp || 0} XP · {clearance.label}</small>
           </div>
-        ) : (
-          <div style={{ 
-            marginLeft: "auto", 
-            textAlign: "right",
-            padding: "8px 16px",
-            border: "1px dashed rgba(255, 77, 77, 0.3)",
-            background: "rgba(255, 77, 77, 0.02)",
-            borderRadius: "2px",
-            animation: "pulse-border 2s infinite ease-in-out"
-          }}>
-            <div style={{ fontFamily: "var(--mono)", fontSize: "9px", color: "var(--accent)", letterSpacing: "0.15em", marginBottom: "4px", fontWeight: "bold" }}>
-              POTENTIAL BIO-SCORE (SIMULATED READINESS)
-            </div>
-            <div style={{
-              fontFamily: "var(--mono)",
-              fontSize: "28px",
-              fontWeight: 700,
-              color: scoreColor,
-              lineHeight: 1,
-            }}>
-              {scoreNum}%
-            </div>
-            <div style={{ fontFamily: "var(--mono)", fontSize: "8px", color: "var(--text-dim)", letterSpacing: "0.05em", marginTop: "4px" }}>
-              LEVEL {stats?.level || 1} ({stats?.xp || 0} XP) // [SIMULATED]
-            </div>
+          <div className="rq-identity-metric rq-identity-metric--token">
+            <span>$THREAT INTELLIGENCE CLEARANCE</span>
+            <strong>LVL {agentClearance.level} · {agentClearance.name}</strong>
+            <small>{agentClearance.verified ? `${agentClearance.balance.toLocaleString()} $THREAT VERIFIED` : "WALLET OWNERSHIP NOT VERIFIED"}</small>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Info bar */}
       <div className="alert alert-red" style={{ margin: "0", borderRadius: "0", border: "none", borderBottom: "1px solid rgba(255,77,77,0.15)" }}>
-        <strong>[NOTICE]</strong> All communications are monitored. Your survival intelligence is being evaluated. Claim Level 5 access by connecting your wallet if you hold <strong>$THREAT tokens</strong>.
+        <strong>[TWO SYSTEMS]</strong> BIO-SCORE measures demonstrated readiness. <strong>$THREAT</strong> holdings unlock deeper context and analysis. Connecting a wallet alone unlocks neither.
       </div>
 
       {/* Main split workspace */}
@@ -965,14 +959,20 @@ To decrypt or scan target files:
               messages.map((msg, i) => (
                 <div key={i} className={`message message-${msg.role === "user" ? "user" : "ai"}`}>
                   <div className="message-label">
-                    {msg.role === "user" ? `[ YOU — ${apocalypticName || "SUBJECT"} ]` : "[ RED QUEEN — LEVEL 5 ]"}
+                    {msg.role === "user"
+                      ? `[ YOU — ${apocalypticName || "SUBJECT"} ]`
+                      : `[ RED QUEEN — ${msg.intel?.clearance.name || agentClearance.name} ANALYSIS ]`}
                   </div>
-                  <div className="message-bubble">
-                    {renderContent(msg.content)}
-                  </div>
+                  {msg.intel ? (
+                    <AgentResponseCard response={msg.intel} onFollowUp={setInput} />
+                  ) : (
+                    <div className="message-bubble">
+                      {renderContent(msg.content)}
+                    </div>
+                  )}
                   {msg.role === "assistant" && (
                     <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "8px", flexWrap: "wrap" }}>
-                      {msg.bioScore && msg.bioScore !== "PENDING" && (
+                      {!msg.intel && msg.bioScore && msg.bioScore !== "PENDING" && (
                         <div className="bio-score" style={{ color: scoreColor, marginTop: 0 }}>
                           ▶ BIO-SCORE UPDATED: {msg.bioScore}%
                         </div>
@@ -1035,9 +1035,9 @@ To decrypt or scan target files:
                 [ UPLINK LOCKED // TELEMETRY LIMIT REACHED ]
               </div>
               <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", maxWidth: "550px", lineHeight: "1.7", margin: 0 }}>
-                You have sent 4 telemetry packets. To protect the integrity of the network, the RED QUEEN requires operative passport verification. Connect your Solana wallet now to preserve your operative profile and continue BIO SCORE progression.
+                Guest analysis is complete. Verify an account to preserve RED QUEEN memory and readiness. Wallet verification requires a signature; connecting alone only exposes a public address.
               </p>
-              <div style={{ display: "flex", justifyContent: "center" }}>
+              <div style={{ display: "flex", justifyContent: "center", gap: "10px", flexWrap: "wrap" }}>
                 <WalletMultiButton style={{
                   background: "var(--accent)",
                   border: "none",
@@ -1052,6 +1052,12 @@ To decrypt or scan target files:
                   borderRadius: "2px",
                   boxShadow: "0 0 15px rgba(255,0,51,0.4)"
                 }} />
+                {connected && (
+                  <button className="btn btn-primary" type="button" onClick={() => loginWithWallet()}>
+                    SIGN TO VERIFY WALLET
+                  </button>
+                )}
+                <a href="/login" className="btn btn-ghost">USE EMAIL ACCOUNT</a>
               </div>
             </div>
           ) : (
@@ -1085,7 +1091,7 @@ To decrypt or scan target files:
             background: "#050505",
             borderTop: "1px solid var(--border)"
           }}>
-            {["Hantavirus", "Alien invasion", "Zombie outbreak", "Nuclear winter", "AI takeover", "Bug apocalypse", "Dumb people uprising", "Vampire plague", "Internet collapse"].map((hint) => (
+            {["What threats matter near me?", "Build a 72-hour blackout plan", "Audit my emergency kit", "How should I secure my wallet?", "Run a readiness decision drill"].map((hint) => (
               <button
                 key={hint}
                 onClick={() => setInput(hint)}

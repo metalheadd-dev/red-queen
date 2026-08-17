@@ -73,24 +73,7 @@ export default function LoginPage() {
         }
 
         if (newUser) {
-          setStatusMsg("INITIALIZING OPERATIVE PROFILE IN DATABASE...");
-          // Initialize public profile row
-          const initRes = await fetch("/api/profile", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              wallet_address: `email-auth:${newUser.id}`,
-              apocalyptic_name: `Operative-${newUser.id.slice(0, 6).toUpperCase()}`,
-              chosen_scenarios: []
-            })
-          });
-          const initData = await initRes.json();
-          if (initData.error) {
-            console.warn("Failed to initialize profile db record on signup:", initData.error);
-          }
-
           setStatusMsg("SUCCESS. VERIFY EMAIL IF REQUIRED, OR SIGN IN.");
-          // Log in automatically after signup (Supabase does this by default if email confirmation is disabled)
           setTimeout(() => {
             router.push("/operative");
           }, 1500);

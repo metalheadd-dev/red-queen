@@ -126,23 +126,5 @@ export async function checkAdmin(req: Request): Promise<boolean> {
     }
   }
 
-  // Fallback default: If ADMIN_EMAILS / ADMIN_WALLETS is not configured, or for local testing,
-  // allow the default developer credentials to pass:
-  const defaultWallet = "AUCYMsSZXASMiXfjLNL26NF7sPehUA4ncEzTCx8MdSYg".toLowerCase();
-  const defaultEmail = "echys.30s@gmail.com".toLowerCase();
-  
-  if (identifier.toLowerCase() === defaultWallet) return true;
-  
-  if (identifier.startsWith("email-auth:")) {
-    try {
-      const authHeader = req.headers.get("Authorization");
-      const token = authHeader!.split(" ")[1];
-      const { data: { user } } = await supabase.auth.getUser(token);
-      if (user && user.email && user.email.toLowerCase() === defaultEmail) {
-        return true;
-      }
-    } catch {}
-  }
-
   return false;
 }

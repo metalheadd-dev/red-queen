@@ -3,27 +3,23 @@ import { getAuthIdentifier, checkAdmin } from "@/lib/auth-helpers";
 import { getHashedWallet } from "@/lib/crypto";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
-import { THREAT_TOKEN_MINT, getTierForBalance } from "@/lib/game/config";
+import { THREAT_TOKEN_MINT, getThreatClearance } from "@/lib/threat-token";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  if (!supabase) return Response.json({ error: "DB not configured" }, { status: 500 });
-
   // Parse request body for fallback params
   const body = await req.json().catch(() => ({}));
   const customWallet = body.custom_wallet;
-  const reqWallet = body.wallet || body.wallet_address;
-
   // Get active session
   const authIdentifier = await getAuthIdentifier(req);
-  const activeIdentifier = authIdentifier || reqWallet;
-  if (!activeIdentifier) {
+  if (!authIdentifier) {
     return Response.json({ error: "Unauthorized session" }, { status: 401 });
   }
+  if (!supabase) return Response.json({ error: "DB not configured" }, { status: 500 });
 
   const isAdmin = await checkAdmin(req);
-  const targetIdentifier = (isAdmin && customWallet) ? customWallet : activeIdentifier;
+  const targetIdentifier = (isAdmin && customWallet) ? customWallet : authIdentifier;
   const hashedWallet = getHashedWallet(targetIdentifier);
 
   try {
@@ -68,12 +64,12 @@ export async function POST(req: Request) {
     }
 
     // 2. Map verified balance to Tier benefits
-    const { tier, config } = getTierForBalance(tokenBalance);
+    const clearance = getThreatClearance(tokenBalance);
 
     // 3. Determine if they unlock access via holdings
     let newAccessType = userProfile.access_type || "None";
     if (newAccessType !== "Invite" && newAccessType !== "Admin") {
-      if (tier >= 2) {
+      if (clearance.tier >= 2) {
         newAccessType = "Holder";
       } else {
         if (newAccessType === "Holder") {
@@ -87,8 +83,8 @@ export async function POST(req: Request) {
       .from("users")
       .update({
         verified_balance: tokenBalance,
-        holder_tier: tier,
-        holder_status: config.name,
+        holder_tier: clearance.tier,
+        holder_status: clearance.name,
         last_verification: new Date().toISOString(),
         access_type: newAccessType
       })
@@ -103,8 +99,11 @@ export async function POST(req: Request) {
     return Response.json({
       success: true,
       verified_balance: tokenBalance,
-      holder_tier: tier,
-      holder_status: config.name,
+      holder_tier: clearance.tier,
+      holder_status: clearance.name,
+      clearance_level: clearance.level,
+      response_depth: clearance.responseDepth,
+      readiness_multiplier: clearance.readinessMultiplier,
       access_type: newAccessType,
       errorLog
     });
