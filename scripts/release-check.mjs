@@ -34,6 +34,9 @@ const lockdownPrepare = read("app/api/onchain/wallet/lockdown/prepare/route.ts")
 const communityLeaderboard = read("app/api/community/leaderboard/route.ts");
 const legacyLeaderboard = read("app/api/leaderboard/route.ts");
 const communityMigration = read("supabase/migrations/20260818120000_add_community_leaderboard_opt_in.sql");
+const threatSwapOrder = read("app/api/onchain/swap/threat/order/route.ts");
+const threatSwapExecute = read("app/api/onchain/swap/threat/execute/route.ts");
+const transactionRiskRoute = read("app/api/intel/transaction-risk/route.ts");
 
 requireCondition(!packageJson.scripts?.postinstall, "postinstall must not patch payment dependencies");
 requireCondition(!Array.isArray(vercelConfig.crons) || vercelConfig.crons.length === 0, "release must not schedule treasury automation");
@@ -49,10 +52,15 @@ requireCondition(lockdownPrepare.includes("prepareDelegateRevocation"), "Wallet 
 requireCondition(fs.existsSync(path.join(root, "supabase/migrations/20260817170000_create_x402_operations.sql")), "x402 receipt migration is missing");
 requireCondition(fs.existsSync(path.join(root, "supabase/migrations/20260817210000_create_guest_agent_usage.sql")), "guest quota migration is missing");
 requireCondition(fs.existsSync(path.join(root, "supabase/migrations/20260818120000_add_community_leaderboard_opt_in.sql")), "community opt-in migration is missing");
+requireCondition(fs.existsSync(path.join(root, "supabase/migrations/20260818170000_create_onchain_achievements.sql")), "on-chain achievement migration is missing");
 requireCondition(communityMigration.includes("community_visible boolean not null default false"), "community profiles must remain private by default");
 requireCondition(communityLeaderboard.includes('.eq("community_visible", true)'), "public readiness board must select opted-in profiles only");
 requireCondition(!communityLeaderboard.includes("payer:"), "public readiness board must not expose payer identity");
 requireCondition(legacyLeaderboard.includes("status: 410"), "legacy leaderboard must remain retired");
+requireCondition(threatSwapOrder.includes("outputMint: THREAT_TOKEN_MINT"), "Jupiter order must lock output to the canonical $THREAT mint");
+requireCondition(threatSwapOrder.includes("outputDecimals"), "Jupiter order must verify canonical mint decimals before display");
+requireCondition(threatSwapExecute.includes("signedTransaction") && threatSwapExecute.includes("requestId"), "Jupiter execution must submit only the reviewed signed order");
+requireCondition(transactionRiskRoute.includes("No payment was requested"), "transaction-risk input must be validated before x402 payment");
 
 if (strictEnvironment) {
   loadEnvConfig(root);
@@ -80,6 +88,9 @@ if (strictEnvironment) {
     }
   } else {
     warnings.push("x402 remains runtime-disabled until SVM_ADDRESS and the receipt migration are configured");
+  }
+  if (!hasConfiguredValue("JUPITER_API_KEY")) {
+    warnings.push("Jupiter $THREAT swap remains runtime-disabled until JUPITER_API_KEY is configured");
   }
 }
 

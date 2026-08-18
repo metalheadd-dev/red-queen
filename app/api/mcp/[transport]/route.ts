@@ -7,7 +7,47 @@ import { POST as threatPost } from "@/app/api/threat/route";
 import { GET as depinGet } from "@/app/api/intel/depin/route";
 import { GET as premiumGet } from "@/app/api/intel/premium/route";
 import { GET as walletExposureGet } from "@/app/api/intel/wallet-exposure/route";
+import { GET as localDeltaGet } from "@/app/api/intel/local-delta/route";
+import { POST as preparednessPlanPost } from "@/app/api/intel/preparedness-plan/route";
+import { GET as incidentDossierGet } from "@/app/api/intel/incident-dossier/route";
+import { POST as transactionRiskPost } from "@/app/api/intel/transaction-risk/route";
 import { POST as analyzeWalletPost } from "@/app/api/terminal/analyze-wallet/route";
+
+async function invokePaidRoute(input: {
+  route: (request: NextRequest) => Promise<Response>;
+  url: string;
+  method?: "GET" | "POST";
+  body?: unknown;
+  operationId?: string;
+  paymentSignature?: string;
+}) {
+  const headers: Record<string, string> = {};
+  if (input.operationId) headers["X-Operation-Id"] = input.operationId;
+  if (input.paymentSignature) headers["Payment-Signature"] = input.paymentSignature;
+  if (input.method === "POST") headers["Content-Type"] = "application/json";
+  const request = new NextRequest(input.url, {
+    method: input.method || "GET",
+    headers: new Headers(headers),
+    body: input.method === "POST" ? JSON.stringify(input.body || {}) : undefined,
+  });
+  const response = await input.route(request);
+  if (response.status === 402) {
+    const data = await response.json().catch(() => ({}));
+    const challenge = response.headers.get("payment-required") || response.headers.get("x-payment-required");
+    const responseOperationId = response.headers.get("x-operation-id") || input.operationId || "";
+    return {
+      content: [{
+        type: "text" as const,
+        text: `PAYMENT_REQUIRED: Inspect the exact runtime challenge before approval.\n\nX-Operation-Id: ${responseOperationId}\nChallenge (Base64): ${challenge || ""}\nJSON Payload: ${JSON.stringify(data, null, 2)}\n\nRe-call this tool with the same operationId, identical inputs, and complete paymentSignature.`,
+      }],
+    };
+  }
+  const data = await response.json();
+  return {
+    content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    isError: !response.ok,
+  };
+}
 
 const handler = createMcpHandler(
   (server) => {
@@ -281,6 +321,101 @@ const handler = createMcpHandler(
           };
         }
       },
+    );
+
+    server.registerTool(
+      "get_local_delta_brief",
+      {
+        title: "Get RED QUEEN Local Delta",
+        description: "Purchase a source-backed 24-hour change brief around a broad place and radius. Exact home addresses are neither required nor retained.",
+        inputSchema: z.object({
+          area: z.string().min(2).max(80),
+          latitude: z.number().min(-90).max(90),
+          longitude: z.number().min(-180).max(180),
+          radiusKm: z.number().int().min(25).max(1000).default(250),
+          operationId: z.string().uuid().optional(),
+          paymentSignature: z.string().optional(),
+        }),
+        outputSchema: z.object({ success: z.boolean().optional(), report: z.any().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ area, latitude, longitude, radiusKm, operationId, paymentSignature }) => invokePaidRoute({
+        route: localDeltaGet,
+        url: `http://localhost:3000/api/intel/local-delta?${new URLSearchParams({ area, lat: String(latitude), lng: String(longitude), radiusKm: String(radiusKm) })}`,
+        operationId,
+        paymentSignature,
+      }),
+    );
+
+    server.registerTool(
+      "compile_72_hour_plan",
+      {
+        title: "Compile RED QUEEN 72-Hour Plan",
+        description: "Purchase a personalized phased preparedness protocol grounded in household constraints, official guidance and any directly relevant verified signal context.",
+        inputSchema: z.object({
+          area: z.string().max(80).default(""),
+          focus: z.enum(["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"]),
+          household: z.string().max(320).default(""),
+          constraints: z.string().max(320).default(""),
+          operationId: z.string().uuid().optional(),
+          paymentSignature: z.string().optional(),
+        }).refine((value) => Boolean(value.household.trim() || value.constraints.trim()), { message: "Provide household or constraint context." }),
+        outputSchema: z.object({ success: z.boolean().optional(), plan: z.any().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ area, focus, household, constraints, operationId, paymentSignature }) => invokePaidRoute({
+        route: preparednessPlanPost,
+        url: "http://localhost:3000/api/intel/preparedness-plan",
+        method: "POST",
+        body: { area, focus, household, constraints },
+        operationId,
+        paymentSignature,
+      }),
+    );
+
+    server.registerTool(
+      "get_incident_dossier",
+      {
+        title: "Get RED QUEEN Incident Dossier",
+        description: "Purchase a timestamped dossier for one current verified RED QUEEN signal, including fact, source, uncertainty and action protocol.",
+        inputSchema: z.object({
+          signalId: z.string().min(3).max(240),
+          operationId: z.string().uuid().optional(),
+          paymentSignature: z.string().optional(),
+        }),
+        outputSchema: z.object({ success: z.boolean().optional(), dossier: z.any().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ signalId, operationId, paymentSignature }) => invokePaidRoute({
+        route: incidentDossierGet,
+        url: `http://localhost:3000/api/intel/incident-dossier?signalId=${encodeURIComponent(signalId)}`,
+        operationId,
+        paymentSignature,
+      }),
+    );
+
+    server.registerTool(
+      "explain_solana_transaction_risk",
+      {
+        title: "Explain Solana Transaction Risk",
+        description: "Purchase a pre-sign simulation and bounded explanation of a serialized Solana v0 transaction. The inspected transaction is never signed or submitted.",
+        inputSchema: z.object({
+          transaction: z.string().min(40).max(240000),
+          expectedWallet: z.string().max(60).default(""),
+          operationId: z.string().uuid().optional(),
+          paymentSignature: z.string().optional(),
+        }),
+        outputSchema: z.object({ success: z.boolean().optional(), report: z.any().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ transaction, expectedWallet, operationId, paymentSignature }) => invokePaidRoute({
+        route: transactionRiskPost,
+        url: "http://localhost:3000/api/intel/transaction-risk",
+        method: "POST",
+        body: { transaction, wallet: expectedWallet },
+        operationId,
+        paymentSignature,
+      }),
     );
   },
   {},

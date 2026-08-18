@@ -42,11 +42,17 @@ export function withFriendlyX402(
   routeConfig: any
 ) {
   return async (req: NextRequest) => {
-    const payTo = routeConfig?.accepts?.payTo;
+    const { preflight, ...paymentRouteConfig } = routeConfig || {};
+    const payTo = paymentRouteConfig?.accepts?.payTo;
     if (typeof payTo !== "string" || !isValidSolanaPublicKey(payTo.trim())) {
       return NextResponse.json({
         error: "Paid intelligence is unavailable because the receiving SVM address is missing or invalid.",
       }, { status: 503 });
+    }
+
+    if (typeof preflight === "function") {
+      const preflightResponse = await preflight(req.clone());
+      if (preflightResponse) return preflightResponse;
     }
 
     const requestedOperationId = req.headers.get("x-operation-id")?.trim();
@@ -63,8 +69,11 @@ export function withFriendlyX402(
       }, { status: 503, headers: { "X-Operation-Id": operationId } });
     }
 
-    const productId = String(routeConfig?.productId || new URL(req.url).pathname);
-    const requestFingerprint = fingerprint(`${req.method}\n${new URL(req.url).pathname}${new URL(req.url).search}\n${productId}`);
+    const productId = String(paymentRouteConfig?.productId || new URL(req.url).pathname);
+    const requestBody = req.method === "GET" || req.method === "HEAD"
+      ? ""
+      : await req.clone().text().catch(() => "");
+    const requestFingerprint = fingerprint(`${req.method}\n${new URL(req.url).pathname}${new URL(req.url).search}\n${requestBody}\n${productId}`);
     const paymentHeader = req.headers.get("payment-signature") || req.headers.get("x-payment");
     const paymentFingerprint = paymentHeader ? fingerprint(paymentHeader) : null;
 
@@ -104,7 +113,7 @@ export function withFriendlyX402(
 
     // Initialize only for an actual paid resource request. Importing an API route
     // during build must never contact an external facilitator.
-    const innerMiddleware = withX402(routeHandler, routeConfig, getX402Server());
+    const innerMiddleware = withX402(routeHandler, paymentRouteConfig, getX402Server());
     const res = await innerMiddleware(req);
     res.headers.set("X-Operation-Id", operationId);
     res.headers.set("Cache-Control", "private, no-store");
@@ -119,9 +128,9 @@ export function withFriendlyX402(
           productId,
           requestFingerprint,
           paymentFingerprint,
-          scheme: String(routeConfig.accepts.scheme),
-          network: String(routeConfig.accepts.network),
-          price: String(routeConfig.accepts.price),
+          scheme: String(paymentRouteConfig.accepts.scheme),
+          network: String(paymentRouteConfig.accepts.network),
+          price: String(paymentRouteConfig.accepts.price),
           payTo,
           settlement,
           responseBody,
@@ -138,7 +147,7 @@ export function withFriendlyX402(
         const acceptsHtml = req.headers.get("accept")?.includes("text/html");
       if (acceptsHtml) {
         const paymentRequiredHeader = res.headers.get("payment-required") || res.headers.get("x-payment-required");
-        const configuredPrice = String(routeConfig.accepts?.price || "PRICE UNAVAILABLE");
+        const configuredPrice = String(paymentRouteConfig.accepts?.price || "PRICE UNAVAILABLE");
         let amountStr = `${configuredPrice} USDC`;
         let destination = payTo;
         
@@ -157,8 +166,8 @@ export function withFriendlyX402(
             console.error("Failed to parse payment details:", e);
           }
         } else {
-          amountStr = routeConfig.accepts?.price || "$0.01 USDC";
-          destination = routeConfig.accepts?.payTo || destination;
+          amountStr = paymentRouteConfig.accepts?.price || "$0.01 USDC";
+          destination = paymentRouteConfig.accepts?.payTo || destination;
         }
 
         const html = `<!DOCTYPE html>

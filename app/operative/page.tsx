@@ -63,6 +63,14 @@ type X402Receipt = {
   delivered_at: string;
 };
 
+type OnchainAchievement = {
+  achievement_id: string;
+  transaction_signature: string;
+  protocol_xp: number;
+  created_at: string;
+  metadata?: Record<string, unknown>;
+};
+
 const READINESS_DOMAINS: Array<{
   key: keyof Pick<UserStats,
     | "threat_awareness"
@@ -126,6 +134,8 @@ export default function OperativeProfilePage() {
   const [history, setHistory] = useState<HistoryMessage[]>([]);
   const [x402Receipts, setX402Receipts] = useState<X402Receipt[]>([]);
   const [receiptNotice, setReceiptNotice] = useState("");
+  const [onchainAchievements, setOnchainAchievements] = useState<OnchainAchievement[]>([]);
+  const [protocolXp, setProtocolXp] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [customName, setCustomName] = useState("");
@@ -167,10 +177,11 @@ export default function OperativeProfilePage() {
     setLoadError("");
     try {
       const headers = getHeaders();
-      const [profileResponse, historyResponse, receiptsResponse] = await Promise.all([
+      const [profileResponse, historyResponse, receiptsResponse, achievementsResponse] = await Promise.all([
         fetch(`/api/profile?wallet=${encodeURIComponent(identity)}`, { headers }),
         fetch(`/api/history?wallet=${encodeURIComponent(identity)}`, { headers }),
         fetch("/api/profile/x402-receipts", { headers, cache: "no-store" }),
+        fetch("/api/profile/onchain-achievements", { headers, cache: "no-store" }),
       ]);
 
       if (profileResponse.ok) {
@@ -197,6 +208,15 @@ export default function OperativeProfilePage() {
       } else {
         setX402Receipts([]);
         setReceiptNotice("Receipt history is temporarily unavailable.");
+      }
+
+      if (achievementsResponse.ok) {
+        const data = await achievementsResponse.json();
+        setOnchainAchievements(Array.isArray(data.achievements) ? data.achievements : []);
+        setProtocolXp(Number(data.protocolXp || 0));
+      } else {
+        setOnchainAchievements([]);
+        setProtocolXp(0);
       }
     } catch {
       setLoadError("RED QUEEN memory is unreachable. Your local preparedness data is still available.");
@@ -254,6 +274,8 @@ export default function OperativeProfilePage() {
       setHistory([]);
       setX402Receipts([]);
       setReceiptNotice("");
+      setOnchainAchievements([]);
+      setProtocolXp(0);
       setLoadError("");
     }
   }, [authLoading, identity, loadAccount]);
@@ -656,6 +678,26 @@ export default function OperativeProfilePage() {
           )}
         </section>
 
+        <section className="rq-profile-protocol" aria-label="Verified Solana protocol achievements">
+          <div>
+            <span>SOLANA RECORD // PROTOCOL XP</span>
+            <h2>Useful on-chain participation, separated from readiness.</h2>
+            <p>Protocol XP records verified Solana actions. It never changes BIO-SCORE, readiness domains or SOLvivor leaderboard XP.</p>
+            <Link href="/network-clearance#buy-threat">OPEN ON-CHAIN HUB →</Link>
+          </div>
+          <div className="rq-profile-protocol-score"><span>PROTOCOL XP</span><strong>{protocolXp}</strong><small>not survival competence</small></div>
+          <div className="rq-profile-protocol-list">
+            {onchainAchievements.length ? onchainAchievements.map((item) => (
+              <article key={item.achievement_id}>
+                <span>{item.achievement_id === "ONCHAIN_INITIATE_V1" ? "ONCHAIN INITIATE" : item.achievement_id.replaceAll("_", " ")}</span>
+                <strong>+{item.protocol_xp} PROTOCOL XP</strong>
+                <small>{new Date(item.created_at).toLocaleString()}</small>
+                <a href={`https://explorer.solana.com/tx/${item.transaction_signature}`} target="_blank" rel="noreferrer">PROOF ↗</a>
+              </article>
+            )) : <article className="is-empty"><span>NO PROTOCOL RECORD YET</span><p>Your first verified $THREAT swap can unlock ONCHAIN INITIATE once. Purchase volume never creates more XP.</p></article>}
+          </div>
+        </section>
+
         <section className={`rq-profile-network-status${profile?.community_visible ? " is-visible" : ""}`} aria-label="SOLvivor Network visibility">
           <div>
             <span>SOLVIVOR NETWORK // OPT-IN READINESS BOARD</span>
@@ -698,6 +740,7 @@ export default function OperativeProfilePage() {
               <div className="rq-profile-token-balance"><span>VERIFIED BALANCE</span><strong>{tokenBalance.toLocaleString()} $THREAT</strong><small>LAST CHECK {formatRelativeTime(profile?.last_verification)}</small></div>
               <ul><li>{tokenClearance.contextMessages} context messages</li><li>{tokenClearance.signalWatchSlots} Signal Watch slots</li><li>{tokenClearance.comparisonSignals} verified signals per Queen synthesis</li><li>{tokenClearance.responseDepth} response depth</li><li>×{tokenClearance.earnedXpMultiplier.toFixed(2)} multiplier on earned XP only</li></ul>
               {nextTokenClearance ? <p>NEXT: {nextTokenClearance.name} at {formatThreshold(nextTokenClearance.threshold)} $THREAT</p> : <p>MAXIMUM CLEARANCE VERIFIED</p>}
+              <Link href="/network-clearance#buy-threat">BUY $THREAT THROUGH JUPITER →</Link>
               <button type="button" onClick={verifyHoldings} disabled={verifying || !verifiedWallet}>{verifying ? "VERIFYING..." : "REFRESH ON-CHAIN BALANCE"}</button>
               {verifyStatus && <small className="rq-profile-verify-status">{verifyStatus}</small>}
               {!verifiedWallet && <small>Sign in with a Solana wallet to verify holdings. A connected wallet is never silently linked to an email account.</small>}

@@ -49,7 +49,8 @@ Local Pulse resolves only a user-entered city or region, never an exact address.
 | Preparedness checklist and saved Queen protocols | **Live** | Private plans currently persist in the browser; they are not published on-chain. |
 | BIO-SCORE and SOLvivor profile | **Live** | BIO changes only through eligible evaluated evidence, never from holdings or ordinary chat volume. |
 | `$THREAT` clearance and Queen Visage | **Live / configured environments** | Balance proof is read from Solana; image generation also requires an OpenAI key and a holder proof refreshed within 30 minutes. |
-| x402 exact-USDC intelligence endpoints | **Runtime-gated beta** | Three paid operations: verified signal synthesis, Solana network health, and wallet authority exposure. Disabled unless recipient, facilitator, network, migration, and receipt store pass health checks. |
+| x402 exact-USDC intelligence endpoints | **Runtime-gated beta** | Seven paid operations: global synthesis, Local Delta, 72-hour plan, Incident Dossier, transaction risk, network health, and wallet exposure. Disabled unless recipient, facilitator, network, migration, and receipt store pass health checks. |
+| Jupiter `$THREAT` acquisition | **Runtime-gated beta** | SOL/USDC → canonical `$THREAT` through Swap V2 order + execute. The server never holds a user key; quote, fee and output appear before wallet approval. |
 | Wallet Intelligence / Lockdown | **Read-only live / transaction feature-gated** | Reads SPL and Token-2022 authority state. Revocation preparation requires a verified wallet session, successful simulation, explicit environment enablement, and a separate wallet approval. |
 | Agent Registry, attestations, Kora, Blinks, Seeker polish | **Planned** | These follow a stable web core and are not described as shipped features. |
 
@@ -126,10 +127,20 @@ Current paid resources:
 - `GET /api/intel/premium` — 0.01 USDC verified source synthesis.
 - `GET /api/intel/depin` — 0.02 USDC Solana network-health snapshot.
 - `GET /api/intel/wallet-exposure?address={wallet}` — 0.02 USDC SPL and Token-2022 authority exposure audit.
+- `GET /api/intel/local-delta?area={area}&lat={lat}&lng={lng}&radiusKm={radius}` — 0.01 USDC source-backed 24-hour Local Delta.
+- `POST /api/intel/preparedness-plan` — 0.02 USDC personalized phased 72-hour plan.
+- `GET /api/intel/incident-dossier?signalId={verified-signal}` — 0.02 USDC timestamped dossier and export.
+- `POST /api/intel/transaction-risk` — 0.01 USDC unsigned transaction simulation and bounded risk explanation.
 
 Signed-in Solana accounts can read private receipt summaries at `GET /api/profile/x402-receipts`. The endpoint never exposes delivered report bodies and never treats payment as readiness evidence.
 
-### 4. Wallet Intelligence and Lockdown
+### 4. `$THREAT` acquisition — Jupiter Swap V2
+
+`POST /api/onchain/swap/threat/order` accepts only SOL or USDC input and always locks output to the canonical `$THREAT` mint. Jupiter returns an unsigned executable order. The browser deserializes it, displays expected output, price impact and disclosed fees, then requests an explicit wallet signature. `POST /api/onchain/swap/threat/execute` submits the signed payload through Jupiter's managed landing flow.
+
+The first successfully verified swap can create one `ONCHAIN_INITIATE` achievement worth 25 **Protocol XP**. Protocol XP is stored separately and never changes BIO-SCORE, readiness domains, survival XP or leaderboard rank. Apply `supabase/migrations/20260818170000_create_onchain_achievements.sql` before enabling achievement claims.
+
+### 5. Wallet Intelligence and Lockdown
 
 `GET /api/onchain/wallet/security?address={wallet}` performs a public, read-only scan of classic SPL Token and Token-2022 accounts. It reports active positive-balance delegates, frozen accounts, empty accounts, and external close authorities without claiming that an authority is malicious.
 
@@ -139,7 +150,7 @@ The 0.01 USDC global synthesis now uses the same seven-source normalized signal 
 
 Apply `supabase/migrations/20260817170000_create_x402_operations.sql` to the linked Supabase project before enabling x402. The table has RLS enabled and intentionally exposes no browser policies; only the server service role can read payment receipts or paid outputs.
 
-### 5. SOLvivor Network
+### 6. SOLvivor Network
 
 The Community page includes an opt-in readiness board. Existing and new accounts are private by default. A SOLvivor can explicitly publish only their apocalyptic alias, earned XP (shown as SOLvivor Points), level, BIO-SCORE, clearance label, and a broad activity band. Email and wallet identifiers are never returned by the public endpoint. Apply `supabase/migrations/20260818120000_add_community_leaderboard_opt_in.sql` before enabling membership controls.
 

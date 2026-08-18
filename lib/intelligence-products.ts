@@ -9,6 +9,7 @@ export interface IntelligenceProduct {
   value: string;
   output: string;
   endpoint?: string;
+  method?: "GET" | "POST";
 }
 
 export const X402_INTELLIGENCE_PRODUCTS: IntelligenceProduct[] = [
@@ -34,21 +35,45 @@ export const X402_INTELLIGENCE_PRODUCTS: IntelligenceProduct[] = [
   },
   {
     id: "local-delta-brief",
-    status: "NEXT",
+    status: "BETA",
     name: "Local threat delta brief",
-    price: "TARGET 0.01 USDC",
+    price: "0.01 USDC",
     scheme: "SVM EXACT",
-    value: "Compare verified signals around a broad area against the previous scan and explain only meaningful changes.",
+    value: "Find source-backed changes around a broad area inside the current 24-hour observation window and explain only meaningful matches.",
     output: "Personal Pulse delta + one justified action",
+    endpoint: "/api/intel/local-delta?area={area}&lat={lat}&lng={lng}&radiusKm={radius}",
   },
   {
     id: "preparedness-compiler",
-    status: "NEXT",
+    status: "BETA",
     name: "Preparedness plan compiler",
-    price: "TARGET 0.02 USDC",
+    price: "0.02 USDC",
     scheme: "SVM EXACT",
     value: "Turn household constraints and a selected hazard into a cited, exportable preparedness plan.",
     output: "Structured plan + checklist + maintenance date",
+    endpoint: "/api/intel/preparedness-plan",
+    method: "POST",
+  },
+  {
+    id: "incident-dossier",
+    status: "BETA",
+    name: "Incident dossier",
+    price: "0.02 USDC",
+    scheme: "SVM EXACT",
+    value: "Open one current verified signal as a timestamped dossier with explicit facts, assessment, uncertainty and action protocol.",
+    output: "Source-backed dossier + portable export",
+    endpoint: "/api/intel/incident-dossier?signalId={verified-signal}",
+  },
+  {
+    id: "transaction-risk-explanation",
+    status: "BETA",
+    name: "Transaction risk explanation",
+    price: "0.01 USDC",
+    scheme: "SVM EXACT",
+    value: "Decode and simulate a serialized Solana transaction before signing, then expose signer, writable-account, authority and program risks.",
+    output: "Pre-sign simulation + bounded Queen explanation",
+    endpoint: "/api/intel/transaction-risk",
+    method: "POST",
   },
   {
     id: "wallet-exposure-audit",

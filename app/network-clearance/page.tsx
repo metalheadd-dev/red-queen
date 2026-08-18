@@ -5,6 +5,8 @@ import { SOLANA_MAINNET_CAIP2 } from "@/lib/onchain";
 import { THREAT_CLEARANCE_LEVELS, THREAT_TOKEN_MINT } from "@/lib/threat-token";
 import { X402_INTELLIGENCE_PRODUCTS } from "@/lib/intelligence-products";
 import X402HealthBadge from "@/components/X402HealthBadge";
+import IntelligenceOperationsClient from "@/components/IntelligenceOperationsClient";
+import ThreatSwapClient from "@/components/ThreatSwapClient";
 
 const LEVEL_COLORS = ["#8a8a8a", "#d8d8d8", "#f0c929", "#ff884d", "#ff4d4d"];
 
@@ -24,7 +26,7 @@ export default function NetworkClearancePage() {
             <span className="pulse-eyebrow">SOLANA MAINNET // ON-CHAIN CONTROL PLANE</span>
             <h1>Proof before <em>privilege.</em></h1>
             <p>RED QUEEN does not sell destiny. This is the exact record of what she can verify on Solana, what your $THREAT expands, and when a separate signature or USDC payment is required.</p>
-            <div className="onchain-hero-tags"><span>SIWS IDENTITY</span><span>SPL BALANCE PROOF</span><span>x402 USDC</span><span>NO CUSTODY</span></div>
+            <div className="onchain-hero-tags"><span>SIWS IDENTITY</span><span>SPL BALANCE PROOF</span><span>x402 USDC</span><span>JUPITER SWAP V2</span><span>NO CUSTODY</span></div>
           </div>
           <div className="onchain-network-card">
             <span>ACTIVE NETWORK</span>
@@ -37,6 +39,8 @@ export default function NetworkClearancePage() {
 
       <div className="container onchain-main">
         <OnchainClearanceClient />
+
+        <ThreatSwapClient />
 
         <section className="onchain-contract">
           <div className="onchain-section-head"><span>01 // UTILITY CONTRACT</span><h2>Two assets. Two precise jobs.</h2><p>No ritual without purpose: $THREAT expands persistent RED QUEEN intelligence capacity; USDC pays only for a discrete AI operation through x402.</p></div>
@@ -78,8 +82,10 @@ export default function NetworkClearancePage() {
           </div>
         </section>
 
+        <IntelligenceOperationsClient />
+
         <section className="onchain-tiers">
-          <div className="onchain-section-head"><span>03 // LIVE $THREAT CLEARANCE</span><h2>Utility you can measure.</h2><p>The server aggregates the canonical mint balance and maps it to the same tier used by the RED QUEEN agent and Signal Watch.</p></div>
+          <div className="onchain-section-head"><span>04 // LIVE $THREAT CLEARANCE</span><h2>Utility you can measure.</h2><p>The server aggregates the canonical mint balance and maps it to the same tier used by the RED QUEEN agent and Signal Watch.</p></div>
           <div className="onchain-tier-grid">
             {THREAT_CLEARANCE_LEVELS.map((tier, index) => (
               <article key={tier.level} style={{ "--tier-color": LEVEL_COLORS[index] } as CSSProperties}>
@@ -101,11 +107,12 @@ export default function NetworkClearancePage() {
         </section>
 
         <section className="onchain-stack">
-          <div className="onchain-section-head"><span>04 // SOLANA STACK</span><h2>Live now. Next with purpose.</h2><p>Every label reflects implementation state, not marketing intent.</p></div>
+          <div className="onchain-section-head"><span>05 // SOLANA STACK</span><h2>Live now. Next with purpose.</h2><p>Every label reflects implementation state, not marketing intent.</p></div>
           <div className="onchain-stack-grid">
             <article className="is-live"><span>LIVE</span><strong>Sign In With Solana</strong><p>Domain-bound, timestamped wallet authentication through Supabase Web3 Auth and the connected wallet adapter.</p></article>
             <article className="is-live"><span>LIVE</span><strong>SPL holder proof</strong><p>Server-side canonical mint read, aggregated token accounts, confirmed commitment, and fail-closed persistence.</p></article>
             <article className="is-beta"><span>BETA</span><strong>x402 exact SVM</strong><p>USDC-gated HTTP resources with exact prices. Available when the production facilitator and receiving wallet are configured.</p></article>
+            <article className="is-beta"><span>BETA</span><strong>Jupiter $THREAT swap</strong><p>SOL/USDC input, canonical output mint, fresh Swap V2 order, fee disclosure and explicit wallet approval. Runtime-gated by the server API key.</p></article>
             <article className="is-beta"><span>BETA</span><strong>Wallet Intelligence</strong><p>Read-only SPL and Token-2022 authority scans, paid evidence-bounded audit, and feature-gated simulated delegate revocation.</p></article>
             <article className="is-next"><span>AFTER CORE</span><strong>Solana Actions / Blinks</strong><p>Share a verified RED QUEEN protocol or paid intelligence action after the daily web loop is stable.</p></article>
             <article className="is-next"><span>NEXT</span><strong>Kora fee abstraction</strong><p>Sponsor fees only for allowlisted RED QUEEN transactions after Wallet Lockdown passes mainnet QA.</p></article>
@@ -115,7 +122,7 @@ export default function NetworkClearancePage() {
         </section>
 
         <section className="onchain-safety">
-          <div><span>05 // SIGNATURE SAFETY</span><h2>RED QUEEN will never ask for a seed phrase.</h2></div>
+          <div><span>06 // SIGNATURE SAFETY</span><h2>RED QUEEN will never ask for a seed phrase.</h2></div>
           <ul><li><strong>CONNECT</strong><span>Expose one public address for read-only RPC calls.</span></li><li><strong>SIGN IN</strong><span>Prove address ownership with an off-chain SIWS message.</span></li><li><strong>SIMULATE</strong><span>Inspect exact instructions and RPC simulation before an authority change.</span></li><li><strong>PAY</strong><span>Approve a separately displayed transaction with network, asset, amount and destination.</span></li></ul>
           <div className="onchain-safety-actions"><Link href="/terminal" className="btn btn-primary">ASK RED QUEEN</Link><Link href="/operative" className="btn btn-ghost">OPEN MY READINESS</Link><a href={`https://explorer.solana.com/address/${THREAT_TOKEN_MINT}`} target="_blank" rel="noreferrer" className="btn btn-outline">VIEW MINT ↗</a></div>
           <code>CANONICAL $THREAT MINT · {THREAT_TOKEN_MINT}</code>

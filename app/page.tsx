@@ -705,6 +705,10 @@ export default function HomePage() {
                 signal: selectedNode.id,
                 prompt: `Explain the relevance of this live signal to my context: ${selectedNode.name}. Separate the verified source fact from assessment and give me one safe action.`,
               }).toString()}`}>ASK QUEEN ABOUT THIS →</Link>
+              {selectedNode.verified && <Link href={`/network-clearance?${new URLSearchParams({
+                product: "incident",
+                signalId: selectedNode.id,
+              }).toString()}#queen-operations`}>BUILD x402 INCIDENT DOSSIER →</Link>}
               <Link href={`/terminal?${new URLSearchParams({
                 mode: "PREPARE",
                 focus: "LOCAL_THREATS",

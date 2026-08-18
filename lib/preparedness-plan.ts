@@ -80,7 +80,7 @@ export function parsePreparednessPlan(value: unknown): PreparednessPlan | null {
     reviewAt: plan.reviewAt,
     completedAt: typeof plan.completedAt === "string" ? plan.completedAt : undefined,
     status: plan.status === "COMPLETED" ? "COMPLETED" : "ACTIVE",
-    steps: steps.slice(0, 5),
+    steps: steps.slice(0, 8),
   };
 }
 

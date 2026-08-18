@@ -159,7 +159,7 @@ export default function ProductGuidePage() {
           <div>
             <div className="guide-section-head"><span>04 // x402</span><h2>Pay for a declared output</h2></div>
             <p>x402 uses a separate wallet approval for an exact USDC amount. A connected or signed-in wallet cannot silently pay. Each live request receives an operation ID, settlement receipt, replay protection, and a private receipt summary in My Readiness.</p>
-            <ul><li>0.01 USDC global verified-source synthesis.</li><li>0.02 USDC Solana network health diagnostic.</li><li>0.02 USDC wallet authority exposure audit.</li><li>Disabled automatically when recipient, facilitator, required source data, or receipt storage is not healthy.</li></ul>
+            <ul><li>0.01 USDC global verified-source synthesis.</li><li>0.01 USDC 24-hour Local Delta.</li><li>0.02 USDC personalized 72-hour preparedness plan.</li><li>0.02 USDC verified Incident Dossier.</li><li>0.01 USDC pre-sign Solana transaction risk explanation.</li><li>0.02 USDC Solana network health or wallet authority audit.</li><li>Disabled automatically when recipient, facilitator, required source data, or receipt storage is not healthy.</li></ul>
             <Link href="/network-clearance">CHECK SETTLEMENT STATUS →</Link>
           </div>
         </section>
@@ -170,9 +170,10 @@ export default function ProductGuidePage() {
         </section>
 
         <section className="guide-section guide-roadmap" id="next-solana">
-          <div className="guide-section-head"><span>06 // NEXT SOLANA LAYER</span><h2>What comes after this web release</h2><p>These are real product tracks, not labels for features that have not shipped.</p></div>
+          <div className="guide-section-head"><span>06 // SOLANA EXECUTION LAYER</span><h2>What is beta now—and what comes next</h2><p>Every label below is an implementation state, not a decorative promise.</p></div>
           <div>
             <article><span>BETA</span><strong>Wallet Lockdown</strong><p>Inspect SPL authorities now; simulate and explicitly approve delegate revocation only after the mainnet feature gate is enabled.</p></article>
+            <article><span>BETA</span><strong>Jupiter $THREAT swap</strong><p>Request a fresh Swap V2 order, lock output to the canonical mint, inspect output and fees, then sign explicitly in the wallet.</p></article>
             <article><span>NEXT</span><strong>Actions / Blinks</strong><p>Share a verified protocol or paid Queen operation from X, Discord, or compatible wallets.</p></article>
             <article><span>NEXT</span><strong>Agent Registry</strong><p>Register RED QUEEN&apos;s onchain identity, wallet, MCP endpoint, capabilities, and reputation metadata.</p></article>
             <article><span>NEXT</span><strong>Kora fee abstraction</strong><p>Sponsor first Solana actions so onboarding does not require a pre-funded SOL balance.</p></article>
