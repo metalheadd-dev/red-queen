@@ -9,6 +9,10 @@ export const dynamic = "force-dynamic";
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"); // USDC on Mainnet
 const THREAT_MINT = new PublicKey("3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump"); // $THREAT Token
 
+function buybackEnabled() {
+  return process.env.TREASURY_BUYBACK_ENABLED === "true";
+}
+
 /**
  * Robust balance fetching helper that safely handles RPC congestion, timeouts, and fallbacks
  */
@@ -57,6 +61,13 @@ async function fetchBalances(connection: Connection, vaultOwner: PublicKey) {
  * Handles the buyback process: Swaps USDC in the treasury vault to buy $THREAT tokens on Jupiter
  */
 async function executeBuyback(req: NextRequest) {
+  if (!buybackEnabled()) {
+    return NextResponse.json({
+      success: false,
+      code: "BUYBACK_DISABLED",
+      error: "Treasury buyback execution is disabled for this release.",
+    }, { status: 503 });
+  }
   try {
     const privateKeyStr = process.env.TREASURY_PRIVATE_KEY;
     if (!privateKeyStr) {
@@ -223,8 +234,9 @@ async function executeBuyback(req: NextRequest) {
  * POST handler: Authorized clients can POST to trigger the buyback
  */
 export async function POST(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const secretParam = searchParams.get("secret");
+  if (!buybackEnabled()) {
+    return NextResponse.json({ error: "Treasury buyback execution is disabled for this release." }, { status: 503 });
+  }
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
     return NextResponse.json({ error: "Buyback execution is disabled because CRON_SECRET is not configured." }, { status: 503 });
@@ -233,7 +245,7 @@ export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
   const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
   
-  if (secretParam !== cronSecret && bearerToken !== cronSecret) {
+  if (bearerToken !== cronSecret) {
     return NextResponse.json({ error: "Unauthorized: Invalid secret key" }, { status: 401 });
   }
 
@@ -241,49 +253,34 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * GET handler: 
- * - If authorized (Vercel crons send GET requests), triggers the automated buyback.
- * - Otherwise (frontend widget queries), returns the current vault balances.
+ * GET is permanently read-only. Mutations require an explicitly enabled,
+ * authenticated POST and are never triggered by a page view or Vercel cron.
  */
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const secretParam = searchParams.get("secret");
-  const cronSecret = process.env.CRON_SECRET;
-  
-  const authHeader = req.headers.get("Authorization");
-  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
-
-  const isAuthorized = cronSecret && (secretParam === cronSecret || bearerToken === cronSecret);
-
-  if (isAuthorized) {
-    console.log("[CRON] Authorized GET request received. Running buyback swap...");
-    return executeBuyback(req);
-  } else {
-    // Public read-only audit. The address is explicit configuration and never a fallback constant.
-    try {
-      const configuredVault = process.env.TREASURY_PUBLIC_ADDRESS?.trim() || "";
-      if (!configuredVault) {
-        return NextResponse.json({ success: false, error: "TREASURY_PUBLIC_ADDRESS is not configured." }, { status: 503 });
-      }
-      const vaultOwner = new PublicKey(configuredVault);
-      const connection = process.env.SOLANA_RPC_URL
-        ? new Connection(process.env.SOLANA_RPC_URL, "confirmed")
-        : await getWorkingConnection(false);
-      const balances = await fetchBalances(connection, vaultOwner);
-      return NextResponse.json({
-        success: true,
-        address: vaultOwner.toBase58(),
-        solBalance: balances.solBalance,
-        usdcBalance: balances.usdcBalance,
-        syntheticData: false,
-      });
-    } catch (err: any) {
-      console.error("GET balances handler failed:", err);
-      return NextResponse.json({
-        success: false,
-        error: err.message || err,
-        syntheticData: false,
-      }, { status: 503 });
+  void req;
+  try {
+    const configuredVault = process.env.TREASURY_PUBLIC_ADDRESS?.trim() || "";
+    if (!configuredVault) {
+      return NextResponse.json({ success: false, error: "TREASURY_PUBLIC_ADDRESS is not configured." }, { status: 503 });
     }
+    const vaultOwner = new PublicKey(configuredVault);
+    const connection = process.env.SOLANA_RPC_URL
+      ? new Connection(process.env.SOLANA_RPC_URL, "confirmed")
+      : await getWorkingConnection(false);
+    const balances = await fetchBalances(connection, vaultOwner);
+    return NextResponse.json({
+      success: true,
+      address: vaultOwner.toBase58(),
+      solBalance: balances.solBalance,
+      usdcBalance: balances.usdcBalance,
+      syntheticData: false,
+    });
+  } catch (err: any) {
+    console.error("GET balances handler failed:", err);
+    return NextResponse.json({
+      success: false,
+      error: err.message || err,
+      syntheticData: false,
+    }, { status: 503 });
   }
 }

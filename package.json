@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "node scripts/patch-x402.js"
+    "typecheck": "tsc --noEmit",
+    "release:check": "node scripts/release-check.mjs",
+    "release:check:env": "node scripts/release-check.mjs --env",
+    "release:verify": "npm run release:check && npm run typecheck && npm run build"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.65",

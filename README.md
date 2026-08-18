@@ -179,11 +179,14 @@ Never expose the Supabase service role, treasury private key, facilitator secret
 Before promoting test changes to production:
 
 ```bash
-npm run build
+npm run release:verify
+npm run release:check:env
 git diff --check
 ```
 
 Then verify desktop and mobile flows for Pulse, Map, Queen, Prepare, Library, My Readiness, Login, and the On-chain Hub. All pushes are tested in `red-queen-test` before promotion to the public repository and `redqueen.space`.
+
+`release:check` also prevents payment dependency patching, scheduled treasury automation, accidental Operations exposure, and missing migrations. The strict environment check reports variable names only and never prints secret values. Treasury execution is disabled for this release; `GET /api/treasury/buyback` is read-only and no Vercel cron is scheduled.
 
 ## Safety
 
