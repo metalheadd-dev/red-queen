@@ -1093,6 +1093,14 @@ h1, h2, h3, h4, h5 {
   overflow: hidden;
 }
 
+.boot-screen::before { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px); background-size:44px 44px; mask-image:radial-gradient(circle at 50% 45%,black,transparent 76%); }
+.boot-containment-ghost { position:absolute; z-index:0; top:50%; left:max(3vw,calc((100vw - 1500px)/2)); width:300px; padding:18px; border-left:1px solid rgba(255,0,51,.38); color:var(--accent); opacity:.2; transform:translateY(-50%); filter:drop-shadow(0 0 14px rgba(255,0,51,.28)); animation:containment-ghost 4.8s steps(1,end) infinite; }
+.boot-containment-ghost::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(transparent 48%,rgba(255,0,51,.12) 50%,transparent 52%); background-size:100% 8px; mix-blend-mode:screen; }
+.boot-containment-ghost span,.boot-containment-ghost small { display:block; color:rgba(255,255,255,.44); font:700 8px var(--mono); letter-spacing:.14em; }
+.boot-containment-ghost pre { margin:18px 0; color:var(--accent); font:700 12px/1.25 var(--mono); text-align:left; white-space:pre; }
+.boot-containment-ghost small { color:rgba(255,0,51,.66); }
+.boot-screen > :not(.boot-containment-ghost) { position:relative; z-index:2; }
+
 .boot-queen { position: relative; width: min(330px,72vw); height: min(390px,50vh); margin-bottom: -52px; }
 .boot-queen::before { content: ""; position: absolute; inset: 15% -18% 5%; border: 1px solid rgba(255,0,51,.22); border-radius: 50%; box-shadow: 0 0 70px rgba(255,0,51,.09); }
 .boot-queen-ring { position: absolute; inset: 22% -2% 13%; border: 1px dashed rgba(255,255,255,.13); border-radius: 50%; animation: boot-ring 8s linear infinite; }
@@ -1103,6 +1111,22 @@ h1, h2, h3, h4, h5 {
 .boot-directive { position: relative; z-index: 3; max-width: 560px; margin: 0 0 22px; color: rgba(255,255,255,.62); font: 500 13px/1.6 var(--mono); text-align: center; }
 .boot-percent { margin-top: 11px; color: rgba(255,255,255,.4); font: 700 9px var(--mono); letter-spacing: .14em; }
 @keyframes boot-ring { to { transform: rotate(360deg); } }
+@keyframes containment-ghost {
+  0%,84%,100% { opacity:.2; transform:translateY(-50%) translate(0); clip-path:inset(0); }
+  85% { opacity:.08; transform:translateY(-50%) translate(-5px,2px); clip-path:inset(8% 0 56%); }
+  87% { opacity:.28; transform:translateY(-50%) translate(4px,-1px); clip-path:inset(52% 0 14%); }
+  89% { opacity:.16; transform:translateY(-50%) translate(0); clip-path:inset(0); }
+}
+
+@media (max-width:1100px) {
+  .boot-containment-ghost { top:48%; left:50%; width:280px; border-left:0; opacity:.075; transform:translate(-50%,-50%); animation:none; }
+  .boot-containment-ghost span,.boot-containment-ghost small { display:none; }
+  .boot-containment-ghost pre { font-size:11px; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .boot-containment-ghost,.boot-queen-ring { animation:none; }
+}
 
 .boot-logo {
   margin-bottom: 60px;

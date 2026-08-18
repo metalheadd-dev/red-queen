@@ -7,7 +7,8 @@ const BOOT_LINES = [
   { text: "EYES // VERIFIED SIGNAL GRID", delay: 180, type: "default" },
   { text: "NERVES // LIVE MAP", delay: 430, type: "default" },
   { text: "MEMORY // SURVIVAL CONTEXT", delay: 680, type: "default" },
-  { text: "RED QUEEN // ONLINE", delay: 930, type: "done" },
+  { text: "BIOHAZARD ARCHIVE // CONTAINED", delay: 930, type: "warn" },
+  { text: "RED QUEEN // ONLINE", delay: 1180, type: "done" },
 ];
 
 interface Props {
@@ -35,7 +36,7 @@ export default function BootSequence({ onComplete }: Props) {
       setTimeout(() => {
         setExiting(true);
         setTimeout(onComplete, 420);
-      }, 1350)
+      }, 1600)
     );
 
     return () => timers.forEach(clearTimeout);
@@ -49,6 +50,19 @@ export default function BootSequence({ onComplete }: Props) {
         opacity: exiting ? 0 : 1,
       }}
     >
+      <div className="boot-containment-ghost" aria-hidden="true">
+        <span>OLD WORLD BIOHAZARD // CONTAINED</span>
+        <pre>{`    ██████████
+   ██  ████  ██
+  ████  ██  ████
+ ██  ████████  ██
+██  ██  ██  ██  ██
+ ████  ████  ████
+  ██  ██  ██  ██
+   ████████████`}</pre>
+        <small>ARCHIVE PATTERN RQ-01</small>
+      </div>
+
       <div className="boot-queen" aria-hidden="true">
         <div className="boot-queen-ring" />
         <Image src="/art/red-queen-presence.png" alt="" width={1199} height={1312} priority />
