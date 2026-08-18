@@ -86,7 +86,7 @@ export default function PreparednessPlansPanel() {
             <strong>No persistent protocol yet.</strong>
             <p>Ask RED QUEEN for a blackout, outbreak, household or wallet-compromise plan. Save the structured protocol here and finish it step by step.</p>
           </div>
-          <Link href="/terminal?mode=PREPARE&focus=HOUSEHOLD&prompt=Build%20a%20practical%20preparedness%20plan%20for%20my%20highest-impact%20household%20gap.%20Give%20me%20observable%20steps%20and%20a%20realistic%20review%20date.">BUILD FIRST PLAN →</Link>
+          <Link href="/red-queen?mode=PREPARE&focus=HOUSEHOLD&prompt=Build%20a%20practical%20preparedness%20plan%20for%20my%20highest-impact%20household%20gap.%20Give%20me%20observable%20steps%20and%20a%20realistic%20review%20date.">BUILD FIRST PLAN →</Link>
         </div>
       ) : (
         <div className="preparedness-plan-list">
@@ -120,7 +120,7 @@ export default function PreparednessPlansPanel() {
                   <div>{plan.sourceLabel && plan.sourceUrl ? <a href={plan.sourceUrl} target="_blank" rel="noreferrer">SOURCE · {plan.sourceLabel} ↗</a> : <span>GENERAL PREPAREDNESS KNOWLEDGE</span>}</div>
                   <div className="preparedness-plan-actions">
                     <button type="button" onClick={() => exportPlan(plan)}>EXPORT OFFLINE</button>
-                    <Link href={`/terminal?${new URLSearchParams({ mode: "PREPARE", focus: plan.focus || "HOUSEHOLD", area: plan.area, prompt: queenPrompt }).toString()}`}>REVIEW WITH QUEEN →</Link>
+                    <Link href={`/red-queen?${new URLSearchParams({ mode: "PREPARE", focus: plan.focus || "HOUSEHOLD", area: plan.area, prompt: queenPrompt }).toString()}`}>REVIEW WITH QUEEN →</Link>
                     <button type="button" className={confirmRemoveId === plan.id ? "confirm" : ""} onClick={() => removePlan(plan.id)} onBlur={() => setConfirmRemoveId("")}>{confirmRemoveId === plan.id ? "CONFIRM REMOVE" : "REMOVE"}</button>
                   </div>
                 </footer>

@@ -15,10 +15,10 @@ const dockContent: Array<{
   actions: DockAction[];
 }> = [
   {
-    match: (pathname) => pathname.startsWith("/network-clearance"),
+    match: (pathname) => pathname.startsWith("/onchain") || pathname.startsWith("/network-clearance"),
     eyebrow: "SOLANA CONTROL PLANE",
     title: "Every privilege leaves a trace.",
-    note: "I will show you what the chain proves, what it cannot prove, and the safest next action — without ever asking for your secrets.",
+    note: "I will show you what the chain proves, what it cannot prove, and the safest next action. I will never ask for your secrets.",
     actions: [
       { label: "AUDIT MY WALLET SAFETY", mode: "ANALYZE", prompt: "Run a safe Solana wallet security triage. Do not claim to query private vendor databases and never ask for a seed phrase or private key." },
       { label: "EXPLAIN MY CLEARANCE", mode: "ANALYZE", prompt: "Explain how $THREAT clearance, BIO-SCORE, and x402 USDC payments differ inside RED QUEEN." },
@@ -35,7 +35,7 @@ const dockContent: Array<{
     ],
   },
   {
-    match: (pathname) => pathname.startsWith("/survival-kit"),
+    match: (pathname) => pathname.startsWith("/prepare") || pathname.startsWith("/survival-kit"),
     eyebrow: "PREPAREDNESS",
     title: "Survival begins before the sirens.",
     note: "Give me your weak point. I will turn it into a practical plan for today, 24 hours, or 72 hours.",
@@ -45,7 +45,7 @@ const dockContent: Array<{
     ],
   },
   {
-    match: (pathname) => pathname.startsWith("/threat-vector"),
+    match: (pathname) => pathname.startsWith("/library") || pathname.startsWith("/threat-vector"),
     eyebrow: "THREAT LIBRARY",
     title: "Every catastrophe casts a pattern.",
     note: "I can translate the pattern into relevance, uncertainty, and a decision you can actually use.",
@@ -55,7 +55,7 @@ const dockContent: Array<{
     ],
   },
   {
-    match: (pathname) => pathname.startsWith("/operative"),
+    match: (pathname) => pathname.startsWith("/profile") || pathname.startsWith("/operative"),
     eyebrow: "MY READINESS",
     title: "I remember what you prove.",
     note: "Your score is evidence, not decoration. Train a weak domain or turn intention into a recorded preparedness action.",
@@ -86,12 +86,12 @@ const dockContent: Array<{
   },
 ];
 
-const visibleCoreRoutes = ["/", "/terminal", "/survival-kit", "/threat-vector", "/docs", "/operative", "/network-clearance", "/community", "/solvivors"];
+const visibleCoreRoutes = ["/", "/red-queen", "/prepare", "/library", "/docs", "/profile", "/onchain", "/community", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance"];
 
 function buildHref(action: DockAction, area: string) {
   const query = new URLSearchParams({ mode: action.mode, prompt: action.prompt });
   if (area) query.set("area", area);
-  return `/terminal?${query.toString()}`;
+  return `/red-queen?${query.toString()}`;
 }
 
 export default function QueenDock() {
@@ -116,7 +116,7 @@ export default function QueenDock() {
   );
 
   const isVisible = visibleCoreRoutes.some((route) => route === "/" ? pathname === "/" : pathname.startsWith(route));
-  if (!isVisible || pathname.startsWith("/terminal")) return null;
+  if (!isVisible || pathname.startsWith("/red-queen") || pathname.startsWith("/terminal")) return null;
 
   return (
     <aside className={`queen-dock${open ? " is-open" : ""}`} aria-label="Red Queen contextual assistant">
@@ -135,7 +135,7 @@ export default function QueenDock() {
               <Link key={action.label} href={buildHref(action, area)}>{action.label}<span>→</span></Link>
             ))}
           </div>
-          <Link href="/terminal" className="queen-dock-open-terminal">OPEN FULL QUEEN TERMINAL</Link>
+          <Link href="/red-queen" className="queen-dock-open-terminal">OPEN RED QUEEN</Link>
         </div>
       )}
       <button className="queen-dock-trigger" onClick={() => setOpen((value) => !value)} aria-expanded={open}>

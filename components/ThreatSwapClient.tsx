@@ -157,7 +157,7 @@ export default function ThreatSwapClient() {
   }
 
   const inputConfig = THREAT_SWAP_INPUTS[inputSymbol];
-  const output = order?.outputAmount ? formatRawAmount(order.outputAmount, order.outputDecimals, 4) : "—";
+  const output = order?.outputAmount ? formatRawAmount(order.outputAmount, order.outputDecimals, 4) : "NOT QUOTED";
   const minimumOutput = order?.otherAmountThreshold ? formatRawAmount(order.otherAmountThreshold, order.outputDecimals, 4) : null;
 
   return (
@@ -178,7 +178,7 @@ export default function ThreatSwapClient() {
             <label><span>YOU PAY</span><input value={amount} inputMode="decimal" onChange={(event) => setAmount(event.target.value)} /></label>
             <div role="group" aria-label="Swap input asset"><button type="button" className={inputSymbol === "SOL" ? "active" : ""} onClick={() => setInputSymbol("SOL")}>SOL</button><button type="button" className={inputSymbol === "USDC" ? "active" : ""} onClick={() => setInputSymbol("USDC")}>USDC</button></div>
           </div>
-          <small>Allowed range: {inputConfig.minimum}–{inputConfig.maximum} {inputSymbol}</small>
+          <small>Allowed range: {inputConfig.minimum}-{inputConfig.maximum} {inputSymbol}</small>
           {!order ? <button className="threat-swap-primary" type="button" onClick={() => void requestOrder()} disabled={busy || available !== true}>{busy ? "REQUESTING ORDER…" : "GET LIVE JUPITER ORDER"}</button> : <div className="threat-swap-order">
             <div><span>EXPECTED OUTPUT</span><strong>{output} $THREAT</strong><small>{minimumOutput ? `ORDER THRESHOLD ${minimumOutput}` : "JUPITER MANAGED SLIPPAGE"}</small></div>
             <dl>

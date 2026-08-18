@@ -51,7 +51,7 @@ export default function DailyActionPanel({ context = "PULSE" }: DailyActionPanel
     const params = new URLSearchParams({ mode: "PREPARE", focus: action?.focus || "HOUSEHOLD", prompt });
     if (action?.area) params.set("area", action.area);
     if (needsReview) params.set("action", action.id);
-    return `/terminal?${params.toString()}`;
+    return `/red-queen?${params.toString()}`;
   }, [action]);
 
   function markComplete() {

@@ -73,7 +73,7 @@ export default function SurvivalKitPage() {
   function terminalHref(prompt: string, mode: AgentMode = "PREPARE", focus = "HOUSEHOLD") {
     const params = new URLSearchParams({ mode, focus, prompt });
     if (area) params.set("area", area);
-    return `/terminal?${params.toString()}`;
+    return `/red-queen?${params.toString()}`;
   }
 
   const nextActionPrompt = nextItem
@@ -92,7 +92,7 @@ export default function SurvivalKitPage() {
             </p>
             <div className="prepare-hero-actions">
               <Link className="btn btn-primary" href={terminalHref(nextActionPrompt)}>ASK QUEEN FOR NEXT ACTION</Link>
-              <Link className="btn btn-ghost" href="/threat-vector">OPEN THREAT LIBRARY</Link>
+              <Link className="btn btn-ghost" href="/library">OPEN THREAT LIBRARY</Link>
             </div>
           </div>
 
@@ -219,7 +219,7 @@ export default function SurvivalKitPage() {
             <h2>Safety basics stay public. Tokens deepen the system.</h2>
             <p>$THREAT expands Queen context and analysis depth and modestly multiplies XP that was genuinely earned. Holdings never manufacture readiness or replace evidence.</p>
           </div>
-          <div className="prepare-token-actions"><Link className="btn btn-ghost" href="/network-clearance">SEE EXACT HOLDER UTILITY</Link><Link href="/docs#token">HOW SCORING & ACCESS DIFFER →</Link></div>
+          <div className="prepare-token-actions"><Link className="btn btn-ghost" href="/onchain">SEE EXACT HOLDER UTILITY</Link><Link href="/docs#token">HOW SCORING & ACCESS DIFFER →</Link></div>
         </section>
       </div>
     </div>

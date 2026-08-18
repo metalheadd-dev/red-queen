@@ -175,7 +175,7 @@ export function formatPreparednessPlanText(plan: PreparednessPlan) {
   const context = [plan.area || "Global context", plan.focus || "General preparedness"].join(" · ");
   const steps = plan.steps.map((step, index) => `${step.completed ? "[x]" : "[ ]"} ${index + 1}. ${step.text}`).join("\n");
   const source = plan.sourceLabel
-    ? `${plan.sourceLabel}${plan.sourceUrl ? ` — ${plan.sourceUrl}` : ""}`
+    ? `${plan.sourceLabel}${plan.sourceUrl ? `: ${plan.sourceUrl}` : ""}`
     : "General preparedness knowledge";
   return [
     "RED QUEEN // OFFLINE PREPAREDNESS PROTOCOL",

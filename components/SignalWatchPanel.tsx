@@ -273,7 +273,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
       const comparisonIds = displayedSignals.slice(0, comparisonSignals).map((item) => item.id);
       if (comparisonIds.length) params.set("signals", comparisonIds.join(","));
     }
-    return `/terminal?${params.toString()}`;
+    return `/red-queen?${params.toString()}`;
   }
 
   const hasWatches = memory.localPriority || memory.types.length > 0;
@@ -298,7 +298,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
           </button>
         ))}
       </div>
-      {limitMessage && <div className="signal-watch-limit"><span>{limitMessage}</span><Link href="/network-clearance">VERIFY CLEARANCE →</Link></div>}
+      {limitMessage && <div className="signal-watch-limit"><span>{limitMessage}</span><Link href="/onchain">VERIFY CLEARANCE →</Link></div>}
       {hasWatches && (
         <div className={`signal-watch-delivery ${memory.browserAlerts && browserAlertPermission === "granted" ? "is-armed" : ""}`}>
           <div>

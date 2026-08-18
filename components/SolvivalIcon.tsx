@@ -1,4 +1,4 @@
-// SolvivalIcon — Solvival Corp Red Queen custom logo icon
+// SolvivalIcon: Solvival Corp Red Queen custom logo icon
 export default function SolvivalIcon({ size = 24, className = "" }: { size?: number; className?: string }) {
   return (
     <img

@@ -79,7 +79,7 @@ function renderContent(text: string) {
 
 const CORE_INTRO_MESSAGE = `[UPLINK ESTABLISHED]
 
-I am RED QUEEN — the intelligence governing this survival system.
+I am RED QUEEN, the intelligence governing this survival system.
 
 I monitor credible signals, remember the plans you choose to save, and train the decisions that may matter under pressure. I can explain a threat, turn it into a practical plan, audit your preparation, or run a decision drill.
 
@@ -351,7 +351,7 @@ export default function TerminalPage() {
         let success = false;
         let retryError = "";
 
-        // Poll backend — the facilitator will co-sign, simulate, and submit the tx
+        // Poll backend. The facilitator will co-sign, simulate, and submit the tx.
         // Backend returns 200 once facilitated tx is confirmed
         for (let attempt = 1; attempt <= 8; attempt++) {
           try {
@@ -416,7 +416,7 @@ export default function TerminalPage() {
 
               const errorBody = await retryRes.text().catch(() => "");
               retryError = headerError || errorBody || "HTTP 402 Payment Required";
-              console.log(`x402: Attempt ${attempt}/8 — 402 response:`, errorBody.slice(0, 200), "Header error:", headerError);
+              console.log(`x402: Attempt ${attempt}/8 // 402 response:`, errorBody.slice(0, 200), "Header error:", headerError);
             } else {
               const errorText = await retryRes.text();
               retryError = errorText || `HTTP ${retryRes.status}`;
@@ -427,7 +427,7 @@ export default function TerminalPage() {
           }
 
           if (attempt < 8) {
-            setLoading(`x402: Facilitator processing — attempt ${attempt}/8...`);
+            setLoading(`x402: Facilitator processing // attempt ${attempt}/8...`);
             await new Promise((resolve) => setTimeout(resolve, 3000));
           }
         }
@@ -1181,7 +1181,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
           }}>
             {loadingHistory ? (
               <div className="message message-ai">
-                <div className="message-label">[ SYSTEM — SEARCHING RECORDS ]</div>
+                <div className="message-label">[ SYSTEM // SEARCHING RECORDS ]</div>
                 <div className="message-bubble" style={{ color: "var(--text-dim)" }}>
                   RESTORING CLASSIFIED UPLINK DATA STREAM<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
                 </div>
@@ -1191,8 +1191,8 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                 <div key={i} className={`message message-${msg.role === "user" ? "user" : "ai"}`}>
                   <div className="message-label">
                     {msg.role === "user"
-                      ? `[ SOLVIVOR — ${apocalypticName || "UNREGISTERED"} ]`
-                      : `[ RED QUEEN — ${msg.intel?.clearance.name || agentClearance.name} ANALYSIS ]`}
+                      ? `[ SOLVIVOR // ${apocalypticName || "UNREGISTERED"} ]`
+                      : `[ RED QUEEN // ${msg.intel?.clearance.name || agentClearance.name} ANALYSIS ]`}
                   </div>
                   {msg.intel ? (
                     <AgentResponseCard
@@ -1249,7 +1249,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
 
             {loading && (
               <div className="message message-ai">
-                <div className="message-label">[ RED QUEEN — PROCESSING ]</div>
+                <div className="message-label">[ RED QUEEN // PROCESSING ]</div>
                 <div className="message-bubble" style={{ color: "var(--text-dim)" }}>
                   ANALYZING<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
                 </div>
@@ -1351,7 +1351,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
             ))}
           </div>
 
-          {/* Optional x402 compute — intentionally outside the first-use core loop. */}
+          {/* Optional x402 compute. Intentionally outside the first-use core loop. */}
           <details className="rq-advanced-compute">
             <summary>
               <span>ADVANCED COMPUTE // x402 USDC</span>
@@ -1488,7 +1488,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                         </span>
                       )}
                       {premiumReceiptStored === false && (
-                        <span style={{ color: "#ff8080", fontFamily: "var(--mono)", fontSize: "10px" }}>RECEIPT UNCONFIRMED — DO NOT REPAY</span>
+                        <span style={{ color: "#ff8080", fontFamily: "var(--mono)", fontSize: "10px" }}>RECEIPT UNCONFIRMED // DO NOT REPAY</span>
                       )}
 
                       {premiumIntel.intel?.explorerUrl && (
@@ -1661,7 +1661,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                         </span>
                       )}
                       {depinReceiptStored === false && (
-                        <span style={{ color: "#ff8080", fontFamily: "var(--mono)", fontSize: "10px" }}>RECEIPT UNCONFIRMED — DO NOT REPAY</span>
+                        <span style={{ color: "#ff8080", fontFamily: "var(--mono)", fontSize: "10px" }}>RECEIPT UNCONFIRMED // DO NOT REPAY</span>
                       )}
 
                       <button
@@ -1733,7 +1733,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
               <li><b>COMPLETE</b><small>Work through observable steps in Prepare.</small></li>
               <li><b>PROVE</b><small>Let Queen evaluate what you actually did before BIO changes.</small></li>
             </ol>
-            <a href="/survival-kit">{savedActionText || savedPlanTitles.length ? "OPEN SURVIVAL MEMORY →" : "OPEN MY PLAN →"}</a>
+            <a href="/prepare">{savedActionText || savedPlanTitles.length ? "OPEN SURVIVAL MEMORY →" : "OPEN MY PLAN →"}</a>
           </div>
 
           <div>

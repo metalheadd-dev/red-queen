@@ -18,10 +18,10 @@ The browser also keeps a bounded scan baseline and reports what is new, escalate
 
 ## Core product loop
 
-1. **Detect** — read a broad-area Local Pulse and explore verified signals on the live map.
-2. **Understand** — ask RED QUEEN what a signal means for a broad region, household, device, or wallet.
-3. **Prepare** — save one Queen action into My Action Plan, complete it locally, or adapt it into a checklist or 72-hour protocol.
-4. **Prove and improve** — ask Queen to review what was actually done. Only eligible evaluated evidence can update BIO-SCORE; a local completion mark never does.
+1. **Detect:** read a broad-area Local Pulse and explore verified signals on the live map.
+2. **Understand:** ask RED QUEEN what a signal means for a broad region, household, device, or wallet.
+3. **Prepare:** save one Queen action into My Action Plan, complete it locally, or adapt it into a checklist or 72-hour protocol.
+4. **Prove and improve:** ask Queen to review what was actually done. Only eligible evaluated evidence can update BIO-SCORE; a local completion mark never does.
 
 | Route | Product role |
 | --- | --- |
@@ -58,13 +58,13 @@ Local Pulse resolves only a user-entered city or region, never an exact address.
 
 The core signal engine normalizes seven public source families into one contract with source, timestamp, severity, confidence, freshness, assessment, and recommended action:
 
-- **USGS** — recent significant earthquake observations;
-- **NASA EONET** — open natural events with usable geospatial context;
-- **GDACS** — official global disaster alerts;
-- **NOAA SWPC** — space-weather notices affecting communications, navigation, or power monitoring;
-- **CISA KEV** — vulnerabilities with known exploitation evidence;
-- **WHO DON** — acute public-health event notices;
-- **Official Solana Status** — unresolved Mainnet/RPC incidents and component degradation. An operational network correctly produces `NO_SIGNALS`, not a fabricated alert.
+- **USGS:** recent significant earthquake observations;
+- **NASA EONET:** open natural events with usable geospatial context;
+- **GDACS:** official global disaster alerts;
+- **NOAA SWPC:** space-weather notices affecting communications, navigation, or power monitoring;
+- **CISA KEV:** vulnerabilities with known exploitation evidence;
+- **WHO DON:** acute public-health event notices;
+- **Official Solana Status:** unresolved Mainnet/RPC incidents and component degradation. An operational network correctly produces `NO_SIGNALS`, not a fabricated alert.
 
 Source health is visible as `ONLINE`, `NO_SIGNALS`, or `OFFLINE`. “No matching signal” and “the source could not be reached” are intentionally different states.
 
@@ -94,7 +94,7 @@ Fictional and satirical scenarios remain in the library and are never presented 
 
 The project uses Solana for three separate jobs. They must not be conflated.
 
-### 1. Wallet identity — SIWS
+### 1. Wallet identity: SIWS
 
 Supabase Web3 Auth verifies a domain-bound, timestamped Sign In With Solana message through the connected wallet adapter. Signing in is off-chain and sends no transaction.
 
@@ -116,7 +116,7 @@ Token holdings expand intelligence capacity and engagement XP. Signal Watch pass
 
 Every signed-in SOLvivor can set a personal avatar. The browser crops it to a square WebP and stores it locally without sending it to the server. Verified holders can additionally use **Queen Visage V2** in My Readiness: transform a selected portrait into the RED QUEEN white-line/red-circuit social-avatar style. The source portrait is sent to the configured image provider only after explicit generation, and the result stays in that browser unless the user downloads or shares it.
 
-### 3. AI compute payments — x402
+### 3. AI compute payments: x402
 
 Premium HTTP resources can request an exact USDC payment through the x402 SVM scheme. The network, asset, amount, and receiving wallet must be displayed before approval. Wallet connection and SIWS authentication never authorize payment.
 
@@ -124,17 +124,17 @@ Current implementation uses x402 v2 packages with Solana CAIP-2 network identifi
 
 Current paid resources:
 
-- `GET /api/intel/premium` — 0.01 USDC verified source synthesis.
-- `GET /api/intel/depin` — 0.02 USDC Solana network-health snapshot.
-- `GET /api/intel/wallet-exposure?address={wallet}` — 0.02 USDC SPL and Token-2022 authority exposure audit.
-- `GET /api/intel/local-delta?area={area}&lat={lat}&lng={lng}&radiusKm={radius}` — 0.01 USDC source-backed 24-hour Local Delta.
-- `POST /api/intel/preparedness-plan` — 0.02 USDC personalized phased 72-hour plan.
-- `GET /api/intel/incident-dossier?signalId={verified-signal}` — 0.02 USDC timestamped dossier and export.
-- `POST /api/intel/transaction-risk` — 0.01 USDC unsigned transaction simulation and bounded risk explanation.
+- `GET /api/intel/premium`: 0.01 USDC verified source synthesis.
+- `GET /api/intel/depin`: 0.02 USDC Solana network-health snapshot.
+- `GET /api/intel/wallet-exposure?address={wallet}`: 0.02 USDC SPL and Token-2022 authority exposure audit.
+- `GET /api/intel/local-delta?area={area}&lat={lat}&lng={lng}&radiusKm={radius}`: 0.01 USDC source-backed 24-hour Local Delta.
+- `POST /api/intel/preparedness-plan`: 0.02 USDC personalized phased 72-hour plan.
+- `GET /api/intel/incident-dossier?signalId={verified-signal}`: 0.02 USDC timestamped dossier and export.
+- `POST /api/intel/transaction-risk`: 0.01 USDC unsigned transaction simulation and bounded risk explanation.
 
 Signed-in Solana accounts can read private receipt summaries at `GET /api/profile/x402-receipts`. The endpoint never exposes delivered report bodies and never treats payment as readiness evidence.
 
-### 4. `$THREAT` acquisition — Jupiter Swap V2
+### 4. `$THREAT` acquisition: Jupiter Swap V2
 
 `POST /api/onchain/swap/threat/order` accepts only SOL or USDC input and always locks output to the canonical `$THREAT` mint. Jupiter returns an unsigned executable order. The browser deserializes it, displays expected output, price impact and disclosed fees, then requests an explicit wallet signature. `POST /api/onchain/swap/threat/execute` submits the signed payload through Jupiter's managed landing flow.
 

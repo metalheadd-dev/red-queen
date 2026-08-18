@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const PROFILE_TERMS = [
   {
     name: "Apocalyptic SOLvivor alias",
-    meaning: "Your public RED QUEEN identity — a callsign, not your legal name.",
+    meaning: "Your public RED QUEEN identity: a callsign, not your legal name.",
     changes: "Edit it from My Readiness. It appears publicly only if you join the SOLvivor board.",
   },
   {
@@ -20,8 +20,8 @@ const PROFILE_TERMS = [
   },
   {
     name: "BIO-SCORE",
-    meaning: "A 0–100 readiness estimate across seven survival-thinking domains.",
-    changes: "It changes only after Queen evaluates a decision, plan, or demonstrated preparedness action — never from holdings or chat volume.",
+    meaning: "A 0-100 readiness estimate across seven survival-thinking domains.",
+    changes: "It changes only after Queen evaluates a decision, plan, or demonstrated preparedness action. Holdings and chat volume never change it.",
   },
   {
     name: "XP / SOLvivor Points",
@@ -40,7 +40,7 @@ const PROFILE_TERMS = [
   },
   {
     name: "Weakest domain",
-    meaning: "The lowest current readiness domain — the clearest place to improve next.",
+    meaning: "The lowest current readiness domain and the clearest place to improve next.",
     changes: "It automatically changes when new evaluated evidence changes your domain scores.",
   },
   {
@@ -86,19 +86,19 @@ const PROFILE_TERMS = [
   {
     name: "Community visibility",
     meaning: "Your explicit choice to appear on the public SOLvivor Readiness Board.",
-    changes: "Private by default. The board shows alias, XP, level, BIO, clearance, and a broad activity band — never email or wallet.",
+    changes: "Private by default. The board shows alias, XP, level, BIO, clearance, and a broad activity band. It never shows email or wallet.",
   },
 ];
 
 const PAGE_GUIDE = [
   ["Pulse", "What changed today, what deserves attention, and the first useful action.", "/"],
   ["Map", "Where verified signals are, how strong they are, and whether broad-area relevance is justified.", "/#live-map"],
-  ["Queen", "Ask, analyze, prepare, or run a decision simulation with context.", "/terminal"],
-  ["Prepare", "Private baseline checks, active protocols, completed steps, and action history.", "/survival-kit"],
-  ["Library", "Preparedness references, digital security scenarios, fictional simulations, and labeled satire.", "/threat-vector"],
+  ["Red Queen", "Ask, analyze, prepare, or run a decision simulation with context.", "/red-queen"],
+  ["Prepare", "Private baseline checks, active protocols, completed steps, and action history.", "/prepare"],
+  ["Library", "Preparedness references, digital security scenarios, fictional simulations, and labeled satire.", "/library"],
   ["Community", "Queen transmissions, field notes, lore, and the opt-in SOLvivor board.", "/community"],
-  ["Onchain", "Solana identity, live $THREAT utility, x402 status, prices, and signature safety.", "/network-clearance"],
-  ["My Readiness", "Your private identity, evidence, BIO, XP, plans, holder status, and network controls.", "/operative"],
+  ["Onchain", "Solana identity, live $THREAT utility, x402 status, prices, and signature safety.", "/onchain"],
+  ["My Readiness", "Your private identity, evidence, BIO, XP, plans, holder status, and network controls.", "/profile"],
 ];
 
 export default function ProductGuidePage() {
@@ -110,7 +110,7 @@ export default function ProductGuidePage() {
             <span>PRODUCT GUIDE // START HERE</span>
             <h1>Understand the system.<br /><em>Then make it useful.</em></h1>
             <p>RED QUEEN turns verified signals into one assessment, one action, and a readiness record you control. This guide explains every score, page, token gate, and payment boundary without lore getting in the way.</p>
-            <div><Link className="btn btn-primary" href="/">OPEN TODAY&apos;S PULSE</Link><Link className="btn btn-ghost" href="/terminal">ASK RED QUEEN</Link></div>
+            <div><Link className="btn btn-primary" href="/">OPEN TODAY&apos;S PULSE</Link><Link className="btn btn-ghost" href="/red-queen">ASK RED QUEEN</Link></div>
           </div>
           <div className="guide-queen" aria-hidden="true">
             <div className="guide-queen-halo" />
@@ -154,13 +154,13 @@ export default function ProductGuidePage() {
           <div>
             <div className="guide-section-head"><span>03 // $THREAT</span><h2>Access utility, not purchased competence</h2></div>
             <ul><li>Longer trusted Queen context.</li><li>More Signal Watch slots.</li><li>More verified signals in one synthesis.</li><li>Deeper analysis and comparison.</li><li>A modest multiplier on XP already earned through evidence.</li><li>Holder-only Queen Visage generation.</li></ul>
-            <Link href="/network-clearance">VIEW LIVE CLEARANCE LEVELS →</Link>
+            <Link href="/onchain">VIEW LIVE CLEARANCE LEVELS →</Link>
           </div>
           <div>
             <div className="guide-section-head"><span>04 // x402</span><h2>Pay for a declared output</h2></div>
             <p>x402 uses a separate wallet approval for an exact USDC amount. A connected or signed-in wallet cannot silently pay. Each live request receives an operation ID, settlement receipt, replay protection, and a private receipt summary in My Readiness.</p>
             <ul><li>0.01 USDC global verified-source synthesis.</li><li>0.01 USDC 24-hour Local Delta.</li><li>0.02 USDC personalized 72-hour preparedness plan.</li><li>0.02 USDC verified Incident Dossier.</li><li>0.01 USDC pre-sign Solana transaction risk explanation.</li><li>0.02 USDC Solana network health or wallet authority audit.</li><li>Disabled automatically when recipient, facilitator, required source data, or receipt storage is not healthy.</li></ul>
-            <Link href="/network-clearance">CHECK SETTLEMENT STATUS →</Link>
+            <Link href="/onchain">CHECK SETTLEMENT STATUS →</Link>
           </div>
         </section>
 
@@ -170,7 +170,7 @@ export default function ProductGuidePage() {
         </section>
 
         <section className="guide-section guide-roadmap" id="next-solana">
-          <div className="guide-section-head"><span>06 // SOLANA EXECUTION LAYER</span><h2>What is beta now—and what comes next</h2><p>Every label below is an implementation state, not a decorative promise.</p></div>
+          <div className="guide-section-head"><span>06 // SOLANA EXECUTION LAYER</span><h2>What is beta now, and what comes next</h2><p>Every label below is an implementation state, not a decorative promise.</p></div>
           <div>
             <article><span>BETA</span><strong>Wallet Lockdown</strong><p>Inspect SPL authorities now; simulate and explicitly approve delegate revocation only after the mainnet feature gate is enabled.</p></article>
             <article><span>BETA</span><strong>Jupiter $THREAT swap</strong><p>Request a fresh Swap V2 order, lock output to the canonical mint, inspect output and fees, then sign explicitly in the wallet.</p></article>

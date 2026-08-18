@@ -60,7 +60,7 @@ export default function ActionHistoryPanel() {
                 </span>
                 <strong>{action.action}</strong>
                 <small>{action.area || "GLOBAL CONTEXT"} · {action.grounding.replaceAll("_", " ")}</small>
-                {!action.reviewedAt && <Link href={`/terminal?${reviewParams.toString()}`}>REVIEW EVIDENCE →</Link>}
+                {!action.reviewedAt && <Link href={`/red-queen?${reviewParams.toString()}`}>REVIEW EVIDENCE →</Link>}
               </article>
             );
           })}
@@ -68,7 +68,7 @@ export default function ActionHistoryPanel() {
       ) : (
         <div className="action-history-empty">Complete your first saved action to start a practical readiness record.</div>
       )}
-      <Link href="/terminal?mode=PREPARE&focus=HOUSEHOLD&prompt=Review%20my%20preparedness%20progress%20and%20give%20me%20one%20new%20high-impact%20action.">ASK QUEEN FOR THE NEXT ACTION →</Link>
+      <Link href="/red-queen?mode=PREPARE&focus=HOUSEHOLD&prompt=Review%20my%20preparedness%20progress%20and%20give%20me%20one%20new%20high-impact%20action.">ASK QUEEN FOR THE NEXT ACTION →</Link>
     </section>
   );
 }

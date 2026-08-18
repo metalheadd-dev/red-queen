@@ -286,7 +286,7 @@ export default function OnchainClearanceClient() {
         {signedWalletSession ? (
           <button onClick={() => void verifyAndSave()} disabled={verifying || !snapshot}>{verifying ? "VERIFYING…" : "VERIFY & SAVE CLEARANCE"}</button>
         ) : user ? (
-          <Link href="/operative">OPEN ACCOUNT STATUS</Link>
+          <Link href="/profile">OPEN ACCOUNT STATUS</Link>
         ) : (
           <Link href="/login">SIGN IN WITH THIS WALLET</Link>
         )}
@@ -338,7 +338,7 @@ export default function OnchainClearanceClient() {
               </div>
             )}
             {preparedLockdown && (
-              <div className="wallet-lockdown-preview"><strong>SIMULATION PASSED · {preparedLockdown.simulation.unitsConsumed?.toLocaleString() || "—"} COMPUTE UNITS</strong><p>{preparedLockdown.statement}</p><small>No token transfer instruction is included. Your wallet must still show and approve the final transaction.</small></div>
+              <div className="wallet-lockdown-preview"><strong>SIMULATION PASSED · {preparedLockdown.simulation.unitsConsumed?.toLocaleString() || "NOT REPORTED"} COMPUTE UNITS</strong><p>{preparedLockdown.statement}</p><small>No token transfer instruction is included. Your wallet must still show and approve the final transaction.</small></div>
             )}
           </>
         ) : <p>Connect and scan a public wallet to inspect token authorities.</p>}

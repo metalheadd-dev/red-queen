@@ -71,7 +71,7 @@ export default function AccessGuard({ children }: AccessGuardProps) {
       // ── DEMO MODE: grant access to every authenticated player ──────────────
       setAccessGranted(true);
 
-      // ── CLOSED BETA GATING (disabled for demo — uncomment to re-enable) ────
+      // CLOSED BETA GATING (disabled for demo; uncomment to re-enable)
       // if (data && data.profile) {
       //   const prof = data.profile;
       //   const hasBalance = (prof.verified_balance || 0) >= 1000000 || (prof.holder_tier || 0) >= 2;
@@ -91,7 +91,7 @@ export default function AccessGuard({ children }: AccessGuardProps) {
 
     } catch (e) {
       console.error("Access verification error:", e);
-      // Even on error, grant access in demo mode — don't block players
+      // Even on error, grant access in demo mode. Do not block players.
       setAccessGranted(true);
     }
     setProfileLoading(false);

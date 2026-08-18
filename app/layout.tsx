@@ -6,13 +6,13 @@ import SolanaProvider from "@/components/SolanaProvider";
 import QueenDock from "@/components/QueenDock";
 
 export const metadata: Metadata = {
-  title: "RED QUEEN — Survival Intelligence on Solana",
+  title: "RED QUEEN | Survival Intelligence on Solana",
   description:
     "RED QUEEN is an AI survival intelligence system that turns verified threat signals into clear assessments, practical actions, and readiness training on Solana.",
   keywords: ["survival intelligence", "threat monitoring", "red queen", "Solana", "AI agent", "$THREAT token", "preparedness"],
   openGraph: {
-    title: "RED QUEEN — Survival Intelligence on Solana",
-    description: "Meet RED QUEEN — the AI survival intelligence system that watches the field, removes the noise, and gives you one clear move.",
+    title: "RED QUEEN | Survival Intelligence on Solana",
+    description: "Meet RED QUEEN, the AI survival intelligence system that watches the field, removes the noise, and gives you one clear move.",
     type: "website",
   },
 };

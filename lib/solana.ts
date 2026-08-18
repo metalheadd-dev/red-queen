@@ -1,8 +1,8 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 
-// Free public mainnet RPC pool — ordered by reliability with no-key-required endpoints first
+// Free public mainnet RPC pool, ordered by reliability with no-key-required endpoints first
 export const MAINNET_RPC_URLS = [
-  "https://solana-rpc.publicnode.com",    // PublicNode — free, no key, no rate block
+  "https://solana-rpc.publicnode.com",    // PublicNode: free, no key, no rate block
   "https://api.mainnet-beta.solana.com", // Official Solana Labs
   "https://api.mainnet.solana.com",       // Official Solana Labs mirror
   "https://solana.public-rpc.com"         // Additional fallback

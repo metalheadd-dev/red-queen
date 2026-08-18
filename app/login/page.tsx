@@ -26,7 +26,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      router.replace("/operative");
+      router.replace("/profile");
       return;
     }
     if (!connected || walletAttempted.current) return;

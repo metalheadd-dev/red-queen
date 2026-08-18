@@ -504,7 +504,7 @@ export default function OperativeProfilePage() {
     return [...READINESS_DOMAINS].sort((a, b) => stats[a.key] - stats[b.key])[0];
   }, [stats]);
 
-  const baselineHref = `/terminal?${new URLSearchParams({
+  const baselineHref = `/red-queen?${new URLSearchParams({
     mode: "SIMULATE",
     prompt: bioScore === 0
       ? READINESS_BASELINE_PROMPT
@@ -537,7 +537,7 @@ export default function OperativeProfilePage() {
           <p>Sign in to save Queen history, evidence-based BIO, permanent XP and verified $THREAT clearance. Public intelligence and preparedness tools remain open without an account.</p>
           <div>
             <Link className="btn btn-primary" href="/login">SIGN IN OR CONNECT WALLET</Link>
-            <Link className="btn btn-ghost" href="/survival-kit">CONTINUE WITH LOCAL PREPARE</Link>
+            <Link className="btn btn-ghost" href="/prepare">CONTINUE WITH LOCAL PREPARE</Link>
           </div>
           <small>No readiness score is created from wallet ownership alone.</small>
         </div>
@@ -572,7 +572,7 @@ export default function OperativeProfilePage() {
           </div>
           <div className="rq-profile-hero-actions">
             <Link className="btn btn-primary" href={baselineHref}>{bioScore === 0 ? "START BASELINE" : "TRAIN WEAKEST DOMAIN"}</Link>
-            <Link className="btn btn-ghost" href="/survival-kit">OPEN PREPARE</Link>
+            <Link className="btn btn-ghost" href="/prepare">OPEN PREPARE</Link>
             <button type="button" className="rq-profile-logout" onClick={() => logout()}>LOG OUT</button>
           </div>
         </div>
@@ -598,7 +598,7 @@ export default function OperativeProfilePage() {
               <li>Generate sends the selected portrait to the configured AI provider only for that request.</li>
               <li>Download or Share exports a social-ready 1:1 image for X, Discord or anywhere else.</li>
             </ul>
-            {!hasThreatBalance && <Link href="/network-clearance">VERIFY $THREAT TO UNLOCK BRANDED GENERATION →</Link>}
+            {!hasThreatBalance && <Link href="/onchain">VERIFY $THREAT TO UNLOCK BRANDED GENERATION →</Link>}
             {hasThreatBalance && !hasFreshHolderProof && <a href="#holder-clearance">REFRESH HOLDER PROOF FOR QUEEN VISAGE →</a>}
           </div>
           <div className="rq-profile-visage-studio">
@@ -648,8 +648,8 @@ export default function OperativeProfilePage() {
             <h2>What RED QUEEN is carrying forward for you</h2>
             <p>Plans, completed actions and watched signals persist beyond a single conversation on this device.</p>
           </div>
-          <div><span>ACTIVE PROTOCOLS</span><strong>{activeProtocols.length}</strong><small>{completedProtocols} completed</small><Link href="/survival-kit">OPEN PROTOCOLS →</Link></div>
-          <div><span>PLAN EXECUTION</span><strong>{completedProtocolSteps}/{protocolSteps.length}</strong><small>observable steps complete</small><Link href="/survival-kit">CONTINUE PLAN →</Link></div>
+          <div><span>ACTIVE PROTOCOLS</span><strong>{activeProtocols.length}</strong><small>{completedProtocols} completed</small><Link href="/prepare">OPEN PROTOCOLS →</Link></div>
+          <div><span>PLAN EXECUTION</span><strong>{completedProtocolSteps}/{protocolSteps.length}</strong><small>observable steps complete</small><Link href="/prepare">CONTINUE PLAN →</Link></div>
           <div><span>SIGNAL WATCH</span><strong>{signalWatch.types.length}</strong><small>{signalWatch.localPriority ? "local priority active" : "signal categories"}</small><Link href="/#live-map">TUNE WATCH →</Link></div>
         </section>
 
@@ -674,7 +674,7 @@ export default function OperativeProfilePage() {
               })}
             </div>
           ) : (
-            <div className="rq-profile-receipts-empty"><strong>NO WALLET-BOUND RECEIPTS</strong><p>{receiptNotice || "Completed x402 operations paid by this signed wallet will appear here."}</p><Link href="/network-clearance">EXPLORE QUEEN OPERATIONS →</Link></div>
+            <div className="rq-profile-receipts-empty"><strong>NO WALLET-BOUND RECEIPTS</strong><p>{receiptNotice || "Completed x402 operations paid by this signed wallet will appear here."}</p><Link href="/onchain">EXPLORE QUEEN OPERATIONS →</Link></div>
           )}
         </section>
 
@@ -683,7 +683,7 @@ export default function OperativeProfilePage() {
             <span>SOLANA RECORD // PROTOCOL XP</span>
             <h2>Useful on-chain participation, separated from readiness.</h2>
             <p>Protocol XP records verified Solana actions. It never changes BIO-SCORE, readiness domains or SOLvivor leaderboard XP.</p>
-            <Link href="/network-clearance#buy-threat">OPEN ON-CHAIN HUB →</Link>
+            <Link href="/onchain#buy-threat">OPEN ONCHAIN HUB →</Link>
           </div>
           <div className="rq-profile-protocol-score"><span>PROTOCOL XP</span><strong>{protocolXp}</strong><small>not survival competence</small></div>
           <div className="rq-profile-protocol-list">
@@ -740,7 +740,7 @@ export default function OperativeProfilePage() {
               <div className="rq-profile-token-balance"><span>VERIFIED BALANCE</span><strong>{tokenBalance.toLocaleString()} $THREAT</strong><small>LAST CHECK {formatRelativeTime(profile?.last_verification)}</small></div>
               <ul><li>{tokenClearance.contextMessages} context messages</li><li>{tokenClearance.signalWatchSlots} Signal Watch slots</li><li>{tokenClearance.comparisonSignals} verified signals per Queen synthesis</li><li>{tokenClearance.responseDepth} response depth</li><li>×{tokenClearance.earnedXpMultiplier.toFixed(2)} multiplier on earned XP only</li></ul>
               {nextTokenClearance ? <p>NEXT: {nextTokenClearance.name} at {formatThreshold(nextTokenClearance.threshold)} $THREAT</p> : <p>MAXIMUM CLEARANCE VERIFIED</p>}
-              <Link href="/network-clearance#buy-threat">BUY $THREAT THROUGH JUPITER →</Link>
+              <Link href="/onchain#buy-threat">BUY $THREAT THROUGH JUPITER →</Link>
               <button type="button" onClick={verifyHoldings} disabled={verifying || !verifiedWallet}>{verifying ? "VERIFYING..." : "REFRESH ON-CHAIN BALANCE"}</button>
               {verifyStatus && <small className="rq-profile-verify-status">{verifyStatus}</small>}
               {!verifiedWallet && <small>Sign in with a Solana wallet to verify holdings. A connected wallet is never silently linked to an email account.</small>}
@@ -762,7 +762,7 @@ export default function OperativeProfilePage() {
         </div>
 
         <section className="rq-profile-panel rq-profile-evidence">
-          <div className="rq-profile-panel-heading"><div><span>04 // EVALUATED ACTIVITY</span><h2>Readiness evidence, not chat volume</h2></div><Link href="/terminal">OPEN QUEEN →</Link></div>
+          <div className="rq-profile-panel-heading"><div><span>04 // EVALUATED ACTIVITY</span><h2>Readiness evidence, not chat volume</h2></div><Link href="/red-queen">OPEN RED QUEEN →</Link></div>
           {evaluatedHistory.length ? (
             <div className="rq-profile-evidence-list">
               {evaluatedHistory.map((entry, index) => (

@@ -176,6 +176,7 @@ export default function HomePage() {
   const [startError, setStartError] = useState("");
   const [startResolving, setStartResolving] = useState(false);
   const [localContext, setLocalContext] = useState<SurvivalContext | null>(null);
+  const [editingArea, setEditingArea] = useState(false);
 
   useEffect(() => {
     if (sessionStorage.getItem("rq-booted") === "1") setBooted(true);
@@ -316,14 +317,14 @@ export default function HomePage() {
       prompt: buildFirstContactPrompt(context),
     });
     if (area) params.set("area", area);
-    router.push(`/terminal?${params.toString()}`);
+    router.push(`/red-queen?${params.toString()}`);
     setStartResolving(false);
   };
 
   async function activateLocalView() {
     const area = sanitizeArea(startArea || localContext?.area || "");
     if (area.length < 2) {
-      setStartError("Enter a city or region — never an exact address.");
+      setStartError("Enter a city or region. Never enter an exact address.");
       return;
     }
     setStartResolving(true);
@@ -339,6 +340,7 @@ export default function HomePage() {
       localStorage.setItem("rq-survival-context-v1", JSON.stringify(context));
       setLocalContext(context);
       setMapFilter("local");
+      setEditingArea(false);
     } catch (error) {
       setStartError(error instanceof Error ? error.message : "Area lookup is temporarily unavailable.");
     } finally {
@@ -376,27 +378,22 @@ export default function HomePage() {
         <span>LAST SYNTHESIS: {pulseDate.toUpperCase()}</span>
       </div>
 
-      <section className="pulse-hero container">
-        <div className="pulse-kicker">RED QUEEN // SURVIVAL INTELLIGENCE SYSTEM</div>
-        <div className="pulse-hero-grid">
-          <div>
+      <header className="pulse-hero">
+        <div className="container pulse-hero-grid">
+          <div className="pulse-hero-copy">
+            <div className="pulse-kicker">DAILY PULSE // RED QUEEN ONLINE</div>
             <h1>
-              Meet RED QUEEN.<br />
-              <span>She turns danger into direction.</span>
+              She sees the field.<br />
+              <em>You choose the move.</em>
             </h1>
             <p className="pulse-lead">
-              RED QUEEN is an AI survival intelligence agent. She monitors verified global threats, explains what
-              may matter to you, and turns uncertainty into one practical next action. She runs this platform —
-              its eyes, memory and decision core. If you choose to prepare before a crisis decides for you, you are a SOLvivor.
+              RED QUEEN is the AI survival intelligence system behind this platform. She watches verified threats,
+              explains what may matter to you, and turns uncertainty into one useful next action. Pulse is her vision.
+              The map is her nervous system. If you choose to prepare before a crisis decides for you, you are a SOLvivor.
             </p>
-            <div className="pulse-capabilities" aria-label="What RED QUEEN does">
-              <div><span>01 // WATCH</span><strong>She scans credible signals</strong><small>Threats, outages, outbreaks, cyber and Solana network events.</small></div>
-              <div><span>02 // EXPLAIN</span><strong>She removes the noise</strong><small>Known facts, relevance and uncertainty stay visibly separated.</small></div>
-              <div><span>03 // ACT</span><strong>She gives you one clear move</strong><small>A useful action, plan or decision drill — never panic for its own sake.</small></div>
-            </div>
             <p className="pulse-queen-vow">“I do not promise safety. I make sure you do not choose blind.”</p>
             <div className="pulse-hero-actions">
-              <Link className="btn btn-primary" href={showStart ? "#first-contact" : "/terminal"}>{showStart ? "GET MY FIRST BRIEF" : "CONTINUE WITH RED QUEEN"}</Link>
+              <Link className="btn btn-primary" href={showStart ? "#first-contact" : "/red-queen"}>{showStart ? "GET MY FIRST BRIEF" : "CONTINUE WITH RED QUEEN"}</Link>
               <a className="btn btn-ghost" href="#live-map">OPEN LIVE MAP</a>
             </div>
             <p className="pulse-entry-note">NO ACCOUNT · NO WALLET · NO EXACT ADDRESS REQUIRED</p>
@@ -420,12 +417,12 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-        <div className="pulse-system-line">
+        <div className="container pulse-system-line">
           <span>THIS PLATFORM IS HER SYSTEM</span>
           <p><strong>Pulse</strong> is what she sees. <strong>Map</strong> is where it happens. <strong>Library</strong> is what she remembers. <strong>Prepare</strong> is what you do next.</p>
           <Link href="/docs">HOW RED QUEEN WORKS →</Link>
         </div>
-      </section>
+      </header>
 
       {showStart && (
         <section id="first-contact" className="container pulse-onboarding" aria-label="Start with Red Queen">
@@ -434,14 +431,14 @@ export default function HomePage() {
             <h2>Get your first survival brief.</h2>
             <p>Answer two simple questions. RED QUEEN will open with a clear status, explain what matters, and give you one useful action.</p>
             <ol className="pulse-onboarding-steps">
-              <li><span>1</span><div><strong>Tell her where to look</strong><small>A city or region is enough — and optional.</small></div></li>
+              <li><span>1</span><div><strong>Tell her where to look</strong><small>A city or region is enough. This step is optional.</small></div></li>
               <li><span>2</span><div><strong>Choose what you need help with</strong><small>No specialist knowledge required.</small></div></li>
               <li><span>3</span><div><strong>Receive one clear next move</strong><small>Facts, uncertainty and action stay separate.</small></div></li>
             </ol>
           </div>
           <div className="pulse-first-contact">
             <div className="pulse-question-label"><span>QUESTION 1 OF 2</span><strong>Where should RED QUEEN look?</strong></div>
-            <label htmlFor="first-contact-area">CITY OR REGION <small>OPTIONAL — LEAVE EMPTY FOR GLOBAL</small></label>
+            <label htmlFor="first-contact-area">CITY OR REGION <small>OPTIONAL // LEAVE EMPTY FOR GLOBAL</small></label>
             <input
               id="first-contact-area"
               value={startArea}
@@ -546,8 +543,8 @@ export default function HomePage() {
             <h3>Do this now</h3>
             <p>{pulse.countermeasure}</p>
             <div className="pulse-action-links">
-              <Link href="/terminal">ASK A FOLLOW-UP →</Link>
-              <Link href="/survival-kit">OPEN PREPAREDNESS →</Link>
+              <Link href="/red-queen">ASK A FOLLOW-UP →</Link>
+              <Link href="/prepare">OPEN PREPAREDNESS →</Link>
             </div>
           </article>
         </div>
@@ -569,7 +566,7 @@ export default function HomePage() {
                 </article>
               ))}
             </div>
-            <p>Reachability confirms the source responded — not that every local event is covered. Always follow official alerts for your area.</p>
+            <p>Reachability confirms that the source responded. It does not mean every local event is covered. Always follow official alerts for your area.</p>
           </details>
         )}
       </section>
@@ -599,9 +596,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        {!hasResolvedArea && (
+        {(!hasResolvedArea || editingArea) && (
           <div className="pulse-local-setup">
-            <div><span>LOCAL RELEVANCE</span><strong>Center the signal field on a broad area.</strong><p>City or region only. RED QUEEN does not need an exact address.</p></div>
+            <div><span>{hasResolvedArea ? "CHANGE BROAD AREA" : "LOCAL RELEVANCE"}</span><strong>Center the signal field on a broad area.</strong><p>City or region only. RED QUEEN does not need an exact address.</p></div>
             <input
               value={startArea}
               onChange={(event) => { setStartArea(event.target.value); setStartError(""); }}
@@ -609,17 +606,21 @@ export default function HomePage() {
               maxLength={80}
               aria-label="City or region for local signal relevance"
             />
-            <button type="button" onClick={() => void activateLocalView()} disabled={startResolving}>{startResolving ? "RESOLVING..." : "SET LOCAL VIEW"}</button>
+            <div className="pulse-local-actions">
+              <button type="button" onClick={() => void activateLocalView()} disabled={startResolving}>{startResolving ? "RESOLVING..." : hasResolvedArea ? "UPDATE CITY" : "SET LOCAL VIEW"}</button>
+              {hasResolvedArea && <button type="button" className="is-quiet" onClick={() => { setStartArea(localContext?.area || ""); setStartError(""); setEditingArea(false); }}>CANCEL</button>}
+            </div>
             {startError && <small role="alert">{startError}</small>}
           </div>
         )}
 
-        {hasResolvedArea && (
+        {hasResolvedArea && !editingArea && (
           <div className="pulse-local-proof">
             <div><span>YOUR BROAD AREA</span><strong>{localContext!.area}</strong></div>
             <div><span>NEARBY SIGNALS</span><strong>{nearbyNodes.length}</strong></div>
             <div><span>PRIVACY MODE</span><strong>NO EXACT ADDRESS</strong></div>
-            <small>Area resolved with © OpenStreetMap contributors · absence of a mapped signal is not proof of safety.</small>
+            <button type="button" onClick={() => setEditingArea(true)}>CHANGE CITY</button>
+            <small>Area resolved with © OpenStreetMap contributors. Absence of a mapped signal is not proof of safety.</small>
           </div>
         )}
 
@@ -648,7 +649,7 @@ export default function HomePage() {
                 focus={localContext?.location || null}
                 focusMode={mapFilter === "local"}
               />
-              {!nodes.length && <div className="pulse-map-empty"><strong>NO VERIFIED SIGNALS AVAILABLE</strong><span>The field remains interactive. Source silence is not proof of safety — check official local alerts.</span></div>}
+              {!nodes.length && <div className="pulse-map-empty"><strong>NO VERIFIED SIGNALS AVAILABLE</strong><span>The field remains interactive. Source silence is not proof of safety. Check official local alerts.</span></div>}
             </>
           )}
         </div>
@@ -691,25 +692,25 @@ export default function HomePage() {
                     : selectedHistory?.change === "STEADY"
                       ? `No priority change across ${selectedHistory.observations} local observations.`
                       : "First observed by this browser. A change state will appear after a later scan."}</p>
-                <small>Local memory only — not an official event timeline.</small>
+                <small>Local memory only. This is not an official event timeline.</small>
               </div>
             </div>
 
             <footer className="pulse-selected-actions">
               {selectedNode.sourceUrl && <a href={selectedNode.sourceUrl} target="_blank" rel="noreferrer">OPEN PRIMARY SOURCE ↗</a>}
               {toWatchType(selectedNode.type) && <button type="button" onClick={() => requestSignalWatch(selectedNode.type)}>WATCH THIS CATEGORY</button>}
-              <Link href={`/terminal?${new URLSearchParams({
+              <Link href={`/red-queen?${new URLSearchParams({
                 mode: "ANALYZE",
                 focus: "LOCAL_THREATS",
                 area: localContext?.area || "",
                 signal: selectedNode.id,
                 prompt: `Explain the relevance of this live signal to my context: ${selectedNode.name}. Separate the verified source fact from assessment and give me one safe action.`,
               }).toString()}`}>ASK QUEEN ABOUT THIS →</Link>
-              {selectedNode.verified && <Link href={`/network-clearance?${new URLSearchParams({
+              {selectedNode.verified && <Link href={`/onchain?${new URLSearchParams({
                 product: "incident",
                 signalId: selectedNode.id,
               }).toString()}#queen-operations`}>BUILD x402 INCIDENT DOSSIER →</Link>}
-              <Link href={`/terminal?${new URLSearchParams({
+              <Link href={`/red-queen?${new URLSearchParams({
                 mode: "PREPARE",
                 focus: "LOCAL_THREATS",
                 area: localContext?.area || "",
@@ -725,8 +726,8 @@ export default function HomePage() {
 
       <section className="container pulse-final-cta">
         <div className="queen-core queen-core-small"><span /></div>
-        <div><span className="pulse-eyebrow">RED QUEEN IS LISTENING</span><h2>Act now — or understand the system first.</h2></div>
-        <div className="pulse-final-actions"><Link className="btn btn-primary" href="/terminal">ASK RED QUEEN</Link><Link className="btn btn-ghost" href="/docs">OPEN PRODUCT GUIDE</Link></div>
+        <div><span className="pulse-eyebrow">RED QUEEN IS LISTENING</span><h2>Act now, or understand the system first.</h2></div>
+        <div className="pulse-final-actions"><Link className="btn btn-primary" href="/red-queen">ASK RED QUEEN</Link><Link className="btn btn-ghost" href="/docs">OPEN PRODUCT GUIDE</Link></div>
       </section>
     </div>
   );

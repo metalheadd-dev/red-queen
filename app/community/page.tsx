@@ -67,7 +67,7 @@ export default function CommunityPage() {
     if (first) setSelectedId(first.id);
   }
 
-  const queenHref = `/terminal?${new URLSearchParams({ mode: "ANALYZE", prompt: selected.queenPrompt }).toString()}`;
+  const queenHref = `/red-queen?${new URLSearchParams({ mode: "ANALYZE", prompt: selected.queenPrompt }).toString()}`;
 
   return (
     <div className="community-page">
@@ -127,7 +127,7 @@ export default function CommunityPage() {
               <div className="community-board-empty"><strong>{boardMessage || "NO PUBLIC SOLVIVOR SIGNALS YET"}</strong><p>The first opted-in survivor will establish the board. Existing accounts remain private until they choose otherwise.</p></div>
             )}
           </div>
-          <div className="community-board-cta"><div><span>YOUR RECORD IS PRIVATE BY DEFAULT</span><strong>Choose your public alias from My Readiness.</strong></div><Link className="btn btn-primary" href="/operative">MANAGE MY SIGNAL</Link></div>
+          <div className="community-board-cta"><div><span>YOUR RECORD IS PRIVATE BY DEFAULT</span><strong>Choose your public alias from My Readiness.</strong></div><Link className="btn btn-primary" href="/profile">MANAGE MY SIGNAL</Link></div>
         </section>
 
         <section id="community-files" className="community-files" aria-labelledby="community-files-title">
@@ -162,7 +162,7 @@ export default function CommunityPage() {
           </div>
           <div className="community-network-grid">
             <article><span>01 // SHARE A SOURCE</span><h3>Show what changed.</h3><p>Include the primary source, publication time, affected place and what remains uncertain. Never post exact home locations or private household details.</p><a href="https://x.com/redqueen_agent" target="_blank" rel="noreferrer">OPEN OFFICIAL X CHANNEL ↗</a></article>
-            <article><span>02 // WRITE A FIELD NOTE</span><h3>Turn experience into a protocol.</h3><p>Describe what happened, what failed, what worked and what another SOLvivor could test safely. Queen can help structure the first draft.</p><Link href="/terminal?mode=PREPARE&prompt=Help%20me%20turn%20a%20real%20survival%20lesson%20into%20a%20concise%20field%20note.%20Separate%20observation%2C%20inference%20and%20recommended%20action.%20Do%20not%20include%20private%20location%20or%20identity%20details.">DRAFT WITH RED QUEEN →</Link></article>
+            <article><span>02 // WRITE A FIELD NOTE</span><h3>Turn experience into a protocol.</h3><p>Describe what happened, what failed, what worked and what another SOLvivor could test safely. Red Queen can help structure the first draft.</p><Link href="/red-queen?mode=PREPARE&prompt=Help%20me%20turn%20a%20real%20survival%20lesson%20into%20a%20concise%20field%20note.%20Separate%20observation%2C%20inference%20and%20recommended%20action.%20Do%20not%20include%20private%20location%20or%20identity%20details.">DRAFT WITH RED QUEEN →</Link></article>
             <article><span>03 // EXPOSE A BLIND SPOT</span><h3>Improve the system in public.</h3><p>Report a broken source, unclear screen or missing threat vector in the test project. Reproducible evidence is more valuable than urgency.</p><a href="https://github.com/metalheadd-dev/red-queen-test/issues" target="_blank" rel="noreferrer">OPEN TEST PROJECT ISSUES ↗</a></article>
           </div>
         </section>

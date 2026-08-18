@@ -404,10 +404,10 @@ export function withFriendlyX402(
       </div>
     </div>
 
-    <a href="/network-clearance" class="btn">Open On-Chain Hub</a>
+    <a href="/onchain" class="btn">Open Onchain Hub</a>
 
     <div class="footnote">
-      A wallet connection alone does not authorize payment. Inspect and approve the exact request from the <a href="/network-clearance">On-Chain Hub</a>.
+      A wallet connection alone does not authorize payment. Inspect and approve the exact request from the <a href="/onchain">Onchain Hub</a>.
     </div>
   </div>
 

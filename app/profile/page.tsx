@@ -1,5 +1,1 @@
-import { redirect } from "next/navigation";
-
-export default function ProfileRedirectPage() {
-  redirect("/operative");
-}
+export { default } from "../operative/page";

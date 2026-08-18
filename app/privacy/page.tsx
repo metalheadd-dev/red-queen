@@ -13,7 +13,7 @@ export default function PrivacyPage() {
             <span>RED QUEEN // TRUST PROTOCOL 01</span>
             <h1>Privacy, without fog.</h1>
             <p>
-              RED QUEEN needs context to be useful—not your secrets. This page explains what stays on your
+              RED QUEEN needs context to be useful, not your secrets. This page explains what stays on your
               device, what can be stored with an account, and what leaves the terminal when you invoke an
               external service.
             </p>
@@ -118,7 +118,7 @@ export default function PrivacyPage() {
 
           <section className="legal-card">
             <span>06 // x402 RECEIPTS</span>
-            <h2>Onchain payments are explicit—and public.</h2>
+            <h2>Onchain payments are explicit and public.</h2>
             <p>
               An x402 operation is requested only after a wallet approval. The configured facilitator and Solana
               infrastructure process the payment request and proof. A settled transaction has a public signature

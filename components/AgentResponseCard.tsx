@@ -67,7 +67,7 @@ export default function AgentResponseCard({
         <div>
           <span>NEXT BEST ACTION</span>
           {actionSaved ? (
-            <Link href="/survival-kit">OPEN MY PLAN →</Link>
+            <Link href="/prepare">OPEN MY PLAN →</Link>
           ) : onSaveAction ? (
             <button type="button" onClick={onSaveAction} disabled={actionSaved}>
               SAVE TO MY PLAN
@@ -82,7 +82,7 @@ export default function AgentResponseCard({
           <div>
             <span>QUEEN PROTOCOL // {response.plan.steps.length} STEPS</span>
             {planSaved ? (
-              <Link href="/survival-kit">OPEN SAVED PROTOCOL →</Link>
+              <Link href="/prepare">OPEN SAVED PROTOCOL →</Link>
             ) : onSavePlan ? (
               <button type="button" onClick={onSavePlan}>SAVE FULL PLAN</button>
             ) : null}
@@ -109,7 +109,7 @@ export default function AgentResponseCard({
         <span>READINESS</span>
         <strong>
           {response.readiness.eligible
-            ? `${response.readiness.xp >= 0 ? "+" : ""}${response.readiness.xp} XP${response.readiness.applied ? " APPLIED" : " — VERIFY TO SAVE"}`
+            ? `${response.readiness.xp >= 0 ? "+" : ""}${response.readiness.xp} XP${response.readiness.applied ? " APPLIED" : " // VERIFY TO SAVE"}`
             : "NO SCORE CHANGE"}
         </strong>
         <small>{response.readiness.reason}</small>

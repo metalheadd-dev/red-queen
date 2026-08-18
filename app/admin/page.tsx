@@ -1285,7 +1285,7 @@ export default function AdminDashboardPage() {
                               {invite.current_uses} / {invite.max_uses}
                             </td>
                             <td style={{ padding: "8px", fontSize: "11px", color: "var(--text-dim)" }}>
-                              {invite.note || "—"}
+                              {invite.note || "N/A"}
                             </td>
                             <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "10px" }}>
                               {invite.active ? (
@@ -1372,7 +1372,7 @@ export default function AdminDashboardPage() {
                           Lv {player.level || 1} ({player.xp || 0} XP)
                         </td>
                         <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "11px", color: "#ffcc00" }}>
-                          {player.last_bio_score || player.bio_score || "—"}
+                          {player.last_bio_score || player.bio_score || "N/A"}
                         </td>
                         <td style={{ padding: "8px", fontFamily: "var(--mono)", fontSize: "11px", color: "#00ffcc" }}>
                           {(player.verified_balance || 0).toLocaleString()}

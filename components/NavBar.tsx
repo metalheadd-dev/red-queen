@@ -12,12 +12,12 @@ type NavIconName = "pulse" | "map" | "queen" | "prepare" | "me";
 const primaryLinks = [
   { href: "/", label: "PULSE", subtitle: "Your daily intelligence brief", match: "pulse" },
   { href: "/#live-map", label: "MAP", subtitle: "Verified signals on the live field", match: "map" },
-  { href: "/terminal", label: "QUEEN", subtitle: "Ask, analyze, prepare or simulate", match: "terminal" },
-  { href: "/survival-kit", label: "PREPARE", subtitle: "Build practical readiness", match: "prepare" },
-  { href: "/threat-vector", label: "LIBRARY", subtitle: "Open the threat intelligence archive", match: "library" },
+  { href: "/red-queen", label: "RED QUEEN", subtitle: "Ask, analyze, prepare or simulate", match: "terminal" },
+  { href: "/prepare", label: "PREPARE", subtitle: "Build practical readiness", match: "prepare" },
+  { href: "/library", label: "LIBRARY", subtitle: "Open the threat intelligence archive", match: "library" },
   { href: "/docs", label: "GUIDE", subtitle: "Understand scores, utility and every page", match: "guide" },
   { href: "/community", label: "COMMUNITY", subtitle: "Lore, field notes and Queen transmissions", match: "community" },
-  { href: "/network-clearance", label: "ONCHAIN", subtitle: "Live Solana proof and $THREAT utility", match: "onchain" },
+  { href: "/onchain", label: "ONCHAIN", subtitle: "Live Solana proof and $THREAT utility", match: "onchain" },
 ] as const;
 
 function NavIcon({ name }: { name: NavIconName }) {
@@ -62,16 +62,16 @@ export default function NavBar() {
   const isActive = (match: string) => {
     if (match === "pulse") return pathname === "/" && hash !== "#live-map";
     if (match === "map") return pathname === "/" && hash === "#live-map";
-    if (match === "library") return pathname.startsWith("/threat-vector");
+    if (match === "library") return pathname.startsWith("/library") || pathname.startsWith("/threat-vector");
     if (match === "guide") return pathname.startsWith("/docs");
-    if (match === "terminal") return pathname.startsWith("/terminal");
-    if (match === "prepare") return pathname.startsWith("/survival-kit");
+    if (match === "terminal") return pathname.startsWith("/red-queen") || pathname.startsWith("/terminal");
+    if (match === "prepare") return pathname.startsWith("/prepare") || pathname.startsWith("/survival-kit");
     if (match === "community") return pathname.startsWith("/community") || pathname.startsWith("/solvivors");
-    if (match === "onchain") return pathname.startsWith("/network-clearance") || pathname.startsWith("/clearance");
+    if (match === "onchain") return pathname.startsWith("/onchain") || pathname.startsWith("/network-clearance") || pathname.startsWith("/clearance");
     return false;
   };
 
-  const accountHref = user ? "/operative" : "/login";
+  const accountHref = user ? "/profile" : "/login";
   const accountLabel = user ? "MY READINESS" : connected ? "FINISH SIGN-IN" : "SIGN IN";
 
   return (
@@ -162,13 +162,13 @@ export default function NavBar() {
         <Link href="/#live-map" className={isActive("map") ? "active" : ""} aria-current={isActive("map") ? "page" : undefined}>
           <NavIcon name="map" /><span>MAP</span>
         </Link>
-        <Link href="/terminal" className={`mobile-queen-link${isActive("terminal") ? " active" : ""}`} aria-current={isActive("terminal") ? "page" : undefined}>
-          <NavIcon name="queen" /><span>QUEEN</span>
+        <Link href="/red-queen" className={`mobile-queen-link${isActive("terminal") ? " active" : ""}`} aria-current={isActive("terminal") ? "page" : undefined}>
+          <NavIcon name="queen" /><span>RED QUEEN</span>
         </Link>
-        <Link href="/survival-kit" className={isActive("prepare") ? "active" : ""} aria-current={isActive("prepare") ? "page" : undefined}>
+        <Link href="/prepare" className={isActive("prepare") ? "active" : ""} aria-current={isActive("prepare") ? "page" : undefined}>
           <NavIcon name="prepare" /><span>PREPARE</span>
         </Link>
-        <Link href={accountHref} className={pathname === "/operative" || pathname === "/login" ? "active" : ""} aria-current={pathname === "/operative" ? "page" : undefined}>
+        <Link href={accountHref} className={pathname === "/profile" || pathname === "/operative" || pathname === "/login" ? "active" : ""} aria-current={pathname === "/profile" || pathname === "/operative" ? "page" : undefined}>
           <NavIcon name="me" /><span>ME</span>
         </Link>
       </nav>

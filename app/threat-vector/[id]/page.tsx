@@ -9,13 +9,13 @@ function getSafeBaseline(threat: Threat, categoryKey: string) {
     return [
       "Define what is true inside the simulation before making a decision.",
       "Protect life, communication and optionality before pursuing a dramatic objective.",
-      "Use the scenario to test reasoning — never treat lore as real-world evidence.",
+      "Use the scenario to test reasoning. Never treat lore as real-world evidence.",
     ];
   }
 
   if (categoryKey === "algorithmic") {
     return [
-      "Do not share a seed phrase, private key, password or authentication code with anyone — including RED QUEEN.",
+      "Do not share a seed phrase, private key, password or authentication code with anyone, including RED QUEEN.",
       "Verify domains, transaction details and wallet prompts before signing.",
       "Use official wallet and explorer tools to review exposure; move slowly when a claim creates urgency.",
     ];
@@ -61,7 +61,7 @@ export default function ThreatDossierPage() {
       <main className="dossier-missing container">
         <span className="pulse-eyebrow">DOSSIER NOT FOUND</span>
         <h1>This reference file is unavailable.</h1>
-        <Link className="btn btn-primary" href="/threat-vector">RETURN TO LIBRARY</Link>
+        <Link className="btn btn-primary" href="/library">RETURN TO LIBRARY</Link>
       </main>
     );
   }
@@ -80,14 +80,14 @@ export default function ThreatDossierPage() {
 
   function queenHref(prompt: string, mode: "ANALYZE" | "PREPARE" | "SIMULATE") {
     const focus = isDigital ? "DIGITAL_SECURITY" : "LOCAL_THREATS";
-    return `/terminal?${new URLSearchParams({ mode, focus, prompt }).toString()}`;
+    return `/red-queen?${new URLSearchParams({ mode, focus, prompt }).toString()}`;
   }
 
   return (
     <div className="dossier-page" style={{ "--dossier-color": category.color } as React.CSSProperties}>
       <header className="dossier-hero">
         <div className="container">
-          <Link href="/threat-vector" className="dossier-back">← THREAT LIBRARY</Link>
+          <Link href="/library" className="dossier-back">← THREAT LIBRARY</Link>
           <div className="dossier-labels"><span>{laneLabel}</span><b>{threat.id}</b></div>
           <h1>{threat.name}</h1>
           <p>{threat.classification} · Scenario origin: {threat.origin}</p>
@@ -96,7 +96,7 @@ export default function ThreatDossierPage() {
 
       <main className="container dossier-main">
         <section className={`dossier-trust ${isSimulation ? "simulation" : ""}`}>
-          <strong>{isSimulation ? "SIMULATION — NOT A REAL-WORLD CLAIM" : "REFERENCE DOSSIER — NOT A LIVE ALERT"}</strong>
+          <strong>{isSimulation ? "SIMULATION // NOT A REAL-WORLD CLAIM" : "REFERENCE DOSSIER // NOT A LIVE ALERT"}</strong>
           <p>
             {isSimulation
               ? "This file exists for training and worldbuilding. It must never be interpreted as current intelligence."
@@ -109,7 +109,7 @@ export default function ThreatDossierPage() {
           <section className="dossier-primary">
             <div className="dossier-section-heading"><span>01</span><div><b>SCENARIO FRAME</b><h2>What this dossier is for</h2></div></div>
             <p className="dossier-lead">
-              Use this file to understand dependencies, prepare questions and practice decisions around <strong>{threat.name}</strong>. Its {threat.level}/100 rating describes the intensity of the library scenario — not the probability that it is happening now.
+              Use this file to understand dependencies, prepare questions and practice decisions around <strong>{threat.name}</strong>. Its {threat.level}/100 rating describes the intensity of the library scenario, not the probability that it is happening now.
             </p>
 
             <div className="dossier-severity">
@@ -152,7 +152,7 @@ export default function ThreatDossierPage() {
           <div className="dossier-section-heading"><span>04</span><div><b>SAME LANE</b><h2>Related reference files</h2></div></div>
           <div>
             {related.map((item) => (
-              <Link key={item.id} href={`/threat-vector/${item.id}`}>
+              <Link key={item.id} href={`/library/${item.id}`}>
                 <span>{item.id}</span><strong>{item.name}</strong><small>{item.classification}</small>
               </Link>
             ))}

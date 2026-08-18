@@ -229,9 +229,9 @@ export function buildPreparednessPlan(input: {
       sourceUrl: signal.sourceUrl,
     })),
     phases: [
-      { window: "0–6 HOURS", objective: "Stabilize immediate safety and information", steps: steps.immediate.map(personalize) },
-      { window: "6–24 HOURS", objective: "Protect continuity and remove the largest gap", steps: steps.dayOne.map(personalize) },
-      { window: "24–72 HOURS", objective: "Sustain, verify and reassess", steps: steps.dayThree.map(personalize) },
+      { window: "0-6 HOURS", objective: "Stabilize immediate safety and information", steps: steps.immediate.map(personalize) },
+      { window: "6-24 HOURS", objective: "Protect continuity and remove the largest gap", steps: steps.dayOne.map(personalize) },
+      { window: "24-72 HOURS", objective: "Sustain, verify and reassess", steps: steps.dayThree.map(personalize) },
     ],
     sources: [
       ...relevantSignals.map((signal) => ({ label: signal.source, url: signal.sourceUrl, observedAt: signal.observedAt, confidence: signal.confidence })),

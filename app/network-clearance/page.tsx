@@ -124,7 +124,7 @@ export default function NetworkClearancePage() {
         <section className="onchain-safety">
           <div><span>06 // SIGNATURE SAFETY</span><h2>RED QUEEN will never ask for a seed phrase.</h2></div>
           <ul><li><strong>CONNECT</strong><span>Expose one public address for read-only RPC calls.</span></li><li><strong>SIGN IN</strong><span>Prove address ownership with an off-chain SIWS message.</span></li><li><strong>SIMULATE</strong><span>Inspect exact instructions and RPC simulation before an authority change.</span></li><li><strong>PAY</strong><span>Approve a separately displayed transaction with network, asset, amount and destination.</span></li></ul>
-          <div className="onchain-safety-actions"><Link href="/terminal" className="btn btn-primary">ASK RED QUEEN</Link><Link href="/operative" className="btn btn-ghost">OPEN MY READINESS</Link><a href={`https://explorer.solana.com/address/${THREAT_TOKEN_MINT}`} target="_blank" rel="noreferrer" className="btn btn-outline">VIEW MINT ↗</a></div>
+          <div className="onchain-safety-actions"><Link href="/red-queen" className="btn btn-primary">ASK RED QUEEN</Link><Link href="/profile" className="btn btn-ghost">OPEN MY READINESS</Link><a href={`https://explorer.solana.com/address/${THREAT_TOKEN_MINT}`} target="_blank" rel="noreferrer" className="btn btn-outline">VIEW MINT ↗</a></div>
           <code>CANONICAL $THREAT MINT · {THREAT_TOKEN_MINT}</code>
         </section>
       </div>

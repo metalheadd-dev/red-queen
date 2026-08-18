@@ -275,7 +275,7 @@ export function getThreatMetadata(
 
     case "DEAD-WALK":
       recommendedActions = [
-        "Evacuate all urban centers — abandon non-essential assets immediately.",
+        "Evacuate all urban centers. Abandon non-essential assets immediately.",
         "Establish elevated or fortified defensive perimeter, avoid ground-level entry points.",
         "Secure 180+ days of sealed rations, UV water purification, and analog communication gear."
       ];
@@ -284,11 +284,11 @@ export function getThreatMetadata(
       timelineProgression = [
         "Phase 1: OMEGA-Z pathogen breach from Sector 7 biocontainment facility.",
         "Phase 2: Rapid reanimation spread through urban transit and water supply nodes.",
-        "Phase 3: Societal collapse — government, power grid, and supply chains offline within 72 hours."
+        "Phase 3: Societal collapse. Government, power grid, and supply chains offline within 72 hours."
       ];
       liveUpdates = "BIOHAZARD OMEGA: Reanimation wave confirmed approaching Sectors 3 and 9. Survivor count declining.";
       recentIncidents = [
-        "Sector 7 quarantine perimeter breached — military cordon collapsed 6 hours ago.",
+        "Sector 7 quarantine perimeter breached. Military cordon collapsed 6 hours ago.",
         "Emergency broadcast system offline. Survivors advised to monitor encrypted freq 144.800 MHz."
       ];
       break;

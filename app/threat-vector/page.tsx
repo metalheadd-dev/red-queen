@@ -57,7 +57,7 @@ export default function ThreatVectorPage() {
     const prompt = category.key === "fictional" || category.key === "satirical"
       ? `Run a clearly labeled fictional decision scenario based on ${threat.name}. Give me one decision at a time and wait for my answer.`
       : `Analyze the ${threat.name} reference scenario for my situation. Separate verified live facts from general preparedness, state uncertainty, and give me one safe action.`;
-    return `/terminal?${new URLSearchParams({ mode, focus, prompt }).toString()}`;
+    return `/red-queen?${new URLSearchParams({ mode, focus, prompt }).toString()}`;
   }
 
   return (
@@ -144,13 +144,13 @@ export default function ThreatVectorPage() {
                   </div>
                   <small>
                     {category.key === "realistic"
-                      ? "Reference scenario — verify current conditions with official sources."
+                      ? "Reference scenario. Verify current conditions with official sources."
                       : category.key === "algorithmic"
-                        ? "Defensive analysis only — never share recovery secrets."
+                        ? "Defensive analysis only. Never share recovery secrets."
                         : "Clearly labeled simulation and worldbuilding content."}
                   </small>
                   <div className="library-card-actions">
-                    <Link href={`/threat-vector/${threat.id}`}>OPEN DOSSIER</Link>
+                    <Link href={`/library/${threat.id}`}>OPEN DOSSIER</Link>
                     <Link href={queenHref(threat)}>ASK QUEEN →</Link>
                   </div>
                 </article>
