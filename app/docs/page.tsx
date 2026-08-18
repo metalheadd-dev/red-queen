@@ -165,7 +165,7 @@ export default function ProductGuidePage() {
         </section>
 
         <section className="guide-section guide-visage" id="visage">
-          <div><span>05 // QUEEN VISAGE · RQ VISAGE / V1</span><h2>Your face. Her visual language.</h2><p>The generator receives an explicit visual contract: preserve identity; use a black void, precise red-and-white neon linework, subtle survival-intelligence geometry, and a restrained tactical crown halo. It must add no text, logo, weapon, gore, face covering, or extra person.</p><p>The source portrait is sent only after Generate. The result returns to the browser and stays local unless you download or share it.</p></div>
+          <div><span>05 // SOLVIVOR AVATAR · RQ VISAGE / V2</span><h2>Your face. Her visual language.</h2><p>Any SOLvivor can choose a personal avatar; it is cropped to a square and stored only in that browser. Holder-only generation follows a stricter visual contract: preserve identity, use a deep black silhouette, precise white facial linework, sparse red circuitry, luminous eyes and a restrained circular crown halo.</p><p>No text, logo, weapon, gore or extra person may appear. The source portrait is sent only after Generate. The 1:1 result can be downloaded or shared to X, Discord and other profiles.</p></div>
           <Image src="/art/red-queen-sigil.png" alt="RED QUEEN visual language reference" width={1536} height={1536} />
         </section>
 

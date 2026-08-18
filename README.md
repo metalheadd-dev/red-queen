@@ -113,7 +113,7 @@ Canonical mint: `3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump`
 
 Token holdings expand intelligence capacity and engagement XP. Signal Watch passes source IDs rather than copied claims; the server resolves each signal again and includes only confidence-verified records up to the active comparison limit. Holdings never create BIO-SCORE or prove survival competence.
 
-Verified holders can also use **Queen Visage** in My Readiness: upload a portrait and generate a local RED QUEEN-style SOLvivor identity image. The source portrait is sent to the configured image provider only after explicit generation, and RED QUEEN stores the generated result only in that browser unless the user downloads or shares it.
+Every signed-in SOLvivor can set a personal avatar. The browser crops it to a square WebP and stores it locally without sending it to the server. Verified holders can additionally use **Queen Visage V2** in My Readiness: transform a selected portrait into the RED QUEEN white-line/red-circuit social-avatar style. The source portrait is sent to the configured image provider only after explicit generation, and the result stays in that browser unless the user downloads or shares it.
 
 ### 3. AI compute payments — x402
 

@@ -1,4 +1,6 @@
 import OpenAI, { toFile } from "openai";
+import { readFile } from "fs/promises";
+import path from "path";
 import { getAuthIdentifier } from "@/lib/auth-helpers";
 import { getHashedWallet } from "@/lib/crypto";
 import { isHolderProofFresh } from "@/lib/holder-proof";
@@ -64,19 +66,32 @@ export async function POST(request: Request) {
     const source = await toFile(Buffer.from(await photo.arrayBuffer()), photo.name || "solvivor-portrait", {
       type: photo.type,
     });
+    let editImages: Parameters<typeof client.images.edit>[0]["image"] = source;
+    try {
+      const houseStyle = await toFile(
+        await readFile(path.join(process.cwd(), "public", "art", "red-queen-sigil.png")),
+        "red-queen-house-style.png",
+        { type: "image/png" },
+      );
+      editImages = [source, houseStyle];
+    } catch (styleError) {
+      console.warn("Queen Visage house-style reference unavailable; using the strict visual prompt.", styleError);
+    }
 
     const result = await client.images.edit({
       model: "gpt-image-2",
-      image: source,
+      image: editImages,
       size: "1024x1024",
       quality: "medium",
       output_format: "webp",
       prompt: [
-        "RQ VISAGE / V1. Transform the uploaded portrait into an original RED QUEEN SOLvivor identity portrait with a consistent house style.",
-        "Preserve the person's recognizable facial structure, expression, skin tone, hair, and identity.",
-        "Visual language: black void background, precise red and white neon linework, subtle apocalyptic survival-intelligence HUD geometry, restrained crown-like tactical halo, cinematic contrast, clean centered shoulders-up composition.",
+        "RQ VISAGE / V2. Input image 1 is the person's identity source. If input image 2 is present, it is the RED QUEEN house-style reference only. Transform image 1 into an original RED QUEEN SOLvivor profile avatar; never replace the person with the reference subject.",
+        "Preserve the person's recognizable facial geometry, expression, hairstyle, age presentation, gender presentation, and identity. Do not beautify them into a different person.",
+        "Composition: square 1:1 social avatar, perfectly centered head and upper shoulders, symmetrical frontal or source-faithful angle, generous black negative space, readable at small profile-icon size.",
+        "Visual language: near-black silhouette, elegant precise white contour linework defining face and shoulders, sparse crimson neural-circuit traces across the temples and cheeks, luminous white eyes, deep black background, restrained red circular intelligence HUD behind the head, and a minimal geometric red crown or crown-halo motif that does not obscure the subject.",
+        "Mood: serious, calm, intelligent, protective and post-apocalyptic; Resident-Evil-inspired survival command atmosphere without copying any copyrighted character, logo, costume, or exact artwork.",
         "The person is a capable survivor guided by RED QUEEN, not RED QUEEN herself.",
-        "No text, no logos, no watermarks, no weapons, no gore, no extra faces, no face covering.",
+        "No text, no letters, no logos, no watermarks, no poster layout, no weapons, no gore, no zombie damage, no extra faces, no face covering, no decorative border touching the crop.",
       ].join(" "),
     });
 
@@ -87,7 +102,9 @@ export async function POST(request: Request) {
       avatarDataUrl: `data:image/webp;base64,${encoded}`,
       storage: "local-device",
       utility: "$THREAT_HOLDER",
-      visualStyle: "RQ_VISAGE_V1",
+      visualStyle: "RQ_VISAGE_V2",
+      socialReady: true,
+      aspectRatio: "1:1",
     });
   } catch (error) {
     console.error("Queen Visage generation failed:", error);
