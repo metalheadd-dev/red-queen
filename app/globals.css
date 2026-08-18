@@ -4042,10 +4042,6 @@ body:has(#game-player-root) .page-content {
 .community-hero h1 em { color: var(--accent); font-style: normal; text-shadow: 0 0 38px rgba(255,0,51,.24); }
 .community-hero-copy > p { max-width: 730px; color: rgba(255,255,255,.72); font-size: 18px; line-height: 1.75; }
 .community-hero-copy > div { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
-.community-directive { position: absolute; z-index: 3; right: 4vw; bottom: 42px; width: min(420px,34vw); padding: 18px 20px; border-left: 2px solid var(--accent); background: rgba(3,4,5,.82); backdrop-filter: blur(12px); }
-.community-directive span { display: block; color: var(--accent); font: 700 9px var(--mono); letter-spacing: .14em; }
-.community-directive strong { display: block; margin-top: 8px; font: 700 16px var(--title-font); }
-.community-directive small { display: block; margin-top: 5px; color: rgba(255,255,255,.52); font-size: 13px; }
 .community-main { padding-top: 90px; padding-bottom: 110px; }
 
 .community-mind { position: relative; display: grid; grid-template-columns: minmax(320px,.62fr) minmax(0,1fr); gap: 28px 66px; align-items: center; padding: 42px; border: 1px solid rgba(255,0,51,.22); background: radial-gradient(circle at 16% 30%,rgba(255,0,51,.1),transparent 32%),#07080a; overflow: hidden; }
@@ -4144,7 +4140,6 @@ body:has(#game-player-root) .page-content {
   .community-hero-art { opacity: .46; }
   .community-hero-queen { right: -7vw; width: min(52vw,570px); opacity: .54; }
   .community-hero-shade { background: linear-gradient(90deg,#020304 0%,rgba(2,3,4,.92) 54%,rgba(2,3,4,.4) 100%),linear-gradient(0deg,#030405,transparent 30%); }
-  .community-directive { display: none; }
   .community-mind { grid-template-columns: 280px 1fr; padding: 30px; }
   .community-organ-grid { grid-template-columns: repeat(2,1fr); }
   .community-file-layout { grid-template-columns: 1fr; }
@@ -4763,8 +4758,6 @@ body:has(#game-player-root) .page-content {
   .community-hero-copy > p { max-width:700px; font-size:16px; line-height:1.62; }
   .community-hero-copy > div { margin-top:24px; }
   .community-hero-queen { right:3vw; bottom:-88px; width:min(35vw,560px); opacity:.78; }
-  .community-directive { right:3vw; bottom:24px; }
-
   .signal-watch-controls strong,
   .signal-watch-heading span,
   .signal-watch-heading > small,
@@ -4835,8 +4828,6 @@ body:has(#game-player-root) .page-content {
   .community-hero h1 { font-size:clamp(48px,4.7vw,76px); }
   .community-hero-copy > p { color:rgba(255,255,255,.76); }
   .community-hero-queen { bottom:-78px; width:min(33vw,520px); }
-  .community-directive { right:28px; bottom:104px; }
-
   .onchain-hero-grid { padding-top:42px; padding-bottom:48px; }
   .rq-profile-identity { padding-top:36px; padding-bottom:36px; }
   .rq-terminal-core { padding-top:36px; }
@@ -4871,4 +4862,39 @@ body:has(#game-player-root) .page-content {
   .library-hero-shade { background:linear-gradient(0deg,#020304 0%,rgba(2,3,4,.92) 52%,rgba(2,3,4,.6) 100%); }
   .library-hero > .container { padding-top:34px; padding-bottom:34px; }
   .community-hero-copy { padding-top:32px; }
+}
+
+/* Community hero v2: one continuous Queen image, with no card obscuring her. */
+.community-hero {
+  background:#020304;
+}
+.community-hero-queen {
+  top:0;
+  right:0;
+  bottom:auto;
+  width:auto;
+  height:100%;
+  max-width:none;
+  object-fit:contain;
+  opacity:.94;
+  filter:none;
+}
+.community-hero-shade {
+  background:
+    linear-gradient(90deg,#020304 0%,rgba(2,3,4,.96) 31%,rgba(2,3,4,.72) 48%,rgba(2,3,4,.08) 72%,transparent 100%),
+    linear-gradient(0deg,#030405 0%,transparent 22%);
+}
+
+@media (max-width:900px) {
+  .community-hero-queen {
+    right:-190px;
+    height:100%;
+    width:auto;
+    opacity:.52;
+  }
+  .community-hero-shade {
+    background:
+      linear-gradient(0deg,#030405 0%,rgba(2,3,4,.9) 48%,rgba(2,3,4,.48) 100%),
+      linear-gradient(90deg,rgba(2,3,4,.82),rgba(2,3,4,.22));
+  }
 }
