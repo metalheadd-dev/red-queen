@@ -49,7 +49,8 @@ Local Pulse resolves only a user-entered city or region, never an exact address.
 | Preparedness checklist and saved Queen protocols | **Live** | Private plans currently persist in the browser; they are not published on-chain. |
 | BIO-SCORE and SOLvivor profile | **Live** | BIO changes only through eligible evaluated evidence, never from holdings or ordinary chat volume. |
 | `$THREAT` clearance and Queen Visage | **Live / configured environments** | Balance proof is read from Solana; image generation also requires an OpenAI key and a holder proof refreshed within 30 minutes. |
-| x402 exact-USDC intelligence endpoints | **Runtime-gated beta** | Disabled unless recipient, facilitator, network, migration, and receipt store pass health checks. |
+| x402 exact-USDC intelligence endpoints | **Runtime-gated beta** | Three paid operations: verified signal synthesis, Solana network health, and wallet authority exposure. Disabled unless recipient, facilitator, network, migration, and receipt store pass health checks. |
+| Wallet Intelligence / Lockdown | **Read-only live / transaction feature-gated** | Reads SPL and Token-2022 authority state. Revocation preparation requires a verified wallet session, successful simulation, explicit environment enablement, and a separate wallet approval. |
 | Agent Registry, attestations, Kora, Blinks, Seeker polish | **Planned** | These follow a stable web core and are not described as shipped features. |
 
 ## Verified signal grid
@@ -120,11 +121,25 @@ Premium HTTP resources can request an exact USDC payment through the x402 SVM sc
 
 Current implementation uses x402 v2 packages with Solana CAIP-2 network identifiers. Each paid request carries an operation UUID; successful settlement proof and delivered output are stored server-side, and an exact replay of the same signed request returns the original delivery without another payment. Production settlement stays disabled unless the facilitator, explicit `SVM_ADDRESS`, and the `x402_operations` receipt store are all healthy.
 
+Current paid resources:
+
+- `GET /api/intel/premium` — 0.01 USDC verified source synthesis.
+- `GET /api/intel/depin` — 0.02 USDC Solana network-health snapshot.
+- `GET /api/intel/wallet-exposure?address={wallet}` — 0.02 USDC SPL and Token-2022 authority exposure audit.
+
+Signed-in Solana accounts can read private receipt summaries at `GET /api/profile/x402-receipts`. The endpoint never exposes delivered report bodies and never treats payment as readiness evidence.
+
+### 4. Wallet Intelligence and Lockdown
+
+`GET /api/onchain/wallet/security?address={wallet}` performs a public, read-only scan of classic SPL Token and Token-2022 accounts. It reports active positive-balance delegates, frozen accounts, empty accounts, and external close authorities without claiming that an authority is malicious.
+
+Delegate revocation is disabled unless `WALLET_LOCKDOWN_ENABLED=true`. When enabled, `POST /api/onchain/wallet/lockdown/prepare` accepts at most eight selected token accounts, verifies the signed-in wallet owns them, rebuilds the authority state from Mainnet, constructs revoke-only instructions, and returns a transaction only after unsigned RPC simulation succeeds. The user must still inspect and approve the transaction in their wallet.
+
 The 0.01 USDC global synthesis now uses the same seven-source normalized signal engine as Pulse. It requires at least four reachable source families before delivery; a `503` handler response cancels settlement and never substitutes fictional or cached “safe default” telemetry. Payment requirements, including the current recipient and asset, come from the runtime HTTP 402 challenge rather than static documentation.
 
 Apply `supabase/migrations/20260817170000_create_x402_operations.sql` to the linked Supabase project before enabling x402. The table has RLS enabled and intentionally exposes no browser policies; only the server service role can read payment receipts or paid outputs.
 
-### 4. SOLvivor Network
+### 5. SOLvivor Network
 
 The Community page includes an opt-in readiness board. Existing and new accounts are private by default. A SOLvivor can explicitly publish only their apocalyptic alias, earned XP (shown as SOLvivor Points), level, BIO-SCORE, clearance label, and a broad activity band. Email and wallet identifiers are never returned by the public endpoint. Apply `supabase/migrations/20260818120000_add_community_leaderboard_opt_in.sql` before enabling membership controls.
 

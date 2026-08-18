@@ -26,6 +26,7 @@ import {
 } from "@/lib/signal-watch";
 import { isHolderProofFresh } from "@/lib/holder-proof";
 import { READINESS_BASELINE_PROMPT } from "@/lib/survival-context";
+import { X402_INTELLIGENCE_PRODUCTS } from "@/lib/intelligence-products";
 
 type Profile = {
   wallet_address: string;
@@ -49,6 +50,17 @@ type HistoryMessage = {
   role: "user" | "assistant";
   content: string;
   created_at: string;
+};
+
+type X402Receipt = {
+  operation_id: string;
+  product_id: string;
+  status: "delivered";
+  scheme: string;
+  network: string;
+  price: string;
+  transaction_signature: string | null;
+  delivered_at: string;
 };
 
 const READINESS_DOMAINS: Array<{
@@ -112,6 +124,8 @@ export default function OperativeProfilePage() {
   const identity = authIdentifier;
   const [profile, setProfile] = useState<Profile | null>(null);
   const [history, setHistory] = useState<HistoryMessage[]>([]);
+  const [x402Receipts, setX402Receipts] = useState<X402Receipt[]>([]);
+  const [receiptNotice, setReceiptNotice] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [customName, setCustomName] = useState("");
@@ -152,9 +166,10 @@ export default function OperativeProfilePage() {
     setLoadError("");
     try {
       const headers = getHeaders();
-      const [profileResponse, historyResponse] = await Promise.all([
+      const [profileResponse, historyResponse, receiptsResponse] = await Promise.all([
         fetch(`/api/profile?wallet=${encodeURIComponent(identity)}`, { headers }),
         fetch(`/api/history?wallet=${encodeURIComponent(identity)}`, { headers }),
+        fetch("/api/profile/x402-receipts", { headers, cache: "no-store" }),
       ]);
 
       if (profileResponse.ok) {
@@ -172,6 +187,15 @@ export default function OperativeProfilePage() {
         setHistory(Array.isArray(data.history) ? data.history : []);
       } else {
         setHistory([]);
+      }
+
+      if (receiptsResponse.ok) {
+        const data = await receiptsResponse.json();
+        setX402Receipts(Array.isArray(data.receipts) ? data.receipts : []);
+        setReceiptNotice(data.message || "");
+      } else {
+        setX402Receipts([]);
+        setReceiptNotice("Receipt history is temporarily unavailable.");
       }
     } catch {
       setLoadError("RED QUEEN memory is unreachable. Your local preparedness data is still available.");
@@ -223,6 +247,8 @@ export default function OperativeProfilePage() {
     if (!identity && !authLoading) {
       setProfile(null);
       setHistory([]);
+      setX402Receipts([]);
+      setReceiptNotice("");
       setLoadError("");
     }
   }, [authLoading, identity, loadAccount]);
@@ -520,6 +546,31 @@ export default function OperativeProfilePage() {
           <div><span>ACTIVE PROTOCOLS</span><strong>{activeProtocols.length}</strong><small>{completedProtocols} completed</small><Link href="/survival-kit">OPEN PROTOCOLS →</Link></div>
           <div><span>PLAN EXECUTION</span><strong>{completedProtocolSteps}/{protocolSteps.length}</strong><small>observable steps complete</small><Link href="/survival-kit">CONTINUE PLAN →</Link></div>
           <div><span>SIGNAL WATCH</span><strong>{signalWatch.types.length}</strong><small>{signalWatch.localPriority ? "local priority active" : "signal categories"}</small><Link href="/#live-map">TUNE WATCH →</Link></div>
+        </section>
+
+        <section className="rq-profile-receipts" aria-label="x402 payment receipts">
+          <div className="rq-profile-receipts-heading">
+            <span>QUEEN COMPUTE // PRIVATE x402 LEDGER</span>
+            <h2>Paid intelligence, with proof of delivery</h2>
+            <p>Every settled operation is bound to one request and one delivered output. Payments never create XP or BIO-SCORE.</p>
+          </div>
+          {x402Receipts.length ? (
+            <div className="rq-profile-receipt-list">
+              {x402Receipts.slice(0, 6).map((receipt) => {
+                const product = X402_INTELLIGENCE_PRODUCTS.find((item) => item.id === receipt.product_id);
+                return (
+                  <article key={receipt.operation_id}>
+                    <div><span>{product?.name || receipt.product_id}</span><strong>{receipt.price.replace("$", "")} USDC</strong></div>
+                    <p>{new Date(receipt.delivered_at).toLocaleString()} · {receipt.scheme.toUpperCase()} · DELIVERED</p>
+                    <code>{receipt.operation_id}</code>
+                    {receipt.transaction_signature && <a href={`https://explorer.solana.com/tx/${receipt.transaction_signature}`} target="_blank" rel="noreferrer">VIEW SETTLEMENT ↗</a>}
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rq-profile-receipts-empty"><strong>NO WALLET-BOUND RECEIPTS</strong><p>{receiptNotice || "Completed x402 operations paid by this signed wallet will appear here."}</p><Link href="/network-clearance">EXPLORE QUEEN OPERATIONS →</Link></div>
+          )}
         </section>
 
         <section className={`rq-profile-network-status${profile?.community_visible ? " is-visible" : ""}`} aria-label="SOLvivor Network visibility">

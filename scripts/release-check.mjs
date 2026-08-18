@@ -30,6 +30,7 @@ const vercelConfig = JSON.parse(read("vercel.json"));
 const nextConfig = read("next.config.ts");
 const buybackRoute = read("app/api/treasury/buyback/route.ts");
 const x402Runtime = read("lib/x402.ts");
+const lockdownPrepare = read("app/api/onchain/wallet/lockdown/prepare/route.ts");
 const communityLeaderboard = read("app/api/community/leaderboard/route.ts");
 const legacyLeaderboard = read("app/api/leaderboard/route.ts");
 const communityMigration = read("supabase/migrations/20260818120000_add_community_leaderboard_opt_in.sql");
@@ -43,6 +44,8 @@ requireCondition(buybackRoute.includes("GET is permanently read-only"), "treasur
 requireCondition(x402Runtime.includes("checkX402OperationStore"), "x402 must verify receipt storage before requesting payment");
 requireCondition(x402Runtime.includes("X-Idempotent-Replay"), "x402 must preserve exact replay delivery");
 requireCondition(x402Runtime.includes("isValidSolanaPublicKey"), "x402 must reject an invalid receiving address");
+requireCondition(lockdownPrepare.includes('WALLET_LOCKDOWN_ENABLED !== "true"'), "Wallet Lockdown must require an explicit server-side enable flag");
+requireCondition(lockdownPrepare.includes("prepareDelegateRevocation"), "Wallet Lockdown must use the simulated revocation builder");
 requireCondition(fs.existsSync(path.join(root, "supabase/migrations/20260817170000_create_x402_operations.sql")), "x402 receipt migration is missing");
 requireCondition(fs.existsSync(path.join(root, "supabase/migrations/20260817210000_create_guest_agent_usage.sql")), "guest quota migration is missing");
 requireCondition(fs.existsSync(path.join(root, "supabase/migrations/20260818120000_add_community_leaderboard_opt_in.sql")), "community opt-in migration is missing");

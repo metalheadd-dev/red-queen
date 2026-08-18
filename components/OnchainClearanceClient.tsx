@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { VersionedTransaction } from "@solana/web3.js";
 import { useAuth } from "./AuthProvider";
 
 const WalletMultiButton = dynamic(
@@ -40,18 +41,59 @@ type OnchainSnapshot = {
   };
 };
 
+type DelegateExposure = {
+  tokenAccount: string;
+  mint: string;
+  program: "SPL TOKEN" | "TOKEN-2022";
+  state: string;
+  balance: string;
+  decimals: number;
+  delegate: string;
+  delegatedAmount: string;
+};
+
+type SecuritySnapshot = {
+  status: "CLEAR" | "REVIEW";
+  lockdownEnabled: boolean;
+  summary: {
+    tokenAccounts: number;
+    activeDelegates: number;
+    frozenAccounts: number;
+    emptyAccounts: number;
+    externalCloseAuthorities: number;
+  };
+  delegates: DelegateExposure[];
+  guidance: string;
+  updatedAt: string;
+};
+
+type PreparedLockdown = {
+  transaction: string;
+  blockhash: string;
+  lastValidBlockHeight: number;
+  statement: string;
+  simulation: { ok: boolean; error: unknown; unitsConsumed: number | null; logs: string[] };
+  revocations: DelegateExposure[];
+};
+
 function shortAddress(value: string) {
   return `${value.slice(0, 7)}…${value.slice(-7)}`;
 }
 
 export default function OnchainClearanceClient() {
-  const { publicKey, connected } = useWallet();
+  const { connection } = useConnection();
+  const { publicKey, connected, sendTransaction } = useWallet();
   const { user, session, authIdentifier } = useAuth();
   const [snapshot, setSnapshot] = useState<OnchainSnapshot | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [verifyStatus, setVerifyStatus] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [security, setSecurity] = useState<SecuritySnapshot | null>(null);
+  const [securityStatus, setSecurityStatus] = useState("");
+  const [selectedDelegates, setSelectedDelegates] = useState<string[]>([]);
+  const [preparedLockdown, setPreparedLockdown] = useState<PreparedLockdown | null>(null);
+  const [lockdownBusy, setLockdownBusy] = useState(false);
   const address = publicKey?.toBase58() || "";
   const signedWalletSession = Boolean(user && session?.access_token && address && authIdentifier === address);
 
@@ -72,11 +114,90 @@ export default function OnchainClearanceClient() {
     }
   }, [address]);
 
+  const scanSecurity = useCallback(async () => {
+    if (!address) return;
+    setSecurityStatus("READING SPL + TOKEN-2022 AUTHORITIES…");
+    setPreparedLockdown(null);
+    try {
+      const response = await fetch(`/api/onchain/wallet/security?address=${encodeURIComponent(address)}`, { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Wallet authority scan failed.");
+      setSecurity(data);
+      setSelectedDelegates(data.delegates.slice(0, 8).map((item: DelegateExposure) => item.tokenAccount));
+      setSecurityStatus(data.delegates.length
+        ? `${data.delegates.length} ACTIVE DELEGATE APPROVAL${data.delegates.length === 1 ? "" : "S"} REQUIRE REVIEW`
+        : "NO ACTIVE POSITIVE-BALANCE DELEGATES OBSERVED");
+    } catch (scanError) {
+      setSecurity(null);
+      setSelectedDelegates([]);
+      setSecurityStatus(scanError instanceof Error ? scanError.message : "Wallet authority scan failed.");
+    }
+  }, [address]);
+
   useEffect(() => {
     setSnapshot(null);
     setVerifyStatus("");
-    if (address) void scanWallet();
-  }, [address, scanWallet]);
+    if (address) {
+      void scanWallet();
+      void scanSecurity();
+    }
+  }, [address, scanSecurity, scanWallet]);
+
+  function toggleDelegate(tokenAccount: string) {
+    setPreparedLockdown(null);
+    setSelectedDelegates((current) => current.includes(tokenAccount)
+      ? current.filter((item) => item !== tokenAccount)
+      : current.length < 8 ? [...current, tokenAccount] : current);
+  }
+
+  async function previewLockdown() {
+    if (!session?.access_token || !signedWalletSession || selectedDelegates.length === 0) return;
+    setLockdownBusy(true);
+    setPreparedLockdown(null);
+    setSecurityStatus("SIMULATING REVOCATION · NO SIGNATURE REQUESTED…");
+    try {
+      const response = await fetch("/api/onchain/wallet/lockdown/prepare", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ tokenAccounts: selectedDelegates }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Lockdown simulation failed.");
+      setPreparedLockdown(data);
+      setSecurityStatus(`SIMULATION PASSED · ${data.revocations.length} REVOCATION${data.revocations.length === 1 ? "" : "S"} READY FOR REVIEW`);
+    } catch (error) {
+      setSecurityStatus(error instanceof Error ? error.message : "Lockdown simulation failed.");
+    } finally {
+      setLockdownBusy(false);
+    }
+  }
+
+  async function executeLockdown() {
+    if (!preparedLockdown || !publicKey) return;
+    setLockdownBusy(true);
+    setSecurityStatus("AWAITING YOUR WALLET APPROVAL…");
+    try {
+      const bytes = Uint8Array.from(atob(preparedLockdown.transaction), (character) => character.charCodeAt(0));
+      const transaction = VersionedTransaction.deserialize(bytes);
+      const signature = await sendTransaction(transaction, connection, { skipPreflight: false });
+      setSecurityStatus("TRANSACTION SENT · WAITING FOR CONFIRMATION…");
+      await connection.confirmTransaction({
+        signature,
+        blockhash: preparedLockdown.blockhash,
+        lastValidBlockHeight: preparedLockdown.lastValidBlockHeight,
+      }, "confirmed");
+      setPreparedLockdown(null);
+      setSecurityStatus(`LOCKDOWN CONFIRMED · ${signature.slice(0, 8)}…${signature.slice(-8)}`);
+      await scanSecurity();
+    } catch (error) {
+      setSecurityStatus(error instanceof Error ? error.message : "Wallet rejected or the transaction failed.");
+    } finally {
+      setLockdownBusy(false);
+    }
+  }
 
   async function verifyAndSave() {
     if (!session?.access_token || !signedWalletSession) return;
@@ -171,6 +292,58 @@ export default function OnchainClearanceClient() {
         )}
       </div>
       {verifyStatus && <div className="onchain-verify-status">{verifyStatus}</div>}
+
+      <div className={`wallet-lockdown${security?.status === "REVIEW" ? " needs-review" : ""}`}>
+        <div className="wallet-lockdown-head">
+          <div><span>WALLET INTELLIGENCE // AUTHORITY SCAN</span><strong>{security?.status === "REVIEW" ? "REVIEW ACTIVE AUTHORITIES" : "SPL AUTHORITY SURFACE"}</strong></div>
+          <button type="button" onClick={() => void scanSecurity()} disabled={lockdownBusy}>RESCAN</button>
+        </div>
+        {security ? (
+          <>
+            <div className="wallet-lockdown-metrics">
+              <div><span>TOKEN ACCOUNTS</span><strong>{security.summary.tokenAccounts}</strong></div>
+              <div><span>ACTIVE DELEGATES</span><strong>{security.summary.activeDelegates}</strong></div>
+              <div><span>FROZEN</span><strong>{security.summary.frozenAccounts}</strong></div>
+              <div><span>EMPTY ACCOUNTS</span><strong>{security.summary.emptyAccounts}</strong></div>
+            </div>
+            <p>{security.guidance}</p>
+            {security.delegates.length > 0 && (
+              <div className="wallet-delegate-list">
+                {security.delegates.map((delegate) => (
+                  <label key={delegate.tokenAccount}>
+                    <input
+                      type="checkbox"
+                      checked={selectedDelegates.includes(delegate.tokenAccount)}
+                      onChange={() => toggleDelegate(delegate.tokenAccount)}
+                      disabled={lockdownBusy || !security.lockdownEnabled}
+                    />
+                    <span><strong>{shortAddress(delegate.mint)}</strong><small>{delegate.program} · BALANCE {delegate.balance} · APPROVED {delegate.delegatedAmount}</small></span>
+                    <code>{shortAddress(delegate.delegate)}</code>
+                  </label>
+                ))}
+              </div>
+            )}
+            {security.delegates.length > 0 && (
+              <div className="wallet-lockdown-actions">
+                {!signedWalletSession ? (
+                  <Link href="/login">SIGN IN WITH THIS WALLET TO CONTINUE</Link>
+                ) : !security.lockdownEnabled ? (
+                  <span>REVOCATION PREVIEW IS FEATURE-GATED UNTIL MAINNET QA IS ENABLED.</span>
+                ) : (
+                  <>
+                    <button type="button" onClick={() => void previewLockdown()} disabled={lockdownBusy || selectedDelegates.length === 0}>1. SIMULATE SELECTED REVOCATIONS</button>
+                    <button type="button" className="danger" onClick={() => void executeLockdown()} disabled={lockdownBusy || !preparedLockdown?.simulation.ok}>2. REVIEWED · REVOKE IN WALLET</button>
+                  </>
+                )}
+              </div>
+            )}
+            {preparedLockdown && (
+              <div className="wallet-lockdown-preview"><strong>SIMULATION PASSED · {preparedLockdown.simulation.unitsConsumed?.toLocaleString() || "—"} COMPUTE UNITS</strong><p>{preparedLockdown.statement}</p><small>No token transfer instruction is included. Your wallet must still show and approve the final transaction.</small></div>
+            )}
+          </>
+        ) : <p>Connect and scan a public wallet to inspect token authorities.</p>}
+        {securityStatus && <small className="wallet-lockdown-status">{securityStatus}</small>}
+      </div>
       <small className="onchain-mint-line">CANONICAL MINT · {snapshot?.threat.mint || "READING…"}</small>
     </section>
   );

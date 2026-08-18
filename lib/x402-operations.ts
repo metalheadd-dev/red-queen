@@ -12,6 +12,19 @@ export type StoredX402Operation = {
   response_body: unknown;
 };
 
+export type X402ReceiptSummary = {
+  operation_id: string;
+  product_id: string;
+  status: "delivered";
+  scheme: string;
+  network: string;
+  price: string;
+  payer: string | null;
+  transaction_signature: string | null;
+  created_at: string;
+  delivered_at: string;
+};
+
 export function fingerprint(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -40,6 +53,21 @@ export async function findX402Operation(operationId: string) {
     throw new Error("x402 receipt lookup failed.");
   }
   return data as StoredX402Operation | null;
+}
+
+export async function listX402ReceiptsForPayer(payer: string, limit = 12) {
+  if (!supabase) throw new Error("Supabase service storage is not configured.");
+  const { data, error } = await supabase
+    .from("x402_operations")
+    .select("operation_id, product_id, status, scheme, network, price, payer, transaction_signature, created_at, delivered_at")
+    .eq("payer", payer)
+    .order("created_at", { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 50));
+  if (error) {
+    console.error("x402 receipt history lookup failed:", error.message);
+    throw new Error("x402 receipt history is unavailable.");
+  }
+  return (data || []) as X402ReceiptSummary[];
 }
 
 export async function persistX402Delivery(input: {

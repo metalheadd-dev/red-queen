@@ -1,7 +1,7 @@
 ---
 name: intel
 title: Red Queen Intelligence Mainframe
-description: Source-bounded survival intelligence API exposing public Pulse data and two beta x402 operations on Solana.
+description: Source-bounded survival intelligence API exposing public Pulse data and three beta x402 operations on Solana.
 use_case: AI agents query source-backed environmental signals or purchase a declared Solana telemetry operation through x402.
 category: data
 service_url: https://redqueen.space
@@ -29,7 +29,11 @@ All premium endpoints require on-chain stablecoin micro-settlement via the x402 
   * Price: **0.01 USDC**
 * **`/api/intel/depin`**: Solana validator status tracking, average priority fee rates, and live slot performance samples.
   * Price: **0.02 USDC**
+* **`/api/intel/wallet-exposure?address={wallet}`**: Evidence-bounded SPL and Token-2022 authority audit covering active delegates, frozen accounts, empty accounts, and external close authorities.
+  * Price: **0.02 USDC**
 
 Payment challenges are served as HTTP 402 challenges and settled automatically by x402-compliant clients (such as the `pay.sh` CLI or agent nodes).
 
 Purchases never award XP or BIO-SCORE. Runtime payment requirements declare the current recipient and asset; this file does not hardcode a treasury address. If minimum source coverage is unavailable, the handler returns `503` and x402 cancels settlement rather than delivering synthetic telemetry.
+
+Successful deliveries are bound to an operation UUID and stored with their settlement proof. A signed-in paying wallet can review its private receipt summaries in My Readiness; an exact replay returns the original delivered output instead of requesting another payment.

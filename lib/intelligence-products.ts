@@ -52,12 +52,13 @@ export const X402_INTELLIGENCE_PRODUCTS: IntelligenceProduct[] = [
   },
   {
     id: "wallet-exposure-audit",
-    status: "NEXT",
+    status: "BETA",
     name: "Solana wallet exposure audit",
-    price: "TARGET 0.02 USDC",
+    price: "0.02 USDC",
     scheme: "SVM EXACT",
-    value: "Go beyond the free RPC triage with transaction-pattern and token-account analysis without requesting secrets.",
-    output: "Evidence-bounded wallet safety report",
+    value: "Inspect SPL and Token-2022 accounts for active delegates, frozen state, empty accounts and external close authorities without requesting secrets.",
+    output: "Evidence-bounded authority audit + exact next action",
+    endpoint: "/api/intel/wallet-exposure?address={wallet}",
   },
   {
     id: "agent-budget",

@@ -93,6 +93,51 @@
           "503": { "$ref": "#/components/responses/Unavailable" }
         }
       }
+    },
+    "/api/intel/wallet-exposure": {
+      "get": {
+        "summary": "Solana wallet authority exposure audit",
+        "description": "Reads public SPL and Token-2022 account state and reports active delegates, frozen accounts, empty accounts and external close authorities without labeling an address or requesting a signature.",
+        "operationId": "getWalletExposureAudit",
+        "x-payment-required": true,
+        "x-x402Version": 2,
+        "x-payment-info": {
+          "protocol": "x402",
+          "scheme": "exact",
+          "price": "0.02 USDC",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "requirements": "Recipient, asset, amount, fee payer, and timeout are returned by the runtime HTTP 402 challenge."
+        },
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "description": "Public Solana wallet address to inspect.",
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/OperationId" },
+          { "$ref": "#/components/parameters/PaymentSignature" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Settled and delivered evidence-bounded authority audit.",
+            "headers": {
+              "X-Operation-Id": { "$ref": "#/components/headers/OperationId" },
+              "X-Receipt-Status": { "$ref": "#/components/headers/ReceiptStatus" },
+              "Payment-Response": { "$ref": "#/components/headers/PaymentResponse" }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WalletExposureAudit" }
+              }
+            }
+          },
+          "400": { "description": "Invalid public Solana address." },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
     }
   },
   "components": {
@@ -197,6 +242,16 @@
           "timestamp": { "type": "string", "format": "date-time" },
           "clearance": { "type": "string" },
           "network": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "WalletExposureAudit": {
+        "type": "object",
+        "required": ["success", "timestamp", "clearance", "audit"],
+        "properties": {
+          "success": { "const": true },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "clearance": { "type": "string" },
+          "audit": { "type": "object", "additionalProperties": true }
         }
       },
       "Error": {

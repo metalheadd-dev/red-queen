@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 import { POST as threatPost } from "@/app/api/threat/route";
 import { GET as depinGet } from "@/app/api/intel/depin/route";
 import { GET as premiumGet } from "@/app/api/intel/premium/route";
+import { GET as walletExposureGet } from "@/app/api/intel/wallet-exposure/route";
 import { POST as analyzeWalletPost } from "@/app/api/terminal/analyze-wallet/route";
 
 const handler = createMcpHandler(
@@ -223,6 +224,63 @@ const handler = createMcpHandler(
           };
         }
       }
+    );
+
+    server.registerTool(
+      "get_wallet_exposure_audit",
+      {
+        title: "Get Solana Wallet Exposure Audit",
+        description: "Purchase an evidence-bounded x402 audit of SPL and Token-2022 delegates, frozen accounts, empty accounts, and external close authorities for a public Solana address.",
+        inputSchema: z.object({
+          wallet: z.string().describe("Public Solana wallet address to audit"),
+          operationId: z.string().uuid().optional().describe("Reuse the X-Operation-Id returned with the payment challenge for receipt-safe retries."),
+          paymentSignature: z.string().optional().describe("Complete base64 x402 v2 payment payload created from the runtime challenge."),
+        }),
+        outputSchema: z.object({
+          success: z.boolean().optional(),
+          timestamp: z.string().optional(),
+          clearance: z.string().optional(),
+          audit: z.any().optional(),
+          error: z.string().optional(),
+        }),
+        annotations: {
+          readOnlyHint: true,
+          idempotentHint: true,
+          openWorldHint: true,
+        },
+      },
+      async ({ wallet, operationId, paymentSignature }) => {
+        try {
+          const headers: Record<string, string> = {};
+          if (operationId) headers["X-Operation-Id"] = operationId;
+          if (paymentSignature) headers["Payment-Signature"] = paymentSignature;
+          const mockReq = new NextRequest(`http://localhost:3000/api/intel/wallet-exposure?address=${encodeURIComponent(wallet)}`, {
+            headers: new Headers(headers),
+          });
+          const response = await walletExposureGet(mockReq);
+          if (response.status === 402) {
+            const data = await response.json().catch(() => ({}));
+            const challenge = response.headers.get("payment-required") || response.headers.get("x-payment-required");
+            const responseOperationId = response.headers.get("x-operation-id") || operationId || "";
+            return {
+              content: [{
+                type: "text",
+                text: `PAYMENT_REQUIRED: Inspect the exact runtime challenge before approval.\n\nX-Operation-Id: ${responseOperationId}\nChallenge (Base64): ${challenge || ""}\nJSON Payload: ${JSON.stringify(data, null, 2)}\n\nRe-call this tool with the same operationId and complete paymentSignature.`,
+              }],
+            };
+          }
+          const data = await response.json();
+          return {
+            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+            isError: !response.ok,
+          };
+        } catch (err: any) {
+          return {
+            content: [{ type: "text", text: `Error fetching wallet exposure audit: ${err.message}` }],
+            isError: true,
+          };
+        }
+      },
     );
   },
   {},

@@ -105,5 +105,9 @@ export const GET = withFriendlyX402(
       payTo: svmAddress,
     },
     description: "Seven-source verified signal synthesis with explicit source health, confidence, freshness, and trust boundaries.",
+    mimeType: "application/json",
+    serviceName: "RED QUEEN Intelligence",
+    tags: ["survival", "threat-signals", "verified-sources", "x402"],
+    iconUrl: "https://redqueen.space/token-image.png",
   },
 );

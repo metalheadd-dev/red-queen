@@ -128,5 +128,9 @@ export const GET = withFriendlyX402(
       payTo: svmAddress,
     },
     description: "Source-backed Solana mainnet validator, epoch, fee, performance, supply, and inflation snapshot.",
+    mimeType: "application/json",
+    serviceName: "RED QUEEN Intelligence",
+    tags: ["solana", "network-health", "rpc", "x402"],
+    iconUrl: "https://redqueen.space/token-image.png",
   },
 );

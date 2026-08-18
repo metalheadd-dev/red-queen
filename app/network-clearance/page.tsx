@@ -50,7 +50,7 @@ export default function NetworkClearancePage() {
             <article>
               <span>USDC · COMPUTE LAYER</span>
               <h3>Pay only for a specific operation.</h3>
-              <ul><li>Exact price shown before approval</li><li>Solana x402 SVM settlement</li><li>Premium report or autonomous agent request</li><li>Payment goes toward AI/API compute</li></ul>
+              <ul><li>Exact price shown before approval</li><li>Solana x402 SVM settlement</li><li>Signal, network or wallet-intelligence report</li><li>Private receipt history for the paying wallet</li><li>Payment goes toward AI/API and data compute</li></ul>
               <small>CONNECTION AND SIWS SIGN-IN NEVER AUTHORIZE A PAYMENT.</small>
             </article>
           </div>
@@ -106,7 +106,9 @@ export default function NetworkClearancePage() {
             <article className="is-live"><span>LIVE</span><strong>Sign In With Solana</strong><p>Domain-bound, timestamped wallet authentication through Supabase Web3 Auth and the connected wallet adapter.</p></article>
             <article className="is-live"><span>LIVE</span><strong>SPL holder proof</strong><p>Server-side canonical mint read, aggregated token accounts, confirmed commitment, and fail-closed persistence.</p></article>
             <article className="is-beta"><span>BETA</span><strong>x402 exact SVM</strong><p>USDC-gated HTTP resources with exact prices. Available when the production facilitator and receiving wallet are configured.</p></article>
+            <article className="is-beta"><span>BETA</span><strong>Wallet Intelligence</strong><p>Read-only SPL and Token-2022 authority scans, paid evidence-bounded audit, and feature-gated simulated delegate revocation.</p></article>
             <article className="is-next"><span>AFTER CORE</span><strong>Solana Actions / Blinks</strong><p>Share a verified RED QUEEN protocol or paid intelligence action after the daily web loop is stable.</p></article>
+            <article className="is-next"><span>NEXT</span><strong>Kora fee abstraction</strong><p>Sponsor fees only for allowlisted RED QUEEN transactions after Wallet Lockdown passes mainnet QA.</p></article>
             <article className="is-research"><span>LATER</span><strong>Seeker + Mobile Wallet Adapter</strong><p>Deferred until the web product, agent value and payment flow are production-ready.</p></article>
             <article className="is-research"><span>RESEARCH</span><strong>Private readiness credentials</strong><p>Only if privacy can be preserved. Personal survival data will not be pushed on-chain for cosmetic gamification.</p></article>
           </div>
@@ -114,7 +116,7 @@ export default function NetworkClearancePage() {
 
         <section className="onchain-safety">
           <div><span>05 // SIGNATURE SAFETY</span><h2>RED QUEEN will never ask for a seed phrase.</h2></div>
-          <ul><li><strong>CONNECT</strong><span>Expose one public address for read-only RPC calls.</span></li><li><strong>SIGN IN</strong><span>Prove address ownership with an off-chain SIWS message.</span></li><li><strong>PAY</strong><span>Approve a separately displayed transaction with network, asset, amount and destination.</span></li></ul>
+          <ul><li><strong>CONNECT</strong><span>Expose one public address for read-only RPC calls.</span></li><li><strong>SIGN IN</strong><span>Prove address ownership with an off-chain SIWS message.</span></li><li><strong>SIMULATE</strong><span>Inspect exact instructions and RPC simulation before an authority change.</span></li><li><strong>PAY</strong><span>Approve a separately displayed transaction with network, asset, amount and destination.</span></li></ul>
           <div className="onchain-safety-actions"><Link href="/terminal" className="btn btn-primary">ASK RED QUEEN</Link><Link href="/operative" className="btn btn-ghost">OPEN MY READINESS</Link><a href={`https://explorer.solana.com/address/${THREAT_TOKEN_MINT}`} target="_blank" rel="noreferrer" className="btn btn-outline">VIEW MINT ↗</a></div>
           <code>CANONICAL $THREAT MINT · {THREAT_TOKEN_MINT}</code>
         </section>
