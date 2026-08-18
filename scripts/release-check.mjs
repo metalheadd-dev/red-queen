@@ -39,9 +39,15 @@ const threatSwapExecute = read("app/api/onchain/swap/threat/execute/route.ts");
 const transactionRiskRoute = read("app/api/intel/transaction-risk/route.ts");
 
 requireCondition(!packageJson.scripts?.postinstall, "postinstall must not patch payment dependencies");
+requireCondition(!packageJson.dependencies?.["@solana/wallet-adapter-wallets"], "release must not install the unused all-wallet adapter bundle");
+requireCondition(Boolean(packageJson.dependencies?.["@solana/wallet-adapter-phantom"]), "Phantom adapter must remain explicit");
+requireCondition(Boolean(packageJson.dependencies?.["@solana/wallet-adapter-solflare"]), "Solflare adapter must remain explicit");
 requireCondition(!Array.isArray(vercelConfig.crons) || vercelConfig.crons.length === 0, "release must not schedule treasury automation");
 requireCondition(nextConfig.includes('{ source: "/operations/:path*", destination: "/"'), "Operations pages must remain outside the public product");
 requireCondition(nextConfig.includes('{ source: "/api/operations/:path*", destination: "/"'), "Operations APIs must remain outside the public product");
+requireCondition(nextConfig.includes("poweredByHeader: false"), "release must not expose the framework signature header");
+requireCondition(nextConfig.includes("agentRules: false"), "Next dev must not generate repository instruction files");
+requireCondition(nextConfig.includes("X-Content-Type-Options"), "release must include baseline response security headers");
 requireCondition(buybackRoute.includes('TREASURY_BUYBACK_ENABLED === "true"'), "treasury execution must require an explicit enable flag");
 requireCondition(buybackRoute.includes("GET is permanently read-only"), "treasury GET must remain read-only");
 requireCondition(x402Runtime.includes("checkX402OperationStore"), "x402 must verify receipt storage before requesting payment");
