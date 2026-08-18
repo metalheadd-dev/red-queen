@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { CATEGORIES, Threat } from "@/lib/threats";
 
@@ -63,6 +64,16 @@ export default function ThreatVectorPage() {
   return (
     <div className="library-page">
       <header className="library-hero">
+        <Image
+          className="library-hero-art"
+          src="/art/library-queen-memory-v1.png"
+          alt=""
+          fill
+          sizes="100vw"
+          priority
+          aria-hidden="true"
+        />
+        <div className="library-hero-shade" aria-hidden="true" />
         <div className="container">
           <span className="pulse-eyebrow">RED QUEEN // MEMORY OF THE SYSTEM</span>
           <h1>She remembers the patterns.<br /><em>You learn before they repeat.</em></h1>

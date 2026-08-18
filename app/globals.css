@@ -4510,7 +4510,8 @@ body:has(#game-player-root) .page-content {
 .guide-page,
 .community-page,
 .onchain-page,
-.rq-profile-page { padding-top:60px; }
+.rq-profile-page,
+.dossier-page { padding-top:0; }
 
 /* RED QUEEN system presence. The crown replaces the generic assistant orb. */
 .queen-core,
@@ -4538,7 +4539,7 @@ body:has(#game-player-root) .page-content {
   position:absolute;
   inset:-20%;
   z-index:1;
-  background:url('/art/red-queen-crown-mark.svg') center / contain no-repeat;
+  background:url('/art/red-queen-crown-badge-v2.png') center / contain no-repeat;
   mix-blend-mode:normal;
   filter:drop-shadow(0 0 8px rgba(255,0,51,.42));
   pointer-events:none;
@@ -4624,7 +4625,8 @@ body:has(#game-player-root) .page-content {
   .guide-page,
   .community-page,
   .onchain-page,
-  .rq-profile-page { padding-top:58px; }
+  .rq-profile-page,
+  .dossier-page { padding-top:0; }
 }
 
 /* Release visual pass: compact first screens, stronger hierarchy and legible telemetry. */
@@ -4635,7 +4637,7 @@ body:has(#game-player-root) .page-content {
 .intelligence-market-orb::before,
 .mobile-queen-core::before {
   inset:-12%;
-  background-image:url('/art/red-queen-crown-mark.svg');
+  background-image:url('/art/red-queen-crown-badge-v2.png');
   background-size:contain;
   mix-blend-mode:normal;
   filter:drop-shadow(0 0 8px rgba(255,0,51,.45));
@@ -4784,4 +4786,89 @@ body:has(#game-player-root) .page-content {
 @media (max-width:900px) {
   .chat-input-row { padding:12px 16px; }
   .chat-input,.chat-input-row .btn { min-height:58px; }
+}
+
+/* Core page shell: .page-content already owns the fixed-navbar offset. */
+.rq-terminal-page,
+.prepare-page,
+.library-page,
+.dossier-page,
+.guide-page,
+.community-page,
+.onchain-page,
+.rq-profile-page { padding-top:0 !important; }
+
+/* Library hero: RED QUEEN's visual memory, integrated as atmosphere rather than a poster. */
+.library-hero { min-height:560px; isolation:isolate; background:#020304; }
+.library-hero::after { display:none; }
+.library-hero-art { position:absolute !important; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; object-position:center center; opacity:.74; filter:contrast(1.04) saturate(.94); }
+.library-hero-shade { position:absolute; inset:0; z-index:1; background:linear-gradient(90deg,#020304 0%,rgba(2,3,4,.98) 29%,rgba(2,3,4,.78) 48%,rgba(2,3,4,.12) 76%,rgba(2,3,4,.24) 100%),linear-gradient(0deg,#020304 0%,transparent 28%); pointer-events:none; }
+.library-hero > .container { z-index:2; }
+
+/* The edited raster crown is already transparent; keep the dock clean and compact. */
+.queen-core::before,
+.queen-dock-orb::before,
+.rq-login-orb::before,
+.onchain-connect-orb::before,
+.intelligence-market-orb::before,
+.mobile-queen-core::before {
+  inset:-8%;
+  background-size:100%;
+  clip-path:circle(49%);
+  filter:drop-shadow(0 0 7px rgba(255,0,51,.34));
+}
+
+@media (min-width:901px) {
+  .prepare-hero-grid { padding-top:38px; padding-bottom:40px; }
+  .library-hero > .container { padding-top:38px; padding-bottom:38px; }
+  .library-hero h1 { max-width:800px; font-size:clamp(43px,4.5vw,70px); }
+  .library-hero > .container > p { max-width:670px; color:rgba(255,255,255,.72); font-size:16px; line-height:1.65; }
+  .library-trust-banner { margin-top:20px; background:rgba(3,4,6,.86); backdrop-filter:blur(10px); }
+
+  .guide-hero,.guide-hero-grid { min-height:540px; }
+  .guide-hero h1 { font-size:clamp(47px,4.75vw,76px); }
+  .guide-queen { min-height:490px; }
+  .guide-queen img { bottom:-82px; width:min(36vw,560px); }
+
+  .community-hero { min-height:520px; }
+  .community-hero-copy { padding-top:38px; }
+  .community-hero h1 { font-size:clamp(48px,4.7vw,76px); }
+  .community-hero-copy > p { color:rgba(255,255,255,.76); }
+  .community-hero-queen { bottom:-78px; width:min(33vw,520px); }
+  .community-directive { right:28px; bottom:104px; }
+
+  .onchain-hero-grid { padding-top:42px; padding-bottom:48px; }
+  .rq-profile-identity { padding-top:36px; padding-bottom:36px; }
+  .rq-terminal-core { padding-top:36px; }
+
+  .library-main { padding-top:22px; }
+  .library-lanes button { padding:20px; border-color:rgba(255,255,255,.12); }
+  .library-lanes span { font-size:11px; }
+  .library-lanes strong { font-size:16px; }
+  .library-lanes p { color:rgba(255,255,255,.62); font-size:13px; line-height:1.6; }
+  .library-tabs span,.library-tabs small,.library-search span,.library-results-heading span { color:rgba(255,255,255,.56); font-size:11px !important; }
+  .library-tabs strong { font-size:12px !important; }
+  .library-search input { min-height:44px; font-size:13px; }
+  .library-results-heading p { color:rgba(255,255,255,.64); font-size:14px; line-height:1.65; }
+  .library-results-heading > strong { color:rgba(255,255,255,.58); font-size:11px; }
+
+  .library-grid { gap:12px; }
+  .library-card { min-height:310px; padding:22px; border-color:color-mix(in srgb,var(--library-color) 32%,rgba(255,255,255,.08)); background:linear-gradient(145deg,color-mix(in srgb,var(--library-color) 5%,#0b0c0e),#08090b 62%); }
+  .library-card-meta { font-size:11px; }
+  .library-card h3 { margin:18px 0 8px; font-size:20px; }
+  .library-card > p { color:rgba(255,255,255,.62); font-size:12px; line-height:1.55; }
+  .library-severity { margin-top:22px; }
+  .library-severity > span,.library-severity > strong { color:rgba(255,255,255,.58); font-size:11px; }
+  .library-severity > strong { color:var(--library-color); }
+  .library-severity > i { height:4px; margin-top:9px; }
+  .library-card > small { color:rgba(255,255,255,.64); font-size:13px !important; line-height:1.6; }
+  .library-card-actions a { min-height:42px; display:grid; place-items:center; color:rgba(255,255,255,.84); font-size:11px; }
+}
+
+@media (max-width:900px) {
+  .library-hero { min-height:520px; }
+  .library-hero-art { object-position:65% center; opacity:.5; }
+  .library-hero-shade { background:linear-gradient(0deg,#020304 0%,rgba(2,3,4,.92) 52%,rgba(2,3,4,.6) 100%); }
+  .library-hero > .container { padding-top:34px; padding-bottom:34px; }
+  .community-hero-copy { padding-top:32px; }
 }
