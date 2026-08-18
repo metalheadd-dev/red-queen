@@ -4035,6 +4035,34 @@ body:has(#game-player-root) .page-content {
     linear-gradient(90deg,#020304 0%,#020304 35%,rgba(2,3,4,.9) 48%,rgba(2,3,4,.15) 74%,rgba(2,3,4,.4) 100%),
     linear-gradient(0deg,#030405 0%,transparent 26%);
 }
+.community-hero-nav {
+  position:absolute;
+  z-index:4;
+  right:0;
+  bottom:0;
+  left:0;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  padding:0 max(28px,3vw);
+  border-top:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,1,.7);
+  backdrop-filter:blur(10px);
+}
+.community-hero-nav a {
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 18px;
+  border-right:1px solid rgba(255,255,255,.08);
+  color:rgba(255,255,255,.72);
+  font:700 11px var(--mono);
+  letter-spacing:.1em;
+  transition:color .18s ease,background .18s ease;
+}
+.community-hero-nav a:first-child { border-left:1px solid rgba(255,255,255,.08); }
+.community-hero-nav small { color:var(--accent); font:700 10px var(--mono); }
+.community-hero-nav a:hover,.community-hero-nav a:focus-visible { color:#fff; background:rgba(255,0,51,.08); }
 .community-hero-queen { position: absolute; z-index: 2; right: 1.5vw; bottom: -105px; width: min(40vw,650px); height: auto; opacity: .72; filter: drop-shadow(0 0 42px rgba(255,0,51,.18)); }
 .community-hero-copy { position: relative; z-index: 3; width: 100%; }
 .community-hero-copy > span,.community-mind-copy > span,.community-section-head span,.community-origin > div:last-child > span { color: var(--accent); font: 700 10px var(--mono); letter-spacing: .18em; }
@@ -4866,7 +4894,7 @@ body:has(#game-player-root) .page-content {
 
 /* Community hero v2: one continuous Queen image, with no card obscuring her. */
 .community-hero {
-  background:#020304;
+  background:#000001;
 }
 .community-hero-queen {
   top:0;
@@ -4881,8 +4909,8 @@ body:has(#game-player-root) .page-content {
 }
 .community-hero-shade {
   background:
-    linear-gradient(90deg,#020304 0%,rgba(2,3,4,.96) 31%,rgba(2,3,4,.72) 48%,rgba(2,3,4,.08) 72%,transparent 100%),
-    linear-gradient(0deg,#030405 0%,transparent 22%);
+    linear-gradient(90deg,#000001 0%,rgba(0,0,1,.96) 31%,rgba(0,0,1,.72) 48%,rgba(0,0,1,.08) 72%,transparent 100%),
+    linear-gradient(0deg,#000001 0%,transparent 22%);
 }
 
 @media (min-width:901px) {
@@ -4892,7 +4920,7 @@ body:has(#game-player-root) .page-content {
   }
   .community-hero-copy {
     padding-top:30px;
-    padding-bottom:30px;
+    padding-bottom:78px;
   }
   .community-hero-queen {
     top:-18px;
@@ -4909,7 +4937,17 @@ body:has(#game-player-root) .page-content {
   }
   .community-hero-shade {
     background:
-      linear-gradient(0deg,#030405 0%,rgba(2,3,4,.9) 48%,rgba(2,3,4,.48) 100%),
-      linear-gradient(90deg,rgba(2,3,4,.82),rgba(2,3,4,.22));
+      linear-gradient(0deg,#000001 0%,rgba(0,0,1,.9) 48%,rgba(0,0,1,.48) 100%),
+      linear-gradient(90deg,rgba(0,0,1,.82),rgba(0,0,1,.22));
+  }
+  .community-hero-nav {
+    grid-template-columns:repeat(4,minmax(145px,1fr));
+    padding:0;
+    overflow-x:auto;
+  }
+  .community-hero-nav a {
+    min-height:54px;
+    padding:0 14px;
+    font-size:10px;
   }
 }

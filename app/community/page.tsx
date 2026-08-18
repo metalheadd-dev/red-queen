@@ -80,6 +80,12 @@ export default function CommunityPage() {
           <p>RED QUEEN is not a feature inside SOLvival. She is the intelligence connecting every signal, decision, protocol and survivor willing to prepare.</p>
           <div><Link className="btn btn-primary" href="#community-files">ENTER THE ARCHIVE</Link><a className="btn btn-ghost" href="https://x.com/redqueen_agent" target="_blank" rel="noreferrer">OPEN X CHANNEL ↗</a></div>
         </div>
+        <nav className="community-hero-nav" aria-label="Community sections">
+          <a href="#solvivor-board"><small>01</small><span>SOLVIVOR BOARD</span></a>
+          <a href="#community-files"><small>02</small><span>TRANSMISSION ARCHIVE</span></a>
+          <a href="#community-network"><small>03</small><span>OPEN CHANNELS</span></a>
+          <a href="#community-origin"><small>04</small><span>ORIGIN &amp; LORE</span></a>
+        </nav>
       </header>
 
       <main className="container community-main">
@@ -154,7 +160,7 @@ export default function CommunityPage() {
           </div>
         </section>
 
-        <section className="community-network" aria-labelledby="community-network-title">
+        <section id="community-network" className="community-network" aria-labelledby="community-network-title">
           <div className="community-section-head">
             <div><span>SOLVIVOR NETWORK // OPEN CHANNELS</span><h2 id="community-network-title">Bring signal, not noise.</h2></div>
             <p>A useful contribution gives the network something it can verify, test or learn from. Public reports never become verified intelligence without provenance and moderation.</p>
@@ -166,7 +172,7 @@ export default function CommunityPage() {
           </div>
         </section>
 
-        <section className="community-origin">
+        <section id="community-origin" className="community-origin">
           <div className="community-origin-art"><Image src="/art/red-queen-sigil.png" alt="RED QUEEN crown and neural sigil" width={1536} height={1536} /></div>
           <div>
             <span>ORIGIN ARCHIVE // MAY 2026</span>
