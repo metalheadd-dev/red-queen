@@ -72,21 +72,6 @@ interface PulseSignal {
   ageHours?: number;
 }
 
-interface RankedSignal {
-  id: string;
-  name: string;
-  type: string;
-  severity: number;
-  region: string;
-  source: string;
-  sourceUrl?: string;
-  verified: boolean;
-  score: number;
-  reason: string;
-  freshness?: string;
-  node?: MapNode;
-}
-
 interface MapNode {
   id: string;
   name: string;
@@ -281,56 +266,6 @@ export default function HomePage() {
     [pulse.signals],
   );
 
-  const rankedSignals = useMemo<RankedSignal[]>(() => {
-    const location = localContext?.location;
-    const mapped: RankedSignal[] = nodes.map((node) => {
-      const distance = location ? distanceInKm(location, node) : undefined;
-      const proximity = distance === undefined ? 0 : distance <= 100 ? 30 : distance <= 300 ? 24 : distance <= 1_000 ? 16 : 0;
-      const score = Math.min(100, (node.priorityScore ?? node.severity * .65 + (node.verified ? 12 : 0)) + proximity);
-      const reason = distance !== undefined && distance <= 1_000
-        ? `${Math.round(distance)} km from your broad area`
-        : node.verified
-          ? `${node.freshness || "CURRENT"} · verified source`
-          : "Elevated global signal";
-      return {
-        id: node.id,
-        name: node.name,
-        type: node.type,
-        severity: node.severity,
-        region: node.region,
-        source: node.source || "SOURCE PENDING",
-        sourceUrl: node.sourceUrl,
-        verified: node.verified === true,
-        score,
-        reason,
-        freshness: node.freshness,
-        node,
-      };
-    });
-    const nonMapped: RankedSignal[] = (pulse.signals || [])
-      .filter((signal) => signal.kind === "SPACE_WEATHER" || signal.kind === "CYBER" || signal.kind === "HEALTH" || signal.kind === "SOLANA_NETWORK")
-      .map((signal) => ({
-        id: signal.id,
-        name: signal.name,
-        type: signal.kind,
-        severity: signal.severity,
-        region: signal.location,
-        source: signal.source,
-        sourceUrl: signal.sourceUrl,
-        verified: signal.confidence >= 90,
-        score: signal.priorityScore ?? signal.severity * .65 + (signal.confidence >= 90 ? 12 : 0),
-        reason: signal.kind === "HEALTH"
-          ? `${signal.freshness || "CURRENT"} · WHO public-health notice`
-          : signal.kind === "CYBER"
-            ? `${signal.freshness || "CURRENT"} · actively exploited vulnerability`
-            : signal.kind === "SOLANA_NETWORK"
-              ? `${signal.freshness || "CURRENT"} · official Solana network incident`
-            : `${signal.freshness || "CURRENT"} · official global systems notice`,
-        freshness: signal.freshness,
-      }));
-    return [...mapped, ...nonMapped].sort((a, b) => b.score - a.score).slice(0, 3);
-  }, [localContext, nodes, pulse.signals]);
-
   const signalRail = useMemo(
     () => [...visibleNodes].sort((a, b) => b.severity - a.severity).slice(0, 6),
     [visibleNodes],
@@ -416,13 +351,6 @@ export default function HomePage() {
     if (!watchType) return;
     window.dispatchEvent(new CustomEvent(SIGNAL_WATCH_REQUEST_EVENT, { detail: { type: watchType } }));
     window.requestAnimationFrame(() => document.getElementById("signal-watch")?.scrollIntoView({ behavior: "smooth", block: "center" }));
-  }
-
-  function focusRankedSignal(signal: RankedSignal) {
-    if (!signal.node) return;
-    setSelectedNode(signal.node);
-    setMapFilter("all");
-    document.getElementById("live-map")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   if (!booted) return <BootSequence onComplete={finishBoot} />;
@@ -605,11 +533,12 @@ export default function HomePage() {
         </div>
 
         {!!pulse.sourceHealth?.length && (
-          <div className="pulse-source-grid">
-            <header>
+          <details className="pulse-source-grid">
+            <summary>
               <div><span className="pulse-eyebrow">SOURCE GRID // LIVE COVERAGE</span><strong>{pulse.coverage?.online || 0}/{pulse.coverage?.total || pulse.sourceHealth.length} sources reachable</strong></div>
               <small>{pulse.coverage?.signalCount || 0} NORMALIZED SIGNALS · CHECKED {relativeTime(pulse.generatedAt).toUpperCase()}</small>
-            </header>
+              <b>VIEW SOURCE HEALTH +</b>
+            </summary>
             <div>
               {pulse.sourceHealth.map((source) => (
                 <article key={source.id} data-status={source.status}>
@@ -621,38 +550,8 @@ export default function HomePage() {
               ))}
             </div>
             <p>Reachability confirms the source responded — not that every local event is covered. Always follow official alerts for your area.</p>
-          </div>
+          </details>
         )}
-
-        <div className="pulse-ranked-signals">
-          <div className="pulse-ranked-heading">
-            <div><span className="pulse-eyebrow">QUEEN PRIORITY // PERSONAL TOP 3</span><h3>{hasResolvedArea ? `What deserves attention near ${localContext!.area}` : "What deserves attention in the signal field"}</h3></div>
-            <small>RANKED BY SEVERITY · CONFIDENCE · FRESHNESS{hasResolvedArea ? " · PROXIMITY" : ""}</small>
-          </div>
-          <div className="pulse-ranked-grid">
-            {rankedSignals.map((signal, index) => (
-              <article key={signal.id} className={signal.node ? "is-mapped" : "is-global"}>
-                <button type="button" onClick={() => focusRankedSignal(signal)} disabled={!signal.node} aria-label={signal.node ? `Show ${signal.name} on map` : undefined}>
-                  <span>0{index + 1} // {signal.type}</span>
-                  <strong>{signal.name}</strong>
-                  <p>{signal.reason}</p>
-                  <small>{signal.source} · INDEX {Math.round(signal.score)}</small>
-                </button>
-                <div>
-                  {signal.node && <button type="button" onClick={() => focusRankedSignal(signal)}>SHOW ON MAP</button>}
-                  <Link href={`/terminal?${new URLSearchParams({
-                    mode: "ANALYZE",
-                    focus: "LOCAL_THREATS",
-                    area: localContext?.area || "",
-                    ...(signal.node ? { signal: signal.node.id } : {}),
-                    prompt: `Brief me on this signal: ${signal.name}. Explain why it matters to my context, separate verified fact from assessment, and give one justified action.`,
-                  }).toString()}`}>ASK QUEEN →</Link>
-                </div>
-              </article>
-            ))}
-            {!rankedSignals.length && <p className="pulse-ranked-empty">The verified grid is temporarily limited. Queen will not invent a priority.</p>}
-          </div>
-        </div>
       </section>
 
       <section id="live-map" className="container pulse-map-section">
@@ -704,8 +603,6 @@ export default function HomePage() {
           </div>
         )}
 
-        <SignalWatchPanel nodes={[...nodes, ...nonMapWatchSignals]} area={localContext?.area} location={localContext?.location || null} />
-
         {!!signalRail.length && (
           <div className="pulse-signal-rail" aria-label="Visible map signals">
             <div><span>VISIBLE SIGNALS</span><small>SELECT TO FOCUS THE MAP</small></div>
@@ -722,16 +619,17 @@ export default function HomePage() {
         <div className="pulse-map-shell">
           {mapLoading ? (
             <div className="pulse-map-loading">CONNECTING TO VERIFIED SIGNAL GRID...</div>
-          ) : nodes.length || localContext?.location ? (
-            <TacticalMap
-              nodes={visibleNodes}
-              onSelectNode={setSelectedNode}
-              selectedNode={selectedNode}
-              focus={localContext?.location || null}
-              focusMode={mapFilter === "local"}
-            />
           ) : (
-            <div className="pulse-map-loading">NO VERIFIED SIGNALS AVAILABLE // CHECK OFFICIAL LOCAL ALERTS</div>
+            <>
+              <TacticalMap
+                nodes={visibleNodes}
+                onSelectNode={setSelectedNode}
+                selectedNode={selectedNode}
+                focus={localContext?.location || null}
+                focusMode={mapFilter === "local"}
+              />
+              {!nodes.length && <div className="pulse-map-empty"><strong>NO VERIFIED SIGNALS AVAILABLE</strong><span>The field remains interactive. Source silence is not proof of safety — check official local alerts.</span></div>}
+            </>
           )}
         </div>
 
@@ -797,42 +695,14 @@ export default function HomePage() {
             </footer>
           </article>
         )}
-      </section>
 
-      <section className="container pulse-loop-section">
-        <div className="pulse-section-heading">
-          <div>
-            <span className="pulse-eyebrow">THE SOLVIVAL LOOP</span>
-            <h2>Intelligence that leads to action</h2>
-          </div>
-          <p className="pulse-heading-copy">Come for the current signal. Return because RED QUEEN remembers your context and helps you become harder to surprise.</p>
-        </div>
-        <div className="pulse-loop-grid">
-          <Link href="#live-map" className="pulse-loop-card"><span>01</span><strong>Detect</strong><p>See verified global signals without mixing them with fiction.</p></Link>
-          <Link href="/terminal" className="pulse-loop-card"><span>02</span><strong>Understand</strong><p>Ask what a signal means for your location, wallet, devices, or family.</p></Link>
-          <Link href="/survival-kit" className="pulse-loop-card"><span>03</span><strong>Prepare</strong><p>Turn analysis into a checklist, protocol, and concrete next action.</p></Link>
-          <Link href="/operative" className="pulse-loop-card"><span>04</span><strong>Improve</strong><p>Build BIO-SCORE and a personal readiness record over time.</p></Link>
-        </div>
-      </section>
-
-      <section className="container pulse-token-section">
-        <div>
-          <span className="pulse-eyebrow">$THREAT // INTELLIGENCE ACCESS PROTOCOL</span>
-          <h2>Utility must unlock better survival intelligence</h2>
-          <p>Holdings determine RED QUEEN context and analysis depth. Solana identity, live balance proof and x402 payments are separate, inspectable layers — never decorative wallet gating.</p>
-        </div>
-        <div className="pulse-utility-grid">
-          <div><span>LIVE</span><strong>On-chain holder proof</strong><p>Canonical SPL balance, signed identity and measurable agent clearance.</p></div>
-          <div><span>BETA</span><strong>x402 compute payments</strong><p>Exact USDC pricing for specific premium AI operations on Solana.</p></div>
-          <div><span>AFTER CORE</span><strong>Solana Actions / Blinks</strong><p>Shareable RED QUEEN protocols after the daily product loop is stable.</p></div>
-        </div>
-        <Link className="pulse-inline-link" href="/network-clearance">OPEN SOLANA CONTROL PLANE →</Link>
+        <SignalWatchPanel nodes={[...nodes, ...nonMapWatchSignals]} area={localContext?.area} location={localContext?.location || null} />
       </section>
 
       <section className="container pulse-final-cta">
         <div className="queen-core queen-core-small"><span /></div>
-        <div><span className="pulse-eyebrow">RED QUEEN IS LISTENING</span><h2>What are you preparing for?</h2></div>
-        <Link className="btn btn-primary" href="/terminal">OPEN SECURE CHANNEL</Link>
+        <div><span className="pulse-eyebrow">RED QUEEN IS LISTENING</span><h2>Act now — or understand the system first.</h2></div>
+        <div className="pulse-final-actions"><Link className="btn btn-primary" href="/terminal">ASK RED QUEEN</Link><Link className="btn btn-ghost" href="/docs">OPEN PRODUCT GUIDE</Link></div>
       </section>
     </div>
   );

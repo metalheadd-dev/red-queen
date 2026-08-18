@@ -1,16 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import SolvivalIcon from "./SolvivalIcon";
 
 const BOOT_LINES = [
-  { text: "INITIALIZING SOLVIVAL PROTOCOLS...", delay: 400, type: "default" },
-  { text: "CONNECTING TO GLOBAL MAINFRAME...", delay: 800, type: "default" },
-  { text: "LOADING THREAT DATABASE [UNLIMITED VECTORS]...", delay: 1200, type: "default" },
-  { text: "VERIFYING BIO-METRICS...", delay: 1600, type: "default" },
-  { text: "SCANNING NEURAL PATTERNS...", delay: 2000, type: "default" },
-  { text: "[WARN_0x4F] UNAUTHORIZED ACCESS ATTEMPT LOGGED", delay: 2400, type: "warn" },
-  { text: "[OK_0x00] ACCESS GRANTED — CLEARANCE LEVEL PENDING", delay: 2800, type: "done" },
-  { text: "RED QUEEN IS ONLINE.", delay: 3200, type: "done" },
+  { text: "EYES // VERIFIED SIGNAL GRID", delay: 180, type: "default" },
+  { text: "NERVES // LIVE MAP", delay: 430, type: "default" },
+  { text: "MEMORY // SURVIVAL CONTEXT", delay: 680, type: "default" },
+  { text: "RED QUEEN // ONLINE", delay: 930, type: "done" },
 ];
 
 interface Props {
@@ -37,8 +34,8 @@ export default function BootSequence({ onComplete }: Props) {
     timers.push(
       setTimeout(() => {
         setExiting(true);
-        setTimeout(onComplete, 800);
-      }, 3800)
+        setTimeout(onComplete, 420);
+      }, 1350)
     );
 
     return () => timers.forEach(clearTimeout);
@@ -48,39 +45,17 @@ export default function BootSequence({ onComplete }: Props) {
     <div
       className="boot-screen"
       style={{
-        transition: "opacity 0.8s ease",
+        transition: "opacity 0.4s ease",
         opacity: exiting ? 0 : 1,
       }}
     >
-      {/* Logo */}
-      <div className="boot-logo">
-        <div className="zombie-container">
-          <div className="zombie-art">
-{`    ██████████
-   ██  ████  ██
-  ████  ██  ████
- ██  ████████  ██
-██  ██  ██  ██  ██
- ████  ████  ████
-  ██  ██  ██  ██
-   ████████████`}
-          </div>
-        </div>
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <SolvivalIcon size={72} />
-        </div>
-        <div style={{
-          textAlign: "center",
-          fontFamily: "var(--mono)",
-          fontSize: "10px",
-          letterSpacing: "0.4em",
-          color: "rgba(255,77,77,0.6)",
-          marginTop: "12px",
-          textTransform: "uppercase"
-        }}>
-          SOLVIVAL CORP
-        </div>
+      <div className="boot-queen" aria-hidden="true">
+        <div className="boot-queen-ring" />
+        <Image src="/art/red-queen-presence.png" alt="" width={1199} height={1312} priority />
       </div>
+
+      <div className="boot-brand"><SolvivalIcon size={34} /><div><strong>RED QUEEN</strong><span>SURVIVAL INTELLIGENCE</span></div></div>
+      <p className="boot-directive">“I will show you what changed. You decide whether to act.”</p>
 
       {/* Boot lines */}
       <div className="boot-lines">
@@ -102,15 +77,7 @@ export default function BootSequence({ onComplete }: Props) {
         <div className="boot-progress-bar" style={{ width: `${progress}%` }} />
       </div>
 
-      <div style={{
-        marginTop: "12px",
-        fontFamily: "var(--mono)",
-        fontSize: "10px",
-        color: "rgba(255,77,77,0.4)",
-        letterSpacing: "0.2em"
-      }}>
-        LOADING... {progress}%
-      </div>
+      <div className="boot-percent">CONNECTING {progress}%</div>
     </div>
   );
 }

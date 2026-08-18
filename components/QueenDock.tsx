@@ -65,6 +65,16 @@ const dockContent: Array<{
     ],
   },
   {
+    match: (pathname) => pathname.startsWith("/docs"),
+    eyebrow: "PRODUCT GUIDE",
+    title: "Understand every signal before you trust it.",
+    note: "I can explain any score, memory layer, token utility, payment boundary, or page without hiding behind system language.",
+    actions: [
+      { label: "EXPLAIN MY READINESS", mode: "ANALYZE", prompt: "Explain BIO-SCORE, XP, level, readiness domains, evidence, and local plans in plain language. Then tell me what to do first." },
+      { label: "EXPLAIN SOLANA UTILITY", mode: "ANALYZE", prompt: "Explain the difference between Solana identity, $THREAT holder utility, and x402 USDC payments in plain language." },
+    ],
+  },
+  {
     match: (pathname) => pathname.startsWith("/community") || pathname.startsWith("/solvivors"),
     eyebrow: "QUEEN TRANSMISSIONS",
     title: "A system without memory becomes noise.",
@@ -76,7 +86,7 @@ const dockContent: Array<{
   },
 ];
 
-const visibleCoreRoutes = ["/", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance", "/community", "/solvivors"];
+const visibleCoreRoutes = ["/", "/terminal", "/survival-kit", "/threat-vector", "/docs", "/operative", "/network-clearance", "/community", "/solvivors"];
 
 function buildHref(action: DockAction, area: string) {
   const query = new URLSearchParams({ mode: action.mode, prompt: action.prompt });

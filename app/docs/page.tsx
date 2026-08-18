@@ -1,0 +1,187 @@
+import Image from "next/image";
+import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Product Guide | RED QUEEN",
+  description: "Understand RED QUEEN pages, readiness scoring, $THREAT utility, x402 payments, Queen Visage, and privacy controls.",
+};
+
+const PROFILE_TERMS = [
+  {
+    name: "Apocalyptic SOLvivor alias",
+    meaning: "Your public RED QUEEN identity — a callsign, not your legal name.",
+    changes: "Edit it from My Readiness. It appears publicly only if you join the SOLvivor board.",
+  },
+  {
+    name: "Email or Solana identity",
+    meaning: "The verified account that owns your private Queen memory.",
+    changes: "Email and Sign In With Solana are authentication methods. Connecting a wallet alone does not sign in or approve payment.",
+  },
+  {
+    name: "BIO-SCORE",
+    meaning: "A 0–100 readiness estimate across seven survival-thinking domains.",
+    changes: "It changes only after Queen evaluates a decision, plan, or demonstrated preparedness action — never from holdings or chat volume.",
+  },
+  {
+    name: "XP / SOLvivor Points",
+    meaning: "A participation record earned through eligible evaluated drills and evidence.",
+    changes: "$THREAT can modestly multiply XP that was genuinely earned. Paid reports never award XP.",
+  },
+  {
+    name: "Level",
+    meaning: "A simple progression tier derived from permanent XP: every 100 XP advances one level.",
+    changes: "Level shows sustained activity; it is not professional certification or proof of safety.",
+  },
+  {
+    name: "Readiness domains",
+    meaning: "Threat awareness, operational discipline, psychological stability, technical preparedness, adaptability, resourcefulness, and digital resilience.",
+    changes: "Queen updates a domain only when your evaluated response contains relevant evidence.",
+  },
+  {
+    name: "Weakest domain",
+    meaning: "The lowest current readiness domain — the clearest place to improve next.",
+    changes: "It automatically changes when new evaluated evidence changes your domain scores.",
+  },
+  {
+    name: "Recommended next drill",
+    meaning: "A short Queen simulation focused on your baseline or current weakest domain.",
+    changes: "It gives you one decision at a time and waits for your answer before evaluating it.",
+  },
+  {
+    name: "Active protocols",
+    meaning: "Preparedness plans saved from Queen or created from a scenario.",
+    changes: "Protocols live on this device and remain active until their observable steps are completed.",
+  },
+  {
+    name: "Plan execution",
+    meaning: "How many concrete protocol steps you marked complete.",
+    changes: "A local completion is a memory aid. It does not change BIO until Queen evaluates the evidence.",
+  },
+  {
+    name: "Signal Watch state",
+    meaning: "The categories and broad-area relevance you asked Queen to monitor.",
+    changes: "Watch preferences stay on-device. Current browser alerts work while RED QUEEN is open.",
+  },
+  {
+    name: "Evaluated activity history",
+    meaning: "Recent Queen responses that contained an explicit readiness evaluation and next action.",
+    changes: "Ordinary questions do not enter this evidence log.",
+  },
+  {
+    name: "$THREAT clearance",
+    meaning: "The intelligence capacity unlocked by a verified canonical SPL balance.",
+    changes: "Higher clearance expands context, watch slots, signal comparison, analysis depth, earned-XP multiplier, and holder creative utility.",
+  },
+  {
+    name: "Holder verification",
+    meaning: "A fresh server-side Solana mainnet balance read for the canonical $THREAT mint.",
+    changes: "It fails closed when RPC is unavailable. Queen Visage requires a proof refreshed within 30 minutes.",
+  },
+  {
+    name: "Memory / privacy summary",
+    meaning: "A visible inventory of what exists in account memory and what stays only on this browser.",
+    changes: "RED QUEEN never needs a seed phrase, private key, password, or exact home address.",
+  },
+  {
+    name: "Community visibility",
+    meaning: "Your explicit choice to appear on the public SOLvivor Readiness Board.",
+    changes: "Private by default. The board shows alias, XP, level, BIO, clearance, and a broad activity band — never email or wallet.",
+  },
+];
+
+const PAGE_GUIDE = [
+  ["Pulse", "What changed today, what deserves attention, and the first useful action.", "/"],
+  ["Map", "Where verified signals are, how strong they are, and whether broad-area relevance is justified.", "/#live-map"],
+  ["Queen", "Ask, analyze, prepare, or run a decision simulation with context.", "/terminal"],
+  ["Prepare", "Private baseline checks, active protocols, completed steps, and action history.", "/survival-kit"],
+  ["Library", "Preparedness references, digital security scenarios, fictional simulations, and labeled satire.", "/threat-vector"],
+  ["Community", "Queen transmissions, field notes, lore, and the opt-in SOLvivor board.", "/community"],
+  ["Onchain", "Solana identity, live $THREAT utility, x402 status, prices, and signature safety.", "/network-clearance"],
+  ["My Readiness", "Your private identity, evidence, BIO, XP, plans, holder status, and network controls.", "/operative"],
+];
+
+export default function ProductGuidePage() {
+  return (
+    <div className="guide-page">
+      <header className="guide-hero">
+        <div className="container guide-hero-grid">
+          <div>
+            <span>PRODUCT GUIDE // START HERE</span>
+            <h1>Understand the system.<br /><em>Then make it useful.</em></h1>
+            <p>RED QUEEN turns verified signals into one assessment, one action, and a readiness record you control. This guide explains every score, page, token gate, and payment boundary without lore getting in the way.</p>
+            <div><Link className="btn btn-primary" href="/">OPEN TODAY&apos;S PULSE</Link><Link className="btn btn-ghost" href="/terminal">ASK RED QUEEN</Link></div>
+          </div>
+          <div className="guide-queen" aria-hidden="true">
+            <div className="guide-queen-halo" />
+            <Image src="/art/red-queen-presence.png" alt="" width={1199} height={1312} priority />
+          </div>
+        </div>
+      </header>
+
+      <main className="container guide-main">
+        <section className="guide-start">
+          <div><span>THE DAILY LOOP</span><h2>Four steps. Less than a minute to begin.</h2></div>
+          <ol>
+            <li><b>01</b><strong>Detect</strong><p>Open Pulse and see what changed in verified sources.</p></li>
+            <li><b>02</b><strong>Understand</strong><p>Open a signal or ask Queen why it matters to your context.</p></li>
+            <li><b>03</b><strong>Act</strong><p>Save one justified next action or build a short protocol.</p></li>
+            <li><b>04</b><strong>Improve</strong><p>Complete the action and let Queen evaluate real evidence.</p></li>
+          </ol>
+        </section>
+
+        <section className="guide-section" id="pages">
+          <div className="guide-section-head"><span>01 // PLATFORM MAP</span><h2>What every page is for</h2><p>If a page cannot answer one clear user question, it does not belong in the core journey.</p></div>
+          <div className="guide-page-grid">
+            {PAGE_GUIDE.map(([name, description, href]) => <Link key={name} href={href}><strong>{name}</strong><p>{description}</p><span>OPEN →</span></Link>)}
+          </div>
+        </section>
+
+        <section className="guide-section" id="readiness">
+          <div className="guide-section-head"><span>02 // MY READINESS</span><h2>Every profile field, explained</h2><p>Your profile separates activity, evidence, preparedness memory, token access, and public visibility. They are related, but they are not the same score.</p></div>
+          <div className="guide-term-list">
+            {PROFILE_TERMS.map((term, index) => (
+              <details key={term.name} open={index < 3}>
+                <summary><span>{String(index + 1).padStart(2, "0")}</span><strong>{term.name}</strong><i>+</i></summary>
+                <div><p>{term.meaning}</p><small>HOW IT WORKS</small><p>{term.changes}</p></div>
+              </details>
+            ))}
+          </div>
+          <div className="guide-score-contract"><strong>THE SCORING FIREWALL</strong><p>BIO measures evaluated readiness. XP records eligible participation. $THREAT expands intelligence capacity. USDC pays for discrete compute. None of these may impersonate another.</p></div>
+        </section>
+
+        <section className="guide-section guide-two-column" id="token">
+          <div>
+            <div className="guide-section-head"><span>03 // $THREAT</span><h2>Access utility, not purchased competence</h2></div>
+            <ul><li>Longer trusted Queen context.</li><li>More Signal Watch slots.</li><li>More verified signals in one synthesis.</li><li>Deeper analysis and comparison.</li><li>A modest multiplier on XP already earned through evidence.</li><li>Holder-only Queen Visage generation.</li></ul>
+            <Link href="/network-clearance">VIEW LIVE CLEARANCE LEVELS →</Link>
+          </div>
+          <div>
+            <div className="guide-section-head"><span>04 // x402</span><h2>Pay for a declared output</h2></div>
+            <p>x402 uses a separate wallet approval for an exact USDC amount. A connected or signed-in wallet cannot silently pay. Each live request receives an operation ID, settlement receipt, and replay protection.</p>
+            <ul><li>0.01 USDC global verified-source synthesis.</li><li>0.02 USDC Solana network health diagnostic.</li><li>Disabled automatically when recipient, facilitator, source coverage, or receipt storage is not healthy.</li></ul>
+            <Link href="/network-clearance">CHECK SETTLEMENT STATUS →</Link>
+          </div>
+        </section>
+
+        <section className="guide-section guide-visage" id="visage">
+          <div><span>05 // QUEEN VISAGE · RQ VISAGE / V1</span><h2>Your face. Her visual language.</h2><p>The generator receives an explicit visual contract: preserve identity; use a black void, precise red-and-white neon linework, subtle survival-intelligence geometry, and a restrained tactical crown halo. It must add no text, logo, weapon, gore, face covering, or extra person.</p><p>The source portrait is sent only after Generate. The result returns to the browser and stays local unless you download or share it.</p></div>
+          <Image src="/art/red-queen-sigil.png" alt="RED QUEEN visual language reference" width={1536} height={1536} />
+        </section>
+
+        <section className="guide-section guide-roadmap" id="next-solana">
+          <div className="guide-section-head"><span>06 // NEXT SOLANA LAYER</span><h2>What comes after this web release</h2><p>These are real product tracks, not labels for features that have not shipped.</p></div>
+          <div>
+            <article><span>NEXT</span><strong>Actions / Blinks</strong><p>Share a verified protocol or paid Queen operation from X, Discord, or compatible wallets.</p></article>
+            <article><span>NEXT</span><strong>Agent Registry</strong><p>Register RED QUEEN&apos;s onchain identity, wallet, MCP endpoint, capabilities, and reputation metadata.</p></article>
+            <article><span>NEXT</span><strong>Kora fee abstraction</strong><p>Sponsor first Solana actions so onboarding does not require a pre-funded SOL balance.</p></article>
+            <article><span>LATER</span><strong>Seeker / Mobile</strong><p>Rebuild the mobile shell around the proven Pulse → Queen → Action loop and Mobile Wallet Adapter.</p></article>
+            <article><span>RESEARCH</span><strong>Agent budget</strong><p>A user-capped allowance for multiple AI/data calls with a per-operation ledger and strict spend ceiling.</p></article>
+          </div>
+        </section>
+
+        <section className="guide-safety"><div><span>QUEEN DIRECTIVE</span><strong>Give me context. Never give me your keys.</strong><p>Use broad location only. Verify critical guidance with authorities. RED QUEEN is decision support, not an emergency service.</p></div><Link className="btn btn-primary" href="/privacy">PRIVACY CONTROLS</Link></section>
+      </main>
+    </div>
+  );
+}

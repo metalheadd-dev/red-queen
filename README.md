@@ -6,7 +6,7 @@ RED QUEEN turns verified threat signals into clear assessments, practical prepar
 
 Production: [redqueen.space](https://redqueen.space) · X: [@redqueen_agent](https://x.com/redqueen_agent)
 
-![RED QUEEN command interface](public/art/red-queen-command-banner.png)
+![RED QUEEN neural sigil](public/art/red-queen-sigil.png)
 
 > Pulse is her eyes. The map is her nervous system. The library is her memory. Prepare is her hands. Community is her voice. RED QUEEN is the brain connecting them.
 
@@ -29,6 +29,7 @@ The browser also keeps a bounded scan baseline and reports what is new, escalate
 | `/terminal` | Context-aware RED QUEEN agent: Monitor, Analyze, Prepare, Simulate |
 | `/survival-kit` | Local preparedness checklist and protocols |
 | `/threat-vector` | Real-world, digital, fictional, and satirical scenario library |
+| `/docs` | Product Guide: every page, profile field, score, token boundary, x402 flow, and roadmap |
 | `/community` | Queen transmissions, practical field notes, labeled lore, and the opt-in SOLvivor readiness board |
 | `/operative` | My Readiness: identity, BIO, XP, evidence, memory, token clearance |
 | `/network-clearance` | Solana control plane and live `$THREAT` utility proof |
@@ -132,6 +133,9 @@ Official references: [Solana Actions and Blinks](https://solana.com/developers/g
 ## Next Solana integrations
 
 - Solana Actions/Blinks for shareable RED QUEEN protocols and paid intelligence actions, after the core daily loop is stable.
+- RED QUEEN Agent Registry identity with wallet, MCP endpoint, capabilities, x402 support, and reputation metadata.
+- Kora fee abstraction for sponsored first actions without requiring a pre-funded SOL balance.
+- A user-capped autonomous agent budget with a strict spend ceiling and per-operation receipt ledger.
 - Mobile Wallet Adapter and the Seeker Android build are intentionally deferred until the web product is production-ready.
 - Holder-specific alert channels and compute allowances.
 - Privacy-preserving credentials only if readiness data can remain private by design.

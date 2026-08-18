@@ -509,6 +509,7 @@ export default function OperativeProfilePage() {
           <div className="rq-profile-metric"><span>LOCAL PREPARE</span><strong>{localProgress}%</strong><b>{localChecks}/{PREPAREDNESS_CHECKLIST.length} SELF-CHECKS</b><i><em style={{ width: `${localProgress}%` }} /></i><p>Stored on this device; not BIO evidence.</p></div>
           <div className="rq-profile-metric"><span>$THREAT CLEARANCE</span><strong>LVL {tokenClearance.level}</strong><b>{tokenClearance.name}</b><p>{tokenClearance.responseDepth.toUpperCase()} analysis · {tokenClearance.comparisonSignals} live signals per synthesis · ×{tokenClearance.earnedXpMultiplier.toFixed(2)} earned XP.</p></div>
         </section>
+        <div className="rq-profile-guide-link"><span>NEW TO THE SYSTEM?</span><p>BIO, XP, levels, domains, protocols, Signal Watch, holder proof and privacy are explained in plain language.</p><Link href="/docs#readiness">OPEN PROFILE FIELD GUIDE →</Link></div>
 
         <section className="rq-profile-continuity" aria-label="Survival continuity">
           <div className="rq-profile-continuity-heading">

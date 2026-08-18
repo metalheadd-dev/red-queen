@@ -30,15 +30,6 @@ const LANE_LABELS: Record<CommunityLane, string> = {
   LORE: "LABELED PLATFORM LORE",
 };
 
-const SYSTEM_ORGANS = [
-  ["00", "QUEEN AGENT", "Her brain", "Connect every signal, memory and constraint into one decision."],
-  ["01", "PULSE", "Her eyes", "Detect what changed and what deserves attention."],
-  ["02", "MAP", "Her nervous system", "Place verified signals in distance and context."],
-  ["03", "LIBRARY", "Her memory", "Preserve threats, protocols and clearly labeled lore."],
-  ["04", "PREPARE", "Her hands", "Turn intelligence into a plan you can complete."],
-  ["05", "COMMUNITY", "Her voice", "Carry field notes, stories and survivor knowledge."],
-];
-
 export default function CommunityPage() {
   const [filter, setFilter] = useState<Filter>("ALL");
   const [selectedId, setSelectedId] = useState(COMMUNITY_ENTRIES[0].id);
@@ -81,7 +72,6 @@ export default function CommunityPage() {
   return (
     <div className="community-page">
       <header className="community-hero">
-        <Image className="community-hero-art" src="/art/red-queen-command-banner.png" alt="RED QUEEN command portrait" fill priority sizes="100vw" />
         <div className="community-hero-shade" />
         <Image className="community-hero-queen" src="/art/red-queen-presence.png" alt="" width={1199} height={1312} priority aria-hidden="true" />
         <div className="container community-hero-copy">
@@ -102,10 +92,8 @@ export default function CommunityPage() {
             <p>Every part of the platform should feel like the same mind at work. No disconnected dashboards. No decorative AI. RED QUEEN observes, remembers, explains and returns knowledge as an action.</p>
             <blockquote>“I can read the pattern. I can open the door. You still have to move.”</blockquote>
           </div>
-          <div className="community-organ-grid">
-            {SYSTEM_ORGANS.map(([index, name, organ, description]) => (
-              <article key={name}><span>{index}</span><div><strong>{name}</strong><b>{organ}</b><p>{description}</p></div></article>
-            ))}
+          <div className="community-architecture-line" aria-label="RED QUEEN system architecture">
+            <span>PULSE · EYES</span><span>MAP · NERVES</span><span>QUEEN · BRAIN</span><span>LIBRARY · MEMORY</span><span>PREPARE · HANDS</span><span>COMMUNITY · VOICE</span>
           </div>
         </section>
 
@@ -180,7 +168,7 @@ export default function CommunityPage() {
         </section>
 
         <section className="community-origin">
-          <div className="community-origin-art"><Image src="/art/red-queen-origin-poster.png" alt="Original RED QUEEN identity artwork" width={1200} height={1200} /></div>
+          <div className="community-origin-art"><Image src="/art/red-queen-sigil.png" alt="RED QUEEN crown and neural sigil" width={1536} height={1536} /></div>
           <div>
             <span>ORIGIN ARCHIVE // MAY 2026</span>
             <h2>The apocalypse aesthetic stays. The product becomes useful.</h2>

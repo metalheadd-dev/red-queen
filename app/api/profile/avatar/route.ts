@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       quality: "medium",
       output_format: "webp",
       prompt: [
-        "Transform the uploaded portrait into an original RED QUEEN SOLvivor identity portrait.",
+        "RQ VISAGE / V1. Transform the uploaded portrait into an original RED QUEEN SOLvivor identity portrait with a consistent house style.",
         "Preserve the person's recognizable facial structure, expression, skin tone, hair, and identity.",
         "Visual language: black void background, precise red and white neon linework, subtle apocalyptic survival-intelligence HUD geometry, restrained crown-like tactical halo, cinematic contrast, clean centered shoulders-up composition.",
         "The person is a capable survivor guided by RED QUEEN, not RED QUEEN herself.",
@@ -87,6 +87,7 @@ export async function POST(request: Request) {
       avatarDataUrl: `data:image/webp;base64,${encoded}`,
       storage: "local-device",
       utility: "$THREAT_HOLDER",
+      visualStyle: "RQ_VISAGE_V1",
     });
   } catch (error) {
     console.error("Queen Visage generation failed:", error);

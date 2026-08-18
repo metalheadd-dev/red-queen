@@ -12,17 +12,9 @@ import {
   PreparednessDomain,
 } from "@/lib/preparedness";
 import { AgentMode, sanitizeArea } from "@/lib/survival-context";
-import { THREAT_CLEARANCE_LEVELS } from "@/lib/threat-token";
 
 const CHECKLIST_STORAGE_KEY = "rq-preparedness-checklist-v1";
 const CONTEXT_STORAGE_KEY = "rq-survival-context-v1";
-
-function formatTokenThreshold(threshold: number) {
-  if (threshold === 0) return "PUBLIC";
-  if (threshold >= 1_000_000) return `${threshold / 1_000_000}M+ $THREAT`;
-  if (threshold >= 1_000) return `${threshold / 1_000}K+ $THREAT`;
-  return `${threshold}+ $THREAT`;
-}
 
 export default function SurvivalKitPage() {
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
@@ -221,23 +213,13 @@ export default function SurvivalKitPage() {
           </div>
         </section>
 
-        <section className="prepare-token-utility">
+        <section className="prepare-token-utility prepare-token-utility-compact">
           <div>
             <span className="pulse-eyebrow">$THREAT // INTELLIGENCE CLEARANCE</span>
             <h2>Safety basics stay public. Tokens deepen the system.</h2>
             <p>$THREAT expands Queen context and analysis depth and modestly multiplies XP that was genuinely earned. Holdings never manufacture readiness or replace evidence.</p>
           </div>
-          <div className="prepare-tier-list">
-            {THREAT_CLEARANCE_LEVELS.map((tier) => (
-              <div key={tier.tier}>
-                <span>LVL {tier.level}</span>
-                <strong>{tier.name}</strong>
-                <em>{formatTokenThreshold(tier.threshold)}</em>
-                <p>{tier.description}</p>
-                <b>{tier.contextMessages} context · {tier.comparisonSignals} signal synthesis · ×{tier.earnedXpMultiplier.toFixed(2)} earned XP</b>
-              </div>
-            ))}
-          </div>
+          <div className="prepare-token-actions"><Link className="btn btn-ghost" href="/network-clearance">SEE EXACT HOLDER UTILITY</Link><Link href="/docs#token">HOW SCORING & ACCESS DIFFER →</Link></div>
         </section>
       </div>
     </div>

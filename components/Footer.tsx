@@ -8,6 +8,7 @@ export default function Footer() {
         SURVIVAL INTELLIGENCE ECOSYSTEM ON SOLANA
       </p>
       <p style={{ marginTop: "12px", display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", fontSize: "10px" }}>
+        <Link href="/docs">PRODUCT GUIDE</Link>
         <Link href="/license">LICENSE</Link>
         <Link href="/copyright">COPYRIGHT</Link>
         <Link href="/privacy">PRIVACY POLICY</Link>

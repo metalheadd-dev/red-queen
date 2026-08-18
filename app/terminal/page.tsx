@@ -1079,14 +1079,6 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
           <p>Pulse is my sight. The Map is my nervous system. The Library is my memory. Prepare is where intelligence becomes something your hands can finish.</p>
           <strong>“I decide what deserves attention. You decide whether to act.”</strong>
         </div>
-        <nav className="rq-terminal-neural-grid" aria-label="RED QUEEN system architecture">
-          <Link href="/"><span>EYES</span><strong>PULSE</strong><small>Daily signal</small></Link>
-          <Link href="/#live-map"><span>NERVES</span><strong>MAP</strong><small>Live field</small></Link>
-          <div className="active"><span>BRAIN</span><strong>QUEEN</strong><small>Decision core</small></div>
-          <Link href="/threat-vector"><span>MEMORY</span><strong>LIBRARY</strong><small>Threat knowledge</small></Link>
-          <Link href="/survival-kit"><span>HANDS</span><strong>PREPARE</strong><small>Action plan</small></Link>
-          <Link href="/community"><span>VOICE</span><strong>COMMUNITY</strong><small>SOLvivor network</small></Link>
-        </nav>
         <div className="rq-terminal-memory-state">
           <div><span>SOLVIVOR CONTEXT</span><strong>{survivalContext.area || "GLOBAL / NOT SET"}</strong></div>
           <div><span>ACTIVE ACTION</span><strong>{savedActionText ? "SAVED IN PREPARE" : "NOT YET CREATED"}</strong></div>
