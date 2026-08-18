@@ -1073,7 +1073,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
     <div className="rq-terminal-page">
       <header className="rq-terminal-core">
         <div className="rq-terminal-core-art" aria-hidden="true">
-          <Image src="/art/red-queen-throne.png" alt="" fill sizes="(max-width: 700px) 360px, 620px" priority />
+          <Image src="/art/red-queen-throne-v2.png" alt="" fill sizes="(max-width: 700px) 360px, 640px" priority />
         </div>
         <div className="rq-terminal-core-copy">
           <span>QUEEN CORE // COGNITIVE COMMAND</span>
@@ -1710,7 +1710,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
         </div>
 
         {/* Right Side: the user loop first; diagnostics stay available on demand. */}
-        <aside className="desktop-only" style={{
+        <aside className="rq-terminal-sidebar desktop-only" style={{
           width: "320px",
           borderLeft: "1px solid var(--border)",
           background: "var(--surface)",
