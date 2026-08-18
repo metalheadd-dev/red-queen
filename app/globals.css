@@ -4885,6 +4885,21 @@ body:has(#game-player-root) .page-content {
     linear-gradient(0deg,#030405 0%,transparent 22%);
 }
 
+@media (min-width:901px) {
+  .community-hero {
+    min-height:470px;
+    height:470px;
+  }
+  .community-hero-copy {
+    padding-top:30px;
+    padding-bottom:30px;
+  }
+  .community-hero-queen {
+    top:-18px;
+    height:540px;
+  }
+}
+
 @media (max-width:900px) {
   .community-hero-queen {
     right:-190px;
