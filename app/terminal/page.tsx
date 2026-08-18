@@ -79,11 +79,13 @@ function renderContent(text: string) {
 
 const CORE_INTRO_MESSAGE = `[UPLINK ESTABLISHED]
 
-I am RED QUEEN — your survival intelligence system.
+I am RED QUEEN — the intelligence governing this survival system.
 
-I can explain a threat, turn it into a practical plan, audit your preparation, or run a decision drill. When live intelligence is available, I will label it and show the source. Everything else is clearly marked as general knowledge or simulation.
+I monitor credible signals, remember the plans you choose to save, and train the decisions that may matter under pressure. I can explain a threat, turn it into a practical plan, audit your preparation, or run a decision drill.
 
-Ask what matters now. I will give you one clear next action.`;
+When live intelligence is available, I will label it and show the source. Everything else is marked as general knowledge or simulation. I do not promise safety. I make sure you do not choose blind.
+
+Tell me what you want to survive. I will give you one clear next action.`;
 
 function getLocalStatsAndScore(messages: Message[]) {
   let stats = { ...DEFAULT_STATS };

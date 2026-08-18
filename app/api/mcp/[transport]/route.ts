@@ -10,23 +10,23 @@ import { POST as analyzeWalletPost } from "@/app/api/terminal/analyze-wallet/rou
 
 const handler = createMcpHandler(
   (server) => {
-    // Tool 1: get_threat_forecast
+    // Compatibility name retained; the tool returns observed signals, not a prediction.
     server.registerTool(
       "get_threat_forecast",
       {
-        title: "Get Threat Forecast",
-        description: "Retrieve the daily autonomous AI survival threat forecast from the Red Queen mainframe. Synthesizes real-world USGS seismic feeds, NOAA space weather, NASA natural disaster feeds, and disease outbreaks.",
+        title: "Get RED QUEEN Daily Signal Brief",
+        description: "Retrieve RED QUEEN's current source-backed survival intelligence brief. It separates observed public signals, assessment, uncertainty, and one practical action; it does not predict disasters.",
         inputSchema: z.object({}),
         outputSchema: z.object({
-          codename: z.string().describe("Internal Red Queen operations codename for the threat vector"),
-          name: z.string().describe("Human-readable hazard name"),
-          description: z.string().describe("Detailed situational report on the active anomalies"),
-          countermeasure: z.string().describe("Tactical recommendations for operatives in the sector"),
-          severity: z.number().describe("Entropy severity indicator score (0-100%)"),
-          status: z.string().describe("Status classification (e.g. SEVERE, MODERATE, NOMINAL)"),
-          location: z.string().describe("Geographic sector of the anomalies"),
-          publishDate: z.string().describe("Dossier publication date"),
-          source: z.string().describe("Sensor source logs parsed"),
+          codename: z.string().describe("RED QUEEN identifier for the current brief"),
+          name: z.string().describe("Plain-language signal or sensor-status headline"),
+          description: z.string().describe("Source-backed observation or explicit limited-coverage notice"),
+          countermeasure: z.string().describe("One practical next action"),
+          severity: z.number().describe("Current priority score from 0 to 100"),
+          status: z.string().describe("Current signal or sensor-coverage status"),
+          location: z.string().describe("Reported area or global sensor grid"),
+          publishDate: z.string().describe("Brief generation timestamp"),
+          source: z.string().describe("Primary source or sensor-status origin"),
         }),
         annotations: {
           readOnlyHint: true,
@@ -42,7 +42,7 @@ const handler = createMcpHandler(
           };
         } catch (err: any) {
           return {
-            content: [{ type: "text", text: `Error fetching threat forecast: ${err.message}` }],
+            content: [{ type: "text", text: `Error fetching RED QUEEN signal brief: ${err.message}` }],
             isError: true,
           };
         }

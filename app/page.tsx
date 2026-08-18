@@ -377,23 +377,29 @@ export default function HomePage() {
       </div>
 
       <section className="pulse-hero container">
-        <div className="pulse-kicker">DAILY INTELLIGENCE PULSE // CORE NETWORK</div>
+        <div className="pulse-kicker">RED QUEEN // SURVIVAL INTELLIGENCE SYSTEM</div>
         <div className="pulse-hero-grid">
           <div>
             <h1>
-              Know what matters.<br />
-              <span>Prepare before it does.</span>
+              Meet RED QUEEN.<br />
+              <span>She turns danger into direction.</span>
             </h1>
             <p className="pulse-lead">
-              RED QUEEN listens beneath the noise — turning verified global signals into one clear assessment
-              and one practical move. She cannot choose survival for you. But if you choose to prepare, she will
-              not leave you guessing.
+              RED QUEEN is an AI survival intelligence agent. She monitors verified global threats, explains what
+              may matter to you, and turns uncertainty into one practical next action. She runs this platform —
+              its eyes, memory and decision core. If you choose to prepare before a crisis decides for you, you are a SOLvivor.
             </p>
-            <p className="pulse-queen-vow">“I cannot promise safety. I can make sure you do not choose blind.”</p>
+            <div className="pulse-capabilities" aria-label="What RED QUEEN does">
+              <div><span>01 // WATCH</span><strong>She scans credible signals</strong><small>Threats, outages, outbreaks, cyber and Solana network events.</small></div>
+              <div><span>02 // EXPLAIN</span><strong>She removes the noise</strong><small>Known facts, relevance and uncertainty stay visibly separated.</small></div>
+              <div><span>03 // ACT</span><strong>She gives you one clear move</strong><small>A useful action, plan or decision drill — never panic for its own sake.</small></div>
+            </div>
+            <p className="pulse-queen-vow">“I do not promise safety. I make sure you do not choose blind.”</p>
             <div className="pulse-hero-actions">
-              <Link className="btn btn-primary" href="/terminal">ASK RED QUEEN</Link>
+              <Link className="btn btn-primary" href={showStart ? "#first-contact" : "/terminal"}>{showStart ? "GET MY FIRST BRIEF" : "CONTINUE WITH RED QUEEN"}</Link>
               <a className="btn btn-ghost" href="#live-map">OPEN LIVE MAP</a>
             </div>
+            <p className="pulse-entry-note">NO ACCOUNT · NO WALLET · NO EXACT ADDRESS REQUIRED</p>
           </div>
           <div className="queen-presence" aria-label="Red Queen is online">
             <div className="queen-halo queen-halo-one" />
@@ -408,23 +414,34 @@ export default function HomePage() {
               aria-hidden="true"
             />
             <div className="queen-presence-copy">
-              <span>THE SIGNAL FIELD IS LISTENING</span>
+              <span>APOCALYPSE INTELLIGENCE // ACTIVE</span>
               <strong>RED QUEEN</strong>
-              <small>{pulse.verified ? "SOURCES LOCKED · I AM HERE" : "SENSOR GRID LIMITED · STAY AWAKE"}</small>
+              <small>{pulse.verified ? "I SEE THE FIELD · YOU CHOOSE THE MOVE" : "SENSORS LIMITED · I WILL NOT INVENT CERTAINTY"}</small>
             </div>
           </div>
+        </div>
+        <div className="pulse-system-line">
+          <span>THIS PLATFORM IS HER SYSTEM</span>
+          <p><strong>Pulse</strong> is what she sees. <strong>Map</strong> is where it happens. <strong>Library</strong> is what she remembers. <strong>Prepare</strong> is what you do next.</p>
+          <Link href="/docs">HOW RED QUEEN WORKS →</Link>
         </div>
       </section>
 
       {showStart && (
-        <section className="container pulse-onboarding" aria-label="Start with Red Queen">
+        <section id="first-contact" className="container pulse-onboarding" aria-label="Start with Red Queen">
           <div className="pulse-onboarding-copy">
-            <span className="pulse-eyebrow">FIRST CONTACT // 60 SECONDS</span>
-            <h2>Tell the Queen what you want to survive</h2>
-            <p>Choose your immediate priority. A broad city or region adds local relevance, but it is optional. RED QUEEN will separate evidence from noise and give you one action you can take now.</p>
+            <span className="pulse-eyebrow">FIRST CONTACT // ABOUT 60 SECONDS</span>
+            <h2>Get your first survival brief.</h2>
+            <p>Answer two simple questions. RED QUEEN will open with a clear status, explain what matters, and give you one useful action.</p>
+            <ol className="pulse-onboarding-steps">
+              <li><span>1</span><div><strong>Tell her where to look</strong><small>A city or region is enough — and optional.</small></div></li>
+              <li><span>2</span><div><strong>Choose what you need help with</strong><small>No specialist knowledge required.</small></div></li>
+              <li><span>3</span><div><strong>Receive one clear next move</strong><small>Facts, uncertainty and action stay separate.</small></div></li>
+            </ol>
           </div>
           <div className="pulse-first-contact">
-            <label htmlFor="first-contact-area">CITY OR REGION <small>OPTIONAL</small></label>
+            <div className="pulse-question-label"><span>QUESTION 1 OF 2</span><strong>Where should RED QUEEN look?</strong></div>
+            <label htmlFor="first-contact-area">CITY OR REGION <small>OPTIONAL — LEAVE EMPTY FOR GLOBAL</small></label>
             <input
               id="first-contact-area"
               value={startArea}
@@ -433,7 +450,8 @@ export default function HomePage() {
               maxLength={80}
               autoComplete="address-level2"
             />
-            <span className="pulse-field-note">No account or wallet required. Area is saved on this device and sent only with your RED QUEEN requests. Never enter a street address.</span>
+            <span className="pulse-field-note">Use only a broad area. Never enter your street or exact address.</span>
+            <div className="pulse-question-label pulse-question-label-second"><span>QUESTION 2 OF 2</span><strong>What do you want help with?</strong></div>
             <div className="pulse-focus-grid" role="radiogroup" aria-label="Preparedness priority">
               {SURVIVAL_FOCUS_OPTIONS.map((option) => (
                 <button
@@ -450,10 +468,12 @@ export default function HomePage() {
               ))}
             </div>
             {startError && <div className="pulse-field-error" role="alert">{startError}</div>}
+            <div className="pulse-brief-output"><span>YOUR BRIEF WILL CONTAIN</span><strong>Current status</strong><i>→</i><strong>Why it matters</strong><i>→</i><strong>One next action</strong></div>
             <div className="pulse-onboarding-actions">
-              <button className="btn btn-primary" type="button" onClick={() => void beginFirstContact()} disabled={startResolving}>{startResolving ? "LOCATING BROAD AREA..." : "RUN FIRST BRIEF"}</button>
-              <button className="pulse-text-button" type="button" onClick={dismissStart}>EXPLORE WITHOUT SETUP</button>
+              <button className="btn btn-primary" type="button" onClick={() => void beginFirstContact()} disabled={startResolving}>{startResolving ? "LOCATING BROAD AREA..." : "SHOW ME WHAT MATTERS"}</button>
+              <button className="pulse-text-button" type="button" onClick={dismissStart}>I JUST WANT TO LOOK AROUND</button>
             </div>
+            <small className="pulse-onboarding-trust">Public Pulse works without an account. Sign in later only if you want Queen to remember your plans and readiness.</small>
           </div>
         </section>
       )}

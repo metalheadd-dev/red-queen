@@ -27,8 +27,8 @@ const dockContent: Array<{
   {
     match: (pathname) => pathname === "/",
     eyebrow: "DAILY PULSE",
-    title: "The signal field is never silent.",
-    note: "I separate omen from evidence. If you choose to act, I will show you where to begin.",
+    title: "I watch the field. I do not invent certainty.",
+    note: "I separate omen from evidence, explain what may matter to you, and give you one place to begin if you choose to act.",
     actions: [
       { label: "WHAT MATTERS NOW?", mode: "MONITOR", prompt: "Brief me on the verified signals that matter for my context right now. Separate facts, uncertainty, and one action." },
       { label: "GIVE ME ONE ACTION", mode: "PREPARE", prompt: "Based on my survival context, give me the single highest-impact preparedness action I can complete today." },

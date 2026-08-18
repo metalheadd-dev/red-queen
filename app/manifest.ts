@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Red Queen Survival Intelligence",
     short_name: "Red Queen",
-    description: "Verified threat signals, practical preparedness and a context-aware survival intelligence agent.",
+    description: "RED QUEEN turns verified threat signals into clear assessments, practical actions and survival-readiness training.",
     start_url: "/",
     display: "standalone",
     background_color: "#050505",
