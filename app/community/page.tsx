@@ -2,10 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { COMMUNITY_ENTRIES, CommunityLane } from "@/lib/community-content";
 
 type Filter = "ALL" | CommunityLane;
+
+type SolvivorEntry = {
+  rank: number;
+  display_name: string;
+  points: number;
+  level: number;
+  bio_score: number;
+  clearance: string;
+  activity: string;
+};
 
 const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: "ALL", label: "ALL FILES" },
@@ -32,11 +42,33 @@ const SYSTEM_ORGANS = [
 export default function CommunityPage() {
   const [filter, setFilter] = useState<Filter>("ALL");
   const [selectedId, setSelectedId] = useState(COMMUNITY_ENTRIES[0].id);
+  const [solvivors, setSolvivors] = useState<SolvivorEntry[]>([]);
+  const [boardLoading, setBoardLoading] = useState(true);
+  const [boardMessage, setBoardMessage] = useState("");
   const visibleEntries = useMemo(
     () => filter === "ALL" ? COMMUNITY_ENTRIES : COMMUNITY_ENTRIES.filter((entry) => entry.lane === filter),
     [filter],
   );
   const selected = COMMUNITY_ENTRIES.find((entry) => entry.id === selectedId) || visibleEntries[0];
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/community/leaderboard")
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "The readiness board is temporarily unavailable.");
+        if (cancelled) return;
+        setSolvivors(Array.isArray(data.leaderboard) ? data.leaderboard : []);
+        setBoardMessage(data.available === false ? data.message || "The network is awaiting activation." : "");
+      })
+      .catch((error) => {
+        if (!cancelled) setBoardMessage(error instanceof Error ? error.message : "The readiness board is temporarily unavailable.");
+      })
+      .finally(() => {
+        if (!cancelled) setBoardLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   function selectFilter(next: Filter) {
     setFilter(next);
@@ -75,6 +107,39 @@ export default function CommunityPage() {
               <article key={name}><span>{index}</span><div><strong>{name}</strong><b>{organ}</b><p>{description}</p></div></article>
             ))}
           </div>
+        </section>
+
+        <section id="solvivor-board" className="community-board" aria-labelledby="solvivor-board-title">
+          <div className="community-section-head">
+            <div><span>SOLVIVOR NETWORK // OPT-IN SIGNAL</span><h2 id="solvivor-board-title">Readiness leaves a trace.</h2></div>
+            <p>SOLvivor Points are your earned XP from evaluated drills and evidence. BIO-SCORE measures demonstrated readiness. Neither exposes your wallet, and holdings never manufacture competence.</p>
+          </div>
+          <div className="community-board-contract">
+            <div><span>01</span><strong>EARN</strong><p>Complete evaluated Queen drills and observable preparedness actions.</p></div>
+            <div><span>02</span><strong>PROVE</strong><p>BIO changes only when your decisions provide readiness evidence.</p></div>
+            <div><span>03</span><strong>OPT IN</strong><p>Publish only an apocalyptic alias, points, level, BIO and broad activity.</p></div>
+          </div>
+          <div className="community-board-shell">
+            <header><span>RANK</span><span>SOLVIVOR</span><span>POINTS</span><span>BIO</span><span>STATUS</span></header>
+            {boardLoading ? (
+              <div className="community-board-empty"><strong>READING NETWORK SIGNALS...</strong></div>
+            ) : solvivors.length ? (
+              <div className="community-board-list">
+                {solvivors.map((entry) => (
+                  <article key={`${entry.rank}-${entry.display_name}`} className={entry.rank <= 3 ? `is-top is-rank-${entry.rank}` : ""}>
+                    <b>#{String(entry.rank).padStart(2, "0")}</b>
+                    <div><strong>{entry.display_name}</strong><small>LEVEL {entry.level} · {entry.clearance}</small></div>
+                    <span><strong>{entry.points.toLocaleString()}</strong><small>SOLVIVOR XP</small></span>
+                    <span><strong>{entry.bio_score}%</strong><small>READINESS</small></span>
+                    <i>{entry.activity}</i>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="community-board-empty"><strong>{boardMessage || "NO PUBLIC SOLVIVOR SIGNALS YET"}</strong><p>The first opted-in survivor will establish the board. Existing accounts remain private until they choose otherwise.</p></div>
+            )}
+          </div>
+          <div className="community-board-cta"><div><span>YOUR RECORD IS PRIVATE BY DEFAULT</span><strong>Choose your public alias from My Readiness.</strong></div><Link className="btn btn-primary" href="/operative">MANAGE MY SIGNAL</Link></div>
         </section>
 
         <section id="community-files" className="community-files" aria-labelledby="community-files-title">

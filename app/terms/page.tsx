@@ -22,7 +22,7 @@ export default function TermsPage() {
         </header>
 
         <div className="legal-meta">
-          <span>LAST UPDATED // AUGUST 17, 2026</span>
+          <span>LAST UPDATED // AUGUST 18, 2026</span>
           <span>PLAIN-LANGUAGE PRODUCT TERMS</span>
         </div>
 
@@ -111,8 +111,19 @@ export default function TermsPage() {
             </p>
           </section>
 
+          <section className="legal-card">
+            <span>09 // SOLVIVOR NETWORK</span>
+            <h2>Public readiness is always opt-in.</h2>
+            <p>
+              The community board ranks earned XP and displays evidence-based BIO-SCORE under your chosen
+              apocalyptic alias. It does not display your email or wallet. You may leave the board from your
+              profile. Rankings are a platform progression signal, not certification, financial value, or proof
+              that someone can safely manage a real emergency.
+            </p>
+          </section>
+
           <section className="legal-card legal-card-wide">
-            <span>09 // RESPONSIBILITY + APPLICABLE LAW</span>
+            <span>10 // RESPONSIBILITY + APPLICABLE LAW</span>
             <h2>Use RED QUEEN as decision support.</h2>
             <p>
               The service is provided on an as-available basis to the extent permitted by law. You remain

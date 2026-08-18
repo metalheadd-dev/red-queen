@@ -39,50 +39,47 @@ export async function GET(req: Request) {
     const cleanScenarios = getCleanScenarios(data.chosen_scenarios);
     const stats = getStatsFromScenarios(data.chosen_scenarios);
 
-    // Calculate user's current leaderboard ranks (both XP and Bio-Score)
+    // Public ranks exist only for accounts that explicitly joined the readiness board.
     let xpRank = null;
     let bioScoreRank = null;
-    try {
-      const { data: allUsers } = await supabase
-        .from("users")
-        .select("wallet_address, chosen_scenarios, last_bio_score");
+    if (data.community_visible) {
+      try {
+        const { data: allUsers } = await supabase
+          .from("users")
+          .select("wallet_address, chosen_scenarios, last_bio_score")
+          .eq("community_visible", true);
       
-      if (allUsers) {
-        const processed = allUsers.map((u) => {
-          const s = getStatsFromScenarios(u.chosen_scenarios);
-          const computedBio = calculateBioScore(s);
-          return {
-            wallet_address: u.wallet_address,
-            xp: s.xp || 0,
-            bio_score: computedBio || u.last_bio_score || 0,
-            level: s.level || 1,
-          };
-        });
+        if (allUsers) {
+          const processed = allUsers.map((u) => {
+            const s = getStatsFromScenarios(u.chosen_scenarios);
+            const computedBio = calculateBioScore(s);
+            return {
+              wallet_address: u.wallet_address,
+              xp: s.xp || 0,
+              bio_score: computedBio || u.last_bio_score || 0,
+              level: s.level || 1,
+            };
+          });
 
-        // 1. Sort by XP (primary) -> Bio Score -> Level
-        const xpSorted = [...processed].sort((a, b) => {
-          if (b.xp !== a.xp) return b.xp - a.xp;
-          if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
-          return b.level - a.level;
-        });
-        const xpIndex = xpSorted.findIndex((u) => u.wallet_address === hashedWallet);
-        if (xpIndex !== -1) {
-          xpRank = xpIndex + 1;
-        }
+          const xpSorted = [...processed].sort((a, b) => {
+            if (b.xp !== a.xp) return b.xp - a.xp;
+            if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
+            return b.level - a.level;
+          });
+          const xpIndex = xpSorted.findIndex((u) => u.wallet_address === hashedWallet);
+          if (xpIndex !== -1) xpRank = xpIndex + 1;
 
-        // 2. Sort by Bio-Score (primary) -> XP -> Level
-        const bioSorted = [...processed].sort((a, b) => {
-          if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
-          if (b.xp !== a.xp) return b.xp - a.xp;
-          return b.level - a.level;
-        });
-        const bioIndex = bioSorted.findIndex((u) => u.wallet_address === hashedWallet);
-        if (bioIndex !== -1) {
-          bioScoreRank = bioIndex + 1;
+          const bioSorted = [...processed].sort((a, b) => {
+            if (b.bio_score !== a.bio_score) return b.bio_score - a.bio_score;
+            if (b.xp !== a.xp) return b.xp - a.xp;
+            return b.level - a.level;
+          });
+          const bioIndex = bioSorted.findIndex((u) => u.wallet_address === hashedWallet);
+          if (bioIndex !== -1) bioScoreRank = bioIndex + 1;
         }
+      } catch (e) {
+        console.error("Failed to compute profile ranks:", e);
       }
-    } catch (e) {
-      console.error("Failed to compute profile ranks:", e);
     }
 
     return Response.json({

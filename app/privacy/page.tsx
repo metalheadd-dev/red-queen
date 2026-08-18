@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         </header>
 
         <div className="legal-meta">
-          <span>LAST UPDATED // AUGUST 17, 2026</span>
+          <span>LAST UPDATED // AUGUST 18, 2026</span>
           <span>PLAIN-LANGUAGE PRODUCT NOTICE</span>
         </div>
 
@@ -48,7 +48,7 @@ export default function PrivacyPage() {
                 <p>
                   If you sign in, Supabase may store your account identifier, profile, conversation history,
                   readiness evidence, BIO-SCORE records, and recent holder verification needed for gated
-                  features. Signing out ends the session; it does not erase browser memory or existing account
+                  features. Your public SOLvivor Network preference is also stored with the account. Signing out ends the session; it does not erase browser memory or existing account
                   records.
                 </p>
               </article>
@@ -75,6 +75,7 @@ export default function PrivacyPage() {
               <li>Prioritize signals that may matter to your chosen area and concerns.</li>
               <li>Generate survival analysis, action plans, and preparedness guidance.</li>
               <li>Restore account history and verify earned readiness evidence.</li>
+              <li>Publish an apocalyptic alias, earned XP, level, BIO-SCORE, and broad activity band only when you opt into the SOLvivor readiness board.</li>
               <li>Confirm $THREAT holder access without taking custody of assets.</li>
               <li>Prevent abuse, diagnose failures, and operate paid intelligence requests.</li>
             </ul>
@@ -134,6 +135,7 @@ export default function PrivacyPage() {
               <p><b>DO NOT SHARE</b> Seed phrases, private keys, exact addresses, passwords, or confidential files.</p>
               <p><b>REMOVE LOCALLY</b> Use in-product Remove controls where available or clear this site&apos;s browser storage.</p>
               <p><b>SEPARATE APPROVAL</b> Connecting or signing in with a wallet never authorizes a payment.</p>
+              <p><b>PUBLIC BOARD OPT-IN</b> Existing and new accounts remain private until you join. Leaving removes your profile from the public board.</p>
               <p><b>NO DATA BROKERS</b> Solvival Corp does not sell or rent identity data, wallet addresses, or Queen conversations.</p>
             </div>
           </section>

@@ -29,7 +29,7 @@ The browser also keeps a bounded scan baseline and reports what is new, escalate
 | `/terminal` | Context-aware RED QUEEN agent: Monitor, Analyze, Prepare, Simulate |
 | `/survival-kit` | Local preparedness checklist and protocols |
 | `/threat-vector` | Real-world, digital, fictional, and satirical scenario library |
-| `/community` | Queen transmissions, practical field notes, labeled lore, and SOLvivor contribution paths |
+| `/community` | Queen transmissions, practical field notes, labeled lore, and the opt-in SOLvivor readiness board |
 | `/operative` | My Readiness: identity, BIO, XP, evidence, memory, token clearance |
 | `/network-clearance` | Solana control plane and live `$THREAT` utility proof |
 
@@ -122,6 +122,10 @@ Current implementation uses x402 v2 packages with Solana CAIP-2 network identifi
 The 0.01 USDC global synthesis now uses the same seven-source normalized signal engine as Pulse. It requires at least four reachable source families before delivery; a `503` handler response cancels settlement and never substitutes fictional or cached “safe default” telemetry. Payment requirements, including the current recipient and asset, come from the runtime HTTP 402 challenge rather than static documentation.
 
 Apply `supabase/migrations/20260817170000_create_x402_operations.sql` to the linked Supabase project before enabling x402. The table has RLS enabled and intentionally exposes no browser policies; only the server service role can read payment receipts or paid outputs.
+
+### 4. SOLvivor Network
+
+The Community page includes an opt-in readiness board. Existing and new accounts are private by default. A SOLvivor can explicitly publish only their apocalyptic alias, earned XP (shown as SOLvivor Points), level, BIO-SCORE, clearance label, and a broad activity band. Email and wallet identifiers are never returned by the public endpoint. Apply `supabase/migrations/20260818120000_add_community_leaderboard_opt_in.sql` before enabling membership controls.
 
 Official references: [Solana Actions and Blinks](https://solana.com/developers/guides/advanced/actions), [Solana Mobile Wallet Adapter](https://docs.solanamobile.com/get-started/web/apps), [x402 specification](https://github.com/x402-foundation/x402/blob/main/specs/x402-specification-v2.md), [Supabase Web3 Auth](https://supabase.com/docs/guides/auth/auth-web3).
 

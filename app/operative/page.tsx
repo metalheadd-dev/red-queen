@@ -41,6 +41,8 @@ type Profile = {
   holder_status?: string | null;
   verified_balance?: number | null;
   last_verification?: string | null;
+  community_visible?: boolean;
+  community_joined_at?: string | null;
 };
 
 type HistoryMessage = {
@@ -117,6 +119,8 @@ export default function OperativeProfilePage() {
   const [savingName, setSavingName] = useState(false);
   const [verifyStatus, setVerifyStatus] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [savingCommunity, setSavingCommunity] = useState(false);
+  const [communityStatus, setCommunityStatus] = useState("");
   const [localChecks, setLocalChecks] = useState(0);
   const [preparednessPlans, setPreparednessPlans] = useState<PreparednessPlan[]>([]);
   const [signalWatch, setSignalWatch] = useState<SignalWatchMemory>({
@@ -268,6 +272,32 @@ export default function OperativeProfilePage() {
       setVerifyStatus(error instanceof Error ? error.message : "On-chain verification failed.");
     } finally {
       setVerifying(false);
+    }
+  }
+
+  async function updateCommunityVisibility(visible: boolean) {
+    setSavingCommunity(true);
+    setCommunityStatus(visible ? "JOINING SOLVIVOR NETWORK..." : "LEAVING PUBLIC BOARD...");
+    try {
+      const response = await fetch("/api/community/membership", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({ visible }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Community preference update failed.");
+      setProfile((current) => current ? {
+        ...current,
+        community_visible: Boolean(data.membership?.community_visible),
+        community_joined_at: data.membership?.community_joined_at || current.community_joined_at,
+      } : current);
+      setCommunityStatus(visible
+        ? "PUBLIC ALIAS ACTIVE. THE NETWORK CAN SEE YOUR READINESS RECORD."
+        : "PROFILE REMOVED FROM THE PUBLIC BOARD.");
+    } catch (error) {
+      setCommunityStatus(error instanceof Error ? error.message : "Community preference update failed.");
+    } finally {
+      setSavingCommunity(false);
     }
   }
 
@@ -491,6 +521,24 @@ export default function OperativeProfilePage() {
           <div><span>SIGNAL WATCH</span><strong>{signalWatch.types.length}</strong><small>{signalWatch.localPriority ? "local priority active" : "signal categories"}</small><Link href="/#live-map">TUNE WATCH →</Link></div>
         </section>
 
+        <section className={`rq-profile-network-status${profile?.community_visible ? " is-visible" : ""}`} aria-label="SOLvivor Network visibility">
+          <div>
+            <span>SOLVIVOR NETWORK // OPT-IN READINESS BOARD</span>
+            <h2>{profile?.community_visible ? "Your signal is visible to the network." : "Join the public readiness board when you choose."}</h2>
+            <p>Only your apocalyptic alias, earned XP, level, BIO-SCORE and broad activity band appear. Your email and wallet never appear on the board.</p>
+          </div>
+          <div className="rq-profile-network-score">
+            <span>SOLVIVOR POINTS</span><strong>{stats.xp}</strong><small>earned XP · not a token</small>
+          </div>
+          <div className="rq-profile-network-actions">
+            <Link href="/community#solvivor-board">VIEW BOARD →</Link>
+            <button type="button" disabled={savingCommunity || !profile} onClick={() => updateCommunityVisibility(!profile?.community_visible)}>
+              {savingCommunity ? "UPDATING..." : profile?.community_visible ? "LEAVE PUBLIC BOARD" : "JOIN WITH PUBLIC ALIAS"}
+            </button>
+            {communityStatus && <small>{communityStatus}</small>}
+          </div>
+        </section>
+
         <div className="rq-profile-grid">
           <section className="rq-profile-panel rq-profile-domains">
             <div className="rq-profile-panel-heading"><div><span>01 // READINESS DOMAINS</span><h2>What your score actually measures</h2></div><small>LAST EVIDENCE {formatRelativeTime(profile?.last_interaction)}</small></div>
@@ -528,6 +576,7 @@ export default function OperativeProfilePage() {
               <div><span>SIGNAL WATCH</span><strong>{signalWatch.types.length} CATEGORIES{signalWatch.localPriority ? " · LOCAL" : ""}</strong></div>
               <div><span>LAST SENSOR SCAN</span><strong>{formatRelativeTime(signalWatch.lastScanAt)}</strong></div>
               <div><span>EXACT LOCATION</span><strong>NEVER REQUESTED</strong></div>
+              <div><span>PUBLIC READINESS BOARD</span><strong>{profile?.community_visible ? "OPTED IN" : "PRIVATE"}</strong></div>
               <p>Broad area and preparedness checklist context remain under your control. Seed phrases, private keys and exact addresses must never be entered.</p>
               <Link href="/privacy">REVIEW PRIVACY POLICY →</Link>
             </section>
