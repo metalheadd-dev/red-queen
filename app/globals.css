@@ -649,10 +649,11 @@ h1, h2, h3, h4, h5 {
 
 /* RED QUEEN agent contract */
 .rq-terminal-page { min-height: 100vh; padding-top: 60px; background: #050607; color: var(--text); }
-.rq-terminal-core { position: relative; display: grid; grid-template-columns: minmax(0,1fr); gap: 24px; overflow: hidden; padding: 34px max(40px,calc((100vw - 1540px) / 2 + 40px)) 22px; border-bottom: 1px solid rgba(255,0,51,.24); background: radial-gradient(circle at 80% 20%,rgba(255,0,51,.12),transparent 29%),linear-gradient(115deg,#07080a 32%,#10070a 100%); }
+.rq-terminal-core { position: relative; display: grid; grid-template-columns: minmax(0,1fr); gap: 24px; min-height: 510px; overflow: hidden; padding: 58px max(40px,calc((100vw - 1540px) / 2 + 40px)) 34px; border-bottom: 1px solid rgba(255,0,51,.24); background: radial-gradient(circle at 82% 34%,rgba(255,0,51,.12),transparent 31%),linear-gradient(115deg,#07080a 32%,#10070a 100%); }
 .rq-terminal-core::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .12; background-image: linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px); background-size: 52px 52px; mask-image: linear-gradient(to bottom,black,transparent 88%); }
-.rq-terminal-core-art { position: absolute; z-index: 0; right: 7%; bottom: -52%; width: 440px; aspect-ratio: 1; opacity: .16; filter: saturate(1.2) drop-shadow(0 0 40px rgba(255,0,51,.35)); pointer-events: none; }
-.rq-terminal-core-art img { object-fit: contain; }
+.rq-terminal-core-art { position: absolute; z-index: 0; right: max(2%,calc((100vw - 1660px) / 2)); bottom: -19%; width: min(40vw,640px); aspect-ratio: 1230 / 1279; opacity: .38; filter: saturate(1.08) contrast(1.08) drop-shadow(0 0 46px rgba(255,0,51,.24)); pointer-events: none; }
+.rq-terminal-core-art::after { content:""; position:absolute; inset:0; z-index:1; background:linear-gradient(90deg,#07080a 0%,transparent 29%),linear-gradient(0deg,#07080a 0%,transparent 28%); pointer-events:none; }
+.rq-terminal-core-art img { object-fit: contain; object-position: right bottom; }
 .rq-terminal-core-copy,
 .rq-terminal-memory-state { position: relative; z-index: 1; }
 .rq-terminal-core-copy > span { color: var(--accent); font: 700 10px var(--mono); letter-spacing: .18em; }
@@ -893,8 +894,8 @@ h1, h2, h3, h4, h5 {
 
 @media (max-width: 640px) {
   .rq-terminal-page { padding-top: 58px; }
-  .rq-terminal-core { grid-template-columns: 1fr; gap: 24px; padding: 32px 16px 20px; }
-  .rq-terminal-core-art { right: -140px; bottom: 18%; width: 340px; opacity: .1; }
+  .rq-terminal-core { grid-template-columns: 1fr; gap: 24px; min-height: 0; padding: 42px 16px 24px; }
+  .rq-terminal-core-art { right: -138px; bottom: 3%; width: 380px; opacity: .13; }
   .rq-terminal-core-copy h1 { font-size: 38px; }
   .rq-terminal-core-copy p { font-size: 13px; }
   .rq-terminal-neural-grid { grid-template-columns: repeat(2,1fr); }
@@ -4501,3 +4502,127 @@ body:has(#game-player-root) .page-content {
 .queen-dock-head strong { font-size:12px; }
 .queen-dock-panel > p { font-size:12px; }
 .queen-dock-open-terminal { font-size:10px; }
+
+/* Release shell rhythm: every core route begins below the fixed navigation. */
+.rq-terminal-page,
+.prepare-page,
+.library-page,
+.guide-page,
+.community-page,
+.onchain-page,
+.rq-profile-page { padding-top:60px; }
+
+/* RED QUEEN system presence. The crown replaces the generic assistant orb. */
+.queen-core,
+.queen-dock-orb,
+.rq-login-orb,
+.onchain-connect-orb,
+.intelligence-market-orb,
+.mobile-queen-core {
+  position:relative;
+  flex:0 0 auto;
+  overflow:visible;
+  border:0;
+  border-radius:0;
+  background:none;
+  box-shadow:none;
+  isolation:isolate;
+}
+.queen-core::before,
+.queen-dock-orb::before,
+.rq-login-orb::before,
+.onchain-connect-orb::before,
+.intelligence-market-orb::before,
+.mobile-queen-core::before {
+  content:"";
+  position:absolute;
+  inset:-20%;
+  z-index:1;
+  background:url('/art/red-queen-crown-sigil.png') center / 128% no-repeat;
+  mix-blend-mode:screen;
+  filter:contrast(1.08) saturate(1.08) drop-shadow(0 0 10px rgba(255,0,51,.32));
+  pointer-events:none;
+}
+.queen-core::after,
+.queen-dock-orb::after,
+.rq-login-orb::after,
+.onchain-connect-orb::after,
+.intelligence-market-orb::after,
+.mobile-queen-core::after {
+  content:"";
+  position:absolute;
+  inset:8%;
+  z-index:0;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,0,51,.11),transparent 69%);
+  box-shadow:0 0 22px rgba(255,0,51,.14);
+  pointer-events:none;
+}
+.queen-core > span,
+.queen-dock-orb > i,
+.rq-login-orb > i,
+.onchain-connect-orb > i,
+.intelligence-market-orb > i,
+.mobile-queen-core > i { display:none; }
+
+/* Release readability floor: tactical labels may be compact, never microscopic. */
+@media (min-width:900px) {
+  .rq-terminal-page small,
+  .prepare-page small,
+  .library-page small,
+  .guide-page small,
+  .community-page small,
+  .onchain-page small,
+  .rq-profile-page small { font-size:11px !important; line-height:1.5; }
+
+  .rq-terminal-core-copy > span,
+  .rq-terminal-memory-state span,
+  .rq-terminal-title span,
+  .prepare-status-heading span,
+  .prepare-area span,
+  .prepare-section-heading span,
+  .prepare-domain-summary span,
+  .prepare-domain-block > div:first-child > span,
+  .prepare-protocol-list span,
+  .prepare-tier-list span,
+  .prepare-tier-list em,
+  .library-trust-banner div span,
+  .library-lanes span,
+  .library-tabs span,
+  .onchain-hero-tags span,
+  .community-hero-copy > span,
+  .community-section-head span,
+  .guide-hero-grid > div:first-child > span,
+  .guide-section-head > span { font-size:10px !important; line-height:1.45; }
+
+  .rq-terminal-memory-state strong,
+  .prepare-area input,
+  .prepare-token-actions > a:not(.btn),
+  .preparedness-plan-actions a,
+  .preparedness-plan-actions button,
+  .preparedness-plan-list article > footer a,
+  .preparedness-plan-list article > footer span,
+  .library-tabs strong,
+  .library-tabs small,
+  .onchain-production-gates strong,
+  .rq-profile-panel-heading > a { font-size:11px !important; }
+
+  .prepare-status-panel > p,
+  .preparedness-plan-list article > p,
+  .prepare-section-intro,
+  .prepare-token-utility > div:first-child > p,
+  .library-lanes p,
+  .library-card > small,
+  .onchain-production-gates p,
+  .rq-profile-memory > p { font-size:13px !important; line-height:1.65; }
+}
+
+@media (max-width:640px) {
+  .rq-terminal-page,
+  .prepare-page,
+  .library-page,
+  .guide-page,
+  .community-page,
+  .onchain-page,
+  .rq-profile-page { padding-top:58px; }
+}

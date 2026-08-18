@@ -1073,7 +1073,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
     <div className="rq-terminal-page">
       <header className="rq-terminal-core">
         <div className="rq-terminal-core-art" aria-hidden="true">
-          <Image src="/art/red-queen-presence.png" alt="" fill sizes="360px" priority />
+          <Image src="/art/red-queen-throne.png" alt="" fill sizes="(max-width: 700px) 360px, 620px" priority />
         </div>
         <div className="rq-terminal-core-copy">
           <span>QUEEN CORE // COGNITIVE COMMAND</span>

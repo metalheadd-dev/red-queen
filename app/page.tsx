@@ -618,9 +618,9 @@ export default function HomePage() {
           <div className="pulse-local-proof">
             <div><span>YOUR BROAD AREA</span><strong>{localContext!.area}</strong></div>
             <div><span>NEARBY SIGNALS</span><strong>{nearbyNodes.length}</strong></div>
-            <div><span>PRIVACY MODE</span><strong>NO EXACT ADDRESS</strong></div>
+            <div><span>PRIVACY MODE</span><strong>THIS DEVICE ONLY</strong></div>
             <button type="button" onClick={() => setEditingArea(true)}>CHANGE CITY</button>
-            <small>Area resolved with © OpenStreetMap contributors. Absence of a mapped signal is not proof of safety.</small>
+            <small>Your broad area stays in this browser unless you change it or clear site data. Resolved with © OpenStreetMap contributors. Absence of a mapped signal is not proof of safety.</small>
           </div>
         )}
 
