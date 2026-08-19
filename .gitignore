@@ -62,6 +62,7 @@ supabase_migration.sql
 
 # reviewed, reproducible Supabase migrations belong with the application
 !supabase/
+supabase/.temp/
 !supabase/migrations/
 !supabase/migrations/*.sql
 
