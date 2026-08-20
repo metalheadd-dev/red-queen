@@ -14,7 +14,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: "RED QUEEN | Survival Intelligence on Solana",
     description: "Meet RED QUEEN, the AI survival intelligence system that watches the field, removes the noise, and gives you one clear move.",
-    url: "/",
     type: "website",
     siteName: "RED QUEEN | SOLVIVAL CORP",
     images: [
