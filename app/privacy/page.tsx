@@ -39,16 +39,16 @@ export default function PrivacyPage() {
                 <b>DEVICE MEMORY</b>
                 <p>
                   Broad-area context, onboarding state, preparedness checklists, saved daily actions, Queen
-                  protocols, Signal Watch choices, and a generated Queen Visage are stored in your browser when
-                  those features are used. They do not automatically follow you to another device.
+                  protocols, Signal Watch choices, and any avatar you choose to keep only locally are stored in
+                  your browser. Local-only records do not automatically follow you to another device.
                 </p>
               </article>
               <article>
                 <b>ACCOUNT MEMORY</b>
                 <p>
                   If you sign in, Supabase may store your account identifier, profile, conversation history,
-                  readiness evidence, BIO-SCORE records, and recent holder verification needed for gated
-                  features. Your public SOLvivor Network preference is also stored with the account. Signing out ends the session; it does not erase browser memory or existing account
+                  readiness evidence, BIO-SCORE records, recent holder verification needed for gated features,
+                  and one optional private final avatar. Your public SOLvivor Network preference is also stored with the account. Signing out ends the session; it does not erase browser memory or existing account
                   records.
                 </p>
               </article>
@@ -99,9 +99,10 @@ export default function PrivacyPage() {
             </p>
             <p>
               Queen Visage is optional and reserved for verified $THREAT holders. When you press Generate, the
-              selected portrait is sent to the configured image model for that generation request. The generated
-              image is returned to your browser and stored locally; RED QUEEN does not add the source portrait or
-              generated result to your Supabase profile. Provider-side processing rules still apply.
+              selected portrait is sent to the configured image model for that generation request. RED QUEEN never
+              saves the source portrait. The generated result returns to your browser; you may keep it locally or
+              explicitly save the final WebP to a private profile bucket, where you can delete it at any time.
+              Provider-side processing rules still apply.
             </p>
           </section>
 

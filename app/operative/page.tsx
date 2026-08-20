@@ -161,6 +161,8 @@ export default function OperativeProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState("");
   const [avatarStatus, setAvatarStatus] = useState("");
   const [generatingAvatar, setGeneratingAvatar] = useState(false);
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [cloudAvatar, setCloudAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const generatedName = identity ? generateApocalypticName(identity) : "";
@@ -250,6 +252,7 @@ export default function OperativeProfilePage() {
 
   useEffect(() => {
     if (!identity) return;
+    let cancelled = false;
     try {
       const savedAvatar = localStorage.getItem(`rq-solvivor-avatar-v1:${identity}`) || "";
       const savedKind = localStorage.getItem(`rq-solvivor-avatar-kind-v1:${identity}`);
@@ -259,7 +262,22 @@ export default function OperativeProfilePage() {
       setAvatar("");
       setAvatarKind("");
     }
-  }, [identity]);
+    setCloudAvatar(false);
+
+    if (!session?.access_token) return () => { cancelled = true; };
+    void fetch("/api/profile/avatar/storage", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      cache: "no-store",
+    }).then(async (response) => {
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.exists || cancelled) return;
+      setAvatar(typeof data.avatarUrl === "string" ? data.avatarUrl : "");
+      setAvatarKind(data.kind === "QUEEN_VISAGE" ? "QUEEN_VISAGE" : "CUSTOM");
+      setCloudAvatar(true);
+    }).catch(() => {});
+
+    return () => { cancelled = true; };
+  }, [identity, session?.access_token]);
 
   useEffect(() => {
     return () => {
@@ -399,11 +417,12 @@ export default function OperativeProfilePage() {
       const localAvatar = await makeSquareAvatar(avatarFile);
       setAvatar(localAvatar);
       setAvatarKind("CUSTOM");
+      setCloudAvatar(false);
       if (avatarPreview) URL.revokeObjectURL(avatarPreview);
       setAvatarPreview("");
       localStorage.setItem(`rq-solvivor-avatar-v1:${identity}`, localAvatar);
       localStorage.setItem(`rq-solvivor-avatar-kind-v1:${identity}`, "CUSTOM");
-      setAvatarStatus("Personal avatar active. It was processed and stored only in this browser.");
+      setAvatarStatus("Personal avatar active on this device. Save it to your private profile when you want it on every device.");
     } catch (error) {
       setAvatarStatus(error instanceof Error ? error.message : "Personal avatar could not be saved.");
     }
@@ -425,9 +444,10 @@ export default function OperativeProfilePage() {
       if (!response.ok || !data.avatarDataUrl) throw new Error(data.error || "Portrait generation failed.");
       setAvatar(data.avatarDataUrl);
       setAvatarKind("QUEEN_VISAGE");
+      setCloudAvatar(false);
       if (avatarPreview) URL.revokeObjectURL(avatarPreview);
       setAvatarPreview("");
-      setAvatarStatus("Queen Visage V2 generated and saved on this device. It is ready for X, Discord or any profile.");
+      setAvatarStatus("Queen Visage V2 generated on this device. Save it to your private profile or export it for X, Discord or anywhere else.");
       try {
         localStorage.setItem(`rq-solvivor-avatar-v1:${identity}`, data.avatarDataUrl);
         localStorage.setItem(`rq-solvivor-avatar-kind-v1:${identity}`, "QUEEN_VISAGE");
@@ -441,11 +461,53 @@ export default function OperativeProfilePage() {
     }
   }
 
-  function removeAvatar() {
+  async function saveAvatarToProfile() {
+    if (!avatar || !avatarKind || !session?.access_token) return;
+    setSavingAvatar(true);
+    setAvatarStatus("SAVING FINAL AVATAR TO PRIVATE SOLVIVOR PROFILE...");
+    try {
+      const blob = await (await fetch(avatar)).blob();
+      const body = new FormData();
+      body.set("avatar", new File([blob], "solvivor-avatar.webp", { type: "image/webp" }));
+      body.set("kind", avatarKind);
+      const response = await fetch("/api/profile/avatar/storage", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Private avatar save failed.");
+      setCloudAvatar(true);
+      setAvatarStatus("Avatar saved privately to your SOLvivor profile. The source portrait was not stored.");
+    } catch (error) {
+      setAvatarStatus(error instanceof Error ? error.message : "Private avatar save failed.");
+    } finally {
+      setSavingAvatar(false);
+    }
+  }
+
+  async function removeAvatar() {
+    if (cloudAvatar && session?.access_token) {
+      setSavingAvatar(true);
+      setAvatarStatus("REMOVING PRIVATE CLOUD AVATAR...");
+      try {
+        const response = await fetch("/api/profile/avatar/storage", {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Cloud avatar could not be deleted.");
+      } catch (error) {
+        setAvatarStatus(error instanceof Error ? error.message : "Cloud avatar could not be deleted.");
+        setSavingAvatar(false);
+        return;
+      }
+    }
     setAvatar("");
     setAvatarKind("");
+    setCloudAvatar(false);
     setAvatarFile(null);
-    setAvatarStatus("Local Queen Visage removed.");
+    setAvatarStatus("Avatar removed from this device and private profile.");
     if (avatarPreview) URL.revokeObjectURL(avatarPreview);
     setAvatarPreview("");
     if (avatarInputRef.current) avatarInputRef.current.value = "";
@@ -453,6 +515,7 @@ export default function OperativeProfilePage() {
       localStorage.removeItem(`rq-solvivor-avatar-v1:${identity}`);
       localStorage.removeItem(`rq-solvivor-avatar-kind-v1:${identity}`);
     } catch {}
+    setSavingAvatar(false);
   }
 
   async function shareAvatar() {
@@ -593,10 +656,10 @@ export default function OperativeProfilePage() {
             <h2>Your identity. Her visual language when you choose it.</h2>
             <p>Every SOLvivor can use a personal profile image. Verified $THREAT holders can ask RED QUEEN to reconstruct it as a square branded apocalypse-intelligence portrait.</p>
             <ul>
-              <li>Personal avatar: available to everyone, cropped and stored only in this browser.</li>
+              <li>Personal avatar: available to everyone, cropped locally, then optionally saved to your private profile.</li>
               <li>Queen Visage V2: holder-only white linework, red circuitry, luminous eyes and tactical crown halo.</li>
               <li>Generate sends the selected portrait to the configured AI provider only for that request.</li>
-              <li>Download or Share exports a social-ready 1:1 image for X, Discord or anywhere else.</li>
+              <li>Only the final 1:1 avatar can be saved to your private profile. Download or Share exports it for X, Discord or anywhere else.</li>
             </ul>
             {!hasThreatBalance && <Link href="/onchain">VERIFY $THREAT TO UNLOCK BRANDED GENERATION →</Link>}
             {hasThreatBalance && !hasFreshHolderProof && <a href="#holder-clearance">REFRESH HOLDER PROOF FOR QUEEN VISAGE →</a>}
@@ -608,7 +671,7 @@ export default function OperativeProfilePage() {
               ) : (
                 <div><span>NO PORTRAIT LOADED</span><strong>Your face. Her visual language.</strong></div>
               )}
-              <i>{avatarPreview ? "SOURCE PREVIEW // NOT UPLOADED" : avatarKind === "QUEEN_VISAGE" ? "QUEEN VISAGE V2 // HOLDER IDENTITY" : avatarKind === "CUSTOM" ? "PERSONAL AVATAR // LOCAL" : "AWAITING PORTRAIT"}</i>
+              <i>{avatarPreview ? "SOURCE PREVIEW // NOT UPLOADED" : cloudAvatar ? `${avatarKind === "QUEEN_VISAGE" ? "QUEEN VISAGE V2" : "PERSONAL AVATAR"} // PRIVATE PROFILE` : avatarKind === "QUEEN_VISAGE" ? "QUEEN VISAGE V2 // LOCAL" : avatarKind === "CUSTOM" ? "PERSONAL AVATAR // LOCAL" : "AWAITING PORTRAIT"}</i>
             </div>
             <input
               ref={avatarInputRef}
@@ -625,7 +688,8 @@ export default function OperativeProfilePage() {
               </button>
               {avatar && <a href={avatar} download="red-queen-solvivor.webp">DOWNLOAD 1:1</a>}
               {avatar && <button type="button" onClick={() => void shareAvatar()} disabled={generatingAvatar}>SHARE / EXPORT</button>}
-              {(avatar || avatarPreview) && <button type="button" onClick={removeAvatar} disabled={generatingAvatar}>REMOVE</button>}
+              {avatar && <button type="button" onClick={() => void saveAvatarToProfile()} disabled={generatingAvatar || savingAvatar || cloudAvatar}>{cloudAvatar ? "SAVED TO PROFILE" : savingAvatar ? "SAVING..." : "SAVE TO PROFILE"}</button>}
+              {(avatar || avatarPreview) && <button type="button" onClick={() => void removeAvatar()} disabled={generatingAvatar || savingAvatar}>{cloudAvatar ? "REMOVE FROM PROFILE" : "REMOVE LOCAL"}</button>}
             </div>
             {!hasFreshHolderProof && <div className="rq-profile-visage-holder-note"><strong>PERSONAL AVATAR IS OPEN</strong><span>Branded RED QUEEN transformation requires a fresh verified $THREAT balance.</span></div>}
             {avatarStatus && <p className="rq-profile-visage-status">{avatarStatus}</p>}
