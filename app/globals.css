@@ -3515,10 +3515,36 @@ body:has(#game-player-root) .page-content {
 .intelligence-market-output > header strong { color:#9cff59; font:700 9px var(--mono); }
 .intelligence-market-output-meta { display:flex; justify-content:space-between; gap:18px; margin:20px 0 10px; color:rgba(255,255,255,.42); font:700 9px var(--mono); }
 .intelligence-market-output-meta span:last-child { overflow:hidden; text-overflow:ellipsis; }
-.intelligence-market-output pre { max-height:330px; overflow:auto; padding:17px; border:1px solid rgba(255,255,255,.08); background:#020304; color:rgba(255,255,255,.72); font:500 11px/1.65 var(--mono); white-space:pre-wrap; overflow-wrap:anywhere; }
 .intelligence-market-output-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
 .intelligence-market-output-actions button,.intelligence-market-output-actions a { padding:10px 12px; border:1px solid rgba(20,241,149,.35); background:rgba(20,241,149,.035); color:#b7ffcf; font:700 9px var(--mono); text-decoration:none; cursor:pointer; }
 .intelligence-market-output-actions button:disabled { opacity:.45; cursor:default; }
+.paid-report { display:grid; gap:14px; margin-top:18px; }
+.paid-report-context,.paid-report-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border:1px solid rgba(255,255,255,.09); background:rgba(255,255,255,.018); }
+.paid-report-context > div,.paid-report-facts > div { display:grid; gap:7px; min-height:74px; padding:14px; border-right:1px solid rgba(255,255,255,.08); }
+.paid-report-context > div:last-child,.paid-report-facts > div:last-child { border-right:0; }
+.paid-report-context span,.paid-report-facts span,.paid-report-sources > span,.paid-report-signals > span,.paid-report-next > span,.paid-report-note strong { color:var(--accent); font:700 9px var(--mono); letter-spacing:.1em; }
+.paid-report-context strong,.paid-report-facts strong { color:#fff; font:700 13px/1.4 var(--mono); overflow-wrap:anywhere; }
+.paid-report-phases { display:grid; gap:10px; }
+.paid-report-phases article { border:1px solid rgba(255,255,255,.1); background:linear-gradient(110deg,rgba(255,0,51,.06),rgba(0,0,0,.18)); }
+.paid-report-phases article header { display:grid; gap:6px; padding:13px 15px; border-bottom:1px solid rgba(255,255,255,.08); }
+.paid-report-phases article header span { color:#ff6b82; font:700 9px var(--mono); letter-spacing:.1em; }
+.paid-report-phases article header strong { color:#fff; font-size:15px; line-height:1.4; }
+.paid-report-phases ol { display:grid; gap:10px; margin:0; padding:15px 18px 15px 37px; color:rgba(255,255,255,.8); font-size:14px; line-height:1.58; }
+.paid-report-phases li::marker { color:#ff3157; font:700 11px var(--mono); }
+.paid-report-next { display:grid; gap:8px; padding:16px; border-left:3px solid #ff3157; background:linear-gradient(90deg,rgba(255,0,51,.13),rgba(255,0,51,.015)); }
+.paid-report-next strong { color:#fff; font-size:16px; line-height:1.5; }
+.paid-report-signals { display:grid; gap:8px; }
+.paid-report-signals > a { display:grid; gap:4px; padding:13px 15px; border:1px solid rgba(255,255,255,.09); background:#050608; color:inherit; text-decoration:none; transition:border-color .18s ease,background .18s ease; }
+.paid-report-signals > a:hover { border-color:rgba(255,49,87,.58); background:rgba(255,0,51,.045); }
+.paid-report-signals strong { color:#fff; font-size:15px; line-height:1.4; }
+.paid-report-signals em { color:#ff7087; font:700 9px var(--mono); font-style:normal; letter-spacing:.08em; }
+.paid-report-signals p,.paid-report-note p { margin:0; color:rgba(255,255,255,.7); font-size:13px; line-height:1.6; }
+.paid-report-signals small { color:#9cff59; font:700 9px var(--mono); }
+.paid-report-sources { display:grid; gap:8px; }
+.paid-report-sources > div { display:flex; flex-wrap:wrap; gap:7px; }
+.paid-report-sources a { padding:8px 10px; border:1px solid rgba(20,241,149,.25); color:#b7ffcf; background:rgba(20,241,149,.035); font:700 10px/1.35 var(--mono); text-decoration:none; }
+.paid-report-sources b { color:#fff; }
+.paid-report-note { display:grid; gap:8px; padding:14px 16px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.018); }
 .onchain-section-head { display:grid; grid-template-columns:minmax(270px,.65fr) minmax(0,1.1fr); gap:12px 60px; margin-bottom:30px; }
 .onchain-section-head > span { grid-row:1 / 3; color:var(--accent); font:700 8px var(--mono); letter-spacing:.16em; }
 .onchain-section-head h2 { color:#fff; font-size:clamp(28px,4vw,44px); text-transform:none; letter-spacing:-.02em; }

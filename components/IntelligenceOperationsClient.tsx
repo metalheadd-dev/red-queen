@@ -74,6 +74,83 @@ function reportText(product: ProductId, delivery: X402Delivery) {
   ].join("\n");
 }
 
+function sourceList(sources: any[]) {
+  if (!Array.isArray(sources) || !sources.length) return null;
+  return <section className="paid-report-sources">
+    <span>SOURCES</span>
+    <div>{sources.slice(0, 5).map((source, index) => (
+      <a key={`${source?.url || source?.label || "source"}-${index}`} href={source?.url || "#"} target="_blank" rel="noreferrer">
+        {source?.label || "Open source"} <b>↗</b>
+      </a>
+    ))}</div>
+  </section>;
+}
+
+function outputValue(value: unknown) {
+  if (value === null || value === undefined || value === "") return "Not supplied";
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) return value.map((item) => typeof item === "string" ? item : item?.name || item?.label || item?.title).filter(Boolean).join(" · ") || "None";
+  return "Available in the JSON export.";
+}
+
+function PaidReportContent({ product, data }: { product: ProductId; data: any }) {
+  const report = product === "local" ? data?.report : product === "plan" ? data?.plan : product === "incident" ? data?.dossier : product === "wallet" ? data?.audit : data?.report;
+  if (!report) return null;
+
+  if (product === "plan") {
+    return <div className="paid-report paid-report-plan">
+      <div className="paid-report-context">
+        <div><span>AREA</span><strong>{report.area || "Broad area not supplied"}</strong></div>
+        <div><span>FOCUS</span><strong>{String(report.focus || "HOUSEHOLD").replaceAll("_", " ")}</strong></div>
+        <div><span>REVIEW</span><strong>{report.reviewAt ? new Date(report.reviewAt).toLocaleString() : "Within 24 hours"}</strong></div>
+      </div>
+      {Array.isArray(report.phases) && <div className="paid-report-phases">
+        {report.phases.map((phase: any, index: number) => <article key={`${phase?.window}-${index}`}>
+          <header><span>{String(index + 1).padStart(2, "0")} // {phase?.window || "PHASE"}</span><strong>{phase?.objective}</strong></header>
+          <ol>{Array.isArray(phase?.steps) && phase.steps.map((step: string, stepIndex: number) => <li key={stepIndex}>{step}</li>)}</ol>
+        </article>)}
+      </div>}
+      {Array.isArray(report.currentSignalContext) && report.currentSignalContext.length > 0 && <section className="paid-report-signals">
+        <span>LIVE CONTEXT USED</span>
+        {report.currentSignalContext.map((signal: any) => <a key={signal.id || signal.name} href={signal.sourceUrl || "#"} target="_blank" rel="noreferrer"><strong>{signal.name}</strong><p>{signal.fact}</p><small>{signal.source} ↗</small></a>)}
+      </section>}
+      {sourceList(report.sources)}
+      <div className="paid-report-note"><strong>QUEEN'S REMINDER</strong><p>{report.maintenance || report.uncertainty}</p></div>
+    </div>;
+  }
+
+  if (product === "local") {
+    return <div className="paid-report paid-report-local">
+      <div className="paid-report-next"><span>ONE NEXT ACTION</span><strong>{report.nextAction}</strong></div>
+      <div className="paid-report-context"><div><span>AREA</span><strong>{report.area}</strong></div><div><span>RADIUS</span><strong>{report.radiusKm ? `${report.radiusKm} KM` : "BROAD MATCH"}</strong></div><div><span>WINDOW</span><strong>LAST 24 HOURS</strong></div></div>
+      {Array.isArray(report.changes) && report.changes.length > 0 ? <div className="paid-report-signals">
+        <span>CHANGES THAT MATCHED</span>
+        {report.changes.map((signal: any) => <a key={signal.id} href={signal.sourceUrl || "#"} target="_blank" rel="noreferrer"><strong>{signal.name} <em>{signal.severity}</em></strong><p>{signal.fact}</p><small>{signal.source}{typeof signal.distanceKm === "number" ? ` · ${signal.distanceKm} KM` : ""} ↗</small></a>)}
+      </div> : <div className="paid-report-note"><strong>NO MATCHES IN THIS WINDOW</strong><p>{report.assessment}</p></div>}
+      <div className="paid-report-note"><strong>UNCERTAINTY</strong><p>{report.uncertainty}</p></div>
+    </div>;
+  }
+
+  if (product === "incident") {
+    return <div className="paid-report paid-report-incident">
+      <div className="paid-report-context"><div><span>CLASSIFICATION</span><strong>{report.classification}</strong></div><div><span>LOCATION</span><strong>{report.location}</strong></div><div><span>CONFIDENCE</span><strong>{report.confidence ?? "Not declared"}</strong></div></div>
+      <div className="paid-report-next"><span>QUEEN ASSESSMENT</span><strong>{report.queenAssessment}</strong></div>
+      <div className="paid-report-phases"><article><header><span>CONFIRMED FACTS</span></header><ol>{(report.confirmedFacts || []).map((fact: string, index: number) => <li key={index}>{fact}</li>)}</ol></article><article><header><span>ACTION PROTOCOL</span></header><ol>{(report.actionProtocol || []).map((step: string, index: number) => <li key={index}>{step}</li>)}</ol></article></div>
+      {sourceList(report.sources)}
+      <div className="paid-report-note"><strong>UNCERTAINTY</strong><p>{Array.isArray(report.uncertainty) ? report.uncertainty.join(" ") : report.uncertainty}</p></div>
+    </div>;
+  }
+
+  const keyFacts = product === "wallet"
+    ? [["NETWORK", report.network], ["STATUS", report.status], ["ASSESSMENT", report.headline || report.assessment], ["DELEGATES", report.surface?.activeDelegates], ["FROZEN ACCOUNTS", report.surface?.frozenAccounts]]
+    : [["OVERALL RISK", report.overallRisk], ["QUEEN DIRECTIVE", report.queenDirective], ["SIMULATION", report.simulation?.status || report.simulationStatus], ["INSTRUCTIONS", Array.isArray(report.instructions) ? report.instructions.length : undefined]];
+  return <div className="paid-report paid-report-generic">
+    <div className="paid-report-facts">{keyFacts.filter(([, value]) => value !== undefined).map(([label, value]) => <div key={String(label)}><span>{label}</span><strong>{outputValue(value)}</strong></div>)}</div>
+    {Array.isArray(report.instructions) && report.instructions.length > 0 && <div className="paid-report-phases"><article><header><span>DECODED INSTRUCTIONS</span></header><ol>{report.instructions.map((instruction: any, index: number) => <li key={index}>{typeof instruction === "string" ? instruction : instruction?.summary || instruction?.program || `Instruction ${index + 1}`}</li>)}</ol></article></div>}
+    <div className="paid-report-note"><strong>REPORT BOUNDARY</strong><p>{report.trustBoundary || report.uncertainty || "This report is decision support. Review the raw JSON export before acting on technical details."}</p></div>
+  </div>;
+}
+
 export default function IntelligenceOperationsClient() {
   const { publicKey, connected, signTransaction } = useWallet();
   const { session } = useAuth();
@@ -273,7 +350,7 @@ export default function IntelligenceOperationsClient() {
             <h3>{reportTitle(active, output)}</h3>
             <p>{reportSummary(active, output)}</p>
             <div className="intelligence-market-output-meta"><span>{sourceCount} {active === "transaction" ? "INSTRUCTIONS" : "SOURCE RECORDS"}</span><span>{delivery.operationId}</span></div>
-            <pre>{JSON.stringify(active === "local" ? output.report : active === "plan" ? output.plan : active === "incident" ? output.dossier : active === "wallet" ? output.audit : output.report, null, 2)}</pre>
+            <PaidReportContent product={active} data={output} />
             <div className="intelligence-market-output-actions">
               <button type="button" onClick={() => download(output, `${filenameFor(active)}.json`, "application/json")}>DOWNLOAD JSON</button>
               <button type="button" onClick={() => download(reportText(active, delivery), `${filenameFor(active)}.txt`, "text/plain")}>EXPORT REPORT</button>
