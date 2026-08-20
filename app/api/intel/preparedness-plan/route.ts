@@ -7,7 +7,7 @@ import { withFriendlyX402 } from "@/lib/x402";
 const svmAddress = process.env.SVM_ADDRESS || "";
 const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
 
-async function readInput(request: NextRequest) {
+async function readInput(request: Request) {
   const body = await request.json().catch(() => ({})) as Record<string, unknown>;
   const rawFocus = typeof body.focus === "string" ? body.focus : "HOUSEHOLD";
   return {
@@ -43,7 +43,7 @@ const handler = async (request: NextRequest) => {
 export const POST = withFriendlyX402(handler, {
   productId: "preparedness-compiler",
   preflight: async (request: NextRequest) => {
-    const input = await readInput(request);
+    const input = await readInput(request.clone());
     if (!isSurvivalFocus(input.rawFocus)) return NextResponse.json({ error: "A supported preparedness focus is required." }, { status: 400 });
     if (!input.household && !input.constraints) return NextResponse.json({ error: "Provide at least one household detail or constraint so the paid plan is meaningfully personalized." }, { status: 400 });
     return null;

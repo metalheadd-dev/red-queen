@@ -51,7 +51,11 @@ export function withFriendlyX402(
     }
 
     if (typeof preflight === "function") {
-      const preflightResponse = await preflight(req.clone());
+      // A NextRequest clone is a standard Request and no longer exposes
+      // `nextUrl`. Preflight functions that validate GET query parameters
+      // must receive the original request. POST preflights clone only their
+      // body internally, so the protected handler can still read it later.
+      const preflightResponse = await preflight(req);
       if (preflightResponse) return preflightResponse;
     }
 
@@ -114,7 +118,30 @@ export function withFriendlyX402(
     // Initialize only for an actual paid resource request. Importing an API route
     // during build must never contact an external facilitator.
     const innerMiddleware = withX402(routeHandler, paymentRouteConfig, getX402Server());
-    const res = await innerMiddleware(req);
+    let res: NextResponse;
+
+    try {
+      res = await innerMiddleware(req);
+    } catch (error) {
+      console.error(`x402 gateway failure for ${productId}`, error);
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "The x402 payment gateway is temporarily unavailable. No payment was requested or settled. Please retry shortly.",
+          operationId,
+        },
+        {
+          status: 503,
+          headers: {
+            "X-Operation-Id": operationId,
+            "Cache-Control": "private, no-store",
+          },
+        },
+      );
+    }
+
     res.headers.set("X-Operation-Id", operationId);
     res.headers.set("Cache-Control", "private, no-store");
 

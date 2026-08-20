@@ -7,7 +7,7 @@ import { withFriendlyX402 } from "@/lib/x402";
 const svmAddress = process.env.SVM_ADDRESS || "";
 const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
 
-async function readInput(request: NextRequest) {
+async function readInput(request: Request) {
   const body = await request.json().catch(() => ({})) as Record<string, unknown>;
   return {
     transaction: typeof body.transaction === "string" ? body.transaction.trim() : "",
@@ -40,7 +40,7 @@ const handler = async (request: NextRequest) => {
 export const POST = withFriendlyX402(handler, {
   productId: "transaction-risk-explanation",
   preflight: async (request: NextRequest) => {
-    const input = await readInput(request);
+    const input = await readInput(request.clone());
     if (!looksLikeBase64(input.transaction)) return NextResponse.json({ error: "Paste a valid base64 serialized Solana versioned transaction." }, { status: 400 });
     try {
       VersionedTransaction.deserialize(Buffer.from(input.transaction, "base64"));
