@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import OnchainClearanceClient from "@/components/OnchainClearanceClient";
 import { SOLANA_MAINNET_CAIP2 } from "@/lib/onchain";
-import { THREAT_CLEARANCE_LEVELS, THREAT_TOKEN_MINT } from "@/lib/threat-token";
+import { QUEEN_VISAGE_MIN_BALANCE, THREAT_CLEARANCE_LEVELS, THREAT_TOKEN_MINT } from "@/lib/threat-token";
 import { X402_INTELLIGENCE_PRODUCTS } from "@/lib/intelligence-products";
 import X402HealthBadge from "@/components/X402HealthBadge";
 import IntelligenceOperationsClient from "@/components/IntelligenceOperationsClient";
@@ -48,7 +48,7 @@ export default function NetworkClearancePage() {
             <article>
               <span>$THREAT · ACCESS LAYER</span>
               <h3>Hold to expand RED QUEEN.</h3>
-              <ul><li>Longer trusted conversation context</li><li>More simultaneous personal Signal Watch slots</li><li>More verified live signals in one Queen synthesis</li><li>Higher response and comparison depth</li><li>Holder-only Queen Visage portrait generation</li><li>Multiplier on XP that was already earned through evidence</li></ul>
+              <ul><li>Longer trusted conversation context</li><li>More simultaneous personal Signal Watch slots</li><li>More verified live signals in one Queen synthesis</li><li>Higher response and comparison depth</li><li>Queen Visage generation from 500,000 $THREAT</li><li>Multiplier on XP that was already earned through evidence</li></ul>
               <small>HOLDINGS NEVER CREATE BIO-SCORE OR CLAIM COMPETENCE.</small>
             </article>
             <article>
@@ -98,7 +98,7 @@ export default function NetworkClearancePage() {
                   <li><strong>{tier.comparisonSignals}</strong><span>signals per synthesis</span></li>
                   <li><strong>{tier.responseDepth.toUpperCase()}</strong><span>analysis depth</span></li>
                   <li><strong>×{tier.earnedXpMultiplier.toFixed(2)}</strong><span>earned XP only</span></li>
-                  <li><strong>{tier.tier > 0 ? "UNLOCKED" : "LOCKED"}</strong><span>Queen Visage</span></li>
+                  <li><strong>{tier.threshold >= QUEEN_VISAGE_MIN_BALANCE ? "UNLOCKED" : "LOCKED"}</strong><span>Queen Visage · 500K required</span></li>
                 </ul>
               </article>
             ))}

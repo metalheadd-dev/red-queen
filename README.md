@@ -48,7 +48,7 @@ Local Pulse resolves only a user-entered city or region, never an exact address.
 | RED QUEEN Monitor / Analyze / Prepare / Simulate | **Live** | Live claims require selected source context; general knowledge and simulation are labeled separately. |
 | Preparedness checklist and saved Queen protocols | **Live** | Private plans currently persist in the browser; they are not published on-chain. |
 | BIO-SCORE and SOLvivor profile | **Live** | BIO changes only through eligible evaluated evidence, never from holdings or ordinary chat volume. |
-| `$THREAT` clearance and Queen Visage | **Live / configured environments** | Balance proof is read from Solana; image generation also requires an OpenAI key and a holder proof refreshed within 30 minutes. |
+| `$THREAT` clearance and Queen Visage | **Live / configured environments** | Balance proof is read from Solana; Queen Visage requires at least 500,000 $THREAT, an OpenAI key, and a proof refreshed within 30 minutes. |
 | x402 exact-USDC intelligence endpoints | **Runtime-gated beta** | Seven paid operations: global synthesis, Local Delta, 72-hour plan, Incident Dossier, transaction risk, network health, and wallet exposure. Disabled unless recipient, facilitator, network, migration, and receipt store pass health checks. |
 | Jupiter `$THREAT` acquisition | **Runtime-gated beta** | SOL/USDC → canonical `$THREAT` through Swap V2 order + execute. The server never holds a user key; quote, fee and output appear before wallet approval. |
 | Wallet Intelligence / Lockdown | **Read-only live / transaction feature-gated** | Reads SPL and Token-2022 authority state. Revocation preparation requires a verified wallet session, successful simulation, explicit environment enablement, and a separate wallet approval. |
@@ -108,13 +108,13 @@ Canonical mint: `3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump`
 | --- | ---: | ---: | ---: | ---: | --- | ---: |
 | Civilian | Public | 6 messages | 2 | 2 | Essential | ×1.00 |
 | Scout | 1+ | 10 messages | 3 | 3 | Standard | ×1.05 |
-| Analyst | 100K+ | 14 messages | 4 | 4 | Detailed | ×1.10 |
-| Sentinel | 500K+ | 18 messages | 5 | 5 | Advanced | ×1.15 |
-| Command | 1M+ | 24 messages | 6 | 6 | Strategic | ×1.20 |
+| Analyst | 500K+ | 14 messages | 4 | 4 | Detailed | ×1.10 |
+| Sentinel | 1M+ | 18 messages | 5 | 5 | Advanced | ×1.15 |
+| Command | 5M+ | 24 messages | 6 | 6 | Strategic | ×1.20 |
 
 Token holdings expand intelligence capacity and engagement XP. Signal Watch passes source IDs rather than copied claims; the server resolves each signal again and includes only confidence-verified records up to the active comparison limit. Holdings never create BIO-SCORE or prove survival competence.
 
-Every signed-in SOLvivor can set a personal avatar. The browser crops it to a square WebP and stores it locally without sending it to the server. Verified holders can additionally use **Queen Visage V2** in My Readiness: transform a selected portrait into the RED QUEEN white-line/red-circuit social-avatar style. The source portrait is sent to the configured image provider only after explicit generation, and the result stays in that browser unless the user downloads or shares it.
+Every signed-in SOLvivor can set a personal avatar. The browser crops it to a square WebP and stores it locally without sending it to the server. Accounts with freshly verified Analyst clearance, starting at 500,000 $THREAT, can additionally use **Queen Visage V2** in My Readiness: transform a selected portrait into the RED QUEEN white-line/red-circuit social-avatar style. The source portrait is sent to the configured image provider only after explicit generation, and the result stays in that browser unless the user downloads, shares, or explicitly saves the final WebP to the private profile bucket.
 
 ### 3. AI compute payments: x402
 

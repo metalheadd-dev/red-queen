@@ -63,7 +63,7 @@ export default function TermsPage() {
             <h2>Access utility, not competence.</h2>
             <p>
               RED QUEEN may verify public $THREAT holdings to unlock context depth, Signal Watch capacity, usage
-              allowances, and holder-only creative features. Holdings never create BIO-SCORE, prove survival
+              allowances, and threshold-gated creative features such as Queen Visage at 500,000 $THREAT. Holdings never create BIO-SCORE, prove survival
               competence, guarantee service availability, or promise financial value, yield, or rewards.
             </p>
           </section>

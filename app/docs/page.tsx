@@ -71,12 +71,12 @@ const PROFILE_TERMS = [
   {
     name: "$THREAT clearance",
     meaning: "The intelligence capacity unlocked by a verified canonical SPL balance.",
-    changes: "Higher clearance expands context, watch slots, signal comparison, analysis depth, earned-XP multiplier, and holder creative utility.",
+    changes: "Scout starts at 1 $THREAT, Analyst at 500,000, Sentinel at 1,000,000, and Command at 5,000,000. Higher clearance expands context, watch slots, signal comparison, analysis depth, and the earned-XP multiplier.",
   },
   {
     name: "Holder verification",
     meaning: "A fresh server-side Solana mainnet balance read for the canonical $THREAT mint.",
-    changes: "It fails closed when RPC is unavailable. Queen Visage requires a proof refreshed within 30 minutes.",
+    changes: "It fails closed when RPC is unavailable. Queen Visage requires at least 500,000 $THREAT and a proof refreshed within 30 minutes.",
   },
   {
     name: "Memory / privacy summary",
@@ -153,7 +153,7 @@ export default function ProductGuidePage() {
         <section className="guide-section guide-two-column" id="token">
           <div>
             <div className="guide-section-head"><span>03 // $THREAT</span><h2>Access utility, not purchased competence</h2></div>
-            <ul><li>Longer trusted Queen context.</li><li>More Signal Watch slots.</li><li>More verified signals in one synthesis.</li><li>Deeper analysis and comparison.</li><li>A modest multiplier on XP already earned through evidence.</li><li>Holder-only Queen Visage generation.</li></ul>
+            <ul><li>Scout from 1 $THREAT.</li><li>Analyst from 500,000 $THREAT.</li><li>Sentinel from 1,000,000 $THREAT.</li><li>Command from 5,000,000 $THREAT.</li><li>Longer trusted Queen context.</li><li>More Signal Watch slots.</li><li>More verified signals in one synthesis.</li><li>Deeper analysis and comparison.</li><li>A modest multiplier on XP already earned through evidence.</li><li>Queen Visage generation from 500,000 $THREAT.</li></ul>
             <Link href="/onchain">VIEW LIVE CLEARANCE LEVELS →</Link>
           </div>
           <div>
@@ -165,7 +165,7 @@ export default function ProductGuidePage() {
         </section>
 
         <section className="guide-section guide-visage" id="visage">
-          <div><span>05 // SOLVIVOR AVATAR · RQ VISAGE / V2</span><h2>Your face. Her visual language.</h2><p>Any SOLvivor can choose a personal avatar; it is cropped locally to a square and can stay on that device or be explicitly saved to a private profile. Holder-only generation follows a stricter visual contract: preserve identity, use a deep black silhouette, precise white facial linework, sparse red circuitry, luminous eyes and a restrained circular crown halo.</p><p>No text, logo, weapon, gore or extra person may appear. The source portrait is sent only after Generate and is never stored by RED QUEEN. Only the final 1:1 result can be saved privately, downloaded or shared to X, Discord and other profiles.</p></div>
+          <div><span>05 // SOLVIVOR AVATAR · RQ VISAGE / V2</span><h2>Your face. Her visual language.</h2><p>Any SOLvivor can choose a personal avatar; it is cropped locally to a square and can stay on that device or be explicitly saved to a private profile. Queen Visage generation unlocks at Analyst clearance with a freshly verified balance of at least 500,000 $THREAT. It follows a stricter visual contract: preserve identity, use a deep black silhouette, precise white facial linework, sparse red circuitry, luminous eyes and a restrained circular crown halo.</p><p>No text, logo, weapon, gore or extra person may appear. The source portrait is sent only after Generate and is never stored by RED QUEEN. Only the final 1:1 result can be saved privately, downloaded or shared to X, Discord and other profiles.</p></div>
           <Image src="/art/red-queen-sigil.png" alt="RED QUEEN visual language reference" width={1536} height={1536} />
         </section>
 

@@ -98,7 +98,8 @@ export default function PrivacyPage() {
               transmit your entire browser storage.
             </p>
             <p>
-              Queen Visage is optional and reserved for verified $THREAT holders. When you press Generate, the
+              Queen Visage is optional and reserved for accounts with a freshly verified balance of at least
+              500,000 $THREAT. When you press Generate, the
               selected portrait is sent to the configured image model for that generation request. RED QUEEN never
               saves the source portrait. The generated result returns to your browser; you may keep it locally or
               explicitly save the final WebP to a private profile bucket, where you can delete it at any time.

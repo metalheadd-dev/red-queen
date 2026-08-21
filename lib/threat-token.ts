@@ -1,4 +1,5 @@
 export const THREAT_TOKEN_MINT = "3SBP25W239gQwTjTebshDcyNKBzM1J9ADRyqDqLQpump";
+export const QUEEN_VISAGE_MIN_BALANCE = 500_000;
 
 export interface ThreatClearance {
   tier: number;
@@ -42,7 +43,7 @@ export const THREAT_CLEARANCE_LEVELS: ThreatClearance[] = [
     tier: 2,
     level: 3,
     name: "ANALYST",
-    threshold: 100_000,
+    threshold: 500_000,
     contextMessages: 14,
     signalWatchSlots: 4,
     comparisonSignals: 4,
@@ -54,7 +55,7 @@ export const THREAT_CLEARANCE_LEVELS: ThreatClearance[] = [
     tier: 3,
     level: 4,
     name: "SENTINEL",
-    threshold: 500_000,
+    threshold: 1_000_000,
     contextMessages: 18,
     signalWatchSlots: 5,
     comparisonSignals: 5,
@@ -66,7 +67,7 @@ export const THREAT_CLEARANCE_LEVELS: ThreatClearance[] = [
     tier: 4,
     level: 5,
     name: "COMMAND",
-    threshold: 1_000_000,
+    threshold: 5_000_000,
     contextMessages: 24,
     signalWatchSlots: 6,
     comparisonSignals: 6,

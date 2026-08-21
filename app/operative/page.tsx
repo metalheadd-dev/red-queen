@@ -11,7 +11,7 @@ import {
   getClearanceLevel,
   UserStats,
 } from "@/lib/progression";
-import { getNextThreatClearance, getThreatClearance } from "@/lib/threat-token";
+import { getNextThreatClearance, getThreatClearance, QUEEN_VISAGE_MIN_BALANCE } from "@/lib/threat-token";
 import { PREPAREDNESS_CHECKLIST } from "@/lib/preparedness";
 import {
   PREPAREDNESS_PLANS_EVENT,
@@ -381,7 +381,7 @@ export default function OperativeProfilePage() {
     if (avatarPreview) URL.revokeObjectURL(avatarPreview);
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
-    setAvatarStatus("Portrait ready. Use it locally as-is, or generate a holder-only Queen Visage. Nothing is sent to AI until you choose Generate.");
+    setAvatarStatus("Portrait ready. Use it locally as-is, or generate Queen Visage with verified Analyst clearance. Nothing is sent to AI until you choose Generate.");
   }
 
   async function makeSquareAvatar(file: File) {
@@ -429,7 +429,7 @@ export default function OperativeProfilePage() {
   }
 
   async function generateAvatar() {
-    if (!avatarFile || !session?.access_token || !hasFreshHolderProof) return;
+    if (!avatarFile || !session?.access_token || !hasFreshQueenVisageProof) return;
     setGeneratingAvatar(true);
     setAvatarStatus("RED QUEEN is reconstructing your SOLvivor identity...");
     try {
@@ -548,8 +548,8 @@ export default function OperativeProfilePage() {
   const bioScore = calculatedScore || profile?.last_bio_score || 0;
   const readinessTier = getClearanceLevel(bioScore);
   const tokenBalance = Number(profile?.verified_balance || 0);
-  const hasThreatBalance = tokenBalance > 0;
-  const hasFreshHolderProof = isHolderProofFresh(tokenBalance, profile?.last_verification);
+  const hasQueenVisageBalance = tokenBalance >= QUEEN_VISAGE_MIN_BALANCE;
+  const hasFreshQueenVisageProof = hasQueenVisageBalance && isHolderProofFresh(tokenBalance, profile?.last_verification);
   const tokenClearance = getThreatClearance(tokenBalance);
   const nextTokenClearance = getNextThreatClearance(tokenBalance);
   const displayName = customName || profile?.apocalyptic_name || generatedName || "UNREGISTERED SOLVIVOR";
@@ -650,19 +650,19 @@ export default function OperativeProfilePage() {
           <Link href={baselineHref}>{bioScore === 0 ? "RUN 3-MIN BASELINE" : "START FOCUSED DRILL"} →</Link>
         </section>
 
-        <section className={`rq-profile-visage${hasFreshHolderProof ? " is-unlocked" : " is-personal"}`}>
+        <section className={`rq-profile-visage${hasFreshQueenVisageProof ? " is-unlocked" : " is-personal"}`}>
           <div className="rq-profile-visage-copy">
             <span>SOLVIVOR AVATAR // PERSONAL OR QUEEN VISAGE</span>
             <h2>Your identity. Her visual language when you choose it.</h2>
-            <p>Every SOLvivor can use a personal profile image. Verified $THREAT holders can ask RED QUEEN to reconstruct it as a square branded apocalypse-intelligence portrait.</p>
+            <p>Every SOLvivor can use a personal profile image. SOLvivors with verified Analyst clearance, starting at 500,000 $THREAT, can ask RED QUEEN to reconstruct it as a square branded apocalypse-intelligence portrait.</p>
             <ul>
               <li>Personal avatar: available to everyone, cropped locally, then optionally saved to your private profile.</li>
-              <li>Queen Visage V2: holder-only white linework, red circuitry, luminous eyes and tactical crown halo.</li>
+              <li>Queen Visage V2: unlocked from 500,000 $THREAT with white linework, red circuitry, luminous eyes and a tactical crown halo.</li>
               <li>Generate sends the selected portrait to the configured AI provider only for that request.</li>
               <li>Only the final 1:1 avatar can be saved to your private profile. Download or Share exports it for X, Discord or anywhere else.</li>
             </ul>
-            {!hasThreatBalance && <Link href="/onchain">VERIFY $THREAT TO UNLOCK BRANDED GENERATION →</Link>}
-            {hasThreatBalance && !hasFreshHolderProof && <a href="#holder-clearance">REFRESH HOLDER PROOF FOR QUEEN VISAGE →</a>}
+            {!hasQueenVisageBalance && <Link href="/onchain">REACH 500,000 $THREAT TO UNLOCK QUEEN VISAGE →</Link>}
+            {hasQueenVisageBalance && !hasFreshQueenVisageProof && <a href="#holder-clearance">REFRESH 500,000 $THREAT PROOF FOR QUEEN VISAGE →</a>}
           </div>
           <div className="rq-profile-visage-studio">
             <div className="rq-profile-visage-preview">
@@ -683,15 +683,15 @@ export default function OperativeProfilePage() {
             <div className="rq-profile-visage-actions">
               <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={generatingAvatar}>CHOOSE PORTRAIT</button>
               <button type="button" onClick={() => void usePersonalAvatar()} disabled={!avatarFile || generatingAvatar}>USE MY AVATAR</button>
-              <button type="button" className="primary" onClick={generateAvatar} disabled={!hasFreshHolderProof || !avatarFile || generatingAvatar}>
-                {!hasFreshHolderProof ? hasThreatBalance ? "REFRESH PROOF FOR RQ VISAGE" : "RQ VISAGE · HOLDERS" : generatingAvatar ? "RECONSTRUCTING..." : "GENERATE RQ VISAGE V2"}
+              <button type="button" className="primary" onClick={generateAvatar} disabled={!hasFreshQueenVisageProof || !avatarFile || generatingAvatar}>
+                {!hasFreshQueenVisageProof ? hasQueenVisageBalance ? "REFRESH 500K PROOF" : "RQ VISAGE · 500K $THREAT" : generatingAvatar ? "RECONSTRUCTING..." : "GENERATE RQ VISAGE V2"}
               </button>
               {avatar && <a href={avatar} download="red-queen-solvivor.webp">DOWNLOAD 1:1</a>}
               {avatar && <button type="button" onClick={() => void shareAvatar()} disabled={generatingAvatar}>SHARE / EXPORT</button>}
               {avatar && <button type="button" onClick={() => void saveAvatarToProfile()} disabled={generatingAvatar || savingAvatar || cloudAvatar}>{cloudAvatar ? "SAVED TO PROFILE" : savingAvatar ? "SAVING..." : "SAVE TO PROFILE"}</button>}
               {(avatar || avatarPreview) && <button type="button" onClick={() => void removeAvatar()} disabled={generatingAvatar || savingAvatar}>{cloudAvatar ? "REMOVE FROM PROFILE" : "REMOVE LOCAL"}</button>}
             </div>
-            {!hasFreshHolderProof && <div className="rq-profile-visage-holder-note"><strong>PERSONAL AVATAR IS OPEN</strong><span>Branded RED QUEEN transformation requires a fresh verified $THREAT balance.</span></div>}
+            {!hasFreshQueenVisageProof && <div className="rq-profile-visage-holder-note"><strong>PERSONAL AVATAR IS OPEN</strong><span>Branded RED QUEEN transformation requires a fresh verified balance of at least 500,000 $THREAT.</span></div>}
             {avatarStatus && <p className="rq-profile-visage-status">{avatarStatus}</p>}
           </div>
         </section>

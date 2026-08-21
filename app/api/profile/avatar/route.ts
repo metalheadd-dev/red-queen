@@ -5,6 +5,7 @@ import { getAuthIdentifier } from "@/lib/auth-helpers";
 import { getHashedWallet } from "@/lib/crypto";
 import { isHolderProofFresh } from "@/lib/holder-proof";
 import { supabase } from "@/lib/supabase";
+import { QUEEN_VISAGE_MIN_BALANCE } from "@/lib/threat-token";
 
 export const dynamic = "force-dynamic";
 
@@ -33,16 +34,20 @@ export async function POST(request: Request) {
   if (holderError && holderError.code !== "PGRST116") {
     return Response.json({ error: "$THREAT holder verification failed." }, { status: 503 });
   }
-  if (Number(holder?.verified_balance || 0) <= 0) {
+  if (Number(holder?.verified_balance || 0) < QUEEN_VISAGE_MIN_BALANCE) {
     return Response.json(
-      { error: "Queen Visage is reserved for verified $THREAT holders.", code: "HOLDER_REQUIRED" },
+      {
+        error: `Queen Visage requires a verified balance of at least ${QUEEN_VISAGE_MIN_BALANCE.toLocaleString("en-US")} $THREAT.`,
+        code: "INSUFFICIENT_CLEARANCE",
+        requiredBalance: QUEEN_VISAGE_MIN_BALANCE,
+      },
       { status: 403 },
     );
   }
   if (!isHolderProofFresh(holder?.verified_balance, holder?.last_verification)) {
     return Response.json(
       {
-        error: "Refresh your $THREAT balance before using Queen Visage. Holder proof expires after 30 minutes.",
+        error: "Refresh your $THREAT balance before using Queen Visage. The 500,000 $THREAT proof expires after 30 minutes.",
         code: "HOLDER_REVERIFY_REQUIRED",
       },
       { status: 403 },
@@ -101,7 +106,7 @@ export async function POST(request: Request) {
     return Response.json({
       avatarDataUrl: `data:image/webp;base64,${encoded}`,
       storage: "local-device",
-      utility: "$THREAT_HOLDER",
+      utility: "$THREAT_ANALYST_CLEARANCE",
       visualStyle: "RQ_VISAGE_V2",
       socialReady: true,
       aspectRatio: "1:1",
