@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import CopyThreatMint from "@/components/CopyThreatMint";
 import SolvivalIcon from "@/components/SolvivalIcon";
 
 const agentSteps = [
@@ -37,13 +37,6 @@ const agentSteps = [
   },
 ] as const;
 
-const onchainCapabilities = [
-  ["x402", "Request a premium intelligence operation and pay its exact price in USDC. Queen gathers the data and delivers the report."],
-  ["$THREAT", "Verify your holdings to expand trusted context, Signal Watch capacity and intelligence clearance."],
-  ["JUPITER", "Review a live quote and buy $THREAT from the platform with a wallet approval you control."],
-  ["WALLET INTELLIGENCE", "Inspect exposure, explain transaction risk and preview dangerous SPL delegate revocations before signing."],
-] as const;
-
 export default function LandingPage() {
   return (
     <div className="rq-landing">
@@ -73,14 +66,11 @@ export default function LandingPage() {
           </div>
 
           <div className="rq-agent-stage" aria-label="RED QUEEN agent capability preview">
-            <Image
-              className="rq-agent-stage-queen"
-              src="/art/red-queen-presence.png"
-              alt="RED QUEEN, the survival intelligence agent"
-              width={1199}
-              height={1312}
-              priority
-            />
+            <div className="rq-agent-signal" aria-hidden="true">
+              <i /><i /><i />
+              <span>RQ</span>
+              <b>AGENT SIGNAL // LOCKED</b>
+            </div>
             <div className="rq-agent-window">
               <div className="rq-agent-window-bar">
                 <span><i /><i /><i /></span>
@@ -142,27 +132,58 @@ export default function LandingPage() {
         <div className="container rq-onchain-inner">
           <div className="rq-section-heading rq-section-heading-onchain">
             <span>02 // AGENTIC ECONOMY</span>
-            <h2>Built to reason.<br /><em>Ready to transact.</em></h2>
+            <h2>Intelligence that can<br /><em>complete the operation.</em></h2>
             <p>
-              Start without a wallet. Connect one only when you want Queen to verify access, prepare an operation or request a transaction.
+              RED QUEEN can price a premium operation, receive a USDC payment through x402, gather the required intelligence and deliver the result. You still approve every payment and transaction.
             </p>
             <div className="rq-landing-actions">
               <Link className="btn btn-primary" href="/onchain">OPEN ONCHAIN HUB</Link>
               <Link className="btn btn-ghost" href="/network-clearance">VIEW AGENT IDENTITY</Link>
             </div>
           </div>
-          <div className="rq-onchain-console">
-            <div className="rq-onchain-console-head">
-              <span>SOLANA MAINNET // HUMAN APPROVAL REQUIRED</span>
-              <i>LIVE</i>
+
+          <div className="rq-agentic-economy-grid">
+            <article className="rq-x402-feature">
+              <div className="rq-economy-card-head">
+                <span>AGENTIC PAYMENT RAIL</span>
+                <b>LIVE</b>
+              </div>
+              <div className="rq-x402-mark">x402</div>
+              <h3>Pay for the intelligence you request.</h3>
+              <p>Local Delta Briefs, 72-hour plans, incident dossiers and transaction-risk reports are priced before approval and delivered with a receipt.</p>
+              <ol>
+                <li><span>01</span><b>REQUEST</b><small>Choose the operation.</small></li>
+                <li><span>02</span><b>PAY USDC</b><small>Approve the exact price.</small></li>
+                <li><span>03</span><b>QUEEN EXECUTES</b><small>Data becomes a report.</small></li>
+                <li><span>04</span><b>RECEIVE</b><small>Output and receipt delivered.</small></li>
+              </ol>
+              <Link href="/onchain#queen-operations">OPEN x402 OPERATIONS →</Link>
+            </article>
+
+            <article className="rq-threat-feature">
+              <div className="rq-economy-card-head">
+                <span>INTELLIGENCE CLEARANCE</span>
+                <b>$THREAT</b>
+              </div>
+              <h3>The token expands access to RED QUEEN.</h3>
+              <p>Holdings unlock longer trusted context, more Signal Watch capacity and deeper agent analysis. They never manufacture BIO-SCORE or readiness.</p>
+              <div className="rq-clearance-rail">
+                <span><b>SCOUT</b><small>1+</small></span>
+                <span><b>ANALYST</b><small>500K+</small></span>
+                <span><b>SENTINEL</b><small>1M+</small></span>
+                <span><b>COMMAND</b><small>5M+</small></span>
+              </div>
+              <CopyThreatMint />
+              <div className="rq-threat-actions">
+                <Link href="/onchain#buy-threat">BUY WITH JUPITER</Link>
+                <Link href="/network-clearance">VIEW UTILITY</Link>
+              </div>
+            </article>
+
+            <div className="rq-onchain-support">
+              <Link href="/onchain#wallet-intelligence"><span>WALLET INTELLIGENCE</span><b>Explain risk before signing →</b></Link>
+              <Link href="/network-clearance"><span>AGENT IDENTITY</span><b>Inspect capabilities and endpoints →</b></Link>
             </div>
-            {onchainCapabilities.map(([name, description], index) => (
-              <article key={name}>
-                <span>0{index + 1}</span>
-                <div><h3>{name}</h3><p>{description}</p></div>
-                <b>↗</b>
-              </article>
-            ))}
           </div>
         </div>
       </section>
@@ -211,7 +232,7 @@ export default function LandingPage() {
       </section>
 
       <section className="container rq-final-call">
-        <Image src="/art/red-queen-throne-v2.png" alt="" width={1200} height={1200} aria-hidden="true" />
+        <div className="rq-final-sigil" aria-hidden="true"><i /><i /><span>RQ</span></div>
         <div>
           <span>SOLVIVAL CORP // SYSTEM ONLINE</span>
           <h2>The world sends noise.<br />She returns a decision.</h2>

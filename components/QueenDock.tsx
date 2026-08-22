@@ -107,12 +107,14 @@ function buildHref(action: DockAction, area: string) {
 export default function QueenDock() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const [area, setArea] = useState("");
 
   useEffect(() => {
     try {
       const context = JSON.parse(localStorage.getItem("rq-survival-context-v1") || "{}") as Partial<SurvivalContext>;
       setArea(typeof context.area === "string" ? context.area : "");
+      setMinimized(localStorage.getItem("rq-queen-dock-minimized-v1") === "1");
     } catch {
       setArea("");
     }
@@ -128,8 +130,19 @@ export default function QueenDock() {
   const isVisible = visibleCoreRoutes.some((route) => route === "/" ? pathname === "/" : pathname.startsWith(route));
   if (!isVisible || pathname.startsWith("/red-queen") || pathname.startsWith("/terminal")) return null;
 
+  const minimizeDock = () => {
+    setOpen(false);
+    setMinimized(true);
+    localStorage.setItem("rq-queen-dock-minimized-v1", "1");
+  };
+
+  const restoreDock = () => {
+    setMinimized(false);
+    localStorage.removeItem("rq-queen-dock-minimized-v1");
+  };
+
   return (
-    <aside className={`queen-dock${open ? " is-open" : ""}`} aria-label="Red Queen contextual assistant">
+    <aside className={`queen-dock${open ? " is-open" : ""}${minimized ? " is-minimized" : ""}`} aria-label="Red Queen contextual assistant">
       {open && (
         <div className="queen-dock-panel">
           <div className="queen-dock-head">
@@ -148,11 +161,21 @@ export default function QueenDock() {
           <Link href="/red-queen" className="queen-dock-open-terminal">OPEN RED QUEEN</Link>
         </div>
       )}
-      <button className="queen-dock-trigger" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
-        <span className="queen-dock-orb"><i /></span>
-        <span><strong>ASK RED QUEEN</strong><small>{area ? `${area} · SHE REMEMBERS` : "SURVIVAL INTELLIGENCE · LISTENING"}</small></span>
-        <b>{open ? "×" : "↑"}</b>
-      </button>
+      {minimized ? (
+        <button className="queen-dock-mini" onClick={restoreDock} aria-label="Restore Red Queen assistant">
+          <span className="queen-dock-orb"><i /></span>
+          <b>+</b>
+        </button>
+      ) : (
+        <div className="queen-dock-launcher">
+          <button className="queen-dock-trigger" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
+            <span className="queen-dock-orb"><i /></span>
+            <span><strong>ASK RED QUEEN</strong><small>{area ? `${area} · SHE REMEMBERS` : "SURVIVAL INTELLIGENCE · LISTENING"}</small></span>
+            <b>{open ? "×" : "↑"}</b>
+          </button>
+          <button className="queen-dock-minimize" onClick={minimizeDock} aria-label="Minimize Red Queen assistant">−</button>
+        </div>
+      )}
     </aside>
   );
 }
