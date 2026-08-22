@@ -156,7 +156,7 @@ export default function ProductGuidePage() {
             <ul><li>Scout from 1 $THREAT.</li><li>Analyst from 500,000 $THREAT.</li><li>Sentinel from 1,000,000 $THREAT.</li><li>Command from 5,000,000 $THREAT.</li><li>Longer trusted Queen context.</li><li>More Signal Watch slots.</li><li>More verified signals in one synthesis.</li><li>Deeper analysis and comparison.</li><li>A modest multiplier on XP already earned through evidence.</li><li>Queen Visage generation from 500,000 $THREAT.</li></ul>
             <Link href="/onchain">VIEW LIVE CLEARANCE LEVELS →</Link>
           </div>
-          <div>
+          <div id="x402">
             <div className="guide-section-head"><span>04 // x402</span><h2>Pay for a declared output</h2></div>
             <p>x402 uses a separate wallet approval for an exact USDC amount. A connected or signed-in wallet cannot silently pay. Each live request receives an operation ID, settlement receipt, replay protection, and a private receipt summary in My Readiness.</p>
             <ul><li>0.01 USDC global verified-source synthesis.</li><li>0.01 USDC 24-hour Local Delta.</li><li>0.02 USDC personalized 72-hour preparedness plan.</li><li>0.02 USDC verified Incident Dossier.</li><li>0.01 USDC pre-sign Solana transaction risk explanation.</li><li>0.02 USDC Solana network health or wallet authority audit.</li><li>Disabled automatically when recipient, facilitator, required source data, or receipt storage is not healthy.</li></ul>

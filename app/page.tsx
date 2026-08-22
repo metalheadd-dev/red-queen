@@ -37,6 +37,34 @@ const agentSteps = [
   },
 ] as const;
 
+const paidOperations = [
+  {
+    title: "LOCAL DELTA",
+    price: "0.01 USDC",
+    copy: "What changed around one broad location in 24 hours.",
+  },
+  {
+    title: "TRANSACTION RISK",
+    price: "0.01 USDC",
+    copy: "Decode and explain a Solana transaction before signing.",
+  },
+  {
+    title: "72-HOUR PLAN",
+    price: "0.02 USDC",
+    copy: "A phased protocol built around real constraints.",
+  },
+  {
+    title: "INCIDENT DOSSIER",
+    price: "0.02 USDC",
+    copy: "Facts, uncertainty, sources and the action that follows.",
+  },
+  {
+    title: "WALLET EXPOSURE",
+    price: "0.02 USDC",
+    copy: "Review the connected wallet's public authority surface.",
+  },
+] as const;
+
 export default function LandingPage() {
   return (
     <div className="rq-landing">
@@ -132,38 +160,57 @@ export default function LandingPage() {
         <div className="container rq-onchain-inner">
           <div className="rq-section-heading rq-section-heading-onchain">
             <span>02 // AGENTIC ECONOMY</span>
-            <h2>A paid operation.<br /><em>Executed by the agent.</em></h2>
+            <h2>Pay for finished intelligence.<br /><em>Not another subscription.</em></h2>
             <p>
-              RED QUEEN can price an intelligence request, receive USDC through x402, use the required data and tools, then deliver a structured result with a verifiable receipt.
-              USDC pays for the requested output; it does not change $THREAT clearance.
+              When the public Pulse is not enough, give RED QUEEN a focused objective. She gathers the required data, runs the operation and returns a structured result with a receipt.
             </p>
+            <div className="rq-agentic-proofline" aria-label="x402 payment guarantees">
+              <span>NO SUBSCRIPTION</span>
+              <span>EXACT PRICE FIRST</span>
+              <span>YOU APPROVE PAYMENT</span>
+            </div>
             <div className="rq-landing-actions">
-              <Link className="btn btn-primary" href="/onchain#queen-operations">OPEN x402 OPERATIONS</Link>
-              <Link className="btn btn-ghost" href="/network-clearance">VIEW AGENT IDENTITY</Link>
+              <Link className="btn btn-primary" href="/onchain#queen-operations">CHOOSE AN OPERATION</Link>
+              <Link className="btn btn-ghost" href="/docs#x402">HOW x402 WORKS</Link>
             </div>
           </div>
 
           <div className="rq-agentic-economy-grid">
             <article className="rq-x402-feature">
               <div className="rq-economy-card-head">
-                <span>AGENTIC PAYMENT RAIL</span>
-                <b>LIVE</b>
+                <span>RED QUEEN // ON-DEMAND INTELLIGENCE</span>
+                <b>x402 LIVE</b>
               </div>
-              <div className="rq-x402-mark">x402</div>
-              <h3>The payment rail for work done by RED QUEEN.</h3>
-              <p>Request a Local Delta Brief, 72-hour plan, incident dossier or transaction-risk report. The price is shown before approval; the result and receipt arrive after settlement.</p>
-              <ol>
-                <li><span>01</span><b>REQUEST</b><small>Choose the operation.</small></li>
-                <li><span>02</span><b>PAY USDC</b><small>Approve the exact price.</small></li>
-                <li><span>03</span><b>QUEEN EXECUTES</b><small>Tools and data become intelligence.</small></li>
-                <li><span>04</span><b>RECEIVE</b><small>Result and receipt delivered.</small></li>
-              </ol>
-              <Link href="/onchain#queen-operations">OPEN x402 OPERATIONS →</Link>
+              <div className="rq-x402-intro">
+                <div>
+                  <span className="rq-x402-mark">x402</span>
+                  <h3>Choose the result you need.</h3>
+                </div>
+                <p>USDC pays for the operation. It never changes $THREAT clearance or BIO-SCORE.</p>
+              </div>
+              <div className="rq-paid-operation-grid">
+                {paidOperations.map((operation) => (
+                  <Link href="/onchain#queen-operations" key={operation.title}>
+                    <span><b>{operation.title}</b><strong>{operation.price}</strong></span>
+                    <small>{operation.copy}</small>
+                  </Link>
+                ))}
+              </div>
+              <div className="rq-agentic-flow" aria-label="x402 operation flow">
+                <span><b>01</b> REQUEST</span>
+                <i>→</i>
+                <span><b>02</b> APPROVE</span>
+                <i>→</i>
+                <span><b>03</b> QUEEN EXECUTES</span>
+                <i>→</i>
+                <span><b>04</b> RESULT + RECEIPT</span>
+              </div>
+              <Link className="rq-x402-primary-link" href="/onchain#queen-operations">OPEN THE INTELLIGENCE MARKET →</Link>
             </article>
 
             <div className="rq-onchain-support">
-              <Link href="/onchain#wallet-intelligence"><span>WALLET INTELLIGENCE</span><b>Explain risk before signing →</b></Link>
-              <Link href="/network-clearance"><span>AGENT IDENTITY</span><b>Inspect capabilities and endpoints →</b></Link>
+              <Link href="/onchain#wallet-intelligence"><span>WALLET INTELLIGENCE</span><b>Inspect risk before signing →</b></Link>
+              <Link href="/network-clearance"><span>VERIFIABLE AGENT</span><b>Inspect identity and capabilities →</b></Link>
             </div>
           </div>
         </div>
