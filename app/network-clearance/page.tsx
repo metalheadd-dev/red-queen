@@ -7,6 +7,7 @@ import { X402_INTELLIGENCE_PRODUCTS } from "@/lib/intelligence-products";
 import X402HealthBadge from "@/components/X402HealthBadge";
 import IntelligenceOperationsClient from "@/components/IntelligenceOperationsClient";
 import ThreatSwapClient from "@/components/ThreatSwapClient";
+import AgentRegistryIdentity from "@/components/AgentRegistryIdentity";
 
 const LEVEL_COLORS = ["#8a8a8a", "#d8d8d8", "#f0c929", "#ff884d", "#ff4d4d"];
 
@@ -106,14 +107,17 @@ export default function NetworkClearancePage() {
           <div className="onchain-bio-rule"><strong>BIO-SCORE FIREWALL</strong><p>Token holdings may improve access and engagement rewards. Readiness domains change only after an evaluated decision, plan, or demonstrated preparedness action.</p></div>
         </section>
 
+        <AgentRegistryIdentity />
+
         <section className="onchain-stack">
-          <div className="onchain-section-head"><span>05 // SOLANA STACK</span><h2>Live now. Next with purpose.</h2><p>Every label reflects implementation state, not marketing intent.</p></div>
+          <div className="onchain-section-head"><span>06 // SOLANA STACK</span><h2>Live now. Next with purpose.</h2><p>Every label reflects implementation state, not marketing intent.</p></div>
           <div className="onchain-stack-grid">
             <article className="is-live"><span>LIVE</span><strong>Sign In With Solana</strong><p>Domain-bound, timestamped wallet authentication through Supabase Web3 Auth and the connected wallet adapter.</p></article>
             <article className="is-live"><span>LIVE</span><strong>SPL holder proof</strong><p>Server-side canonical mint read, aggregated token accounts, confirmed commitment, and fail-closed persistence.</p></article>
             <article className="is-beta"><span>BETA</span><strong>x402 exact SVM</strong><p>USDC-gated HTTP resources with exact prices. Available when the production facilitator and receiving wallet are configured.</p></article>
             <article className="is-beta"><span>BETA</span><strong>Jupiter $THREAT swap</strong><p>SOL/USDC input, canonical output mint, fresh Swap V2 order, fee disclosure and explicit wallet approval. Runtime-gated by the server API key.</p></article>
             <article className="is-beta"><span>BETA</span><strong>Wallet Intelligence</strong><p>Read-only SPL and Token-2022 authority scans, paid evidence-bounded audit, and feature-gated simulated delegate revocation.</p></article>
+            <article className="is-next"><span>PREPARED</span><strong>8004 Agent Registry</strong><p>Public RED QUEEN metadata, MCP endpoint, OASF capabilities and x402 support are ready. Mainnet identity awaits one explicit registration signature.</p></article>
             <article className="is-next"><span>AFTER CORE</span><strong>Solana Actions / Blinks</strong><p>Share a verified RED QUEEN protocol or paid intelligence action after the daily web loop is stable.</p></article>
             <article className="is-next"><span>NEXT</span><strong>Kora fee abstraction</strong><p>Sponsor fees only for allowlisted RED QUEEN transactions after Wallet Lockdown passes mainnet QA.</p></article>
             <article className="is-research"><span>LATER</span><strong>Seeker + Mobile Wallet Adapter</strong><p>Deferred until the web product, agent value and payment flow are production-ready.</p></article>
@@ -122,7 +126,7 @@ export default function NetworkClearancePage() {
         </section>
 
         <section className="onchain-safety">
-          <div><span>06 // SIGNATURE SAFETY</span><h2>RED QUEEN will never ask for a seed phrase.</h2></div>
+          <div><span>07 // SIGNATURE SAFETY</span><h2>RED QUEEN will never ask for a seed phrase.</h2></div>
           <ul><li><strong>CONNECT</strong><span>Expose one public address for read-only RPC calls.</span></li><li><strong>SIGN IN</strong><span>Prove address ownership with an off-chain SIWS message.</span></li><li><strong>SIMULATE</strong><span>Inspect exact instructions and RPC simulation before an authority change.</span></li><li><strong>PAY</strong><span>Approve a separately displayed transaction with network, asset, amount and destination.</span></li></ul>
           <div className="onchain-safety-actions"><Link href="/red-queen" className="btn btn-primary">ASK RED QUEEN</Link><Link href="/profile" className="btn btn-ghost">OPEN MY READINESS</Link><a href={`https://explorer.solana.com/address/${THREAT_TOKEN_MINT}`} target="_blank" rel="noreferrer" className="btn btn-outline">VIEW MINT ↗</a></div>
           <code>CANONICAL $THREAT MINT · {THREAT_TOKEN_MINT}</code>

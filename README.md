@@ -52,7 +52,8 @@ Local Pulse resolves only a user-entered city or region, never an exact address.
 | x402 exact-USDC intelligence endpoints | **Runtime-gated beta** | Seven paid operations: global synthesis, Local Delta, 72-hour plan, Incident Dossier, transaction risk, network health, and wallet exposure. Disabled unless recipient, facilitator, network, migration, and receipt store pass health checks. |
 | Jupiter `$THREAT` acquisition | **Runtime-gated beta** | SOL/USDC → canonical `$THREAT` through Swap V2 order + execute. The server never holds a user key; quote, fee and output appear before wallet approval. |
 | Wallet Intelligence / Lockdown | **Read-only live / transaction feature-gated** | Reads SPL and Token-2022 authority state. Revocation preparation requires a verified wallet session, successful simulation, explicit environment enablement, and a separate wallet approval. |
-| Agent Registry, attestations, Kora, Blinks, Seeker polish | **Planned** | These follow a stable web core and are not described as shipped features. |
+| 8004 Agent Registry package | **Prepared** | Domain-hosted registration metadata, MCP endpoint, OASF skills/domains, x402 declaration and Onchain identity UI are live. The Agent Asset is not claimed as registered until a project wallet signs the mainnet registration transaction. |
+| Attestations, Kora, Blinks, Seeker polish | **Planned** | These follow a stable web core and are not described as shipped features. |
 
 ## Verified signal grid
 
@@ -156,10 +157,16 @@ The Community page includes an opt-in readiness board. Existing and new accounts
 
 Official references: [Solana Actions and Blinks](https://solana.com/developers/guides/advanced/actions), [Solana Mobile Wallet Adapter](https://docs.solanamobile.com/get-started/web/apps), [x402 specification](https://github.com/x402-foundation/x402/blob/main/specs/x402-specification-v2.md), [Supabase Web3 Auth](https://supabase.com/docs/guides/auth/auth-web3).
 
+### 7. RED QUEEN 8004 Agent identity
+
+The public registration document is served at `/.well-known/agent-registration.json`. It declares the production MCP endpoint, validated OASF skills and domains, x402 support, project operational wallet, and the public Queen image without publishing BIO-SCORE, readiness plans, profile memory, or user location. `/api/agent/oasf` exposes the machine-readable capability profile, while `/api/agent/identity` exposes the current registration state for the product UI.
+
+Before registration, the UI must say `REGISTRATION PACKAGE READY`; it must not invent an Agent Asset or reputation history. After the project wallet signs and the transaction is verified, set `RED_QUEEN_AGENT_ASSET` and `RED_QUEEN_AGENT_REGISTRATION_TX`. `RED_QUEEN_AGENT_OWNER` and `RED_QUEEN_AGENT_METADATA_URI` are optional overrides documented in `.env.local.example`.
+
 ## Next Solana integrations
 
 - Solana Actions/Blinks for shareable RED QUEEN protocols and paid intelligence actions, after the core daily loop is stable.
-- RED QUEEN Agent Registry identity with wallet, MCP endpoint, capabilities, x402 support, and reputation metadata.
+- Sign and verify RED QUEEN's prepared 8004 Agent Registry identity on mainnet. Metadata, MCP, OASF capabilities and x402 support are already exposed without claiming an onchain Agent Asset before registration.
 - Kora fee abstraction for sponsored first actions without requiring a pre-funded SOL balance.
 - A user-capped autonomous agent budget with a strict spend ceiling and per-operation receipt ledger.
 - Mobile Wallet Adapter and the Seeker Android build are intentionally deferred until the web product is production-ready.

@@ -3463,7 +3463,7 @@ body:has(#game-player-root) .page-content {
 .threat-swap-signin { margin-top:12px; color:rgba(255,255,255,.48); font-size:11px; line-height:1.55; }
 .threat-swap-signin a { color:#14f195; }
 
-.onchain-contract,.onchain-products,.intelligence-market,.onchain-tiers,.onchain-stack,.onchain-safety { padding-top:90px; }
+.onchain-contract,.onchain-products,.intelligence-market,.onchain-tiers,.agent-identity,.onchain-stack,.onchain-safety { padding-top:90px; }
 
 /* RED QUEEN paid intelligence console */
 .intelligence-market { scroll-margin-top:82px; }
@@ -3574,6 +3574,33 @@ body:has(#game-player-root) .page-content {
 .onchain-bio-rule { display:grid; grid-template-columns:200px 1fr; gap:24px; margin-top:9px; padding:16px 18px; border:1px solid rgba(255,255,255,.07); background:#08090b; }
 .onchain-bio-rule strong { color:#9cff59; font:700 8px var(--mono); }
 .onchain-bio-rule p { color:rgba(255,255,255,.39); font-size:9px; line-height:1.5; }
+.agent-identity-shell { position:relative; display:grid; grid-template-columns:minmax(300px,.7fr) minmax(0,1.3fr); min-height:620px; overflow:hidden; border:1px solid rgba(153,69,255,.24); background:radial-gradient(circle at 18% 50%,rgba(255,0,51,.13),transparent 29%),linear-gradient(125deg,#09090c,#050607 58%); }
+.agent-identity-shell::before { content:""; position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px); background-size:42px 42px; mask-image:linear-gradient(90deg,#000,transparent 68%); }
+.agent-identity-portrait { position:relative; min-height:620px; overflow:hidden; border-right:1px solid rgba(255,255,255,.07); }
+.agent-identity-portrait img { position:absolute; right:-55px; bottom:-105px; width:min(620px,115%); height:auto; filter:drop-shadow(0 0 34px rgba(255,0,51,.18)); }
+.agent-identity-portrait > span { position:absolute; top:28px; left:28px; color:rgba(255,0,51,.12); font:700 clamp(80px,10vw,150px) var(--title-font); letter-spacing:-.07em; }
+.agent-identity-core { position:relative; z-index:1; display:flex; flex-direction:column; padding:38px; }
+.agent-identity-status { padding:0 0 28px; border-bottom:1px solid rgba(255,255,255,.08); }
+.agent-identity-status > div { display:flex; align-items:center; gap:9px; color:#14f195; font:700 9px var(--mono); letter-spacing:.12em; }
+.agent-identity-status i { width:8px; height:8px; border-radius:50%; background:#f0c929; box-shadow:0 0 13px rgba(240,201,41,.6); }
+.agent-identity.is-registered .agent-identity-status i { background:#14f195; box-shadow:0 0 13px rgba(20,241,149,.7); }
+.agent-identity-status strong { display:block; margin-top:28px; color:#fff; font:700 clamp(24px,3vw,42px) var(--title-font); }
+.agent-identity-status p { max-width:760px; margin:11px 0 0; color:rgba(255,255,255,.59); font-size:14px; line-height:1.7; }
+.agent-identity-ledger { display:grid; grid-template-columns:1fr 1fr; margin:20px 0 0; border:1px solid rgba(255,255,255,.08); }
+.agent-identity-ledger > div { min-width:0; padding:15px 17px; border-right:1px solid rgba(255,255,255,.07); border-bottom:1px solid rgba(255,255,255,.07); }
+.agent-identity-ledger > div:nth-child(2n) { border-right:0; }
+.agent-identity-ledger > div:nth-last-child(-n+2) { border-bottom:0; }
+.agent-identity-ledger dt { color:rgba(255,255,255,.32); font:700 9px var(--mono); letter-spacing:.1em; }
+.agent-identity-ledger dd { margin:8px 0 0; overflow:hidden; color:#fff; font:700 11px var(--mono); text-overflow:ellipsis; white-space:nowrap; }
+.agent-identity-services { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:20px; }
+.agent-identity-services article { min-height:172px; padding:17px; border:1px solid rgba(255,255,255,.08); background:rgba(0,0,0,.25); }
+.agent-identity-services span { color:var(--accent); font:700 9px var(--mono); letter-spacing:.12em; }
+.agent-identity-services strong { display:block; margin:27px 0 8px; color:#fff; font:700 13px var(--title-font); }
+.agent-identity-services p { margin:0; color:rgba(255,255,255,.5); font-size:12px; line-height:1.58; }
+.agent-identity-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+.agent-identity-actions a { padding:12px 15px; border:1px solid rgba(255,0,51,.4); color:#fff; font:700 9px var(--mono); letter-spacing:.08em; text-decoration:none; }
+.agent-identity-actions a:first-child { background:var(--accent); color:#050505; }
+.agent-identity-core > small { display:block; margin-top:auto; padding-top:24px; color:rgba(255,255,255,.32); font:700 9px var(--mono); line-height:1.6; }
 .onchain-stack-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
 .onchain-stack-grid article { min-height:205px; padding:21px; border:1px solid rgba(255,255,255,.075); background:#08090b; }
 .onchain-stack-grid article > span { display:inline-block; padding:4px 7px; border:1px solid currentColor; font:700 6px var(--mono); letter-spacing:.1em; }
@@ -3621,10 +3648,19 @@ body:has(#game-player-root) .page-content {
   .onchain-proof-grid > div:nth-child(-n+2) { border-bottom:1px solid rgba(255,255,255,.07); }
   .onchain-session-gate { grid-template-columns:1fr; }
   .onchain-session-gate button,.onchain-session-gate a { text-align:center; }
-  .onchain-contract,.onchain-products,.intelligence-market,.onchain-tiers,.onchain-stack,.onchain-safety { padding-top:66px; }
+  .onchain-contract,.onchain-products,.intelligence-market,.onchain-tiers,.agent-identity,.onchain-stack,.onchain-safety { padding-top:66px; }
   .onchain-section-head { grid-template-columns:1fr; gap:10px; }
   .onchain-section-head > span { grid-row:auto; }
   .onchain-contract-grid,.onchain-stack-grid { grid-template-columns:1fr; }
+  .agent-identity-shell { grid-template-columns:1fr; min-height:0; }
+  .agent-identity-portrait { min-height:390px; border-right:0; border-bottom:1px solid rgba(255,255,255,.07); }
+  .agent-identity-portrait img { right:-45px; bottom:-120px; width:min(560px,105%); }
+  .agent-identity-core { padding:26px 19px; }
+  .agent-identity-ledger,.agent-identity-services { grid-template-columns:1fr; }
+  .agent-identity-ledger > div { border-right:0; border-bottom:1px solid rgba(255,255,255,.07) !important; }
+  .agent-identity-ledger > div:last-child { border-bottom:0 !important; }
+  .agent-identity-actions { flex-direction:column; }
+  .agent-identity-actions a { text-align:center; }
   .intelligence-market-tabs { grid-template-columns:1fr 1fr; }
   .intelligence-market-grid { grid-template-columns:1fr; min-height:0; }
   .intelligence-market-form,.intelligence-market-output { padding:22px 18px; }
