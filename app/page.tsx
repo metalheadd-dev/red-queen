@@ -34,6 +34,7 @@ interface PulseData {
   status: string;
   location: string;
   publishDate: string;
+  sourceUpdatedAt?: string;
   generatedAt?: string;
   source: string;
   sourceUrl?: string;
@@ -358,7 +359,8 @@ export default function HomePage() {
 
   if (!booted) return <BootSequence onComplete={finishBoot} />;
 
-  const pulseDate = relativeTime(pulse.generatedAt || pulse.publishDate);
+  const synthesisDate = relativeTime(pulse.generatedAt || pulse.publishDate);
+  const sourceDate = relativeTime(pulse.sourceUpdatedAt || pulse.publishDate);
   const hasResolvedArea = Boolean(localContext?.area && localContext.location);
   const globalPriorityCount = nodes.filter((node) => node.severity >= 60).length;
   const localHeadline = hasResolvedArea
@@ -376,7 +378,7 @@ export default function HomePage() {
         <span className="pulse-alert-dot" />
         RED QUEEN ONLINE
         <span>VERIFIED SOURCES ONLY IN LIVE INTELLIGENCE</span>
-        <span>LAST SYNTHESIS: {pulseDate.toUpperCase()}</span>
+        <span>LAST SYNTHESIS: {synthesisDate.toUpperCase()}</span>
       </div>
 
       <header className="pulse-hero">
@@ -541,7 +543,7 @@ export default function HomePage() {
             <p>{pulse.assessment}</p>
             <dl className="pulse-metadata">
               <div><dt>AREA</dt><dd>{pulse.location}</dd></div>
-              <div><dt>UPDATED</dt><dd>{pulseDate}</dd></div>
+              <div><dt>SOURCE UPDATED</dt><dd>{sourceDate}</dd></div>
               <div>
                 <dt>SOURCE</dt>
                 <dd>{pulse.sourceUrl ? <a href={pulse.sourceUrl} target="_blank" rel="noreferrer">{pulse.source} ↗</a> : pulse.source}</dd>

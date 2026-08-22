@@ -58,6 +58,7 @@ export async function POST() {
     status: statusFor(primary.severity),
     location: primary.location,
     publishDate: primary.observedAt,
+    sourceUpdatedAt: primary.updatedAt || primary.observedAt,
     generatedAt: grid.generatedAt,
     source: primary.source,
     sourceUrl: primary.sourceUrl,

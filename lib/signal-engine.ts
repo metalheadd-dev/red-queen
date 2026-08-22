@@ -110,6 +110,24 @@ function excerpt(value: string, maxLength = 280) {
   return `${value.slice(0, maxLength).replace(/\s+\S*$/, "").trim()}…`;
 }
 
+function whoDiseaseOutbreakUrl(item: any, fallback: string) {
+  const donId = stripHtml(item?.DonId || item?.UrlName);
+  if (/^\d{4}-DON\d+$/i.test(donId)) {
+    return `https://www.who.int/emergencies/disease-outbreak-news/item/${donId}`;
+  }
+
+  const itemPath = typeof item?.ItemDefaultUrl === "string" ? item.ItemDefaultUrl.trim() : "";
+  if (!itemPath) return fallback;
+  if (/^\/?\d{4}-DON\d+$/i.test(itemPath)) {
+    return `https://www.who.int/emergencies/disease-outbreak-news/item/${itemPath.replace(/^\//, "")}`;
+  }
+  try {
+    return new URL(itemPath, "https://www.who.int").toString();
+  } catch {
+    return fallback;
+  }
+}
+
 function isoDate(value: unknown, fallback = new Date().toISOString()) {
   const date = new Date(value as string | number | Date);
   return Number.isFinite(date.getTime()) ? date.toISOString() : fallback;
@@ -304,9 +322,7 @@ async function fetchWHO(): Promise<RawSignal[]> {
     const title = stripHtml(item.OverrideTitle || item.Title) || "WHO disease outbreak notice";
     const summary = stripHtml(item.Summary);
     const urgent = /intense transmission|rapidly|expanding|emergency|sustained transmission|increase in.+deaths/i.test(summary);
-    const itemPath = typeof item.ItemDefaultUrl === "string" ? item.ItemDefaultUrl : "";
-    let itemUrl = sourceUrl;
-    try { if (itemPath) itemUrl = new URL(itemPath, "https://www.who.int").toString(); } catch {}
+    const itemUrl = whoDiseaseOutbreakUrl(item, sourceUrl);
     return {
       id: `who-${item.DonId || item.Id || index}`,
       name: title,
