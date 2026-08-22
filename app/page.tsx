@@ -46,12 +46,12 @@ export default function LandingPage() {
           <div className="rq-landing-copy">
             <div className="rq-landing-kicker"><i /> SOLVIVAL CORP // AGENTIC SURVIVAL INTELLIGENCE</div>
             <h1>
-              An agent that sees the threat.
-              <span>And stays for what comes next.</span>
+              RED QUEEN turns global risk into
+              <span>your next move.</span>
             </h1>
             <p>
-              RED QUEEN is an AI survival intelligence agent on Solana. She monitors verified signals, explains what matters,
-              turns answers into plans, and can deliver paid intelligence through x402.
+              An agentic survival intelligence system on Solana. RED QUEEN monitors verified signals, evaluates what matters
+              to your context, builds actionable protocols, and delivers on-demand intelligence through x402.
             </p>
             <div className="rq-landing-actions">
               <Link className="btn btn-primary" href="/red-queen">ASK RED QUEEN</Link>
