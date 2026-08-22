@@ -52,17 +52,6 @@ function isWatched(signal: WatchableSignal, memory: SignalWatchMemory, location?
   return signal.verified !== false && (typeMatch || localMatch);
 }
 
-function formatScanTime(value?: string) {
-  if (!value) return "FIRST SCAN";
-  const elapsed = Date.now() - new Date(value).getTime();
-  if (!Number.isFinite(elapsed) || elapsed < 60_000) return "LESS THAN 1M AGO";
-  const minutes = Math.floor(elapsed / 60_000);
-  if (minutes < 60) return `${minutes}M AGO`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}H AGO`;
-  return `${Math.floor(hours / 24)}D AGO`;
-}
-
 function severityLabel(severity: number) {
   if (severity >= 80) return "HIGH";
   if (severity >= 60) return "ELEVATED";
@@ -91,7 +80,6 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
   });
   const [ready, setReady] = useState(false);
   const [reviewSignalIds, setReviewSignalIds] = useState<string[]>([]);
-  const [previousScanAt, setPreviousScanAt] = useState<string | undefined>();
   const [watchSlots, setWatchSlots] = useState(2);
   const [comparisonSignals, setComparisonSignals] = useState(2);
   const [clearanceName, setClearanceName] = useState("CIVILIAN");
@@ -152,7 +140,6 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
     const stored = parseSignalWatchMemory(localStorage.getItem(SIGNAL_WATCH_STORAGE_KEY));
     const currentMatches = nodes.filter((node) => isWatched(node, memory, location));
     const newMatches = currentMatches.filter((node) => !stored.knownSignalIds.includes(node.id));
-    setPreviousScanAt(stored.lastScanAt);
     setReviewSignalIds(currentMatches
       .filter((node) => !stored.acknowledgedSignalIds.includes(node.id))
       .map((node) => node.id));
@@ -277,6 +264,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
   }
 
   const hasWatches = memory.localPriority || memory.types.length > 0;
+  const usedSlots = memory.types.length + (memory.localPriority ? 1 : 0);
   const displayedSignals = [...matchedSignals].sort((a, b) => {
     const newDifference = Number(reviewSignalIds.includes(b.id)) - Number(reviewSignalIds.includes(a.id));
     return newDifference || b.severity - a.severity;
@@ -285,24 +273,35 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
   return (
     <section id="signal-watch" className={`signal-watch-panel ${hasWatches ? "is-active" : ""}`}>
       <div className="signal-watch-heading">
-        <div><span>QUEEN ALERT CENTER // ON-DEVICE</span><h3>{hasWatches ? `${matchedSignals.length} current matches · ${reviewSignalIds.length} need review` : "Choose what RED QUEEN should remember"}</h3></div>
-        <small>{memory.types.length + (memory.localPriority ? 1 : 0)}/{watchSlots} WATCH SLOTS · COMPARE {comparisonSignals} · {clearanceName} · LAST SCAN {formatScanTime(previousScanAt)}</small>
+        <div>
+          <span>SIGNAL WATCH // PERSONAL FILTER</span>
+          <h3>{hasWatches ? `${usedSlots} watch${usedSlots === 1 ? "" : "es"} active` : "Choose what I should watch."}</h3>
+          <p>Pick up to {watchSlots}. I will hold new verified matches here for your review.</p>
+        </div>
+        <small>{clearanceName} · {usedSlots}/{watchSlots} SLOTS · COMPARE {comparisonSignals}</small>
       </div>
+      <ol className="signal-watch-path" aria-label="How Signal Watch works">
+        <li className={hasWatches ? "is-complete" : "is-current"}><span>1</span><div><strong>CHOOSE</strong><small>Location or category</small></div></li>
+        <li className={memory.browserAlerts && browserAlertPermission === "granted" ? "is-complete" : hasWatches ? "is-current" : ""}><span>2</span><div><strong>ENABLE</strong><small>Optional browser alert</small></div></li>
+        <li className={reviewSignalIds.length ? "is-current" : ""}><span>3</span><div><strong>REVIEW</strong><small>Open matched sources</small></div></li>
+        <li><span>4</span><div><strong>ASK QUEEN</strong><small>Get one next action</small></div></li>
+      </ol>
       <div className="signal-watch-controls">
         <button type="button" disabled={!location} className={memory.localPriority ? "active" : ""} onClick={toggleLocal}>
-          <strong>LOCAL PRIORITY</strong><span>{location ? `Within 1,000 km of ${area}` : "Set a broad area first"}</span>
+          <i>{memory.localPriority ? "WATCHING" : "ADD WATCH"}</i><strong>LOCAL PRIORITY</strong><span>{location ? `Within 1,000 km of ${area}` : "Set a broad area first"}</span>
         </button>
         {SIGNAL_WATCH_OPTIONS.map((option) => (
           <button key={option.id} type="button" className={memory.types.includes(option.id) ? "active" : ""} onClick={() => toggleType(option.id)}>
+            <i>{memory.types.includes(option.id) ? "WATCHING" : "ADD WATCH"}</i>
             <strong>{option.label}</strong><span>{option.description}</span>
           </button>
         ))}
       </div>
-      {limitMessage && <div className="signal-watch-limit"><span>{limitMessage}</span><Link href="/onchain">VERIFY CLEARANCE →</Link></div>}
+      {limitMessage && <div className="signal-watch-limit"><span>{limitMessage}</span><Link href="/onchain">ONCHAIN · VERIFY CLEARANCE →</Link></div>}
       {hasWatches && (
         <div className={`signal-watch-delivery ${memory.browserAlerts && browserAlertPermission === "granted" ? "is-armed" : ""}`}>
           <div>
-            <span>BROWSER ALERT CHANNEL</span>
+            <span>STEP 2 // OPTIONAL ALERT</span>
             <strong>
               {browserAlertPermission === "unsupported"
                 ? "Notifications are unavailable in this browser."
@@ -323,7 +322,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
       {hasWatches && (
         <div className="signal-watch-results">
           <header>
-            <div><span>ACTIVE INBOX</span><strong>{reviewSignalIds.length ? "Queen is holding signals for your review." : "No unreviewed matches."}</strong></div>
+            <div><span>STEP 3 // ACTIVE INBOX</span><strong>{reviewSignalIds.length ? `${reviewSignalIds.length} verified match${reviewSignalIds.length === 1 ? "" : "es"} need your review.` : "Watch active. Nothing new needs review."}</strong></div>
             {!!reviewSignalIds.length && <button type="button" onClick={acknowledgeAll}>MARK ALL REVIEWED</button>}
           </header>
           <div>
@@ -343,12 +342,12 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
                 </div>
               </article>
             ))}
-            {!matchedSignals.length && <p>No current verified signals match this watch. This is not proof of safety; check official local alerts.</p>}
+            {!matchedSignals.length && <div className="signal-watch-empty"><strong>NO CURRENT MATCHES</strong><p>Your Watch is working. No loaded verified signal currently matches this filter. This is not proof of safety.</p><a href="#live-map">CHECK LIVE MAP ↑</a></div>}
           </div>
-          <Link href={queenReviewHref()}>ASK QUEEN TO REVIEW WATCH →</Link>
+          <Link className="signal-watch-primary" href={queenReviewHref()}><span>STEP 4</span> ASK QUEEN TO REVIEW MY WATCH →</Link>
         </div>
       )}
-      <footer>Watch and review state stay on this device. Browser alerts work only while RED QUEEN is open; background push and account sync are not enabled yet. Holder capacity requires a verified account session.</footer>
+      <footer><strong>ON THIS DEVICE</strong> Watch state stays in this browser · alerts work while RED QUEEN is open · background sync is coming later. <Link href="/profile">VIEW IN PROFILE →</Link></footer>
     </section>
   );
 }

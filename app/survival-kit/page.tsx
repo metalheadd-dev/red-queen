@@ -5,6 +5,7 @@ import Link from "next/link";
 import DailyActionPanel from "@/components/DailyActionPanel";
 import ActionHistoryPanel from "@/components/ActionHistoryPanel";
 import PreparednessPlansPanel from "@/components/PreparednessPlansPanel";
+import CoreLoopGuide from "@/components/CoreLoopGuide";
 import {
   PREPAREDNESS_CHECKLIST,
   PREPAREDNESS_DOMAINS,
@@ -123,6 +124,14 @@ export default function SurvivalKitPage() {
       </header>
 
       <div className="container prepare-main">
+        <CoreLoopGuide
+          current="prepare"
+          title="Complete the next open gap."
+          description="Use the checklist for a local baseline, then ask RED QUEEN to adapt one action or save a full protocol."
+          actionHref="#prepare-baseline"
+          actionLabel="CONTINUE MY BASELINE"
+          accessNote="CHECKLISTS STAY ON THIS DEVICE · EVALUATED ACTIONS CAN EARN READINESS PROGRESS"
+        />
         <section className="prepare-trust-strip">
           <strong>SELF-CHECK ≠ BIO-SCORE</strong>
           <p>Checklist progress stays in this browser. It becomes readiness evidence only after an evaluated Queen drill or verified action.</p>
@@ -144,7 +153,7 @@ export default function SurvivalKitPage() {
         </section>
 
         <div className="prepare-layout">
-          <section className="prepare-checklist" aria-labelledby="baseline-title">
+          <section id="prepare-baseline" className="prepare-checklist" aria-labelledby="baseline-title">
             <div className="prepare-section-heading">
               <div>
                 <span>01 // HOUSEHOLD BASELINE</span>

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import BootSequence from "@/components/BootSequence";
 import DailyActionPanel from "@/components/DailyActionPanel";
 import SignalWatchPanel from "@/components/SignalWatchPanel";
+import CoreLoopGuide from "@/components/CoreLoopGuide";
 import {
   isSignalWatchType,
   SIGNAL_WATCH_REQUEST_EVENT,
@@ -423,6 +424,17 @@ export default function HomePage() {
           <Link href="/docs">HOW RED QUEEN WORKS →</Link>
         </div>
       </header>
+
+      <div className="container">
+        <CoreLoopGuide
+          current="pulse"
+          title="Choose a broad area. Review one signal."
+          description="Start here without an account. Pulse shows what changed and hands one relevant signal to RED QUEEN."
+          actionHref="#live-map"
+          actionLabel="OPEN LIVE SIGNALS"
+          accessNote="PUBLIC · NO WALLET · CITY OR REGION ONLY"
+        />
+      </div>
 
       {showStart && (
         <section id="first-contact" className="container pulse-onboarding" aria-label="Start with Red Queen">

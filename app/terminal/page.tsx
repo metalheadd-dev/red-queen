@@ -13,6 +13,7 @@ import { Connection, PublicKey, TransactionMessage, VersionedTransaction, Comput
 import { getAssociatedTokenAddress, createTransferCheckedInstruction } from "@solana/spl-token";
 import { getWorkingConnection } from "@/lib/solana";
 import AgentResponseCard from "@/components/AgentResponseCard";
+import CoreLoopGuide from "@/components/CoreLoopGuide";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
 import { createDailyAction, DAILY_ACTION_EVENT, readDailyActions, saveDailyAction, updateDailyAction } from "@/lib/daily-action";
 import { buildDeviceSurvivalMemory } from "@/lib/device-survival-memory";
@@ -1089,6 +1090,17 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
         </div>
       </header>
 
+      <div className="container">
+        <CoreLoopGuide
+          current="queen"
+          title="Ask one question. Save one useful action."
+          description="Choose a mode, give RED QUEEN your broad context, then save the next action or full protocol instead of losing it in chat."
+          actionHref="#queen-terminal-workspace"
+          actionLabel="START WITH RED QUEEN"
+          accessNote="PUBLIC ANALYSIS AVAILABLE · SIGN IN TO KEEP ACCOUNT HISTORY"
+        />
+      </div>
+
       <div className="rq-terminal-identity-bar">
         <SolvivalIcon size={32} />
         <div className="rq-terminal-title">
@@ -1115,7 +1127,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
       </div>
 
       {/* Main split workspace */}
-      <div style={{ display: "flex", flex: 1, minHeight: 0, position: "relative" }}>
+      <div id="queen-terminal-workspace" style={{ display: "flex", flex: 1, minHeight: 0, position: "relative" }}>
         
         {/* Left Side: Chat Panel */}
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>

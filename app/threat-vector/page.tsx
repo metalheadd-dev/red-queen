@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import CoreLoopGuide from "@/components/CoreLoopGuide";
 import { CATEGORIES, Threat } from "@/lib/threats";
 
 const CATEGORY_CONTENT: Record<string, {
@@ -88,6 +89,14 @@ export default function ThreatVectorPage() {
       </header>
 
       <main className="container library-main">
+        <CoreLoopGuide
+          eyebrow="LIBRARY // USE THIS TOOL"
+          title="Choose one scenario. Ask one focused question."
+          description="Library files are reference material, not live alerts. Open a dossier, then send it to RED QUEEN for your context."
+          actionHref="#library-files"
+          actionLabel="CHOOSE A DOSSIER"
+          accessNote="PUBLIC · LIVE CONDITIONS ALWAYS COME FROM PULSE AND PRIMARY SOURCES"
+        />
         <section className="library-lanes" aria-label="Library lanes">
           <button type="button" className={activeCategory === "realistic" ? "active" : ""} onClick={() => setActiveCategory("realistic")}>
             <span>ACT</span><strong>Prepare for real hazards</strong><p>Open practical reference scenarios. Check the Live Map before treating anything as current.</p>
@@ -127,7 +136,7 @@ export default function ThreatVectorPage() {
           </label>
         </section>
 
-        <section className="library-results">
+        <section id="library-files" className="library-results">
           <div className="library-results-heading">
             <div>
               <span>{categoryContent.eyebrow}</span>

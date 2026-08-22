@@ -8,6 +8,7 @@ import X402HealthBadge from "@/components/X402HealthBadge";
 import IntelligenceOperationsClient from "@/components/IntelligenceOperationsClient";
 import ThreatSwapClient from "@/components/ThreatSwapClient";
 import AgentRegistryIdentity from "@/components/AgentRegistryIdentity";
+import CoreLoopGuide from "@/components/CoreLoopGuide";
 
 const LEVEL_COLORS = ["#8a8a8a", "#d8d8d8", "#f0c929", "#ff884d", "#ff4d4d"];
 
@@ -39,6 +40,15 @@ export default function NetworkClearancePage() {
       </header>
 
       <div className="container onchain-main">
+        <CoreLoopGuide
+          eyebrow="ONCHAIN // CHOOSE ONE OPERATION"
+          title="Review first. Sign only what you understand."
+          description="Connect for read-only checks. Every swap, payment or authority change shows its network, asset, amount and destination before approval."
+          actionHref="#onchain-actions"
+          actionLabel="OPEN ONCHAIN ACTIONS"
+          accessNote="CONNECT ≠ SIGN IN ≠ PAY · RED QUEEN NEVER REQUESTS A SEED PHRASE"
+        />
+        <div id="onchain-actions" />
         <OnchainClearanceClient />
 
         <ThreatSwapClient />

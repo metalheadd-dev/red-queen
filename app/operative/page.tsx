@@ -27,6 +27,7 @@ import {
 import { isHolderProofFresh } from "@/lib/holder-proof";
 import { READINESS_BASELINE_PROMPT } from "@/lib/survival-context";
 import { X402_INTELLIGENCE_PRODUCTS } from "@/lib/intelligence-products";
+import CoreLoopGuide from "@/components/CoreLoopGuide";
 
 type Profile = {
   wallet_address: string;
@@ -642,6 +643,14 @@ export default function OperativeProfilePage() {
       </header>
 
       <main className="container rq-profile-main">
+        <CoreLoopGuide
+          current="profile"
+          title={bioScore === 0 ? "Run your first readiness baseline." : `Continue with ${weakestDomain.label}.`}
+          description="Your profile keeps verified progress, saved protocols, Signal Watch status, receipts and holder clearance in one place."
+          actionHref={baselineHref}
+          actionLabel={bioScore === 0 ? "START 3-MIN BASELINE" : "TRAIN WEAKEST DOMAIN"}
+          accessNote="PRIVATE BY DEFAULT · BIO COMES FROM EVIDENCE, NEVER FROM TOKEN HOLDINGS"
+        />
         {loadError && <div className="rq-profile-error"><strong>MEMORY STATUS</strong><span>{loadError}</span><button type="button" onClick={loadAccount}>RETRY</button></div>}
         {loading && <div className="rq-profile-loading-line">SYNCHRONIZING VERIFIED PROFILE...</div>}
 

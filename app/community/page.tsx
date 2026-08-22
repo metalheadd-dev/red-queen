@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { COMMUNITY_ENTRIES, CommunityLane } from "@/lib/community-content";
+import CoreLoopGuide from "@/components/CoreLoopGuide";
 
 type Filter = "ALL" | CommunityLane;
 
@@ -89,6 +90,14 @@ export default function CommunityPage() {
       </header>
 
       <main className="container community-main">
+        <CoreLoopGuide
+          eyebrow="COMMUNITY // CHOOSE YOUR SIGNAL"
+          title="Read the archive or join the SOLvivor board."
+          description="Explore transmissions and lore publicly. Sign in only when you want to publish your readiness identity to the opt-in board."
+          actionHref="#solvivor-board"
+          actionLabel="OPEN SOLVIVOR BOARD"
+          accessNote="PUBLIC ARCHIVE · LEADERBOARD VISIBILITY IS OPTIONAL AND PRIVATE BY DEFAULT"
+        />
         <section className="community-mind" aria-labelledby="community-mind-title">
           <div className="community-mind-art"><Image src="/art/red-queen-sigil.png" alt="RED QUEEN neural sigil" width={1536} height={1536} /></div>
           <div className="community-mind-copy">
