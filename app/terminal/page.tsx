@@ -890,7 +890,7 @@ BROAD AREA: ${survivalContext.area || "GLOBAL / NOT SET"}
 FOCUS: ${getFocusOption(survivalContext.focus).label.toUpperCase()}
 MODE: ${survivalContext.mode}
 
-RED QUEEN never needs an exact address. Change context using the controls beside the terminal or return to [Pulse](/).`;
+RED QUEEN never needs an exact address. Change context using the controls beside the terminal or return to [Pulse](/pulse).`;
       } else if (cmd === "/mode") {
         const requestedMode = commandArgs[0]?.toUpperCase() || "";
         if (isAgentMode(requestedMode)) {
@@ -913,7 +913,7 @@ Use one of:
       } else if (cmd === "/pulse") {
         reply = `[PULSE HANDOFF]
 
-Open [Daily Pulse](/) for the current source health and personal priority, or jump to the [Live Signal Field](/#live-map).
+Open [Daily Pulse](/pulse) for the current source health and personal priority, or jump to the [Live Signal Field](/pulse#live-map).
 
 Pulse is Queen's sight. A silent or unreachable sensor is never presented as proof of safety.`;
       } else if (cmd === "/bio") {

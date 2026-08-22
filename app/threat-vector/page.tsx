@@ -83,7 +83,7 @@ export default function ThreatVectorPage() {
             <div><span>LIBRARY</span><strong>Reference material</strong></div>
             <b>≠</b>
             <div><span>LIVE MAP</span><strong>Current verified signals</strong></div>
-            <Link href="/#live-map">OPEN LIVE MAP →</Link>
+            <Link href="/pulse#live-map">OPEN LIVE MAP →</Link>
           </div>
         </div>
       </header>

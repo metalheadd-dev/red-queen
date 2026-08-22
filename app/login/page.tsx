@@ -82,7 +82,7 @@ export default function LoginPage() {
     <div className="rq-login-page">
       <div className="rq-login-grid" aria-hidden="true" />
       <section className="rq-login-intro">
-        <Link href="/" className="rq-login-back">← RETURN TO PULSE</Link>
+        <Link href="/pulse" className="rq-login-back">← RETURN TO PULSE</Link>
         <div className="rq-login-orb"><i /></div>
         <span className="rq-login-kicker">PRIVATE CONTEXT CHANNEL</span>
         <h1>Your survival context, remembered.</h1>
@@ -158,7 +158,7 @@ export default function LoginPage() {
         <div className="rq-login-public">
           <strong>Just exploring?</strong>
           <p>Pulse, Live Map, Queen, Prepare and the Library work before you sign in.</p>
-          <Link href="/">CONTINUE WITHOUT AN ACCOUNT →</Link>
+          <Link href="/pulse">CONTINUE WITHOUT AN ACCOUNT →</Link>
         </div>
       </section>
     </div>

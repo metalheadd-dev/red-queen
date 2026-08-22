@@ -92,7 +92,7 @@ const PROFILE_TERMS = [
 
 const PAGE_GUIDE = [
   ["Pulse", "What changed today, what deserves attention, and the first useful action.", "/"],
-  ["Map", "Where verified signals are, how strong they are, and whether broad-area relevance is justified.", "/#live-map"],
+  ["Map", "Where verified signals are, how strong they are, and whether broad-area relevance is justified.", "/pulse#live-map"],
   ["Red Queen", "Ask, analyze, prepare, or run a decision simulation with context.", "/red-queen"],
   ["Prepare", "Private baseline checks, active protocols, completed steps, and action history.", "/prepare"],
   ["Library", "Preparedness references, digital security scenarios, fictional simulations, and labeled satire.", "/library"],
@@ -110,7 +110,7 @@ export default function ProductGuidePage() {
             <span>PRODUCT GUIDE // START HERE</span>
             <h1>Understand the system.<br /><em>Then make it useful.</em></h1>
             <p>RED QUEEN turns verified signals into one assessment, one action, and a readiness record you control. This guide explains every score, page, token gate, and payment boundary without lore getting in the way.</p>
-            <div><Link className="btn btn-primary" href="/">OPEN TODAY&apos;S PULSE</Link><Link className="btn btn-ghost" href="/red-queen">ASK RED QUEEN</Link></div>
+            <div><Link className="btn btn-primary" href="/pulse">OPEN TODAY&apos;S PULSE</Link><Link className="btn btn-ghost" href="/red-queen">ASK RED QUEEN</Link></div>
           </div>
           <div className="guide-queen" aria-hidden="true">
             <div className="guide-queen-halo" />

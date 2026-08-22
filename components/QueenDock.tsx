@@ -26,6 +26,16 @@ const dockContent: Array<{
   },
   {
     match: (pathname) => pathname === "/",
+    eyebrow: "RED QUEEN ONLINE",
+    title: "Ask one real question. I will show you where to begin.",
+    note: "I connect verified signals, uncertainty, preparedness and Solana actions without hiding the decision from you.",
+    actions: [
+      { label: "SHOW ME WHAT YOU CAN DO", mode: "ANALYZE", prompt: "Introduce the RED QUEEN survival intelligence system in plain language. Explain what I can do publicly, with an account, and with a wallet." },
+      { label: "GIVE ME ONE USEFUL ACTION", mode: "PREPARE", prompt: "Give me one practical preparedness action I can complete today, then explain how to save it as a plan." },
+    ],
+  },
+  {
+    match: (pathname) => pathname.startsWith("/pulse"),
     eyebrow: "DAILY PULSE",
     title: "I watch the field. I do not invent certainty.",
     note: "I separate omen from evidence, explain what may matter to you, and give you one place to begin if you choose to act.",
@@ -86,7 +96,7 @@ const dockContent: Array<{
   },
 ];
 
-const visibleCoreRoutes = ["/", "/red-queen", "/prepare", "/library", "/docs", "/profile", "/onchain", "/community", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance"];
+const visibleCoreRoutes = ["/", "/pulse", "/red-queen", "/prepare", "/library", "/docs", "/profile", "/onchain", "/community", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance"];
 
 function buildHref(action: DockAction, area: string) {
   const query = new URLSearchParams({ mode: action.mode, prompt: action.prompt });

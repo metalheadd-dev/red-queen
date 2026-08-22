@@ -144,7 +144,7 @@ export default function PrivacyPage() {
         </main>
 
         <footer className="legal-return">
-          <Link href="/">← RETURN TO PULSE</Link>
+          <Link href="/pulse">← RETURN TO PULSE</Link>
           <Link href="/terms">READ TERMS →</Link>
         </footer>
       </div>

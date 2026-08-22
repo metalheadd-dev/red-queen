@@ -25,7 +25,8 @@ The browser also keeps a bounded scan baseline and reports what is new, escalate
 
 | Route | Product role |
 | --- | --- |
-| `/` | Daily Pulse, First Contact, verified Live Map |
+| `/` | Agent-first landing and product entry points |
+| `/pulse` | Daily Pulse, First Contact, Signal Watch and verified Live Map |
 | `/terminal` | Context-aware RED QUEEN agent: Monitor, Analyze, Prepare, Simulate |
 | `/survival-kit` | Local preparedness checklist and protocols |
 | `/threat-vector` | Real-world, digital, fictional, and satirical scenario library |

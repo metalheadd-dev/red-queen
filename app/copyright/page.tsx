@@ -91,7 +91,7 @@ export default function CopyrightPage() {
 
         <footer className="legal-return">
           <Link href="/license">← READ LICENSE</Link>
-          <Link href="/">RETURN TO PULSE →</Link>
+          <Link href="/pulse">RETURN TO PULSE →</Link>
         </footer>
       </div>
     </div>

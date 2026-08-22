@@ -723,7 +723,7 @@ export default function OperativeProfilePage() {
           </div>
           <div><span>ACTIVE PROTOCOLS</span><strong>{activeProtocols.length}</strong><small>{completedProtocols} completed</small><Link href="/prepare">OPEN PROTOCOLS →</Link></div>
           <div><span>PLAN EXECUTION</span><strong>{completedProtocolSteps}/{protocolSteps.length}</strong><small>observable steps complete</small><Link href="/prepare">CONTINUE PLAN →</Link></div>
-          <div><span>SIGNAL WATCH</span><strong>{signalWatch.types.length}</strong><small>{signalWatch.localPriority ? "local priority active" : "signal categories"}</small><Link href="/#live-map">TUNE WATCH →</Link></div>
+          <div><span>SIGNAL WATCH</span><strong>{signalWatch.types.length}</strong><small>{signalWatch.localPriority ? "local priority active" : "signal categories"}</small><Link href="/pulse#live-map">TUNE WATCH →</Link></div>
         </section>
 
         <section className="rq-profile-receipts" aria-label="x402 payment receipts">

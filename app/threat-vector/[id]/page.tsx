@@ -102,7 +102,7 @@ export default function ThreatDossierPage() {
               ? "This file exists for training and worldbuilding. It must never be interpreted as current intelligence."
               : "This page explains a preparedness scenario. Check the Live Map and official local sources before treating any condition as current."}
           </p>
-          {!isSimulation && <Link href="/#live-map">CHECK VERIFIED SIGNALS →</Link>}
+          {!isSimulation && <Link href="/pulse#live-map">CHECK VERIFIED SIGNALS →</Link>}
         </section>
 
         <div className="dossier-grid">

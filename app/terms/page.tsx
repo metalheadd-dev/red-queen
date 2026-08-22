@@ -137,7 +137,7 @@ export default function TermsPage() {
 
         <footer className="legal-return">
           <Link href="/privacy">← READ PRIVACY</Link>
-          <Link href="/">RETURN TO PULSE →</Link>
+          <Link href="/pulse">RETURN TO PULSE →</Link>
         </footer>
       </div>
     </div>

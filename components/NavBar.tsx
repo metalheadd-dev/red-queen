@@ -10,14 +10,14 @@ import SolvivalIcon from "./SolvivalIcon";
 type NavIconName = "pulse" | "map" | "queen" | "prepare" | "me";
 
 const primaryLinks = [
-  { href: "/", label: "PULSE", subtitle: "Your daily intelligence brief", match: "pulse" },
-  { href: "/#live-map", label: "MAP", subtitle: "Verified signals on the live field", match: "map" },
   { href: "/red-queen", label: "RED QUEEN", subtitle: "Ask, analyze, prepare or simulate", match: "terminal" },
+  { href: "/pulse", label: "PULSE", subtitle: "Your daily intelligence brief", match: "pulse" },
+  { href: "/onchain", label: "ONCHAIN", subtitle: "Agent payments, wallet intelligence and $THREAT", match: "onchain" },
   { href: "/prepare", label: "PREPARE", subtitle: "Build practical readiness", match: "prepare" },
+  { href: "/pulse#live-map", label: "MAP", subtitle: "Verified signals on the live field", match: "map" },
   { href: "/library", label: "LIBRARY", subtitle: "Open the threat intelligence archive", match: "library" },
-  { href: "/docs", label: "GUIDE", subtitle: "Understand scores, utility and every page", match: "guide" },
   { href: "/community", label: "COMMUNITY", subtitle: "Lore, field notes and Queen transmissions", match: "community" },
-  { href: "/onchain", label: "ONCHAIN", subtitle: "Live Solana proof and $THREAT utility", match: "onchain" },
+  { href: "/docs", label: "GUIDE", subtitle: "Understand scores, utility and every page", match: "guide" },
 ] as const;
 
 function NavIcon({ name }: { name: NavIconName }) {
@@ -60,8 +60,8 @@ export default function NavBar() {
   }, [menuOpen]);
 
   const isActive = (match: string) => {
-    if (match === "pulse") return pathname === "/" && hash !== "#live-map";
-    if (match === "map") return pathname === "/" && hash === "#live-map";
+    if (match === "pulse") return pathname === "/pulse" && hash !== "#live-map";
+    if (match === "map") return pathname === "/pulse" && hash === "#live-map";
     if (match === "library") return pathname.startsWith("/library") || pathname.startsWith("/threat-vector");
     if (match === "guide") return pathname.startsWith("/docs");
     if (match === "terminal") return pathname.startsWith("/red-queen") || pathname.startsWith("/terminal");
@@ -156,10 +156,10 @@ export default function NavBar() {
       </div>
 
       <nav className="mobile-bottom-nav" aria-label="Core product navigation">
-        <Link href="/" className={isActive("pulse") ? "active" : ""} aria-current={isActive("pulse") ? "page" : undefined}>
+        <Link href="/pulse" className={isActive("pulse") ? "active" : ""} aria-current={isActive("pulse") ? "page" : undefined}>
           <NavIcon name="pulse" /><span>PULSE</span>
         </Link>
-        <Link href="/#live-map" className={isActive("map") ? "active" : ""} aria-current={isActive("map") ? "page" : undefined}>
+        <Link href="/pulse#live-map" className={isActive("map") ? "active" : ""} aria-current={isActive("map") ? "page" : undefined}>
           <NavIcon name="map" /><span>MAP</span>
         </Link>
         <Link href="/red-queen" className={`mobile-queen-link${isActive("terminal") ? " active" : ""}`} aria-current={isActive("terminal") ? "page" : undefined}>

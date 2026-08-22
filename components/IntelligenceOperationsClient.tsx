@@ -329,7 +329,7 @@ export default function IntelligenceOperationsClient() {
           {active === "incident" && <>
             <label><span>VERIFIED SIGNAL ID</span><input value={signalId} onChange={(event) => setSignalId(event.target.value)} placeholder="Open a live Map signal first" maxLength={240} /></label>
             <small>Only IDs currently resolving in USGS, NASA EONET, GDACS, NOAA, CISA, WHO or official Solana Status can be purchased.</small>
-            <Link href="/#live-map">SELECT A VERIFIED MAP SIGNAL →</Link>
+            <Link href="/pulse#live-map">SELECT A VERIFIED MAP SIGNAL →</Link>
           </>}
           {active === "transaction" && <>
             <label><span>BASE64 SERIALIZED VERSIONED TRANSACTION</span><textarea className="is-code" value={transaction} onChange={(event) => setTransaction(event.target.value)} placeholder="Paste the unsigned transaction returned by the originating app…" maxLength={240000} /></label>
