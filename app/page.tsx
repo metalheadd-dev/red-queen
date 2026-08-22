@@ -128,16 +128,17 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="rq-onchain-stage">
+      <section className="rq-onchain-stage" id="agentic-economy">
         <div className="container rq-onchain-inner">
           <div className="rq-section-heading rq-section-heading-onchain">
             <span>02 // AGENTIC ECONOMY</span>
-            <h2>Intelligence that can<br /><em>complete the operation.</em></h2>
+            <h2>A paid operation.<br /><em>Executed by the agent.</em></h2>
             <p>
-              RED QUEEN can price a premium operation, receive a USDC payment through x402, gather the required intelligence and deliver the result. You still approve every payment and transaction.
+              RED QUEEN can price an intelligence request, receive USDC through x402, use the required data and tools, then deliver a structured result with a verifiable receipt.
+              USDC pays for the requested output; it does not change $THREAT clearance.
             </p>
             <div className="rq-landing-actions">
-              <Link className="btn btn-primary" href="/onchain">OPEN ONCHAIN HUB</Link>
+              <Link className="btn btn-primary" href="/onchain#queen-operations">OPEN x402 OPERATIONS</Link>
               <Link className="btn btn-ghost" href="/network-clearance">VIEW AGENT IDENTITY</Link>
             </div>
           </div>
@@ -149,35 +150,15 @@ export default function LandingPage() {
                 <b>LIVE</b>
               </div>
               <div className="rq-x402-mark">x402</div>
-              <h3>Pay for the intelligence you request.</h3>
-              <p>Local Delta Briefs, 72-hour plans, incident dossiers and transaction-risk reports are priced before approval and delivered with a receipt.</p>
+              <h3>The payment rail for work done by RED QUEEN.</h3>
+              <p>Request a Local Delta Brief, 72-hour plan, incident dossier or transaction-risk report. The price is shown before approval; the result and receipt arrive after settlement.</p>
               <ol>
                 <li><span>01</span><b>REQUEST</b><small>Choose the operation.</small></li>
                 <li><span>02</span><b>PAY USDC</b><small>Approve the exact price.</small></li>
-                <li><span>03</span><b>QUEEN EXECUTES</b><small>Data becomes a report.</small></li>
-                <li><span>04</span><b>RECEIVE</b><small>Output and receipt delivered.</small></li>
+                <li><span>03</span><b>QUEEN EXECUTES</b><small>Tools and data become intelligence.</small></li>
+                <li><span>04</span><b>RECEIVE</b><small>Result and receipt delivered.</small></li>
               </ol>
               <Link href="/onchain#queen-operations">OPEN x402 OPERATIONS →</Link>
-            </article>
-
-            <article className="rq-threat-feature">
-              <div className="rq-economy-card-head">
-                <span>INTELLIGENCE CLEARANCE</span>
-                <b>$THREAT</b>
-              </div>
-              <h3>The token expands access to RED QUEEN.</h3>
-              <p>Holdings unlock longer trusted context, more Signal Watch capacity and deeper agent analysis. They never manufacture BIO-SCORE or readiness.</p>
-              <div className="rq-clearance-rail">
-                <span><b>SCOUT</b><small>1+</small></span>
-                <span><b>ANALYST</b><small>500K+</small></span>
-                <span><b>SENTINEL</b><small>1M+</small></span>
-                <span><b>COMMAND</b><small>5M+</small></span>
-              </div>
-              <CopyThreatMint />
-              <div className="rq-threat-actions">
-                <Link href="/onchain#buy-threat">BUY WITH JUPITER</Link>
-                <Link href="/network-clearance">VIEW UTILITY</Link>
-              </div>
             </article>
 
             <div className="rq-onchain-support">
@@ -188,9 +169,55 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="rq-token-stage" id="threat-utility">
+        <div className="container rq-token-inner">
+          <div className="rq-section-heading rq-section-heading-token">
+            <span>03 // $THREAT UTILITY</span>
+            <h2>One token.<br /><em>One clear role.</em></h2>
+            <p>
+              $THREAT is the native utility asset for RED QUEEN clearance. It expands agent context, monitoring capacity and analytical depth. It is separate from USDC payments and cannot buy BIO-SCORE or readiness.
+            </p>
+            <div className="rq-asset-roles" aria-label="Roles of assets in the RED QUEEN ecosystem">
+              <span><b>SOL</b><small>NETWORK EXECUTION</small></span>
+              <span><b>USDC</b><small>x402 SETTLEMENT</small></span>
+              <span className="active"><b>$THREAT</b><small>ACCESS + CAPACITY</small></span>
+            </div>
+          </div>
+
+          <article className="rq-threat-feature rq-threat-feature-standalone">
+            <div className="rq-economy-card-head">
+              <span>RED QUEEN // INTELLIGENCE CLEARANCE</span>
+              <b>UTILITY LIVE</b>
+            </div>
+            <div className="rq-threat-symbol">$THREAT</div>
+            <h3>Hold more. Unlock more of RED QUEEN.</h3>
+            <div className="rq-threat-benefit-grid">
+              <span><b>TRUSTED CONTEXT</b><small>Longer working context</small></span>
+              <span><b>SIGNAL WATCH</b><small>More monitoring slots</small></span>
+              <span><b>ANALYSIS DEPTH</b><small>Deeper comparisons</small></span>
+              <span><b>AGENT CAPACITY</b><small>More simultaneous signals</small></span>
+              <span><b>EARNED XP</b><small>Clearance multiplier</small></span>
+              <span><b>QUEEN VISAGE</b><small>Branded PFP from 500K</small></span>
+            </div>
+            <div className="rq-clearance-rail">
+              <span><b>SCOUT</b><small>1+</small></span>
+              <span><b>ANALYST</b><small>500K+</small></span>
+              <span><b>SENTINEL</b><small>1M+</small></span>
+              <span><b>COMMAND</b><small>5M+</small></span>
+            </div>
+            <p className="rq-threat-integrity">Clearance expands access. Competence is still earned through evidence and completed readiness.</p>
+            <CopyThreatMint />
+            <div className="rq-threat-actions">
+              <Link href="/onchain#buy-threat">BUY WITH JUPITER</Link>
+              <Link href="/network-clearance">VIEW ALL UTILITY</Link>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section className="container rq-field-entry">
         <div className="rq-section-heading">
-          <span>03 // ENTER THE FIELD</span>
+          <span>04 // ENTER THE FIELD</span>
           <h2>Start with one real question.</h2>
           <p>No account is required to inspect public intelligence or speak with RED QUEEN.</p>
         </div>
