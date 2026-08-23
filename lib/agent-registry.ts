@@ -14,6 +14,7 @@ export const RED_QUEEN_AGENT_OASF_PATH = "/api/agent/oasf";
 export const RED_QUEEN_AGENT_IDENTITY_PATH = "/api/agent/identity";
 export const RED_QUEEN_AGENT_REGISTRY_PROGRAM = "8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ";
 export const RED_QUEEN_AGENT_INDEXER = "https://8004-indexer-main.qnt.sh";
+export const RED_QUEEN_AGENT_ID = 1474;
 export const RED_QUEEN_AGENT_DESCRIPTION =
   "RED QUEEN is an agentic survival intelligence system on Solana, developed and operated by SOLvival Corp. She synthesizes verified public, geospatial, emergency, cyber, and on-chain signals; explains relevance, provenance, and uncertainty; and converts findings into location-aware briefs, preparedness protocols, and wallet-risk analysis. Users can request and approve paid intelligence operations in USDC through x402. RED QUEEN may prepare actions and transactions, but never holds user assets, signs on their behalf, or acts without explicit approval.";
 
@@ -118,6 +119,7 @@ export function getRedQueenAgentIdentity() {
   return {
     ...runtime,
     name: "RED QUEEN",
+    agentId: RED_QUEEN_AGENT_ID,
     network: "SOLANA MAINNET",
     networkId: SOLANA_MAINNET_CAIP2,
     standard: "8004 SOLANA",

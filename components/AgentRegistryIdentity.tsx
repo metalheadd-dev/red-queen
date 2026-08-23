@@ -7,6 +7,7 @@ import {
   RED_QUEEN_AGENT_SKILLS,
 } from "@/lib/agent-registry";
 import AgentRegistrationConsole from "@/components/AgentRegistrationConsole";
+import AgentWalletBinding from "@/components/AgentWalletBinding";
 
 function compact(value: string, lead = 7, tail = 7) {
   if (!value) return "ASSIGNED AFTER REGISTRATION";
@@ -45,10 +46,12 @@ export default function AgentRegistryIdentity() {
           </div>
 
           <dl className="agent-identity-ledger">
+            <div><dt>AGENT ID</dt><dd>{identity.agentId}</dd></div>
             <div><dt>AGENT ASSET</dt><dd title={identity.asset}>{compact(identity.asset)}</dd></div>
             <div><dt>PROJECT WALLET</dt><dd title={identity.owner}>{compact(identity.owner)}</dd></div>
             <div><dt>METADATA</dt><dd>DOMAIN VERIFIED JSON</dd></div>
             <div><dt>REPUTATION</dt><dd>{identity.reputation}</dd></div>
+            <div><dt>NETWORK</dt><dd>SOLANA MAINNET</dd></div>
           </dl>
 
           {!identity.registered && (
@@ -68,6 +71,14 @@ export default function AgentRegistryIdentity() {
             </>
           )}
 
+          {identity.registered && (
+            <AgentWalletBinding
+              owner={identity.owner}
+              asset={identity.asset}
+              program={RED_QUEEN_AGENT_REGISTRY_PROGRAM}
+            />
+          )}
+
           <div className="agent-identity-services">
             <article><span>MCP</span><strong>9 AGENT TOOLS</strong><p>Signals, Solana telemetry, wallet audits, incident dossiers and preparedness protocols.</p></article>
             <article><span>x402</span><strong>{identity.x402}</strong><p>Exact USDC compute payments with explicit approval, receipts and replay protection.</p></article>
@@ -77,8 +88,8 @@ export default function AgentRegistryIdentity() {
           <div className="agent-identity-actions">
             <a href={identity.metadataUrl} target="_blank" rel="noreferrer">INSPECT METADATA ↗</a>
             <a href={identity.oasfUrl} target="_blank" rel="noreferrer">INSPECT CAPABILITIES ↗</a>
-            <a href={identity.identityUrl} target="_blank" rel="noreferrer">REGISTRATION PREVIEW ↗</a>
-            <a href={explorerUrl} target="_blank" rel="noreferrer">{identity.registered ? "VIEW AGENT ASSET ↗" : "READ 8004 STANDARD ↗"}</a>
+            <a href={identity.identityUrl} target="_blank" rel="noreferrer">INSPECT PUBLIC IDENTITY ↗</a>
+            <a href={explorerUrl} target="_blank" rel="noreferrer">{identity.registered ? "VERIFY ON SOLANA ↗" : "READ 8004 STANDARD ↗"}</a>
           </div>
 
           <small>NO BIO-SCORE, PRIVATE PLAN, PROFILE MEMORY OR USER LOCATION IS WRITTEN TO THE REGISTRY.</small>

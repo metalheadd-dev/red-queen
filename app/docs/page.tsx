@@ -111,6 +111,7 @@ export default function ProductGuidePage() {
             <h1>Understand the system.<br /><em>Then make it useful.</em></h1>
             <p>RED QUEEN turns verified signals into one assessment, one action, and a readiness record you control. This guide explains every score, page, token gate, and payment boundary without lore getting in the way.</p>
             <div><Link className="btn btn-primary" href="/pulse">OPEN TODAY&apos;S PULSE</Link><Link className="btn btn-ghost" href="/red-queen">ASK RED QUEEN</Link></div>
+            <Link className="rq-8004-badge guide-8004-badge" href="/onchain#agent-identity">8004 REGISTERED · AGENT ID 1474 · SOLANA MAINNET</Link>
           </div>
           <div className="guide-queen" aria-hidden="true">
             <div className="guide-queen-halo" />
@@ -175,7 +176,7 @@ export default function ProductGuidePage() {
             <article><span>BETA</span><strong>Wallet Lockdown</strong><p>Inspect SPL authorities now; simulate and explicitly approve delegate revocation only after the mainnet feature gate is enabled.</p></article>
             <article><span>BETA</span><strong>Jupiter $THREAT swap</strong><p>Request a fresh Swap V2 order, lock output to the canonical mint, inspect output and fees, then sign explicitly in the wallet.</p></article>
             <article><span>NEXT</span><strong>Actions / Blinks</strong><p>Share a verified protocol or paid Queen operation from X, Discord, or compatible wallets.</p></article>
-            <article><span>PREPARED</span><strong>8004 Agent Registry</strong><p>Public metadata, MCP, OASF skills and x402 support are ready. The Agent Asset appears only after the project wallet signs the mainnet registration.</p></article>
+            <article><span>LIVE</span><strong>8004 Agent Registry · ID 1474</strong><p>RED QUEEN is registered on Solana mainnet. Her Agent Asset, metadata, MCP tools, OASF capabilities and x402 support are publicly inspectable; operational-wallet binding always requires explicit owner approvals.</p><Link href="/onchain#agent-identity">VERIFY IDENTITY →</Link></article>
             <article><span>NEXT</span><strong>Kora fee abstraction</strong><p>Sponsor first Solana actions so onboarding does not require a pre-funded SOL balance.</p></article>
             <article><span>LATER</span><strong>Seeker / Mobile</strong><p>Rebuild the mobile shell around the proven Pulse → Queen → Action loop and Mobile Wallet Adapter.</p></article>
             <article><span>RESEARCH</span><strong>Agent budget</strong><p>A user-capped allowance for multiple AI/data calls with a per-operation ledger and strict spend ceiling.</p></article>

@@ -269,6 +269,10 @@ h1, h2, h3, h4, h5 {
 .footer span { color: var(--accent); }
 .footer a { color: var(--text-muted); text-decoration: none; }
 .footer a:hover { color: var(--accent); }
+.footer-agent-trust { margin-top:12px; }
+.footer-agent-trust a { display:inline-flex; align-items:center; gap:6px; padding:7px 10px; border:1px solid rgba(20,241,149,.2); color:rgba(255,255,255,.62); letter-spacing:.1em; }
+.footer-agent-trust a:hover { border-color:rgba(20,241,149,.5); color:#fff; }
+.footer-agent-trust span { color:#14f195; }
 
 /* ── Scanline Overlay & CRT Effects ── */
 .page-bg {
@@ -669,6 +673,9 @@ h1, h2, h3, h4, h5 {
 .rq-terminal-identity-bar { display: flex; align-items: center; gap: 16px; padding: 18px max(40px,calc((100vw - 1660px) / 2 + 40px)); border-bottom: 1px solid var(--border); background: var(--surface); }
 .rq-terminal-title span { display: block; color: var(--accent); font: 700 9px var(--mono); letter-spacing: .17em; }
 .rq-terminal-title strong { display: block; margin-top: 4px; color: #fff; font: 700 20px var(--title-font); }
+.rq-8004-badge { display:inline-flex; align-items:center; width:max-content; padding:7px 10px; border:1px solid rgba(20,241,149,.35); color:#14f195; background:rgba(20,241,149,.035); font:800 8px var(--mono); letter-spacing:.11em; text-decoration:none; white-space:nowrap; }
+.rq-8004-badge:hover { border-color:#14f195; color:#fff; }
+.rq-terminal-8004 { margin-left:8px; }
 .rq-identity-strip {
   margin-left: auto;
   display: flex;
@@ -904,6 +911,7 @@ h1, h2, h3, h4, h5 {
   .rq-terminal-memory-state > div { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.07); }
   .rq-terminal-memory-state > div:last-child { border-bottom: 0; }
   .rq-terminal-identity-bar { align-items: flex-start; flex-wrap: wrap; padding: 16px; }
+  .rq-terminal-8004 { order:3; margin-left:48px; }
   .rq-identity-strip {
     width: 100%;
     justify-content: stretch;
@@ -3623,10 +3631,16 @@ body:has(#game-player-root) .page-content {
 .agent-registration-preview strong { display:block; margin-top:7px; color:#fff; font:700 12px var(--title-font); }
 .agent-registration-preview p { margin:6px 0 0; color:rgba(255,255,255,.48); font-size:12px; line-height:1.55; }
 .agent-registration-console { margin-top:12px; padding:18px; border:1px solid rgba(20,241,149,.2); background:linear-gradient(135deg,rgba(20,241,149,.035),rgba(0,0,0,.22)); }
+.agent-wallet-console { margin-top:12px; padding:18px; border:1px solid rgba(153,69,255,.3); background:linear-gradient(135deg,rgba(153,69,255,.055),rgba(20,241,149,.02),rgba(0,0,0,.22)); }
 .agent-registration-console-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+.agent-wallet-console-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
 .agent-registration-console-head span { color:#14f195; font:700 9px var(--mono); letter-spacing:.12em; }
+.agent-wallet-console-head span { color:#a96fff; font:700 9px var(--mono); letter-spacing:.12em; }
 .agent-registration-console-head strong { display:block; margin-top:8px; color:#fff; font:700 16px var(--title-font); }
+.agent-wallet-console-head strong { display:block; margin-top:8px; color:#fff; font:700 16px var(--title-font); }
 .agent-registration-console-head > b { padding:8px 10px; border:1px solid rgba(20,241,149,.24); color:#14f195; font:700 9px var(--mono); white-space:nowrap; }
+.agent-wallet-console-head > b { padding:8px 10px; border:1px solid rgba(169,111,255,.32); color:#c49cff; font:700 9px var(--mono); white-space:nowrap; }
+.agent-wallet-explainer { margin:12px 0 0; color:rgba(255,255,255,.56); font-size:12px; line-height:1.6; }
 .agent-registration-terms { display:grid; grid-template-columns:1fr 1fr; margin-top:16px; border:1px solid rgba(255,255,255,.07); }
 .agent-registration-terms > div { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 12px; border-right:1px solid rgba(255,255,255,.07); border-bottom:1px solid rgba(255,255,255,.07); }
 .agent-registration-terms > div:nth-child(2n) { border-right:0; }
@@ -3646,7 +3660,7 @@ body:has(#game-player-root) .page-content {
 .agent-registration-status i { width:6px; height:6px; border-radius:50%; background:#14f195; box-shadow:0 0 10px rgba(20,241,149,.6); }
 .agent-registration-status.is-error { color:#ff875f; }
 .agent-registration-status.is-error i { background:#ff4d4d; box-shadow:0 0 10px rgba(255,77,77,.55); }
-.agent-registration-console > small { display:block; margin-top:12px; color:rgba(255,255,255,.25); font:700 7px var(--mono); line-height:1.5; }
+.agent-registration-console > small,.agent-wallet-console > small { display:block; margin-top:12px; color:rgba(255,255,255,.25); font:700 7px var(--mono); line-height:1.5; }
 .agent-registration-result { margin-top:15px; padding:16px; border:1px solid rgba(20,241,149,.32); background:rgba(20,241,149,.045); }
 .agent-registration-result > span { color:#14f195; font:700 9px var(--mono); letter-spacing:.12em; }
 .agent-registration-result > strong { display:block; margin-top:8px; color:#fff; font:700 17px var(--title-font); }
@@ -3723,7 +3737,7 @@ body:has(#game-player-root) .page-content {
   .agent-identity-ledger > div:last-child { border-bottom:0 !important; }
   .agent-identity-actions { flex-direction:column; }
   .agent-identity-actions a { text-align:center; }
-  .agent-registration-console-head { flex-direction:column; }
+  .agent-registration-console-head,.agent-wallet-console-head { flex-direction:column; }
   .agent-registration-terms { grid-template-columns:1fr; }
   .agent-registration-terms > div { border-right:0; border-bottom:1px solid rgba(255,255,255,.07) !important; }
   .agent-registration-terms > div:last-child { border-bottom:0 !important; }
@@ -5346,6 +5360,20 @@ body:has(#game-player-root) .page-content {
 .rq-trust-band-inner li { position:relative; padding-left:15px; color:rgba(255,255,255,.54); font-size:13px; }
 .rq-trust-band-inner li::before { content:"+"; position:absolute; left:0; color:#ff1748; font-family:var(--mono); }
 
+.rq-agent-registry-trust { border-top:1px solid rgba(20,241,149,.2); border-bottom:1px solid rgba(20,241,149,.2); background:linear-gradient(90deg,rgba(20,241,149,.035),rgba(153,69,255,.025),transparent); }
+.rq-agent-registry-trust-inner { min-height:92px; display:grid; grid-template-columns:auto minmax(260px,1fr) auto; align-items:center; gap:32px; }
+.rq-agent-registry-trust-inner > div { display:flex; align-items:center; gap:11px; }
+.rq-agent-registry-trust-inner > div > strong { color:#fff; font:800 10px var(--mono); letter-spacing:.1em; white-space:nowrap; }
+.rq-agent-registry-trust-inner > div > small { color:rgba(255,255,255,.4); font:700 8px var(--mono); letter-spacing:.1em; white-space:nowrap; }
+.rq-agent-registry-trust-inner > p { margin:0; color:rgba(255,255,255,.54); font-size:12px; line-height:1.55; }
+.rq-agent-registry-trust-inner nav { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+.rq-agent-registry-trust-inner nav a { padding:10px 12px; border:1px solid rgba(255,255,255,.12); color:#fff; font:800 8px var(--mono); letter-spacing:.08em; text-decoration:none; white-space:nowrap; }
+.rq-agent-registry-trust-inner nav a:first-child { border-color:rgba(20,241,149,.35); color:#14f195; }
+.rq-agent-registry-trust-inner nav a:hover { border-color:var(--accent); color:#fff; }
+
+.guide-8004-badge { margin-top:14px; }
+.guide-roadmap article > a { display:inline-block; margin-top:12px; color:#14f195; font:800 8px var(--mono); letter-spacing:.08em; text-decoration:none; }
+
 .rq-final-call { position:relative; min-height:500px; display:flex; align-items:center; overflow:hidden; }
 .rq-final-sigil { position:absolute !important; z-index:0 !important; right:4%; width:400px; height:400px; display:grid; place-items:center; border:1px solid rgba(255,0,51,.16); border-radius:50%; opacity:.55; }
 .rq-final-sigil::before,.rq-final-sigil::after,.rq-final-sigil i { content:""; position:absolute; border:1px solid rgba(255,255,255,.07); border-radius:50%; }
@@ -5434,6 +5462,9 @@ body:has(#game-player-root) .page-content {
   .rq-field-entry-grid > a { min-height:220px; }
   .rq-trust-band-inner { grid-template-columns:1fr; gap:30px; padding-top:42px; padding-bottom:42px; }
   .rq-trust-band-inner ul { grid-template-columns:1fr; }
+  .rq-agent-registry-trust-inner { grid-template-columns:1fr; gap:15px; padding-top:24px; padding-bottom:24px; }
+  .rq-agent-registry-trust-inner > div { flex-wrap:wrap; }
+  .rq-agent-registry-trust-inner nav { justify-content:flex-start; flex-wrap:wrap; }
   .rq-final-call { min-height:460px; align-items:flex-start; padding-top:72px; }
   .rq-final-call > img { right:-190px; bottom:-140px; width:650px; opacity:.25; }
   .rq-final-sigil { right:-220px; bottom:-80px; width:500px; height:500px; opacity:.36; }

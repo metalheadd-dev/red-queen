@@ -1,11 +1,17 @@
 import Link from "next/link";
+import { getRedQueenAgentIdentity } from "@/lib/agent-registry";
 
 export default function Footer() {
+  const identity = getRedQueenAgentIdentity();
+
   return (
     <footer className="footer">
       <p>
         <span>[ RED QUEEN // ONLINE ]</span> &nbsp;|&nbsp;
         SURVIVAL INTELLIGENCE ECOSYSTEM ON SOLANA
+      </p>
+      <p className="footer-agent-trust">
+        <Link href="/onchain#agent-identity"><span>8004 REGISTERED</span> · AGENT ID {identity.agentId} · SOLANA MAINNET</Link>
       </p>
       <p style={{ marginTop: "12px", display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", fontSize: "10px" }}>
         <Link href="/docs">PRODUCT GUIDE</Link>

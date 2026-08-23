@@ -1,6 +1,7 @@
 import Link from "next/link";
 import CopyThreatMint from "@/components/CopyThreatMint";
 import SolvivalIcon from "@/components/SolvivalIcon";
+import { getRedQueenAgentIdentity } from "@/lib/agent-registry";
 
 const agentSteps = [
   {
@@ -66,6 +67,11 @@ const paidOperations = [
 ] as const;
 
 export default function LandingPage() {
+  const agentIdentity = getRedQueenAgentIdentity();
+  const agentExplorerUrl = agentIdentity.asset
+    ? `https://explorer.solana.com/address/${agentIdentity.asset}`
+    : "/onchain#agent-identity";
+
   return (
     <div className="rq-landing">
       <section className="rq-landing-hero">
@@ -136,6 +142,21 @@ export default function LandingPage() {
         </div>
 
         <a className="rq-landing-scroll" href="#agentic-system">ENTER THE SYSTEM <span>↓</span></a>
+      </section>
+
+      <section className="rq-agent-registry-trust" aria-label="RED QUEEN on-chain identity">
+        <div className="container rq-agent-registry-trust-inner">
+          <div>
+            <span className="rq-8004-badge">8004 REGISTERED</span>
+            <strong>AGENT ID {agentIdentity.agentId}</strong>
+            <small>SOLANA MAINNET</small>
+          </div>
+          <p>RED QUEEN&apos;s identity, tools and x402 support are publicly discoverable. This is an identity record, not a security audit.</p>
+          <nav aria-label="Agent identity verification">
+            <a href={agentExplorerUrl} target="_blank" rel="noreferrer">VERIFY ON SOLANA ↗</a>
+            <Link href="/onchain#agent-identity">INSPECT AGENT CAPABILITIES →</Link>
+          </nav>
+        </div>
       </section>
 
       <section id="agentic-system" className="container rq-agentic-system">

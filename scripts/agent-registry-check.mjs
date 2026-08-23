@@ -6,6 +6,7 @@ const baseUrl = (arg?.slice("--base-url=".length) || process.env.AGENT_REGISTRY_
 const expected = {
   metadata: `${baseUrl}/.well-known/agent-registration.json`,
   identity: `${baseUrl}/api/agent/identity`,
+  wallet: `${baseUrl}/api/agent/wallet`,
   oasf: `${baseUrl}/api/agent/oasf`,
   mcp: `${baseUrl}/api/mcp/mcp`,
 };
@@ -48,6 +49,9 @@ async function main() {
   assert(metadata.x402Support === true, "x402 support is not declared");
   assert(identity.registration?.ready === true, "Registration readiness is false");
   assert(identity.registration?.atomEnabled === false, "ATOM must remain off for the initial registration");
+  assert(identity.identity?.registered === true, "RED QUEEN Agent Asset is not marked as registered");
+  assert(identity.identity?.agentId === 1474, "Unexpected RED QUEEN Agent ID");
+  assert(typeof identity.identity?.asset === "string" && identity.identity.asset.length >= 32, "Registered Agent Asset is missing");
 
   const mcpResponse = await fetch(expected.mcp, {
     method: "POST",
@@ -68,13 +72,15 @@ async function main() {
   });
   assert(mcpResponse.ok, `${expected.mcp} returned HTTP ${mcpResponse.status}`);
 
-  console.log(`RED QUEEN 8004 registry package is ready at ${baseUrl}`);
+  console.log(`RED QUEEN 8004 identity is registered at ${baseUrl}`);
   console.log(`- Metadata: canonical registration-v1`);
   console.log(`- MCP: ${expected.mcp}`);
   console.log(`- OASF: ${skills.length} skills, ${domains.length} domains`);
   console.log(`- x402: declared`);
   console.log(`- ATOM: disabled for initial registration`);
-  console.log(`- Signature: still required; no transaction was created or submitted`);
+  console.log(`- Agent ID: ${identity.identity.agentId}`);
+  console.log(`- Agent Asset: ${identity.identity.asset}`);
+  console.log(`- Operational wallet: inspect ${expected.wallet}`);
 }
 
 main().catch((error) => {
