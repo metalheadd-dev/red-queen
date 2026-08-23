@@ -1,6 +1,7 @@
 import Image from "next/image";
 import {
   getRedQueenAgentIdentity,
+  getRedQueenRegistryReadiness,
   RED_QUEEN_AGENT_DOMAINS,
   RED_QUEEN_AGENT_SKILLS,
 } from "@/lib/agent-registry";
@@ -13,6 +14,7 @@ function compact(value: string, lead = 7, tail = 7) {
 
 export default function AgentRegistryIdentity() {
   const identity = getRedQueenAgentIdentity();
+  const readiness = getRedQueenRegistryReadiness();
   const explorerUrl = identity.asset
     ? `https://explorer.solana.com/address/${identity.asset}`
     : "https://solana.com/agent-registry";
@@ -47,6 +49,14 @@ export default function AgentRegistryIdentity() {
             <div><dt>REPUTATION</dt><dd>{identity.reputation}</dd></div>
           </dl>
 
+          {!identity.registered && (
+            <div className="agent-registration-preview">
+              <span>REGISTRATION PREVIEW</span>
+              <strong>{readiness.ready ? "READY FOR PROJECT-WALLET SIGNATURE" : "METADATA REQUIRES REVIEW"}</strong>
+              <p>Mainnet Agent Asset · canonical 8004 metadata · ATOM reputation off at launch · no user data written on-chain.</p>
+            </div>
+          )}
+
           <div className="agent-identity-services">
             <article><span>MCP</span><strong>9 AGENT TOOLS</strong><p>Signals, Solana telemetry, wallet audits, incident dossiers and preparedness protocols.</p></article>
             <article><span>x402</span><strong>{identity.x402}</strong><p>Exact USDC compute payments with explicit approval, receipts and replay protection.</p></article>
@@ -56,6 +66,7 @@ export default function AgentRegistryIdentity() {
           <div className="agent-identity-actions">
             <a href={identity.metadataUrl} target="_blank" rel="noreferrer">INSPECT METADATA ↗</a>
             <a href={identity.oasfUrl} target="_blank" rel="noreferrer">INSPECT CAPABILITIES ↗</a>
+            <a href={identity.identityUrl} target="_blank" rel="noreferrer">REGISTRATION PREVIEW ↗</a>
             <a href={explorerUrl} target="_blank" rel="noreferrer">{identity.registered ? "VIEW AGENT ASSET ↗" : "READ 8004 STANDARD ↗"}</a>
           </div>
 

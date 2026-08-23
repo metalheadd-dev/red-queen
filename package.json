@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "release:check": "node scripts/release-check.mjs",
     "release:check:env": "node scripts/release-check.mjs --env",
+    "agent:registry:check": "node scripts/agent-registry-check.mjs",
     "release:verify": "npm run release:check && npm run typecheck && npm run build"
   },
   "dependencies": {

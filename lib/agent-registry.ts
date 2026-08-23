@@ -1,9 +1,21 @@
+import {
+  buildRegistrationFileJson,
+  ServiceType,
+  TrustModel,
+  validateDomain,
+  validateSkill,
+} from "8004-solana";
 import { SOLANA_MAINNET_CAIP2 } from "@/lib/onchain";
 
 export const RED_QUEEN_AGENT_SITE = "https://redqueen.space";
 export const RED_QUEEN_AGENT_METADATA_PATH = "/.well-known/agent-registration.json";
-export const RED_QUEEN_AGENT_MCP_PATH = "/api/mcp";
+export const RED_QUEEN_AGENT_MCP_PATH = "/api/mcp/mcp";
 export const RED_QUEEN_AGENT_OASF_PATH = "/api/agent/oasf";
+export const RED_QUEEN_AGENT_IDENTITY_PATH = "/api/agent/identity";
+export const RED_QUEEN_AGENT_REGISTRY_PROGRAM = "8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ";
+export const RED_QUEEN_AGENT_INDEXER = "https://8004-indexer-main.qnt.sh";
+export const RED_QUEEN_AGENT_DESCRIPTION =
+  "RED QUEEN is an agentic survival intelligence system on Solana operated by SOLvival Corp. She monitors verified public and on-chain signals, explains relevance and uncertainty, turns findings into practical preparedness protocols, and delivers user-approved paid intelligence through x402. She never has custody or automatic authority over user funds.";
 
 export const RED_QUEEN_AGENT_SKILLS = [
   "advanced_reasoning_planning/strategic_planning",
@@ -46,33 +58,57 @@ export function getRedQueenAgentRuntime() {
 export function buildRedQueenRegistrationFile() {
   const runtime = getRedQueenAgentRuntime();
 
-  return {
-    type: "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  return buildRegistrationFileJson({
     name: "RED QUEEN",
-    description:
-      "AI survival intelligence agent on Solana that synthesizes verified public threat signals, explains uncertainty, creates preparedness protocols, and provides bounded wallet and transaction risk analysis. RED QUEEN never claims certainty, custody, or automatic authority over user funds.",
+    description: RED_QUEEN_AGENT_DESCRIPTION,
     image: `${RED_QUEEN_AGENT_SITE}/art/red-queen-presence.png`,
     services: [
       {
-        name: "MCP",
-        endpoint: `${RED_QUEEN_AGENT_SITE}${RED_QUEEN_AGENT_MCP_PATH}`,
-        version: "2025-06-18",
+        type: ServiceType.MCP,
+        value: `${RED_QUEEN_AGENT_SITE}${RED_QUEEN_AGENT_MCP_PATH}`,
+        meta: {
+          version: "2025-06-18",
+          transport: "streamable-http",
+          tools: 9,
+        },
       },
       {
-        name: "OASF",
-        endpoint: `${RED_QUEEN_AGENT_SITE}${RED_QUEEN_AGENT_OASF_PATH}`,
-        version: "0.8",
-        skills: [...RED_QUEEN_AGENT_SKILLS],
-        domains: [...RED_QUEEN_AGENT_DOMAINS],
+        type: ServiceType.OASF,
+        value: `${RED_QUEEN_AGENT_SITE}${RED_QUEEN_AGENT_OASF_PATH}`,
+        meta: { version: "0.8" },
       },
       {
-        name: "agentWallet",
-        endpoint: `${SOLANA_MAINNET_CAIP2}:${runtime.owner}`,
+        type: ServiceType.WALLET,
+        value: `${SOLANA_MAINNET_CAIP2}:${runtime.owner}`,
+        meta: { purpose: "project-operational-wallet" },
       },
     ],
-    supportedTrust: ["reputation"],
+    skills: [...RED_QUEEN_AGENT_SKILLS],
+    domains: [...RED_QUEEN_AGENT_DOMAINS],
+    trustModels: [TrustModel.REPUTATION],
     active: true,
     x402Support: true,
+  });
+}
+
+export function getRedQueenRegistryReadiness() {
+  const runtime = getRedQueenAgentRuntime();
+  const invalidSkills = RED_QUEEN_AGENT_SKILLS.filter((skill) => !validateSkill(skill));
+  const invalidDomains = RED_QUEEN_AGENT_DOMAINS.filter((domain) => !validateDomain(domain));
+
+  return {
+    ready: invalidSkills.length === 0 && invalidDomains.length === 0,
+    sdk: "8004-solana@0.8.2",
+    cluster: "mainnet-beta",
+    program: RED_QUEEN_AGENT_REGISTRY_PROGRAM,
+    indexer: RED_QUEEN_AGENT_INDEXER,
+    metadataUri: runtime.metadataUri,
+    registrationCall: "registerAgent(metadataUri, { atomEnabled: false })",
+    atomEnabled: false,
+    requiresProjectWalletSignature: true,
+    operationalWalletStep: "setAgentWallet(agentAsset, projectWallet)",
+    invalidSkills,
+    invalidDomains,
   };
 }
 
@@ -86,6 +122,7 @@ export function getRedQueenAgentIdentity() {
     networkId: SOLANA_MAINNET_CAIP2,
     standard: "8004 SOLANA",
     metadataUrl: `${RED_QUEEN_AGENT_SITE}${RED_QUEEN_AGENT_METADATA_PATH}`,
+    identityUrl: `${RED_QUEEN_AGENT_SITE}${RED_QUEEN_AGENT_IDENTITY_PATH}`,
     mcpUrl: `${RED_QUEEN_AGENT_SITE}${RED_QUEEN_AGENT_MCP_PATH}`,
     oasfUrl: `${RED_QUEEN_AGENT_SITE}${RED_QUEEN_AGENT_OASF_PATH}`,
     x402: "EXACT SVM V2",

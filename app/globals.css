@@ -3618,6 +3618,10 @@ body:has(#game-player-root) .page-content {
 .agent-identity-ledger > div:nth-last-child(-n+2) { border-bottom:0; }
 .agent-identity-ledger dt { color:rgba(255,255,255,.32); font:700 9px var(--mono); letter-spacing:.1em; }
 .agent-identity-ledger dd { margin:8px 0 0; overflow:hidden; color:#fff; font:700 11px var(--mono); text-overflow:ellipsis; white-space:nowrap; }
+.agent-registration-preview { margin-top:12px; padding:14px 17px; border:1px solid rgba(240,201,41,.24); background:rgba(240,201,41,.035); }
+.agent-registration-preview span { color:#f0c929; font:700 9px var(--mono); letter-spacing:.12em; }
+.agent-registration-preview strong { display:block; margin-top:7px; color:#fff; font:700 12px var(--title-font); }
+.agent-registration-preview p { margin:6px 0 0; color:rgba(255,255,255,.48); font-size:12px; line-height:1.55; }
 .agent-identity-services { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:20px; }
 .agent-identity-services article { min-height:172px; padding:17px; border:1px solid rgba(255,255,255,.08); background:rgba(0,0,0,.25); }
 .agent-identity-services span { color:var(--accent); font:700 9px var(--mono); letter-spacing:.12em; }

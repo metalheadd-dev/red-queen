@@ -160,7 +160,11 @@ Official references: [Solana Actions and Blinks](https://solana.com/developers/g
 
 ### 7. RED QUEEN 8004 Agent identity
 
-The public registration document is served at `/.well-known/agent-registration.json`. It declares the production MCP endpoint, validated OASF skills and domains, x402 support, project operational wallet, and the public Queen image without publishing BIO-SCORE, readiness plans, profile memory, or user location. `/api/agent/oasf` exposes the machine-readable capability profile, while `/api/agent/identity` exposes the current registration state for the product UI.
+The public registration document is served at `/.well-known/agent-registration.json`. It is built with the installed `8004-solana` SDK and declares the production Streamable HTTP MCP endpoint at `/api/mcp/mcp`, validated OASF skills and domains, x402 support, project operational wallet, and the public Queen image without publishing BIO-SCORE, readiness plans, profile memory, or user location. `/api/agent/oasf` exposes the machine-readable capability profile, while `/api/agent/identity` exposes the current registration state and unsigned mainnet registration preview for the product UI.
+
+Run `npm run agent:registry:check -- --base-url=https://redqueen.space` against a deployment, or point `--base-url` at local development. The check validates the canonical metadata shape, all OASF slugs, the operational-wallet declaration, x402 support, ATOM-off launch policy, and an MCP initialize handshake. It never creates or submits a transaction.
+
+The exact production registration and post-registration sequence is documented in [`docs/AGENT_REGISTRY.md`](docs/AGENT_REGISTRY.md).
 
 Before registration, the UI must say `REGISTRATION PACKAGE READY`; it must not invent an Agent Asset or reputation history. After the project wallet signs and the transaction is verified, set `RED_QUEEN_AGENT_ASSET` and `RED_QUEEN_AGENT_REGISTRATION_TX`. `RED_QUEEN_AGENT_OWNER` and `RED_QUEEN_AGENT_METADATA_URI` are optional overrides documented in `.env.local.example`.
 
