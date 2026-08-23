@@ -2,9 +2,11 @@ import Image from "next/image";
 import {
   getRedQueenAgentIdentity,
   getRedQueenRegistryReadiness,
+  RED_QUEEN_AGENT_REGISTRY_PROGRAM,
   RED_QUEEN_AGENT_DOMAINS,
   RED_QUEEN_AGENT_SKILLS,
 } from "@/lib/agent-registry";
+import AgentRegistrationConsole from "@/components/AgentRegistrationConsole";
 
 function compact(value: string, lead = 7, tail = 7) {
   if (!value) return "ASSIGNED AFTER REGISTRATION";
@@ -50,11 +52,20 @@ export default function AgentRegistryIdentity() {
           </dl>
 
           {!identity.registered && (
-            <div className="agent-registration-preview">
-              <span>REGISTRATION PREVIEW</span>
-              <strong>{readiness.ready ? "READY FOR PROJECT-WALLET SIGNATURE" : "METADATA REQUIRES REVIEW"}</strong>
-              <p>Mainnet Agent Asset · canonical 8004 metadata · ATOM reputation off at launch · no user data written on-chain.</p>
-            </div>
+            <>
+              <div className="agent-registration-preview">
+                <span>REGISTRATION PREVIEW</span>
+                <strong>{readiness.ready ? "READY FOR PROJECT-WALLET SIGNATURE" : "METADATA REQUIRES REVIEW"}</strong>
+                <p>Mainnet Agent Asset · canonical 8004 metadata · ATOM reputation off at launch · no user data written on-chain.</p>
+              </div>
+              {readiness.ready && (
+                <AgentRegistrationConsole
+                  owner={identity.owner}
+                  metadataUri={readiness.metadataUri}
+                  program={RED_QUEEN_AGENT_REGISTRY_PROGRAM}
+                />
+              )}
+            </>
           )}
 
           <div className="agent-identity-services">

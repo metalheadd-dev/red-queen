@@ -3622,6 +3622,38 @@ body:has(#game-player-root) .page-content {
 .agent-registration-preview span { color:#f0c929; font:700 9px var(--mono); letter-spacing:.12em; }
 .agent-registration-preview strong { display:block; margin-top:7px; color:#fff; font:700 12px var(--title-font); }
 .agent-registration-preview p { margin:6px 0 0; color:rgba(255,255,255,.48); font-size:12px; line-height:1.55; }
+.agent-registration-console { margin-top:12px; padding:18px; border:1px solid rgba(20,241,149,.2); background:linear-gradient(135deg,rgba(20,241,149,.035),rgba(0,0,0,.22)); }
+.agent-registration-console-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+.agent-registration-console-head span { color:#14f195; font:700 9px var(--mono); letter-spacing:.12em; }
+.agent-registration-console-head strong { display:block; margin-top:8px; color:#fff; font:700 16px var(--title-font); }
+.agent-registration-console-head > b { padding:8px 10px; border:1px solid rgba(20,241,149,.24); color:#14f195; font:700 9px var(--mono); white-space:nowrap; }
+.agent-registration-terms { display:grid; grid-template-columns:1fr 1fr; margin-top:16px; border:1px solid rgba(255,255,255,.07); }
+.agent-registration-terms > div { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 12px; border-right:1px solid rgba(255,255,255,.07); border-bottom:1px solid rgba(255,255,255,.07); }
+.agent-registration-terms > div:nth-child(2n) { border-right:0; }
+.agent-registration-terms > div:nth-last-child(-n+2) { border-bottom:0; }
+.agent-registration-terms span { color:rgba(255,255,255,.34); font:700 8px var(--mono); }
+.agent-registration-terms code { overflow:hidden; color:#fff; font:700 9px var(--mono); text-overflow:ellipsis; white-space:nowrap; }
+.agent-registration-connect,.agent-registration-blocked { display:grid; grid-template-columns:1fr auto; align-items:center; gap:18px; margin-top:15px; padding:14px; border:1px solid rgba(255,255,255,.08); }
+.agent-registration-connect p,.agent-registration-blocked p { margin:0; color:rgba(255,255,255,.54); font-size:12px; line-height:1.55; }
+.agent-registration-blocked strong { color:#ff875f; font:700 10px var(--mono); }
+.agent-registration-connect .wallet-adapter-button,.agent-registration-blocked .wallet-adapter-button { min-height:42px; border-radius:0; background:var(--accent); color:#050505; font:700 9px var(--mono); }
+.agent-registration-approval { display:flex; gap:11px; margin-top:15px; padding:13px; border:1px solid rgba(255,255,255,.08); cursor:pointer; }
+.agent-registration-approval input { margin-top:3px; accent-color:#14f195; }
+.agent-registration-approval span { color:rgba(255,255,255,.6); font-size:11px; line-height:1.55; }
+.agent-registration-submit { width:100%; min-height:48px; margin-top:10px; border:1px solid #14f195; background:#14f195; color:#04100b; font:800 10px var(--mono); letter-spacing:.11em; cursor:pointer; }
+.agent-registration-submit:disabled { border-color:rgba(255,255,255,.1); background:rgba(255,255,255,.04); color:rgba(255,255,255,.28); cursor:not-allowed; }
+.agent-registration-status { display:flex; align-items:center; gap:8px; margin-top:11px; color:rgba(255,255,255,.46); font:700 8px var(--mono); letter-spacing:.06em; }
+.agent-registration-status i { width:6px; height:6px; border-radius:50%; background:#14f195; box-shadow:0 0 10px rgba(20,241,149,.6); }
+.agent-registration-status.is-error { color:#ff875f; }
+.agent-registration-status.is-error i { background:#ff4d4d; box-shadow:0 0 10px rgba(255,77,77,.55); }
+.agent-registration-console > small { display:block; margin-top:12px; color:rgba(255,255,255,.25); font:700 7px var(--mono); line-height:1.5; }
+.agent-registration-result { margin-top:15px; padding:16px; border:1px solid rgba(20,241,149,.32); background:rgba(20,241,149,.045); }
+.agent-registration-result > span { color:#14f195; font:700 9px var(--mono); letter-spacing:.12em; }
+.agent-registration-result > strong { display:block; margin-top:8px; color:#fff; font:700 17px var(--title-font); }
+.agent-registration-result p { color:rgba(255,255,255,.57); font-size:12px; line-height:1.55; }
+.agent-registration-result > div { display:flex; flex-wrap:wrap; gap:7px; }
+.agent-registration-result button,.agent-registration-result a { padding:10px 12px; border:1px solid rgba(20,241,149,.28); background:transparent; color:#fff; font:700 8px var(--mono); text-decoration:none; cursor:pointer; }
+.agent-registration-result small { display:block; margin-top:13px; color:#14f195; font:700 8px var(--mono); line-height:1.55; }
 .agent-identity-services { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:20px; }
 .agent-identity-services article { min-height:172px; padding:17px; border:1px solid rgba(255,255,255,.08); background:rgba(0,0,0,.25); }
 .agent-identity-services span { color:var(--accent); font:700 9px var(--mono); letter-spacing:.12em; }
@@ -3691,6 +3723,11 @@ body:has(#game-player-root) .page-content {
   .agent-identity-ledger > div:last-child { border-bottom:0 !important; }
   .agent-identity-actions { flex-direction:column; }
   .agent-identity-actions a { text-align:center; }
+  .agent-registration-console-head { flex-direction:column; }
+  .agent-registration-terms { grid-template-columns:1fr; }
+  .agent-registration-terms > div { border-right:0; border-bottom:1px solid rgba(255,255,255,.07) !important; }
+  .agent-registration-terms > div:last-child { border-bottom:0 !important; }
+  .agent-registration-connect,.agent-registration-blocked { grid-template-columns:1fr; }
   .intelligence-market-tabs { grid-template-columns:1fr 1fr; }
   .intelligence-market-grid { grid-template-columns:1fr; min-height:0; }
   .intelligence-market-form,.intelligence-market-output { padding:22px 18px; }
