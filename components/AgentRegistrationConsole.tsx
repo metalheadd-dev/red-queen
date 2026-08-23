@@ -166,10 +166,27 @@ export default function AgentRegistrationConsole({
 
       const transaction = Transaction.from(decodeBase64(prepared.transaction));
       assertSafeTransaction(transaction, prepared, owner, asset, metadataUri, program);
-      transaction.partialSign(assetKeypair);
+
+      setStatus("SIMULATING REGISTRATION · NO SIGNATURE REQUESTED");
+      const simulationTransaction = Transaction.from(transaction.serialize({
+        requireAllSignatures: false,
+        verifySignatures: false,
+      }));
+      const simulation = await connection.simulateTransaction(simulationTransaction);
+      if (simulation.value.err) {
+        throw new Error("Registration simulation failed. Phantom was not asked to sign.");
+      }
 
       setStatus("WALLET REVIEW REQUIRED · VERIFY 8004 PROGRAM AND FEE");
       const signed = await signTransaction(transaction);
+      const ownerSignature = signed.signatures.find((item) => item.publicKey.equals(publicKey));
+      if (!ownerSignature?.signature) {
+        throw new Error("Phantom did not return the required owner signature.");
+      }
+
+      // Phantom must sign first so it can simulate the unsigned multi-signer request.
+      // The ephemeral Agent Asset signature is added locally only after wallet approval.
+      signed.partialSign(assetKeypair);
       setStatus("SIGNATURE APPROVED · SUBMITTING TO SOLANA MAINNET");
       const signature = await connection.sendRawTransaction(signed.serialize(), {
         skipPreflight: false,
