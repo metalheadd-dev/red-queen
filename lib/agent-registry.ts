@@ -61,7 +61,7 @@ export function buildRedQueenRegistrationFile() {
   return buildRegistrationFileJson({
     name: "RED QUEEN",
     description: RED_QUEEN_AGENT_DESCRIPTION,
-    image: `${RED_QUEEN_AGENT_SITE}/art/red-queen-presence.png`,
+    image: `${RED_QUEEN_AGENT_SITE}/art/red-queen-agent-registry-v1.png`,
     services: [
       {
         type: ServiceType.MCP,
