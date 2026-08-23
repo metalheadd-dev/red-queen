@@ -50,8 +50,8 @@ async function main() {
   assert(identity.registration?.ready === true, "Registration readiness is false");
   assert(identity.registration?.atomEnabled === false, "ATOM must remain off for the initial registration");
   assert(identity.identity?.registered === true, "RED QUEEN Agent Asset is not marked as registered");
-  assert(identity.identity?.agentId === 1474, "Unexpected RED QUEEN Agent ID");
   assert(typeof identity.identity?.asset === "string" && identity.identity.asset.length >= 32, "Registered Agent Asset is missing");
+  assert(identity.identity?.agentId === identity.identity.asset, "Agent ID must equal the canonical Solana Agent Asset");
 
   const mcpResponse = await fetch(expected.mcp, {
     method: "POST",
@@ -79,7 +79,6 @@ async function main() {
   console.log(`- x402: declared`);
   console.log(`- ATOM: disabled for initial registration`);
   console.log(`- Agent ID: ${identity.identity.agentId}`);
-  console.log(`- Agent Asset: ${identity.identity.asset}`);
   console.log(`- Operational wallet: inspect ${expected.wallet}`);
 }
 

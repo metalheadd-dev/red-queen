@@ -2,6 +2,7 @@ import Link from "next/link";
 import CopyThreatMint from "@/components/CopyThreatMint";
 import SolvivalIcon from "@/components/SolvivalIcon";
 import { getRedQueenAgentIdentity } from "@/lib/agent-registry";
+import { RED_QUEEN_AGENT_ID_SHORT } from "@/lib/agent-identity-public";
 
 const agentSteps = [
   {
@@ -148,7 +149,7 @@ export default function LandingPage() {
         <div className="container rq-agent-registry-trust-inner">
           <div>
             <span className="rq-8004-badge">8004 REGISTERED</span>
-            <strong>AGENT ID {agentIdentity.agentId}</strong>
+            <strong title={agentIdentity.agentId}>AGENT ID {RED_QUEEN_AGENT_ID_SHORT}</strong>
             <small>SOLANA MAINNET</small>
           </div>
           <p>RED QUEEN&apos;s identity, tools and x402 support are publicly discoverable. This is an identity record, not a security audit.</p>

@@ -6,6 +6,7 @@ import {
   validateSkill,
 } from "8004-solana";
 import { SOLANA_MAINNET_CAIP2 } from "@/lib/onchain";
+import { RED_QUEEN_AGENT_ASSET, RED_QUEEN_AGENT_ID } from "@/lib/agent-identity-public";
 
 export const RED_QUEEN_AGENT_SITE = "https://redqueen.space";
 export const RED_QUEEN_AGENT_METADATA_PATH = "/.well-known/agent-registration.json";
@@ -14,7 +15,6 @@ export const RED_QUEEN_AGENT_OASF_PATH = "/api/agent/oasf";
 export const RED_QUEEN_AGENT_IDENTITY_PATH = "/api/agent/identity";
 export const RED_QUEEN_AGENT_REGISTRY_PROGRAM = "8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ";
 export const RED_QUEEN_AGENT_INDEXER = "https://8004-indexer-main.qnt.sh";
-export const RED_QUEEN_AGENT_ID = 1474;
 export const RED_QUEEN_AGENT_DESCRIPTION =
   "RED QUEEN is an agentic survival intelligence system on Solana, developed and operated by SOLvival Corp. She synthesizes verified public, geospatial, emergency, cyber, and on-chain signals; explains relevance, provenance, and uncertainty; and converts findings into location-aware briefs, preparedness protocols, and wallet-risk analysis. Users can request and approve paid intelligence operations in USDC through x402. RED QUEEN may prepare actions and transactions, but never holds user assets, signs on their behalf, or acts without explicit approval.";
 
@@ -39,7 +39,7 @@ export const RED_QUEEN_AGENT_DOMAINS = [
 const FALLBACK_PROJECT_WALLET = "Aed6MTmMetXMmJR4inuWQUo157xtEijqbGGWuyzNGRxg";
 
 export function getRedQueenAgentRuntime() {
-  const asset = process.env.RED_QUEEN_AGENT_ASSET?.trim() || "";
+  const asset = process.env.RED_QUEEN_AGENT_ASSET?.trim() || RED_QUEEN_AGENT_ASSET;
   const registrationSignature = process.env.RED_QUEEN_AGENT_REGISTRATION_TX?.trim() || "";
   const owner = process.env.RED_QUEEN_AGENT_OWNER?.trim()
     || process.env.SVM_ADDRESS?.trim()
@@ -119,7 +119,7 @@ export function getRedQueenAgentIdentity() {
   return {
     ...runtime,
     name: "RED QUEEN",
-    agentId: RED_QUEEN_AGENT_ID,
+    agentId: runtime.asset || RED_QUEEN_AGENT_ID,
     network: "SOLANA MAINNET",
     networkId: SOLANA_MAINNET_CAIP2,
     standard: "8004 SOLANA",

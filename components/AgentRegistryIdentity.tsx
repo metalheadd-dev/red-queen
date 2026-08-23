@@ -46,8 +46,8 @@ export default function AgentRegistryIdentity() {
           </div>
 
           <dl className="agent-identity-ledger">
-            <div><dt>AGENT ID</dt><dd>{identity.agentId}</dd></div>
-            <div><dt>AGENT ASSET</dt><dd title={identity.asset}>{compact(identity.asset)}</dd></div>
+            <div><dt>AGENT ID</dt><dd title={identity.agentId}>{compact(identity.agentId)}</dd></div>
+            <div><dt>ASSET STANDARD</dt><dd>METAPLEX CORE</dd></div>
             <div><dt>PROJECT WALLET</dt><dd title={identity.owner}>{compact(identity.owner)}</dd></div>
             <div><dt>METADATA</dt><dd>DOMAIN VERIFIED JSON</dd></div>
             <div><dt>REPUTATION</dt><dd>{identity.reputation}</dd></div>

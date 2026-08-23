@@ -53,7 +53,7 @@ Local Pulse resolves only a user-entered city or region, never an exact address.
 | x402 exact-USDC intelligence endpoints | **Runtime-gated beta** | Seven paid operations: global synthesis, Local Delta, 72-hour plan, Incident Dossier, transaction risk, network health, and wallet exposure. Disabled unless recipient, facilitator, network, migration, and receipt store pass health checks. |
 | Jupiter `$THREAT` acquisition | **Runtime-gated beta** | SOL/USDC → canonical `$THREAT` through Swap V2 order + execute. The server never holds a user key; quote, fee and output appear before wallet approval. |
 | Wallet Intelligence / Lockdown | **Read-only live / transaction feature-gated** | Reads SPL and Token-2022 authority state. Revocation preparation requires a verified wallet session, successful simulation, explicit environment enablement, and a separate wallet approval. |
-| 8004 Agent Registry identity | **Live** | RED QUEEN is registered on Solana mainnet as Agent ID `1474`. The Agent Asset, domain metadata, MCP endpoint, OASF skills/domains and x402 declaration are public. Operational-wallet binding uses a separate owner-controlled message proof and transaction. |
+| 8004 Agent Registry identity | **Live** | RED QUEEN is registered on Solana mainnet with Agent ID / Agent Asset `NBetsSc3jdzGUTenVxtY3W7UFqeKJiY1kZ7EueuYaUS`. The domain metadata, MCP endpoint, OASF skills/domains and x402 declaration are public. Operational-wallet binding uses a separate owner-controlled message proof and transaction. |
 | Attestations, Kora, Blinks, Seeker polish | **Planned** | These follow a stable web core and are not described as shipped features. |
 
 ## Verified signal grid
@@ -166,7 +166,7 @@ Run `npm run agent:registry:check -- --base-url=https://redqueen.space` against 
 
 The exact production registration and post-registration sequence is documented in [`docs/AGENT_REGISTRY.md`](docs/AGENT_REGISTRY.md).
 
-RED QUEEN is registered as Agent ID `1474` with Agent Asset `NBetsSc3jdzGUTenVxtY3W7UFqeKJiY1kZ7EueuYaUS`. `RED_QUEEN_AGENT_ASSET` and `RED_QUEEN_AGENT_REGISTRATION_TX` keep that state explicit in each deployment. `/api/agent/wallet` prepares and verifies the separate operational-wallet binding without accepting a private key or automatic signature. `RED_QUEEN_AGENT_OWNER` and `RED_QUEEN_AGENT_METADATA_URI` are optional overrides documented in `.env.local.example`.
+RED QUEEN is registered with canonical Agent ID / Agent Asset `NBetsSc3jdzGUTenVxtY3W7UFqeKJiY1kZ7EueuYaUS`. `RED_QUEEN_AGENT_ASSET` and `RED_QUEEN_AGENT_REGISTRATION_TX` keep that state explicit in each deployment. `/api/agent/wallet` prepares and verifies the separate operational-wallet binding without accepting a private key or automatic signature. `RED_QUEEN_AGENT_OWNER` and `RED_QUEEN_AGENT_METADATA_URI` are optional overrides documented in `.env.local.example`.
 
 ## Next Solana integrations
 

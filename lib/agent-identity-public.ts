@@ -1,0 +1,3 @@
+export const RED_QUEEN_AGENT_ASSET = "NBetsSc3jdzGUTenVxtY3W7UFqeKJiY1kZ7EueuYaUS";
+export const RED_QUEEN_AGENT_ID = RED_QUEEN_AGENT_ASSET;
+export const RED_QUEEN_AGENT_ID_SHORT = `${RED_QUEEN_AGENT_ID.slice(0, 6)}…${RED_QUEEN_AGENT_ID.slice(-5)}`;

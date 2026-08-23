@@ -14,6 +14,7 @@ import { getAssociatedTokenAddress, createTransferCheckedInstruction } from "@so
 import { getWorkingConnection } from "@/lib/solana";
 import AgentResponseCard from "@/components/AgentResponseCard";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
+import { RED_QUEEN_AGENT_ID_SHORT } from "@/lib/agent-identity-public";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
 import { createDailyAction, DAILY_ACTION_EVENT, readDailyActions, saveDailyAction, updateDailyAction } from "@/lib/daily-action";
 import { buildDeviceSurvivalMemory } from "@/lib/device-survival-memory";
@@ -1108,7 +1109,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
           <strong>RED QUEEN TERMINAL</strong>
         </div>
         <Link className="rq-8004-badge rq-terminal-8004" href="/onchain#agent-identity" title="Inspect RED QUEEN's registered 8004 Agent Asset">
-          8004 REGISTERED · ID 1474
+          8004 REGISTERED · ID {RED_QUEEN_AGENT_ID_SHORT}
         </Link>
         <div className="rq-identity-strip">
           <div className="rq-identity-metric">

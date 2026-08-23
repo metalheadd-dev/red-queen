@@ -14,9 +14,7 @@
 
 **Project wallet:** `Aed6MTmMetXMmJR4inuWQUo157xtEijqbGGWuyzNGRxg`
 
-**Agent ID:** `1474`
-
-**Agent Asset:** `NBetsSc3jdzGUTenVxtY3W7UFqeKJiY1kZ7EueuYaUS`
+**Agent ID / Agent Asset:** `NBetsSc3jdzGUTenVxtY3W7UFqeKJiY1kZ7EueuYaUS`
 
 **Registration status:** `REGISTERED ON MAINNET`
 
