@@ -174,7 +174,7 @@ function assertSafeTransaction(transaction: Transaction, prepared: PreparedBindi
 
 export default function AgentWalletBinding({ owner, asset, program }: { owner: string; asset: string; program: string }) {
   const { connection } = useConnection();
-  const { connected, publicKey, signMessage, signTransaction } = useWallet();
+  const { connected, publicKey, signMessage, signTransaction, wallet: selectedWallet } = useWallet();
   const [remoteStatus, setRemoteStatus] = useState<WalletStatus | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [accepted, setAccepted] = useState(false);
@@ -187,7 +187,9 @@ export default function AgentWalletBinding({ owner, asset, program }: { owner: s
   const hasFeeBuffer = balance !== null && balance >= 0.005;
   const hasBoundWallet = Boolean(result || remoteStatus?.bound);
   const isApprovedBound = Boolean(result || (remoteStatus?.bound && remoteStatus.matchesProjectWallet));
-  const canBind = connected && isOwner && hasFeeBuffer && accepted && Boolean(signMessage) && Boolean(signTransaction) && !busy && !hasBoundWallet;
+  const selectedWalletName = selectedWallet?.adapter.name || "";
+  const isPhantom = selectedWalletName.toLowerCase().includes("phantom");
+  const canBind = connected && isOwner && hasFeeBuffer && accepted && Boolean(signMessage) && Boolean(signTransaction) && !busy && !hasBoundWallet && !isPhantom;
 
   useEffect(() => {
     let active = true;
@@ -313,7 +315,12 @@ export default function AgentWalletBinding({ owner, asset, program }: { owner: s
       setRemoteStatus({ bound: true, matchesProjectWallet: true, wallet: verified.wallet, explorerUrl: `https://explorer.solana.com/address/${asset}` });
       setStatus("RED QUEEN OPERATIONAL WALLET VERIFIED ON SOLANA MAINNET");
     } catch (bindingError) {
-      setError(bindingError instanceof Error ? bindingError.message : "Wallet binding failed or was rejected.");
+      const message = bindingError instanceof Error ? bindingError.message : "Wallet binding failed or was rejected.";
+      const phantomBlockedBinaryProof = message.toLowerCase().includes("cannot sign solana transactions using sign_message")
+        || message.toLowerCase().includes("cannot sign solana transactions using sign message");
+      setError(phantomBlockedBinaryProof
+        ? "Phantom blocked the mandatory binary 8004 ownership proof as a possible transaction. No transaction was created. Registration is already complete; this optional wallet binding currently requires a compatible owner wallet such as Solflare."
+        : message);
       setStatus("NO NEW OPERATIONAL WALLET BINDING RECORDED");
     } finally {
       setBusy(false);
@@ -365,12 +372,26 @@ export default function AgentWalletBinding({ owner, asset, program }: { owner: s
         </div>
       ) : (
         <>
+          {isPhantom ? (
+            <div className="agent-registration-blocked">
+              <strong>PHANTOM COMPATIBILITY NOTICE</strong>
+              <p>Phantom can reject the registry&apos;s mandatory binary proof as a transaction. RED QUEEN is already 8004 registered; wallet binding is optional and does not control indexer visibility. If Phantom blocks the proof, use the same owner account through a compatible signer such as Solflare. Never import or expose a seed phrase just to complete this step.</p>
+            </div>
+          ) : null}
           <label className="agent-registration-approval">
             <input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} disabled={busy} />
             <span>I verified the Agent Asset, owner wallet and 8004 program. I understand I will approve one free proof-message and then review a separate Solana mainnet transaction.</span>
           </label>
           <button className="agent-registration-submit" type="button" onClick={() => void bindWallet()} disabled={!canBind}>
-            {busy ? "BINDING IN PROGRESS…" : !signMessage ? "WALLET MESSAGE SIGNING REQUIRED" : hasFeeBuffer ? "BIND AGENT WALLET · TWO APPROVALS" : "0.005 SOL FEE BUFFER REQUIRED"}
+            {busy
+              ? "BINDING IN PROGRESS…"
+              : isPhantom
+                ? "SWITCH TO A COMPATIBLE OWNER WALLET"
+                : !signMessage
+                  ? "WALLET MESSAGE SIGNING REQUIRED"
+                  : hasFeeBuffer
+                    ? "BIND AGENT WALLET · TWO APPROVALS"
+                    : "0.005 SOL FEE BUFFER REQUIRED"}
           </button>
         </>
       )}
