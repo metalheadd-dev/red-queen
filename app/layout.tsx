@@ -4,6 +4,7 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import SolanaProvider from "@/components/SolanaProvider";
 import QueenDock from "@/components/QueenDock";
+import MobileExperienceProvider from "@/components/MobileExperienceProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://redqueen.space"),
@@ -35,10 +36,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
         <SolanaProvider>
           <div className="page-bg">
+            <MobileExperienceProvider />
             <NavBar />
             <main className="page-content">{children}</main>
             <QueenDock />

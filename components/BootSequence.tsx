@@ -4,11 +4,11 @@ import Image from "next/image";
 import SolvivalIcon from "./SolvivalIcon";
 
 const BOOT_LINES = [
-  { text: "EYES // VERIFIED SIGNAL GRID", delay: 180, type: "default" },
-  { text: "NERVES // LIVE MAP", delay: 430, type: "default" },
-  { text: "MEMORY // SURVIVAL CONTEXT", delay: 680, type: "default" },
-  { text: "BIOHAZARD ARCHIVE // CONTAINED", delay: 930, type: "warn" },
-  { text: "RED QUEEN // ONLINE", delay: 1180, type: "done" },
+  { text: "SIGNAL FIELD // SYNCHRONIZED", delay: 120, type: "default" },
+  { text: "SURVIVAL MEMORY // READY", delay: 320, type: "default" },
+  { text: "8004 IDENTITY // REGISTERED", delay: 520, type: "default" },
+  { text: "x402 PAYMENT RAIL // READY", delay: 720, type: "default" },
+  { text: "RED QUEEN CORE // ONLINE", delay: 920, type: "done" },
 ];
 
 interface Props {
@@ -35,8 +35,8 @@ export default function BootSequence({ onComplete }: Props) {
     timers.push(
       setTimeout(() => {
         setExiting(true);
-        setTimeout(onComplete, 420);
-      }, 1600)
+        timers.push(setTimeout(onComplete, 420));
+      }, 1320)
     );
 
     return () => timers.forEach(clearTimeout);
@@ -50,26 +50,13 @@ export default function BootSequence({ onComplete }: Props) {
         opacity: exiting ? 0 : 1,
       }}
     >
-      <div className="boot-containment-ghost" aria-hidden="true">
-        <span>OLD WORLD BIOHAZARD // CONTAINED</span>
-        <pre>{`    ██████████
-   ██  ████  ██
-  ████  ██  ████
- ██  ████████  ██
-██  ██  ██  ██  ██
- ████  ████  ████
-  ██  ██  ██  ██
-   ████████████`}</pre>
-        <small>ARCHIVE PATTERN RQ-01</small>
-      </div>
-
       <div className="boot-queen" aria-hidden="true">
         <div className="boot-queen-ring" />
-        <Image src="/art/red-queen-presence.png" alt="" width={1199} height={1312} priority />
+        <Image src="/art/red-queen-agent-registry-v1.png" alt="" width={1024} height={1024} priority />
       </div>
 
       <div className="boot-brand"><SolvivalIcon size={34} /><div><strong>RED QUEEN</strong><span>SURVIVAL INTELLIGENCE</span></div></div>
-      <p className="boot-directive">“I will show you what changed. You decide whether to act.”</p>
+      <p className="boot-directive">THE SYSTEM IS AWAKE. YOUR NEXT MOVE IS YOURS.</p>
 
       {/* Boot lines */}
       <div className="boot-lines">

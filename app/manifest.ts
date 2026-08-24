@@ -16,5 +16,21 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       }
     ],
+    shortcuts: [
+      {
+        name: "Open Pulse",
+        short_name: "Pulse",
+        description: "Review verified signals and your Signal Watch.",
+        url: "/pulse",
+        icons: [{ src: "/token-image.png", sizes: "512x512", type: "image/png" }],
+      },
+      {
+        name: "Ask Red Queen",
+        short_name: "Ask Queen",
+        description: "Open the RED QUEEN cognitive terminal.",
+        url: "/red-queen",
+        icons: [{ src: "/token-image.png", sizes: "512x512", type: "image/png" }],
+      },
+    ],
   };
 }

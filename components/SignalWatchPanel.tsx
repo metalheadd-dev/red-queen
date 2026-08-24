@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
+import { registerRedQueenServiceWorker, showRedQueenNotification } from "@/lib/mobile-experience";
 import {
   parseSignalWatchMemory,
   SIGNAL_WATCH_EVENT,
@@ -153,16 +154,11 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
 
     if (stored.browserAlerts && "Notification" in window && Notification.permission === "granted") {
       newMatches.slice(0, 3).forEach((signal) => {
-        const notification = new Notification(`RED QUEEN ALERT · ${severityLabel(signal.severity)}`, {
+        void showRedQueenNotification(`RED QUEEN ALERT · ${severityLabel(signal.severity)}`, {
           body: `${signal.name} · ${signal.source || "verified signal grid"}`,
           tag: `red-queen-${signal.id}`,
-          icon: "/logo.png",
+          data: { url: "/pulse#signal-watch" },
         });
-        notification.onclick = () => {
-          window.focus();
-          document.getElementById("signal-watch")?.scrollIntoView({ behavior: "smooth", block: "center" });
-          notification.close();
-        };
       });
     }
   }, [location, nodeKey, ready, watchKey]);
@@ -234,6 +230,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
       setBrowserAlertPermission("unsupported");
       return;
     }
+    await registerRedQueenServiceWorker().catch(() => undefined);
     const permission = await Notification.requestPermission();
     setBrowserAlertPermission(permission);
     if (permission === "granted") {

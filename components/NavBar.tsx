@@ -7,7 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useAuth } from "./AuthProvider";
 import SolvivalIcon from "./SolvivalIcon";
 
-type NavIconName = "pulse" | "queen" | "prepare" | "onchain" | "me";
+type NavIconName = "home" | "pulse" | "queen" | "prepare" | "onchain" | "me";
 
 const primaryLinks = [
   { href: "/red-queen", label: "RED QUEEN", subtitle: "Ask, analyze, prepare or simulate", match: "terminal" },
@@ -21,6 +21,9 @@ const primaryLinks = [
 ] as const;
 
 function NavIcon({ name }: { name: NavIconName }) {
+  if (name === "home") {
+    return <svg className="mobile-home-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5V20h-6v-6H9v6H3Z" /></svg>;
+  }
   if (name === "pulse") {
     return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6" /></svg>;
   }
@@ -156,6 +159,9 @@ export default function NavBar() {
       </div>
 
       <nav className="mobile-bottom-nav" aria-label="Core product navigation">
+        <Link href="/" className={pathname === "/" ? "active" : ""} aria-current={pathname === "/" ? "page" : undefined}>
+          <NavIcon name="home" /><span>HOME</span>
+        </Link>
         <Link href="/pulse" className={isActive("pulse") ? "active" : ""} aria-current={isActive("pulse") ? "page" : undefined}>
           <NavIcon name="pulse" /><span>PULSE</span>
         </Link>
@@ -164,9 +170,6 @@ export default function NavBar() {
         </Link>
         <Link href="/prepare" className={isActive("prepare") ? "active" : ""} aria-current={isActive("prepare") ? "page" : undefined}>
           <NavIcon name="prepare" /><span>PREPARE</span>
-        </Link>
-        <Link href="/onchain" className={isActive("onchain") ? "active" : ""} aria-current={isActive("onchain") ? "page" : undefined}>
-          <NavIcon name="onchain" /><span>ONCHAIN</span>
         </Link>
         <Link href={accountHref} className={pathname === "/profile" || pathname === "/operative" || pathname === "/login" ? "active" : ""} aria-current={pathname === "/profile" || pathname === "/operative" ? "page" : undefined}>
           <NavIcon name="me" /><span>ME</span>

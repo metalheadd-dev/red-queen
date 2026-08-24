@@ -4,6 +4,7 @@ import SolvivalIcon from "@/components/SolvivalIcon";
 import { getRedQueenAgentIdentity } from "@/lib/agent-registry";
 import { RED_QUEEN_AGENT_ID_SHORT } from "@/lib/agent-identity-public";
 import MobileCommandHeader from "@/components/MobileCommandHeader";
+import MobileDeviceControls from "@/components/MobileDeviceControls";
 
 const agentSteps = [
   {
@@ -88,6 +89,7 @@ export default function LandingPage() {
           ]}
           steps={["LOOK", "ASK", "ACT", "TRACK"]}
         />
+        <MobileDeviceControls />
         <nav className="rq-seeker-action-grid" aria-label="RED QUEEN core actions">
           <Link href="/pulse#live-map"><span>LIVE FIELD</span><strong>Open the map</strong><small>Verified public signals</small><b>→</b></Link>
           <Link href="/prepare"><span>READINESS</span><strong>Continue my plan</strong><small>Checks, actions and protocols</small><b>→</b></Link>
