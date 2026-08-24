@@ -14,6 +14,7 @@ import { getAssociatedTokenAddress, createTransferCheckedInstruction } from "@so
 import { getWorkingConnection } from "@/lib/solana";
 import AgentResponseCard from "@/components/AgentResponseCard";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
+import MobileCommandHeader from "@/components/MobileCommandHeader";
 import { RED_QUEEN_AGENT_ID_SHORT } from "@/lib/agent-identity-public";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
 import { createDailyAction, DAILY_ACTION_EVENT, readDailyActions, saveDailyAction, updateDailyAction } from "@/lib/daily-action";
@@ -1073,6 +1074,17 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
 
   return (
     <div className="rq-terminal-page">
+      <MobileCommandHeader
+        eyebrow="RED QUEEN // COGNITIVE CORE"
+        title="Ask. Understand. Decide."
+        description="Ask about a threat, your readiness, a decision or a Solana transaction. Save the useful action when it matters."
+        status="TERMINAL ONLINE · 8004 REGISTERED"
+        actions={[
+          { href: "#queen-terminal-workspace", label: "START A CONVERSATION" },
+          { href: "/pulse", label: "CHECK LIVE PULSE", tone: "secondary" },
+        ]}
+        steps={["ASK", "REVIEW", "SAVE ACTION"]}
+      />
       <header className="rq-terminal-core">
         <div className="rq-terminal-core-art" aria-hidden="true">
           <Image src="/art/red-queen-throne-v2.png" alt="" fill sizes="(max-width: 700px) 360px, 640px" priority />

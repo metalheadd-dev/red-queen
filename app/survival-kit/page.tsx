@@ -6,6 +6,7 @@ import DailyActionPanel from "@/components/DailyActionPanel";
 import ActionHistoryPanel from "@/components/ActionHistoryPanel";
 import PreparednessPlansPanel from "@/components/PreparednessPlansPanel";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
+import MobileCommandHeader from "@/components/MobileCommandHeader";
 import {
   PREPAREDNESS_CHECKLIST,
   PREPAREDNESS_DOMAINS,
@@ -83,6 +84,17 @@ export default function SurvivalKitPage() {
 
   return (
     <div className="prepare-page">
+      <MobileCommandHeader
+        eyebrow="PREPARE // MY NEXT MOVE"
+        title={nextItem ? nextItem.title : "Keep your baseline current."}
+        description={nextItem?.evidence || "Review completed checks and update the plan when your context changes."}
+        status={`LOCAL BASELINE · ${ready ? progress : 0}%`}
+        actions={[
+          { href: "#prepare-baseline", label: "CONTINUE BASELINE" },
+          { href: terminalHref(nextActionPrompt), label: "ASK QUEEN TO ADAPT", tone: "secondary" },
+        ]}
+        steps={["CHECK", "ASK", "COMPLETE"]}
+      />
       <header className="prepare-hero">
         <div className="container prepare-hero-grid">
           <div>

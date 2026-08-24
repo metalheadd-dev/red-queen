@@ -3,6 +3,7 @@ import CopyThreatMint from "@/components/CopyThreatMint";
 import SolvivalIcon from "@/components/SolvivalIcon";
 import { getRedQueenAgentIdentity } from "@/lib/agent-registry";
 import { RED_QUEEN_AGENT_ID_SHORT } from "@/lib/agent-identity-public";
+import MobileCommandHeader from "@/components/MobileCommandHeader";
 
 const agentSteps = [
   {
@@ -75,6 +76,28 @@ export default function LandingPage() {
 
   return (
     <div className="rq-landing">
+      <div className="rq-seeker-home">
+        <MobileCommandHeader
+          eyebrow="RED QUEEN // SEEKER COMMAND"
+          title="Know what matters. Act before it does."
+          description="Verified signals, one clear assessment and a practical next move. Start public. Connect only when you choose an on-chain action."
+          status="RED QUEEN ONLINE · SOLANA MAINNET"
+          actions={[
+            { href: "/pulse", label: "SEE WHAT CHANGED" },
+            { href: "/red-queen", label: "ASK RED QUEEN", tone: "secondary" },
+          ]}
+          steps={["LOOK", "ASK", "ACT", "TRACK"]}
+        />
+        <nav className="rq-seeker-action-grid" aria-label="RED QUEEN core actions">
+          <Link href="/pulse#live-map"><span>LIVE FIELD</span><strong>Open the map</strong><small>Verified public signals</small><b>→</b></Link>
+          <Link href="/prepare"><span>READINESS</span><strong>Continue my plan</strong><small>Checks, actions and protocols</small><b>→</b></Link>
+          <Link href="/onchain#queen-operations"><span>x402</span><strong>Request intelligence</strong><small>Pay per result in USDC</small><b>→</b></Link>
+          <Link href="/profile"><span>MY RECORD</span><strong>Open SOLvivor profile</strong><small>BIO, XP, clearance and receipts</small><b>→</b></Link>
+        </nav>
+        <Link href="/onchain#agent-identity" className="rq-seeker-trust">
+          <span>8004 REGISTERED</span><strong>AGENT ID {RED_QUEEN_AGENT_ID_SHORT}</strong><small>VERIFY ON SOLANA →</small>
+        </Link>
+      </div>
       <section className="rq-landing-hero">
         <div className="rq-landing-grid" aria-hidden="true" />
         <div className="container rq-landing-hero-inner">

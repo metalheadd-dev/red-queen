@@ -10,6 +10,7 @@ import IntelligenceOperationsClient from "@/components/IntelligenceOperationsCli
 import ThreatSwapClient from "@/components/ThreatSwapClient";
 import AgentRegistryIdentity from "@/components/AgentRegistryIdentity";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
+import MobileCommandHeader from "@/components/MobileCommandHeader";
 
 const LEVEL_COLORS = ["#8a8a8a", "#d8d8d8", "#f0c929", "#ff884d", "#ff4d4d"];
 
@@ -23,6 +24,17 @@ function formatRequirement(threshold: number) {
 export default function NetworkClearancePage() {
   return (
     <div className="onchain-page">
+      <MobileCommandHeader
+        eyebrow="ONCHAIN // SOLANA CONTROL"
+        title="Review first. Sign only what you understand."
+        description="Buy $THREAT, request x402 intelligence or inspect wallet risk. RED QUEEN shows the action before your wallet asks for approval."
+        status="SOLANA MAINNET · NO CUSTODY"
+        actions={[
+          { href: "#buy-threat", label: "BUY $THREAT" },
+          { href: "#queen-operations", label: "OPEN x402 OPERATIONS", tone: "secondary" },
+        ]}
+        steps={["CHOOSE", "REVIEW", "APPROVE"]}
+      />
       <header className="onchain-hero">
         <div className="container onchain-hero-grid">
           <div>

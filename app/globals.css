@@ -2420,6 +2420,11 @@ body:has(#game-player-root) .page-content {
   filter: drop-shadow(0 18px 35px rgba(0,0,0,.72));
   transition: width .2s ease, right .2s ease, bottom .2s ease;
 }
+
+/* Mobile command surfaces are rendered in the document for fast TWA navigation,
+   but become visible only on phone-sized screens. */
+.mobile-command-header,
+.rq-seeker-home { display: none; }
 .queen-dock-launcher { display:grid; grid-template-columns:minmax(0,1fr) 34px; }
 .queen-dock-launcher .queen-dock-trigger { border-right:0; }
 .queen-dock-minimize {
@@ -5717,6 +5722,227 @@ body:has(#game-player-root) .page-content {
   .signal-watch-controls { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .signal-watch-empty { grid-template-columns:1fr; }
   .signal-watch-results > a.signal-watch-primary { width:100%; justify-content:center; }
+}
+
+/* ── Seeker / compact mobile product shell ──────────────────────────────── */
+@media (max-width:700px) {
+  :root { --mobile-nav-height: 74px; }
+
+  html { scroll-padding-top: 70px; }
+  body { font-size: 16px; line-height: 1.55; }
+  .page-bg { padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom)); }
+  .footer { display:none; }
+
+  .navbar {
+    height:58px;
+    padding-top:env(safe-area-inset-top);
+    background:rgba(2,3,5,.96);
+  }
+  .navbar-inner { min-height:58px; }
+  .navbar-logo-copy strong { font-size:10px; }
+  .navbar-logo-copy small { font-size:6px; }
+  .mobile-menu-toggle { width:42px; height:42px; }
+
+  .mobile-bottom-nav {
+    height:calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));
+    padding:5px max(4px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(4px,env(safe-area-inset-left));
+    background:rgba(3,4,6,.97);
+    box-shadow:0 -12px 36px rgba(0,0,0,.45);
+  }
+  .mobile-bottom-nav > a {
+    min-width:0;
+    min-height:54px;
+    gap:4px;
+    font-size:7px;
+  }
+  .mobile-bottom-nav svg { width:21px; height:21px; }
+  .mobile-queen-link { transform:none; }
+  .mobile-queen-link::after { bottom:0 !important; }
+  .mobile-queen-core { width:32px; height:32px; }
+
+  .mobile-command-header {
+    position:relative;
+    display:block;
+    padding:24px 18px 20px;
+    overflow:hidden;
+    border-bottom:1px solid rgba(255,0,51,.26);
+    background:
+      radial-gradient(circle at 92% 15%,rgba(255,0,51,.13),transparent 36%),
+      linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px),
+      #050608;
+    background-size:auto,32px 32px,32px 32px,auto;
+  }
+  .mobile-command-header::after {
+    content:"RQ";
+    position:absolute;
+    right:-9px;
+    top:16px;
+    color:rgba(255,0,51,.035);
+    font:800 118px/1 var(--title-font);
+    pointer-events:none;
+  }
+  .mobile-command-header > * { position:relative; z-index:1; }
+  .mobile-command-status {
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-bottom:22px;
+    color:#a8ff60;
+    font:700 8px var(--mono);
+    letter-spacing:.11em;
+  }
+  .mobile-command-status i {
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:#7cff47;
+    box-shadow:0 0 10px rgba(124,255,71,.85);
+  }
+  .mobile-command-header > span {
+    color:#ff1748;
+    font:800 9px var(--mono);
+    letter-spacing:.14em;
+  }
+  .mobile-command-header h1 {
+    max-width:560px;
+    margin:9px 0 12px;
+    color:#fff;
+    font-size:clamp(34px,10.5vw,48px);
+    line-height:1.02;
+    letter-spacing:-.035em;
+    text-transform:none;
+  }
+  .mobile-command-header > p {
+    max-width:600px;
+    color:rgba(255,255,255,.67);
+    font-size:14px;
+    line-height:1.5;
+  }
+  .mobile-command-actions {
+    display:grid;
+    gap:8px;
+    margin-top:21px;
+  }
+  .mobile-command-actions > a {
+    min-height:52px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 16px;
+    border:1px solid rgba(255,0,51,.52);
+    color:#fff;
+    font:800 10px var(--mono);
+    letter-spacing:.09em;
+    text-decoration:none;
+  }
+  .mobile-command-actions > a.is-primary { background:#ff1748; color:#050507; }
+  .mobile-command-actions > a.is-secondary { background:rgba(255,0,51,.055); }
+  .mobile-command-actions b { font-size:16px; }
+  .mobile-command-steps {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(70px,1fr));
+    gap:1px;
+    margin-top:18px;
+    border:1px solid rgba(255,255,255,.09);
+    background:rgba(255,255,255,.09);
+  }
+  .mobile-command-steps span {
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:9px 7px;
+    background:#08090b;
+    color:rgba(255,255,255,.58);
+    font:700 7px var(--mono);
+    letter-spacing:.05em;
+    white-space:nowrap;
+  }
+  .mobile-command-steps b { color:#ff1748; font-size:7px; }
+
+  /* The TWA opens on an action-first home instead of the desktop marketing page. */
+  .rq-landing > :not(.rq-seeker-home) { display:none; }
+  .rq-seeker-home { display:block; min-height:calc(100dvh - 132px); background:#050608; }
+  .rq-seeker-home .mobile-command-header { padding-top:28px; }
+  .rq-seeker-action-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px 12px 8px; }
+  .rq-seeker-action-grid > a {
+    position:relative;
+    min-height:128px;
+    display:flex;
+    flex-direction:column;
+    padding:14px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.1);
+    background:linear-gradient(145deg,#0a0b0e,#050608);
+    color:#fff;
+    text-decoration:none;
+  }
+  .rq-seeker-action-grid span { color:#ff1748; font:800 8px var(--mono); letter-spacing:.1em; }
+  .rq-seeker-action-grid strong { margin-top:13px; font-size:15px; line-height:1.25; }
+  .rq-seeker-action-grid small { margin-top:5px; color:rgba(255,255,255,.48); font-size:11px; line-height:1.35; }
+  .rq-seeker-action-grid b { position:absolute; right:13px; bottom:10px; color:#ff1748; }
+  .rq-seeker-trust {
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:3px 12px;
+    margin:4px 12px 18px;
+    padding:13px 14px;
+    border:1px solid rgba(20,241,149,.22);
+    background:rgba(20,241,149,.025);
+    color:#fff;
+    text-decoration:none;
+  }
+  .rq-seeker-trust span { color:#14f195; font:800 8px var(--mono); letter-spacing:.1em; }
+  .rq-seeker-trust strong { grid-row:2; font:800 10px var(--mono); }
+  .rq-seeker-trust small { grid-column:2; grid-row:1 / 3; align-self:center; color:rgba(255,255,255,.58); font:700 7px var(--mono); }
+
+  /* Replace oversized desktop introductions with the same compact command surface. */
+  .pulse-page > .pulse-alert-strip,
+  .pulse-page > .pulse-hero,
+  .rq-terminal-page > .rq-terminal-core,
+  .rq-terminal-page > .rq-terminal-identity-bar,
+  .rq-terminal-page > .alert,
+  .prepare-page > .prepare-hero,
+  .onchain-page > .onchain-hero { display:none; }
+  .pulse-page > .container > .core-loop-guide,
+  .rq-terminal-page > .container > .core-loop-guide,
+  .prepare-main > .core-loop-guide,
+  .onchain-main > .core-loop-guide { display:none; }
+
+  .pulse-onboarding { margin-top:12px; }
+  #first-contact,#live-map,#signal-watch,#queen-terminal-workspace,#prepare-baseline,#buy-threat,#queen-operations { scroll-margin-top:70px; }
+  .pulse-map-shell,.pulse-map-loading { min-height:calc(100dvh - 150px); }
+  .pulse-map-section { padding-top:20px; }
+  .signal-watch-panel { margin-top:14px; }
+  .signal-watch-path { overflow-x:auto; scroll-snap-type:x mandatory; }
+  .signal-watch-path li { min-width:122px; scroll-snap-align:start; }
+
+  .rq-terminal-page { padding-top:0; }
+  #queen-terminal-workspace { min-height:calc(100dvh - 132px) !important; }
+  .rq-session-bar { position:sticky; top:58px; z-index:8; }
+  .rq-mode-selector { overflow-x:auto; overscroll-behavior-inline:contain; }
+  .rq-mode-selector button { min-width:128px; min-height:56px; }
+
+  .prepare-main,.onchain-main { padding-top:12px; }
+  .prepare-trust-strip { margin-top:0; }
+  .prepare-system-loop,.prepare-token-utility { display:none; }
+
+  /* On Seeker the on-chain page is an operation console; detailed contracts stay in Guide. */
+  .onchain-contract,
+  .onchain-products,
+  .onchain-tiers,
+  .onchain-stack,
+  .onchain-safety { display:none; }
+
+  .btn,
+  button,
+  input,
+  select,
+  textarea { min-height:44px; }
+  input,select,textarea { font-size:16px !important; }
+  .btn { justify-content:center; font-size:10px; }
+  .rq-profile-main { padding-bottom:24px; }
 }
 
 @media (max-width:900px) {

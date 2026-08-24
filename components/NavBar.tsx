@@ -7,7 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useAuth } from "./AuthProvider";
 import SolvivalIcon from "./SolvivalIcon";
 
-type NavIconName = "pulse" | "map" | "queen" | "prepare" | "me";
+type NavIconName = "pulse" | "queen" | "prepare" | "onchain" | "me";
 
 const primaryLinks = [
   { href: "/red-queen", label: "RED QUEEN", subtitle: "Ask, analyze, prepare or simulate", match: "terminal" },
@@ -24,8 +24,8 @@ function NavIcon({ name }: { name: NavIconName }) {
   if (name === "pulse") {
     return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6" /></svg>;
   }
-  if (name === "map") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 5-2 8 3 5-2v13l-5 2-8-3-5 2Z" /><path d="M8 4v13M16 7v13" /></svg>;
+  if (name === "onchain") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8a4 4 0 0 1 0 8h-3" /><path d="M16 17H8a4 4 0 0 1 0-8h3" /><path d="M9 12h6" /></svg>;
   }
   if (name === "queen") {
     return <span className="mobile-queen-core"><i /></span>;
@@ -159,14 +159,14 @@ export default function NavBar() {
         <Link href="/pulse" className={isActive("pulse") ? "active" : ""} aria-current={isActive("pulse") ? "page" : undefined}>
           <NavIcon name="pulse" /><span>PULSE</span>
         </Link>
-        <Link href="/pulse#live-map" className={isActive("map") ? "active" : ""} aria-current={isActive("map") ? "page" : undefined}>
-          <NavIcon name="map" /><span>MAP</span>
-        </Link>
         <Link href="/red-queen" className={`mobile-queen-link${isActive("terminal") ? " active" : ""}`} aria-current={isActive("terminal") ? "page" : undefined}>
           <NavIcon name="queen" /><span>RED QUEEN</span>
         </Link>
         <Link href="/prepare" className={isActive("prepare") ? "active" : ""} aria-current={isActive("prepare") ? "page" : undefined}>
           <NavIcon name="prepare" /><span>PREPARE</span>
+        </Link>
+        <Link href="/onchain" className={isActive("onchain") ? "active" : ""} aria-current={isActive("onchain") ? "page" : undefined}>
+          <NavIcon name="onchain" /><span>ONCHAIN</span>
         </Link>
         <Link href={accountHref} className={pathname === "/profile" || pathname === "/operative" || pathname === "/login" ? "active" : ""} aria-current={pathname === "/profile" || pathname === "/operative" ? "page" : undefined}>
           <NavIcon name="me" /><span>ME</span>

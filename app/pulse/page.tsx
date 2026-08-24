@@ -9,6 +9,7 @@ import BootSequence from "@/components/BootSequence";
 import DailyActionPanel from "@/components/DailyActionPanel";
 import SignalWatchPanel from "@/components/SignalWatchPanel";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
+import MobileCommandHeader from "@/components/MobileCommandHeader";
 import {
   isSignalWatchType,
   SIGNAL_WATCH_REQUEST_EVENT,
@@ -388,6 +389,18 @@ export default function PulsePage() {
         <span>VERIFIED SOURCES ONLY IN LIVE INTELLIGENCE</span>
         <span>LAST SYNTHESIS: {synthesisDate.toUpperCase()}</span>
       </div>
+
+      <MobileCommandHeader
+        eyebrow="PULSE // LIVE INTELLIGENCE"
+        title="What changed near me?"
+        description="Choose a broad area, inspect verified signals, then ask RED QUEEN what deserves your attention."
+        status={pulse.verified ? "LIVE SOURCES VERIFIED" : "SENSORS LIMITED"}
+        actions={[
+          { href: showStart ? "#first-contact" : "#live-map", label: showStart ? "GET MY FIRST BRIEF" : "OPEN LIVE MAP" },
+          { href: "/red-queen", label: "ASK RED QUEEN", tone: "secondary" },
+        ]}
+        steps={["SET AREA", "REVIEW", "ASK QUEEN"]}
+      />
 
       <header className="pulse-hero">
         <div className="container pulse-hero-grid">
