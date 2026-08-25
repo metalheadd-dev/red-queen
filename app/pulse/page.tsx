@@ -404,9 +404,7 @@ export default function PulsePage() {
               <em>You choose the move.</em>
             </h1>
             <p className="pulse-lead">
-              RED QUEEN is the AI survival intelligence system behind this platform. She watches verified threats,
-              explains what may matter to you, and turns uncertainty into one useful next action. Pulse is her vision.
-              The map is her nervous system. If you choose to prepare before a crisis decides for you, you are a SOLvivor.
+              Verified signals become one clear brief: what changed, why it matters, and what to do next.
             </p>
             <p className="pulse-queen-vow">“I do not promise safety. I make sure you do not choose blind.”</p>
             <div className="pulse-hero-actions">
@@ -436,7 +434,7 @@ export default function PulsePage() {
         </div>
         <div className="container pulse-system-line">
           <span>THIS PLATFORM IS HER SYSTEM</span>
-          <p><strong>Pulse</strong> is what she sees. <strong>Map</strong> is where it happens. <strong>Library</strong> is what she remembers. <strong>Prepare</strong> is what you do next.</p>
+          <p><strong>LOOK</strong> at the field. <strong>ASK</strong> RED QUEEN. <strong>ACT</strong> in Prepare.</p>
           <Link href="/docs">HOW RED QUEEN WORKS →</Link>
         </div>
       </header>
@@ -457,7 +455,7 @@ export default function PulsePage() {
           <div className="pulse-onboarding-copy">
             <span className="pulse-eyebrow">FIRST CONTACT // ABOUT 60 SECONDS</span>
             <h2>Get your first survival brief.</h2>
-            <p>Answer two simple questions. RED QUEEN will open with a clear status, explain what matters, and give you one useful action.</p>
+            <p>Choose an area and a concern. RED QUEEN will return one useful next move.</p>
             <ol className="pulse-onboarding-steps">
               <li><span>1</span><div><strong>Tell her where to look</strong><small>A city or region is enough. This step is optional.</small></div></li>
               <li><span>2</span><div><strong>Choose what you need help with</strong><small>No specialist knowledge required.</small></div></li>

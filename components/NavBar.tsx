@@ -20,6 +20,10 @@ const primaryLinks = [
   { href: "/docs", label: "GUIDE", subtitle: "Understand scores, utility and every page", match: "guide" },
 ] as const;
 
+const desktopPrimaryMatches = new Set(["terminal", "pulse", "prepare", "onchain"]);
+const desktopPrimaryLinks = primaryLinks.filter((link) => desktopPrimaryMatches.has(link.match));
+const desktopResourceLinks = primaryLinks.filter((link) => !desktopPrimaryMatches.has(link.match));
+
 function NavIcon({ name }: { name: NavIconName }) {
   if (name === "home") {
     return <svg className="mobile-home-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5V20h-6v-6H9v6H3Z" /></svg>;
@@ -90,17 +94,29 @@ export default function NavBar() {
           </Link>
 
           <ul className="navbar-nav desktop-only">
-            {primaryLinks.map((link) => {
+            {desktopPrimaryLinks.map((link) => {
               const active = isActive(link.match);
               return (
                 <li key={link.match} className="nav-item-wrap">
                   <Link href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>
-                    {link.label}
+                    {link.match === "onchain" ? "MARKET" : link.label}
                   </Link>
                   <div className="nav-item-tooltip">{link.subtitle}</div>
                 </li>
               );
             })}
+            <li className="nav-more-wrap">
+              <details>
+                <summary>MORE <span>+</span></summary>
+                <div className="nav-more-menu">
+                  {desktopResourceLinks.map((link) => (
+                    <Link key={link.match} href={link.href} className={isActive(link.match) ? "active" : ""}>
+                      <strong>{link.label}</strong><small>{link.subtitle}</small>
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            </li>
           </ul>
 
           <div className="navbar-actions desktop-only">

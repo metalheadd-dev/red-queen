@@ -99,9 +99,9 @@ export default function SurvivalKitPage() {
         <div className="container prepare-hero-grid">
           <div>
             <span className="pulse-eyebrow">RED QUEEN // HANDS OF THE SYSTEM</span>
-            <h1>Intelligence means nothing<br /><em>until a SOLvivor acts.</em></h1>
+            <h1>Turn intelligence<br /><em>into readiness.</em></h1>
             <p>
-              This is where the Queen&apos;s assessment becomes your plan: build a realistic baseline, launch a response protocol, and finish one useful action at a time.
+              Check one gap, ask RED QUEEN to adapt it, then complete the action.
             </p>
             <div className="prepare-hero-actions">
               <Link className="btn btn-primary" href={terminalHref(nextActionPrompt)}>ASK QUEEN FOR NEXT ACTION</Link>

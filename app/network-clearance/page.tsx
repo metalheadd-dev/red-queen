@@ -38,9 +38,9 @@ export default function NetworkClearancePage() {
       <header className="onchain-hero">
         <div className="container onchain-hero-grid">
           <div>
-            <span className="pulse-eyebrow">SOLANA MAINNET // ON-CHAIN CONTROL PLANE</span>
-            <h1>Proof before <em>privilege.</em></h1>
-            <p>RED QUEEN does not sell destiny. This is the exact record of what she can verify on Solana, what your $THREAT expands, and when a separate signature or USDC payment is required.</p>
+            <span className="pulse-eyebrow">MARKET // SOLANA MAINNET</span>
+            <h1>Choose. Review. <em>Approve.</em></h1>
+            <p>Buy intelligence through x402, verify $THREAT access or swap on Jupiter. RED QUEEN never moves funds without your wallet approval.</p>
             <div className="onchain-hero-tags"><span>SIWS IDENTITY</span><span>SPL BALANCE PROOF</span><span>x402 USDC</span><span>JUPITER SWAP V2</span><span>NO CUSTODY</span></div>
           </div>
           <div className="onchain-network-card">
@@ -62,10 +62,14 @@ export default function NetworkClearancePage() {
           accessNote="CONNECT ≠ SIGN IN ≠ PAY · RED QUEEN NEVER REQUESTS A SEED PHRASE"
         />
         <div id="onchain-actions" />
+        <IntelligenceOperationsClient />
         <OnchainClearanceClient />
-
         <ThreatSwapClient />
+        <AgentRegistryIdentity />
 
+        <details className="onchain-reference">
+          <summary><span>SYSTEM REFERENCE</span><strong>How payments, $THREAT and Solana access work</strong><b>OPEN +</b></summary>
+          <div className="onchain-reference-body">
         <section className="onchain-contract">
           <div className="onchain-section-head"><span>01 // UTILITY CONTRACT</span><h2>Two assets. Two precise jobs.</h2><p>No ritual without purpose: $THREAT expands persistent RED QUEEN intelligence capacity; USDC pays only for a discrete AI operation through x402.</p></div>
           <div className="onchain-contract-grid">
@@ -106,8 +110,6 @@ export default function NetworkClearancePage() {
           </div>
         </section>
 
-        <IntelligenceOperationsClient />
-
         <section className="onchain-tiers">
           <div className="onchain-section-head"><span>04 // LIVE $THREAT CLEARANCE</span><h2>Utility you can measure.</h2><p>The server aggregates the canonical mint balance and maps it to the same tier used by the RED QUEEN agent and Signal Watch.</p></div>
           <div className="onchain-tier-grid">
@@ -130,8 +132,6 @@ export default function NetworkClearancePage() {
           <div className="onchain-bio-rule"><strong>BIO-SCORE FIREWALL</strong><p>Token holdings may improve access and engagement rewards. Readiness domains change only after an evaluated decision, plan, or demonstrated preparedness action.</p></div>
         </section>
 
-        <AgentRegistryIdentity />
-
         <section className="onchain-stack">
           <div className="onchain-section-head"><span>06 // SOLANA STACK</span><h2>Live now. Next with purpose.</h2><p>Every label reflects implementation state, not marketing intent.</p></div>
           <div className="onchain-stack-grid">
@@ -147,6 +147,8 @@ export default function NetworkClearancePage() {
             <article className="is-research"><span>RESEARCH</span><strong>Private readiness credentials</strong><p>Only if privacy can be preserved. Personal survival data will not be pushed on-chain for cosmetic gamification.</p></article>
           </div>
         </section>
+          </div>
+        </details>
 
         <section className="onchain-safety">
           <div><span>07 // SIGNATURE SAFETY</span><h2>RED QUEEN will never ask for a seed phrase.</h2></div>

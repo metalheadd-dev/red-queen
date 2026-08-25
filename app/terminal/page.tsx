@@ -82,13 +82,11 @@ function renderContent(text: string) {
 
 const CORE_INTRO_MESSAGE = `[UPLINK ESTABLISHED]
 
-I am RED QUEEN, the intelligence governing this survival system.
+I am RED QUEEN.
 
-I monitor credible signals, remember the plans you choose to save, and train the decisions that may matter under pressure. I can explain a threat, turn it into a practical plan, audit your preparation, or run a decision drill.
+Ask me about a live signal, risk, decision, plan or wallet. I separate verified facts from assessment and return one practical next action.
 
-When live intelligence is available, I will label it and show the source. Everything else is marked as general knowledge or simulation. I do not promise safety. I make sure you do not choose blind.
-
-Tell me what you want to survive. I will give you one clear next action.`;
+Tell me what you need to understand.`;
 
 function getLocalStatsAndScore(messages: Message[]) {
   let stats = { ...DEFAULT_STATS };
@@ -1091,8 +1089,8 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
         </div>
         <div className="rq-terminal-core-copy">
           <span>QUEEN CORE // COGNITIVE COMMAND</span>
-          <h1>I see the field.<br /><em>I turn it into action.</em></h1>
-          <p>Pulse is my sight. The Map is my nervous system. The Library is my memory. Prepare is where intelligence becomes something your hands can finish.</p>
+          <h1>Ask clearly.<br /><em>Act with context.</em></h1>
+          <p>One question becomes verified context, one next action, and a plan you can save.</p>
           <strong>“I decide what deserves attention. You decide whether to act.”</strong>
         </div>
         <div className="rq-terminal-memory-state">
@@ -1757,7 +1755,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
         }}>
           <div className="rq-loop-card">
             <span>YOUR SURVIVAL LOOP</span>
-            <strong>One useful action. One plan that survives the chat.</strong>
+            <strong>One useful action. Saved for when you need it.</strong>
             <ol>
               <li><b>ASK</b><small>Get a clear brief from RED QUEEN.</small></li>
               <li><b>SAVE</b><small>Keep the next action or full Queen protocol.</small></li>
