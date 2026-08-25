@@ -3,7 +3,6 @@ import CopyThreatMint from "@/components/CopyThreatMint";
 import SolvivalIcon from "@/components/SolvivalIcon";
 import { getRedQueenAgentIdentity } from "@/lib/agent-registry";
 import { RED_QUEEN_AGENT_ID_SHORT } from "@/lib/agent-identity-public";
-import MobileCommandHeader from "@/components/MobileCommandHeader";
 import MobileDeviceControls from "@/components/MobileDeviceControls";
 
 const agentSteps = [
@@ -78,24 +77,31 @@ export default function LandingPage() {
   return (
     <div className="rq-landing">
       <div className="rq-seeker-home">
-        <MobileCommandHeader
-          eyebrow="RED QUEEN // SEEKER COMMAND"
-          title="Know what matters. Act before it does."
-          description="Verified signals, one clear assessment and a practical next move. Start public. Connect only when you choose an on-chain action."
-          status="RED QUEEN ONLINE · SOLANA MAINNET"
-          actions={[
-            { href: "/pulse", label: "SEE WHAT CHANGED" },
-            { href: "/red-queen", label: "ASK RED QUEEN", tone: "secondary" },
-          ]}
-          steps={["LOOK", "ASK", "ACT", "TRACK"]}
-        />
-        <MobileDeviceControls />
+        <section className="rq-seeker-hero" aria-label="RED QUEEN mobile command">
+          <div className="rq-seeker-hero-scan" aria-hidden="true" />
+          <div className="rq-seeker-hero-copy">
+            <span><i /> RED QUEEN ONLINE</span>
+            <h1>See the threat.<br /><em>Choose your move.</em></h1>
+            <p>Live intelligence, Queen analysis and Solana actions in one command app.</p>
+            <div>
+              <Link href="/pulse">OPEN PULSE <b>→</b></Link>
+              <Link href="/red-queen">ASK QUEEN</Link>
+            </div>
+          </div>
+        </section>
+        <div className="rq-seeker-loop" aria-label="RED QUEEN product loop">
+          <span className="is-active">LOOK</span><i />
+          <span>ASK</span><i />
+          <span>ACT</span><i />
+          <span>TRACK</span>
+        </div>
         <nav className="rq-seeker-action-grid" aria-label="RED QUEEN core actions">
-          <Link href="/pulse#live-map"><span>LIVE FIELD</span><strong>Open the map</strong><small>Verified public signals</small><b>→</b></Link>
-          <Link href="/prepare"><span>READINESS</span><strong>Continue my plan</strong><small>Checks, actions and protocols</small><b>→</b></Link>
-          <Link href="/onchain#queen-operations"><span>x402</span><strong>Request intelligence</strong><small>Pay per result in USDC</small><b>→</b></Link>
-          <Link href="/profile"><span>MY RECORD</span><strong>Open SOLvivor profile</strong><small>BIO, XP, clearance and receipts</small><b>→</b></Link>
+          <Link href="/pulse#live-map"><span>01 · PULSE</span><strong>See what changed</strong><small>Live map & signals</small><b>→</b></Link>
+          <Link href="/prepare"><span>02 · PREPARE</span><strong>Continue my plan</strong><small>Readiness actions</small><b>→</b></Link>
+          <Link href="/onchain#queen-operations" className="is-market"><span>03 · MARKET</span><strong>Use Solana</strong><small>x402 reports · $THREAT</small><b>→</b></Link>
+          <Link href="/profile"><span>04 · PROFILE</span><strong>Track my progress</strong><small>XP · BIO · clearance</small><b>→</b></Link>
         </nav>
+        <MobileDeviceControls />
         <Link href="/onchain#agent-identity" className="rq-seeker-trust">
           <span>8004 REGISTERED</span><strong>AGENT ID {RED_QUEEN_AGENT_ID_SHORT}</strong><small>VERIFY ON SOLANA →</small>
         </Link>

@@ -25,13 +25,13 @@ export default function NetworkClearancePage() {
   return (
     <div className="onchain-page">
       <MobileCommandHeader
-        eyebrow="ONCHAIN // SOLANA CONTROL"
-        title="Review first. Sign only what you understand."
-        description="Buy $THREAT, request x402 intelligence or inspect wallet risk. RED QUEEN shows the action before your wallet asks for approval."
+        eyebrow="MARKET // SOLANA"
+        title="Choose an on-chain action."
+        description="Pay for Queen intelligence, buy $THREAT or inspect wallet risk. You approve every transaction."
         status="SOLANA MAINNET · NO CUSTODY"
         actions={[
-          { href: "#buy-threat", label: "BUY $THREAT" },
-          { href: "#queen-operations", label: "OPEN x402 OPERATIONS", tone: "secondary" },
+          { href: "#queen-operations", label: "OPEN x402" },
+          { href: "#buy-threat", label: "BUY $THREAT", tone: "secondary" },
         ]}
         steps={["CHOOSE", "REVIEW", "APPROVE"]}
       />

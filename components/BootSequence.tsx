@@ -4,11 +4,9 @@ import Image from "next/image";
 import SolvivalIcon from "./SolvivalIcon";
 
 const BOOT_LINES = [
-  { text: "SIGNAL FIELD // SYNCHRONIZED", delay: 120, type: "default" },
-  { text: "SURVIVAL MEMORY // READY", delay: 320, type: "default" },
-  { text: "8004 IDENTITY // REGISTERED", delay: 520, type: "default" },
-  { text: "x402 PAYMENT RAIL // READY", delay: 720, type: "default" },
-  { text: "RED QUEEN CORE // ONLINE", delay: 920, type: "done" },
+  { text: "SIGNAL FIELD // READY", delay: 80, type: "default" },
+  { text: "SOLANA SYSTEMS // READY", delay: 250, type: "default" },
+  { text: "RED QUEEN // ONLINE", delay: 420, type: "done" },
 ];
 
 interface Props {
@@ -35,8 +33,8 @@ export default function BootSequence({ onComplete }: Props) {
     timers.push(
       setTimeout(() => {
         setExiting(true);
-        timers.push(setTimeout(onComplete, 420));
-      }, 1320)
+        timers.push(setTimeout(onComplete, 260));
+      }, 760)
     );
 
     return () => timers.forEach(clearTimeout);
@@ -46,7 +44,7 @@ export default function BootSequence({ onComplete }: Props) {
     <div
       className="boot-screen"
       style={{
-        transition: "opacity 0.4s ease",
+        transition: "opacity 0.25s ease",
         opacity: exiting ? 0 : 1,
       }}
     >
@@ -56,7 +54,7 @@ export default function BootSequence({ onComplete }: Props) {
       </div>
 
       <div className="boot-brand"><SolvivalIcon size={34} /><div><strong>RED QUEEN</strong><span>SURVIVAL INTELLIGENCE</span></div></div>
-      <p className="boot-directive">THE SYSTEM IS AWAKE. YOUR NEXT MOVE IS YOURS.</p>
+      <p className="boot-directive">THE SYSTEM IS AWAKE.</p>
 
       {/* Boot lines */}
       <div className="boot-lines">

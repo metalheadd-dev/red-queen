@@ -134,7 +134,7 @@ export default function NavBar() {
           {primaryLinks.map((link, index) => (
             <Link key={link.match} href={link.href} tabIndex={menuOpen ? 0 : -1}>
               <span>0{index + 1}</span>
-              <div><strong>{link.label}</strong><small>{link.subtitle}</small></div>
+              <div><strong>{link.match === "onchain" ? "MARKET" : link.label}</strong><small>{link.subtitle}</small></div>
             </Link>
           ))}
           <Link href={accountHref} tabIndex={menuOpen ? 0 : -1}>
@@ -168,8 +168,8 @@ export default function NavBar() {
         <Link href="/red-queen" className={`mobile-queen-link${isActive("terminal") ? " active" : ""}`} aria-current={isActive("terminal") ? "page" : undefined}>
           <NavIcon name="queen" /><span>RED QUEEN</span>
         </Link>
-        <Link href="/prepare" className={isActive("prepare") ? "active" : ""} aria-current={isActive("prepare") ? "page" : undefined}>
-          <NavIcon name="prepare" /><span>PREPARE</span>
+        <Link href="/onchain" className={isActive("onchain") ? "active" : ""} aria-current={isActive("onchain") ? "page" : undefined}>
+          <NavIcon name="onchain" /><span>MARKET</span>
         </Link>
         <Link href={accountHref} className={pathname === "/profile" || pathname === "/operative" || pathname === "/login" ? "active" : ""} aria-current={pathname === "/profile" || pathname === "/operative" ? "page" : undefined}>
           <NavIcon name="me" /><span>ME</span>

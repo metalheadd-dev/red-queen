@@ -1197,7 +1197,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
           )}
 
           {/* Messages */}
-          <div ref={chatContainerRef} style={{
+          <div ref={chatContainerRef} className="rq-chat-scroll" style={{
             flex: 1,
             overflowY: "auto",
             padding: "24px",
@@ -1216,7 +1216,10 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
               </div>
             ) : (
               messages.map((msg, i) => (
-                <div key={i} className={`message message-${msg.role === "user" ? "user" : "ai"}`}>
+                <div
+                  key={i}
+                  className={`message message-${msg.role === "user" ? "user" : "ai"}${msg.content === CORE_INTRO_MESSAGE ? " is-core-intro" : ""}`}
+                >
                   <div className="message-label">
                     {msg.role === "user"
                       ? `[ SOLVIVOR // ${apocalypticName || "UNREGISTERED"} ]`
@@ -1350,7 +1353,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
           )}
 
           {/* Hint row */}
-          <div style={{
+          <div className="rq-chat-hints" style={{
             padding: "10px 24px",
             display: "flex",
             gap: "24px",

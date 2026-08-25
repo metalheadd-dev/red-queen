@@ -71,7 +71,7 @@ export default function MobileDeviceControls() {
 
   return (
     <section className="rq-mobile-device" aria-label="Mobile app controls">
-      <div><span>DEVICE CHANNEL</span><strong>Choose how RED QUEEN reaches you.</strong></div>
+      <div><span>DEVICE</span><strong>Sound & alerts</strong></div>
       <div className="rq-mobile-device-actions">
         <button type="button" data-rq-silent aria-pressed={sound} onClick={toggleSound}>
           <i>{sound ? "ON" : "OFF"}</i>SOUND
@@ -79,9 +79,8 @@ export default function MobileDeviceControls() {
         <button type="button" data-rq-silent aria-pressed={alertArmed} disabled={alerts === "unsupported" || alerts === "denied"} onClick={() => void toggleAlerts()}>
           <i>{alertArmed ? "ON" : "OFF"}</i>{alertLabel}
         </button>
-        <Link href="/pulse#signal-watch">WATCH FILTERS →</Link>
+        <Link href="/pulse#signal-watch">WATCH →</Link>
       </div>
-      <small>Live alerts scan your Watch while the app is open. Background push comes next.</small>
     </section>
   );
 }

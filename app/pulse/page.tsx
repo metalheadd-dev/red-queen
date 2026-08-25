@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import BootSequence from "@/components/BootSequence";
 import DailyActionPanel from "@/components/DailyActionPanel";
 import SignalWatchPanel from "@/components/SignalWatchPanel";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
@@ -123,9 +122,9 @@ const SENSOR_LIMITED: PulseData = {
   coverage: { online: 0, total: 0, signalCount: 0 },
 };
 
-function relativeTime(value?: string) {
-  if (!value) return "just now";
-  const milliseconds = Date.now() - new Date(value).getTime();
+function relativeTime(value?: string, now?: number | null) {
+  if (!value || !now) return "just now";
+  const milliseconds = now - new Date(value).getTime();
   if (!Number.isFinite(milliseconds) || milliseconds < 60_000) return "just now";
   const minutes = Math.floor(milliseconds / 60_000);
   if (minutes < 60) return `${minutes}m ago`;
@@ -164,8 +163,8 @@ function toWatchType(type: string): SignalWatchType | null {
 
 export default function PulsePage() {
   const router = useRouter();
-  const [booted, setBooted] = useState(false);
   const [pulse, setPulse] = useState<PulseData>(SENSOR_LIMITED);
+  const [relativeNow, setRelativeNow] = useState<number | null>(null);
   const [pulseLoading, setPulseLoading] = useState(true);
   const [nodes, setNodes] = useState<MapNode[]>([]);
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
@@ -182,19 +181,20 @@ export default function PulsePage() {
   const [editingArea, setEditingArea] = useState(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem("rq-booted") === "1") setBooted(true);
+    setRelativeNow(Date.now());
+    const timer = window.setInterval(() => setRelativeNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
   }, []);
 
   useEffect(() => {
-    if (!booted || window.location.hash !== "#live-map") return;
+    if (window.location.hash !== "#live-map") return;
     const timer = window.setTimeout(() => {
       document.getElementById("live-map")?.scrollIntoView({ block: "start" });
     }, 150);
     return () => window.clearTimeout(timer);
-  }, [booted, mapLoading, pulseLoading, showStart]);
+  }, [mapLoading, pulseLoading, showStart]);
 
   useEffect(() => {
-    if (!booted) return;
     const onboardingState = localStorage.getItem("rq-core-onboarding-v1");
     setShowStart(onboardingState !== "done" && onboardingState !== "skipped");
     try {
@@ -242,7 +242,7 @@ export default function PulsePage() {
     }
 
     loadIntelligence();
-  }, [booted]);
+  }, []);
 
   const visibleNodes = useMemo(() => {
     if (mapFilter === "local" && localContext?.location) {
@@ -283,11 +283,6 @@ export default function PulsePage() {
     [visibleNodes],
   );
   const selectedHistory = selectedNode ? signalHistory[selectedNode.id] : undefined;
-
-  const finishBoot = () => {
-    sessionStorage.setItem("rq-booted", "1");
-    setBooted(true);
-  };
 
   const dismissStart = () => {
     localStorage.setItem("rq-core-onboarding-v1", "skipped");
@@ -366,10 +361,8 @@ export default function PulsePage() {
     window.requestAnimationFrame(() => document.getElementById("signal-watch")?.scrollIntoView({ behavior: "smooth", block: "center" }));
   }
 
-  if (!booted) return <BootSequence onComplete={finishBoot} />;
-
-  const synthesisDate = relativeTime(pulse.generatedAt || pulse.publishDate);
-  const sourceDate = relativeTime(pulse.sourceUpdatedAt || pulse.publishDate);
+  const synthesisDate = relativeTime(pulse.generatedAt || pulse.publishDate, relativeNow);
+  const sourceDate = relativeTime(pulse.sourceUpdatedAt || pulse.publishDate, relativeNow);
   const hasResolvedArea = Boolean(localContext?.area && localContext.location);
   const globalPriorityCount = nodes.filter((node) => node.severity >= 60).length;
   const localHeadline = hasResolvedArea
@@ -529,7 +522,7 @@ export default function PulsePage() {
                     ? "No changes detected in the current verified signal set."
                     : "The field changed. RED QUEEN separated movement from noise."}
             </strong>
-            <small>{scanSummary.previousScanAt ? `PREVIOUS ${relativeTime(scanSummary.previousScanAt).toUpperCase()}` : "FIRST RELIABLE OBSERVATION"}</small>
+            <small>{scanSummary.previousScanAt ? `PREVIOUS ${relativeTime(scanSummary.previousScanAt, relativeNow).toUpperCase()}` : "FIRST RELIABLE OBSERVATION"}</small>
           </div>
           <dl>
             <div><dt>ACTIVE</dt><dd>{scanSummary.activeCount}</dd></div>
@@ -588,7 +581,7 @@ export default function PulsePage() {
           <details className="pulse-source-grid">
             <summary>
               <div><span className="pulse-eyebrow">SOURCE GRID // LIVE COVERAGE</span><strong>{pulse.coverage?.online || 0}/{pulse.coverage?.total || pulse.sourceHealth.length} sources reachable</strong></div>
-              <small>{pulse.coverage?.signalCount || 0} NORMALIZED SIGNALS · CHECKED {relativeTime(pulse.generatedAt).toUpperCase()}</small>
+              <small>{pulse.coverage?.signalCount || 0} NORMALIZED SIGNALS · CHECKED {relativeTime(pulse.generatedAt, relativeNow).toUpperCase()}</small>
               <b>VIEW SOURCE HEALTH +</b>
             </summary>
             <div>
@@ -597,7 +590,7 @@ export default function PulsePage() {
                   <i />
                   <span>{source.label}</span>
                   <strong>{source.status === "NO_SIGNALS" ? "NO CURRENT SIGNALS" : source.status}</strong>
-                  <small>{source.signalCount} SIGNALS{source.latestObservedAt ? ` · LATEST ${relativeTime(source.latestObservedAt).toUpperCase()}` : ""}</small>
+                  <small>{source.signalCount} SIGNALS{source.latestObservedAt ? ` · LATEST ${relativeTime(source.latestObservedAt, relativeNow).toUpperCase()}` : ""}</small>
                 </article>
               ))}
             </div>
