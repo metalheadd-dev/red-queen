@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { MAP_STYLES, readTheme, THEME_EVENT, type RedQueenTheme } from "@/lib/theme";
 
 interface MapNode {
   id: string;
@@ -167,7 +168,7 @@ export default function BroadcastMap({ nodes, onSelectNode, selectedNode }: Broa
     try {
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
-        style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+        style: MAP_STYLES[readTheme()],
         center: [15, 20],
         zoom: 1.5,
         pitch: 15,
@@ -182,7 +183,16 @@ export default function BroadcastMap({ nodes, onSelectNode, selectedNode }: Broa
         setTimeout(() => rebuildMarkers(map), 100);
       });
 
+      const syncMapTheme = (event: Event) => {
+        const theme = (event as CustomEvent<RedQueenTheme>).detail;
+        if (theme !== "dark" && theme !== "light") return;
+        map.setStyle(MAP_STYLES[theme]);
+        map.once("style.load", () => rebuildMarkers(map));
+      };
+      window.addEventListener(THEME_EVENT, syncMapTheme);
+
       return () => {
+        window.removeEventListener(THEME_EVENT, syncMapTheme);
         map.remove();
       };
     } catch (err: any) {

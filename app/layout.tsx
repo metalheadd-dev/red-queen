@@ -6,6 +6,17 @@ import SolanaProvider from "@/components/SolanaProvider";
 import QueenDock from "@/components/QueenDock";
 import MobileExperienceProvider from "@/components/MobileExperienceProvider";
 
+const themeBootstrapScript = `
+  try {
+    var savedTheme = localStorage.getItem("rq-theme-v1");
+    var theme = savedTheme === "light" ? "light" : "dark";
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+  } catch (_) {
+    document.documentElement.dataset.theme = "dark";
+  }
+`;
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://redqueen.space"),
   title: "RED QUEEN | Survival Intelligence on Solana",
@@ -36,7 +47,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+      </head>
       <body>
         <SolanaProvider>
           <div className="page-bg">

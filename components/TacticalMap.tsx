@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { MAP_STYLES, readTheme, THEME_EVENT, type RedQueenTheme } from "@/lib/theme";
 
 interface MapNode {
   id: string;
@@ -153,7 +154,7 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode, focus =
     try {
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
-        style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+        style: MAP_STYLES[readTheme()],
         center: [15, 25],
         zoom: 1.4,
         pitch: 20,
@@ -171,7 +172,21 @@ export default function TacticalMap({ nodes, onSelectNode, selectedNode, focus =
         }, 100);
       });
 
-      return () => { map.remove(); };
+      const syncMapTheme = (event: Event) => {
+        const theme = (event as CustomEvent<RedQueenTheme>).detail;
+        if (theme !== "dark" && theme !== "light") return;
+        map.setStyle(MAP_STYLES[theme]);
+        map.once("style.load", () => {
+          rebuildMarkers(map);
+          rebuildFocus(map);
+        });
+      };
+      window.addEventListener(THEME_EVENT, syncMapTheme);
+
+      return () => {
+        window.removeEventListener(THEME_EVENT, syncMapTheme);
+        map.remove();
+      };
     } catch (err: any) {
       console.error("MapLibre init failed on main page:", err);
       setMapError(err.message || "WebGL context is unsupported or MapLibre stylesheet is offline.");

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAuth } from "./AuthProvider";
 import SolvivalIcon from "./SolvivalIcon";
+import ThemeToggle from "./ThemeToggle";
 
 type NavIconName = "home" | "pulse" | "queen" | "prepare" | "onchain" | "me";
 
@@ -121,6 +122,7 @@ export default function NavBar() {
 
           <div className="navbar-actions desktop-only">
             <span className="navbar-online" aria-label="Red Queen is online"><i />ONLINE</span>
+            <ThemeToggle />
             <Link href={accountHref} className={`navbar-account${user ? " is-authenticated" : ""}`}>
               {accountLabel}
             </Link>
@@ -128,6 +130,7 @@ export default function NavBar() {
 
           <div className="navbar-mobile-state">
             <span><i /> RED QUEEN ONLINE</span>
+            <ThemeToggle compact />
             <button
               className={`mobile-menu-toggle${menuOpen ? " is-open" : ""}`}
               onClick={() => setMenuOpen((open) => !open)}
@@ -144,6 +147,7 @@ export default function NavBar() {
         <div className="mobile-drawer-heading">
           <span>PLATFORM INDEX</span>
           <strong>Everything you need, without the noise.</strong>
+          <ThemeToggle />
         </div>
 
         <nav aria-label="Mobile expanded navigation" className="mobile-drawer-links">
