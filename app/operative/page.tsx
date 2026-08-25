@@ -655,7 +655,7 @@ export default function OperativeProfilePage() {
         {loading && <div className="rq-profile-loading-line">SYNCHRONIZING VERIFIED PROFILE...</div>}
 
         <section className="rq-profile-next">
-          <div><span>RED QUEEN // NEXT LOOP</span><h2>{bioScore === 0 ? "Establish an evidence-based readiness baseline" : `Strengthen ${weakestDomain.label}`}</h2><p>{bioScore === 0 ? "Queen will present one decision at a time. Your first question alone will not change BIO." : weakestDomain.description}</p></div>
+          <div><span>RED QUEEN // NEXT LOOP</span><h2>{bioScore === 0 ? "Establish an evidence-based readiness baseline" : `Strengthen ${weakestDomain.label}`}</h2><p>{bioScore === 0 ? "RED QUEEN will present one decision at a time. Your first question alone will not change BIO." : weakestDomain.description}</p></div>
           <Link href={baselineHref}>{bioScore === 0 ? "RUN 3-MIN BASELINE" : "START FOCUSED DRILL"} →</Link>
         </section>
 
@@ -747,7 +747,7 @@ export default function OperativeProfilePage() {
               })}
             </div>
           ) : (
-            <div className="rq-profile-receipts-empty"><strong>NO WALLET-BOUND RECEIPTS</strong><p>{receiptNotice || "Completed x402 operations paid by this signed wallet will appear here."}</p><Link href="/onchain">EXPLORE QUEEN OPERATIONS →</Link></div>
+            <div className="rq-profile-receipts-empty"><strong>NO WALLET-BOUND RECEIPTS</strong><p>{receiptNotice || "Completed x402 operations paid by this signed wallet will appear here."}</p><Link href="/onchain">EXPLORE RED QUEEN OPERATIONS →</Link></div>
           )}
         </section>
 
@@ -820,7 +820,7 @@ export default function OperativeProfilePage() {
             </section>
 
             <section className="rq-profile-panel rq-profile-memory">
-              <div className="rq-profile-panel-heading"><div><span>03 // MEMORY & PRIVACY</span><h2>What Queen remembers</h2></div></div>
+              <div className="rq-profile-panel-heading"><div><span>03 // MEMORY & PRIVACY</span><h2>What RED QUEEN remembers</h2></div></div>
               <div><span>ACCOUNT MEMORY</span><strong>{profile ? "ACTIVE" : "AWAITING FIRST EVIDENCE"}</strong></div>
               <div><span>CONVERSATION HISTORY</span><strong>{history.length} SAVED MESSAGES</strong></div>
               <div><span>QUEEN PROTOCOLS</span><strong>{activeProtocols.length} ACTIVE · {completedProtocols} COMPLETE</strong></div>

@@ -927,7 +927,7 @@ BIO changes only after an eligible decision, demonstrated preparation, or evalua
       } else {
         reply = `[UNKNOWN QUEEN COMMAND]
 
-${cmd} is not active. Type /help for the current platform command index, or ask a normal question for Queen analysis.`;
+${cmd} is not active. Type /help for the current platform command index, or ask a normal question for RED QUEEN analysis.`;
       }
 
       setMessages((prev) => [

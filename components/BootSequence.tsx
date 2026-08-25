@@ -4,9 +4,9 @@ import Image from "next/image";
 import SolvivalIcon from "./SolvivalIcon";
 
 const BOOT_LINES = [
-  { text: "SIGNAL FIELD // READY", delay: 80, type: "default" },
-  { text: "SOLANA SYSTEMS // READY", delay: 250, type: "default" },
-  { text: "RED QUEEN // ONLINE", delay: 420, type: "done" },
+  { text: "SIGNAL FIELD // CONNECTED", delay: 260, type: "default" },
+  { text: "AGENT ID 1474 // REGISTERED", delay: 700, type: "default" },
+  { text: "RED QUEEN // ONLINE", delay: 1140, type: "done" },
 ];
 
 interface Props {
@@ -33,8 +33,8 @@ export default function BootSequence({ onComplete }: Props) {
     timers.push(
       setTimeout(() => {
         setExiting(true);
-        timers.push(setTimeout(onComplete, 260));
-      }, 760)
+        timers.push(setTimeout(onComplete, 360));
+      }, 1760)
     );
 
     return () => timers.forEach(clearTimeout);
@@ -44,7 +44,7 @@ export default function BootSequence({ onComplete }: Props) {
     <div
       className="boot-screen"
       style={{
-        transition: "opacity 0.25s ease",
+        transition: "opacity 0.35s ease",
         opacity: exiting ? 0 : 1,
       }}
     >
@@ -54,7 +54,7 @@ export default function BootSequence({ onComplete }: Props) {
       </div>
 
       <div className="boot-brand"><SolvivalIcon size={34} /><div><strong>RED QUEEN</strong><span>SURVIVAL INTELLIGENCE</span></div></div>
-      <p className="boot-directive">THE SYSTEM IS AWAKE.</p>
+      <p className="boot-directive">SURVIVAL INTELLIGENCE // ONLINE</p>
 
       {/* Boot lines */}
       <div className="boot-lines">

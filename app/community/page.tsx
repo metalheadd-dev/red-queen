@@ -117,7 +117,7 @@ export default function CommunityPage() {
             <p>SOLvivor Points are your earned XP from evaluated drills and evidence. BIO-SCORE measures demonstrated readiness. Neither exposes your wallet, and holdings never manufacture competence.</p>
           </div>
           <div className="community-board-contract">
-            <div><span>01</span><strong>EARN</strong><p>Complete evaluated Queen drills and observable preparedness actions.</p></div>
+            <div><span>01</span><strong>EARN</strong><p>Complete evaluated RED QUEEN drills and observable preparedness actions.</p></div>
             <div><span>02</span><strong>PROVE</strong><p>BIO changes only when your decisions provide readiness evidence.</p></div>
             <div><span>03</span><strong>OPT IN</strong><p>Publish only an apocalyptic alias, points, level, BIO and broad activity.</p></div>
           </div>

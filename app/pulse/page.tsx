@@ -392,7 +392,7 @@ export default function PulsePage() {
           { href: showStart ? "#first-contact" : "#live-map", label: showStart ? "GET MY FIRST BRIEF" : "OPEN LIVE MAP" },
           { href: "/red-queen", label: "ASK RED QUEEN", tone: "secondary" },
         ]}
-        steps={["SET AREA", "REVIEW", "ASK QUEEN"]}
+        steps={["SET AREA", "REVIEW", "ASK RED QUEEN"]}
       />
 
       <header className="pulse-hero">
@@ -731,7 +731,7 @@ export default function PulsePage() {
                 area: localContext?.area || "",
                 signal: selectedNode.id,
                 prompt: `Explain the relevance of this live signal to my context: ${selectedNode.name}. Separate the verified source fact from assessment and give me one safe action.`,
-              }).toString()}`}>ASK QUEEN ABOUT THIS →</Link>
+              }).toString()}`}>ASK RED QUEEN ABOUT THIS →</Link>
               {selectedNode.verified && <Link href={`/onchain?${new URLSearchParams({
                 product: "incident",
                 signalId: selectedNode.id,

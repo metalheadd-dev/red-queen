@@ -14,13 +14,13 @@
   "enableNotifications": true,
   "startUrl": "/",
   "iconUrl": "https://redqueen.space/token-image.png",
-  "splashScreenFadeOutDuration": 300,
+  "splashScreenFadeOutDuration": 80,
   "signingKey": {
     "path": "c:\\Users\\Voronovskiy\\Desktop\\redqueen\\redqueen-mobile\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "3.1",
-  "appVersionCode": 5,
+  "appVersionName": "3.2",
+  "appVersionCode": 6,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://redqueen.space/manifest.webmanifest",
@@ -42,5 +42,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "3.1"
+  "appVersion": "3.2"
 }

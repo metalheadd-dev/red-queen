@@ -281,7 +281,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
         <li className={hasWatches ? "is-complete" : "is-current"}><span>1</span><div><strong>CHOOSE</strong><small>Location or category</small></div></li>
         <li className={memory.browserAlerts && browserAlertPermission === "granted" ? "is-complete" : hasWatches ? "is-current" : ""}><span>2</span><div><strong>ENABLE</strong><small>Optional browser alert</small></div></li>
         <li className={reviewSignalIds.length ? "is-current" : ""}><span>3</span><div><strong>REVIEW</strong><small>Open matched sources</small></div></li>
-        <li><span>4</span><div><strong>ASK QUEEN</strong><small>Get one next action</small></div></li>
+        <li><span>4</span><div><strong>ASK RED QUEEN</strong><small>Get one next action</small></div></li>
       </ol>
       <div className="signal-watch-controls">
         <button type="button" disabled={!location} className={memory.localPriority ? "active" : ""} onClick={toggleLocal}>
@@ -334,14 +334,14 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
                 <p>{matchReason(signal, memory, location)}</p>
                 <div className="signal-watch-card-actions">
                   {signal.sourceUrl && <a href={signal.sourceUrl} target="_blank" rel="noopener noreferrer">SOURCE ↗</a>}
-                  <Link href={queenReviewHref(signal)}>ASK QUEEN →</Link>
+                  <Link href={queenReviewHref(signal)}>ASK RED QUEEN →</Link>
                   {reviewSignalIds.includes(signal.id) && <button type="button" onClick={() => acknowledgeSignal(signal.id)}>MARK REVIEWED</button>}
                 </div>
               </article>
             ))}
             {!matchedSignals.length && <div className="signal-watch-empty"><strong>NO CURRENT MATCHES</strong><p>Your Watch is working. No loaded verified signal currently matches this filter. This is not proof of safety.</p><a href="#live-map">CHECK LIVE MAP ↑</a></div>}
           </div>
-          <Link className="signal-watch-primary" href={queenReviewHref()}><span>STEP 4</span> ASK QUEEN TO REVIEW MY WATCH →</Link>
+          <Link className="signal-watch-primary" href={queenReviewHref()}><span>STEP 4</span> ASK RED QUEEN TO REVIEW MY WATCH →</Link>
         </div>
       )}
       <footer><strong>ON THIS DEVICE</strong> Watch state stays in this browser · alerts work while RED QUEEN is open · background sync is coming later. <Link href="/profile">VIEW IN PROFILE →</Link></footer>

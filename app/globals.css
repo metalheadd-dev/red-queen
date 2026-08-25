@@ -6574,6 +6574,8 @@ body:has(#game-player-root) .page-content {
   .onchain-main > .onchain-console { order:2; margin-top:12px; }
   .onchain-main > .threat-swap { order:3; }
   .onchain-main > .agent-identity { order:4; }
+  .onchain-main > .onchain-reference { order:5; }
+  .onchain-main > .onchain-safety { order:6; }
   .intelligence-market-tabs button { min-height:66px; padding:10px; }
   .intelligence-market-tabs button small { display:none; }
   .intelligence-market-status span { display:none; }

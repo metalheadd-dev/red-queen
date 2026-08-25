@@ -171,7 +171,7 @@ export default function ThreatVectorPage() {
                   </small>
                   <div className="library-card-actions">
                     <Link href={`/library/${threat.id}`}>OPEN DOSSIER</Link>
-                    <Link href={queenHref(threat)}>ASK QUEEN →</Link>
+                    <Link href={queenHref(threat)}>ASK RED QUEEN →</Link>
                   </div>
                 </article>
               ))}

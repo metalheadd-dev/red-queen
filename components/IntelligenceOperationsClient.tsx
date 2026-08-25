@@ -297,9 +297,9 @@ export default function IntelligenceOperationsClient() {
   return (
     <section className="intelligence-market" id="queen-operations">
       <div className="onchain-section-head">
-        <span>03 // QUEEN OPERATION CONSOLE</span>
-        <h2>Give her a real question. Receive a declared output.</h2>
-        <p>Each request is validated before the payment challenge. The wallet then shows a separate exact USDC transfer. Failed source coverage never becomes invented intelligence.</p>
+        <span>x402 // AGENTIC INTELLIGENCE MARKET</span>
+        <h2>Request the operation. Pay only for the result.</h2>
+        <p>RED QUEEN declares the output and exact USDC price before wallet approval. After x402 settlement, the result and receipt are delivered.</p>
       </div>
 
       <div className="intelligence-market-status"><i className={available ? "is-live" : ""} /><strong>{available === null ? "CHECKING" : available ? "SETTLEMENT READY" : "PAYMENTS BLOCKED"}</strong><span>{availabilityReason}</span></div>
@@ -359,9 +359,9 @@ export default function IntelligenceOperationsClient() {
             </div>
           </> : <>
             <div className="intelligence-market-orb"><i /></div>
-            <span>RED QUEEN // OUTPUT CHAMBER</span>
-            <h3>Nothing is charged until the exact operation is declared.</h3>
-            <p>Connection is read-only. The x402 payment appears as its own wallet approval and cannot authorize the report input, inspected transaction or future spending.</p>
+            <span>RED QUEEN // MERCHANT OUTPUT</span>
+            <h3>No subscription. One declared operation.</h3>
+            <p>The x402 payment is a separate wallet approval. It cannot authorize future spending or change the requested input.</p>
           </>}
         </div>
       </div>

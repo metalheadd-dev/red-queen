@@ -12,7 +12,7 @@ type NavIconName = "home" | "pulse" | "queen" | "prepare" | "onchain" | "me";
 const primaryLinks = [
   { href: "/red-queen", label: "RED QUEEN", subtitle: "Ask, analyze, prepare or simulate", match: "terminal" },
   { href: "/pulse", label: "PULSE", subtitle: "Your daily intelligence brief", match: "pulse" },
-  { href: "/onchain", label: "ONCHAIN", subtitle: "Agent payments, wallet intelligence and $THREAT", match: "onchain" },
+  { href: "/onchain", label: "ONCHAIN", subtitle: "x402 agentic payments, wallet intelligence and $THREAT", match: "onchain" },
   { href: "/prepare", label: "PREPARE", subtitle: "Build practical readiness", match: "prepare" },
   { href: "/pulse#live-map", label: "MAP", subtitle: "Verified signals on the live field", match: "map" },
   { href: "/library", label: "LIBRARY", subtitle: "Open the threat intelligence archive", match: "library" },
@@ -127,7 +127,7 @@ export default function NavBar() {
           </div>
 
           <div className="navbar-mobile-state">
-            <span><i /> QUEEN ONLINE</span>
+            <span><i /> RED QUEEN ONLINE</span>
             <button
               className={`mobile-menu-toggle${menuOpen ? " is-open" : ""}`}
               onClick={() => setMenuOpen((open) => !open)}

@@ -32,10 +32,10 @@ export default function LandingPage() {
           <div className="rq-seeker-hero-copy">
             <span><i /> RED QUEEN ONLINE</span>
             <h1>See the threat.<br /><em>Choose your move.</em></h1>
-            <p>Live intelligence, Queen analysis and Solana actions in one command app.</p>
+            <p>Verified signals, RED QUEEN analysis and Solana execution in one command surface.</p>
             <div>
               <Link href="/pulse">OPEN PULSE <b>→</b></Link>
-              <Link href="/red-queen">ASK QUEEN</Link>
+              <Link href="/red-queen">ASK RED QUEEN</Link>
             </div>
           </div>
         </section>
@@ -45,7 +45,7 @@ export default function LandingPage() {
         <nav className="rq-seeker-action-grid" aria-label="RED QUEEN core actions">
           <Link href="/pulse#live-map"><span>01 · PULSE</span><strong>See what changed</strong><small>Live map & signals</small><b>→</b></Link>
           <Link href="/prepare"><span>02 · PREPARE</span><strong>Continue my plan</strong><small>Readiness actions</small><b>→</b></Link>
-          <Link href="/onchain#queen-operations" className="is-market"><span>03 · MARKET</span><strong>Use Solana</strong><small>x402 reports · $THREAT</small><b>→</b></Link>
+          <Link href="/onchain#queen-operations" className="is-market"><span>03 · x402 MARKET</span><strong>Buy intelligence</strong><small>USDC settlement · receipts</small><b>→</b></Link>
           <Link href="/profile"><span>04 · PROFILE</span><strong>Track my progress</strong><small>XP · BIO · clearance</small><b>→</b></Link>
         </nav>
         <MobileDeviceControls />

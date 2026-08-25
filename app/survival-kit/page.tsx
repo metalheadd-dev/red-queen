@@ -91,7 +91,7 @@ export default function SurvivalKitPage() {
         status={`LOCAL BASELINE · ${ready ? progress : 0}%`}
         actions={[
           { href: "#prepare-baseline", label: "CONTINUE BASELINE" },
-          { href: terminalHref(nextActionPrompt), label: "ASK QUEEN TO ADAPT", tone: "secondary" },
+          { href: terminalHref(nextActionPrompt), label: "ASK RED QUEEN", tone: "secondary" },
         ]}
         steps={["CHECK", "ASK", "COMPLETE"]}
       />
@@ -104,7 +104,7 @@ export default function SurvivalKitPage() {
               Check one gap, ask RED QUEEN to adapt it, then complete the action.
             </p>
             <div className="prepare-hero-actions">
-              <Link className="btn btn-primary" href={terminalHref(nextActionPrompt)}>ASK QUEEN FOR NEXT ACTION</Link>
+              <Link className="btn btn-primary" href={terminalHref(nextActionPrompt)}>ASK RED QUEEN FOR NEXT ACTION</Link>
               <Link className="btn btn-ghost" href="/library">OPEN THREAT LIBRARY</Link>
             </div>
           </div>
@@ -146,7 +146,7 @@ export default function SurvivalKitPage() {
         />
         <section className="prepare-trust-strip">
           <strong>SELF-CHECK ≠ BIO-SCORE</strong>
-          <p>Checklist progress stays in this browser. It becomes readiness evidence only after an evaluated Queen drill or verified action.</p>
+          <p>Checklist progress stays in this browser. It becomes readiness evidence only after an evaluated RED QUEEN drill or verified action.</p>
           <Link href={terminalHref(PREPAREDNESS_PROTOCOLS[5].prompt, "SIMULATE")}>RUN READINESS DRILL →</Link>
         </section>
 
@@ -161,7 +161,7 @@ export default function SurvivalKitPage() {
             <h2>{nextItem ? nextItem.title : "Audit the baseline you completed"}</h2>
             <p>{nextItem?.evidence || "A completed list is only useful if the assumptions still match your household and local risks."}</p>
           </div>
-          <Link href={terminalHref(nextActionPrompt)}>ASK QUEEN TO ADAPT →</Link>
+          <Link href={terminalHref(nextActionPrompt)}>ASK RED QUEEN TO ADAPT →</Link>
         </section>
 
         <div className="prepare-layout">

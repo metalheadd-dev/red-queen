@@ -137,7 +137,7 @@ export default function ThreatDossierPage() {
             <div className="queen-core"><span /></div>
             <span>RED QUEEN // CONTEXT ENGINE</span>
             <h2>Make this file relevant to you.</h2>
-            <p>Queen can analyze assumptions, build a checklist or turn this dossier into a clearly labeled decision drill.</p>
+            <p>RED QUEEN can analyze assumptions, build a checklist or turn this dossier into a clearly labeled decision drill.</p>
             <Link className="btn btn-primary" href={queenHref(analysisPrompt, isSimulation ? "SIMULATE" : "ANALYZE")}>
               {isSimulation ? "RUN SIMULATION" : "ANALYZE MY CONTEXT"}
             </Link>
