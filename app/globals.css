@@ -7507,3 +7507,400 @@ html[data-theme="light"] .queen-dock-icon {
   html[data-theme="light"] .queen-presence-art { mix-blend-mode:multiply; }
   html[data-theme="light"] .pulse-first-contact { box-shadow:inset 2px 0 0 rgba(207,16,56,.55) !important; }
 }
+
+/* ================================================================
+   WHITE ROOM // CONTAINMENT PASS
+   A clinical RED QUEEN environment, not a generic inverted theme.
+   ================================================================ */
+html[data-theme="light"] {
+  --bg:#e9ecee !important;
+  --surface:#f3f5f6 !important;
+  --panel:#fbfbfc !important;
+  --panel-2:#e4e8ea !important;
+  --accent:#e5003d !important;
+  --accent-dim:#b60031 !important;
+  --accent-glow:rgba(229,0,61,.14) !important;
+  --border:rgba(10,15,19,.18) !important;
+  --border-red:rgba(229,0,61,.46) !important;
+}
+
+html[data-theme="light"] body,
+html[data-theme="light"] .page-bg {
+  background:
+    linear-gradient(rgba(9,14,18,.042) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(9,14,18,.042) 1px,transparent 1px),
+    radial-gradient(circle at 83% 7%,rgba(229,0,61,.14),transparent 29%),
+    radial-gradient(circle at 7% 76%,rgba(5,8,11,.08),transparent 32%),
+    #e9ecee !important;
+  background-size:64px 64px,64px 64px,auto,auto,auto !important;
+}
+
+html[data-theme="light"] body::after {
+  content:"";
+  position:fixed;
+  z-index:-1;
+  inset:0;
+  pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 5px,rgba(9,14,18,.018) 5px 6px);
+  opacity:.62;
+}
+
+html[data-theme="light"] ::selection { color:#fff; background:var(--accent); }
+
+/* The supplied WHITE ROOM mark replaces the dark-site logo everywhere. */
+html[data-theme="light"] .solvival-icon-image {
+  content:url("/logo-light.png");
+  background:#fff !important;
+  filter:contrast(1.08) saturate(1.16) !important;
+  transform:scale(1.17) translateY(2%);
+}
+html[data-theme="light"] .navbar-logo-icon {
+  border-color:rgba(229,0,61,.56) !important;
+  box-shadow:0 0 0 3px rgba(229,0,61,.07),0 8px 22px rgba(17,22,27,.12) !important;
+}
+html[data-theme="light"] .navbar {
+  border-top:3px solid #11161a !important;
+  box-shadow:0 10px 36px rgba(12,17,21,.11),inset 0 -1px rgba(229,0,61,.08) !important;
+}
+html[data-theme="light"] .navbar-logo-copy strong { color:#c90036 !important; }
+
+/* Every primary action uses the same unmistakable command signal. */
+html[data-theme="light"] :is(.btn-primary,.chat-input-row .btn,.pulse-onboarding-actions .btn-primary) {
+  color:#fff !important;
+  border-color:#b80031 !important;
+  background:linear-gradient(135deg,#f00043,#c60035) !important;
+  box-shadow:0 8px 22px rgba(229,0,61,.18) !important;
+}
+html[data-theme="light"] :is(.btn-primary,.chat-input-row .btn,.pulse-onboarding-actions .btn-primary):hover {
+  background:linear-gradient(135deg,#ff174f,#d30039) !important;
+  box-shadow:0 11px 28px rgba(229,0,61,.27) !important;
+}
+html[data-theme="light"] :is(.btn-ghost,.btn-outline) {
+  color:#171c20 !important;
+  border-color:rgba(17,22,27,.28) !important;
+  background:rgba(255,255,255,.7) !important;
+}
+
+/* Shared containment panels: white data surface, black control rail. */
+html[data-theme="light"] :is(
+  .pulse-first-contact,.daily-action-panel,.signal-watch-panel,
+  .preparedness-plans,.prepare-checklist,.prepare-protocols,
+  .prepare-system-loop,.prepare-token-utility,.action-history-panel,
+  .rq-profile-panel,.rq-profile-visage,.guide-start,.guide-two-column > div,
+  .guide-visage,.guide-safety,.community-board,.community-mind
+) {
+  border-color:rgba(16,22,27,.19) !important;
+  border-top-color:rgba(229,0,61,.58) !important;
+  background:linear-gradient(145deg,rgba(252,252,253,.98),rgba(239,242,243,.96)) !important;
+  box-shadow:0 18px 44px rgba(12,17,21,.08) !important;
+}
+
+html[data-theme="light"] :is(
+  .prepare-domain-block,.prepare-domain-summary > div,.prepare-check-items button,
+  .preparedness-plan-list article,.preparedness-plans-empty,.prepare-protocol-list > a,
+  .prepare-loop-grid > div,.prepare-tier-list > div,.rq-profile-metric,
+  .rq-profile-domain-list > div,.rq-profile-evidence-list > div
+) {
+  color:#172027 !important;
+  border-color:rgba(17,22,27,.16) !important;
+  background:rgba(255,255,255,.78) !important;
+}
+html[data-theme="light"] :is(
+  .prepare-domain-block,.prepare-domain-summary > div,.prepare-check-items button,
+  .preparedness-plan-list article,.prepare-protocol-list > a,.prepare-loop-grid > div,
+  .prepare-tier-list > div
+) :is(strong,h2,h3) { color:#11171c !important; }
+html[data-theme="light"] :is(
+  .prepare-domain-block,.prepare-check-items button,.preparedness-plan-list article,
+  .prepare-protocol-list > a,.prepare-loop-grid > div,.prepare-tier-list > div
+) :is(p,small,span) { color:#48545d !important; }
+
+/* Cognitive Core stays a classified chamber so the throne art belongs. */
+html[data-theme="light"] .rq-terminal-core {
+  color:#fff !important;
+  background:
+    radial-gradient(circle at 78% 36%,rgba(229,0,61,.2),transparent 34%),
+    linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px),
+    linear-gradient(112deg,#11161a,#050709 72%) !important;
+  background-size:auto,64px 64px,64px 64px,auto !important;
+  border-bottom:2px solid rgba(229,0,61,.54) !important;
+}
+html[data-theme="light"] .rq-terminal-core::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 5px,rgba(255,255,255,.02) 5px 6px);
+}
+html[data-theme="light"] .rq-terminal-core-art {
+  opacity:.86 !important;
+  filter:contrast(1.18) saturate(1.08) drop-shadow(0 0 46px rgba(229,0,61,.22)) !important;
+  mix-blend-mode:screen;
+}
+html[data-theme="light"] .rq-terminal-core-art::after {
+  background:linear-gradient(90deg,#11161a 0%,transparent 22%),linear-gradient(0deg,#090c0e 0%,transparent 22%) !important;
+}
+html[data-theme="light"] .rq-terminal-core-copy :is(h1,strong) { color:#fff !important; }
+html[data-theme="light"] .rq-terminal-core-copy p { color:rgba(255,255,255,.7) !important; }
+html[data-theme="light"] .rq-terminal-memory-state {
+  background:rgba(8,11,13,.78) !important;
+  border-color:rgba(255,255,255,.12) !important;
+  backdrop-filter:blur(12px);
+}
+html[data-theme="light"] .rq-terminal-memory-state > div { border-color:rgba(255,255,255,.1) !important; }
+html[data-theme="light"] .rq-terminal-memory-state span { color:rgba(255,255,255,.46) !important; }
+html[data-theme="light"] .rq-terminal-memory-state strong { color:#fff !important; }
+
+/* Composer: compact command rail instead of the heavy grey shadow. */
+html[data-theme="light"] #queen-terminal-workspace .chat-input-row {
+  padding:14px 18px !important;
+  border-top:3px solid var(--accent) !important;
+  border-bottom:1px solid rgba(255,255,255,.1) !important;
+  background:linear-gradient(90deg,#171c20,#090c0e 82%) !important;
+  box-shadow:0 -12px 28px rgba(12,17,21,.13) !important;
+}
+html[data-theme="light"] #queen-terminal-workspace .chat-input {
+  min-height:66px;
+  color:#11171b !important;
+  border-color:rgba(229,0,61,.48) !important;
+  background:#f9fafb !important;
+  box-shadow:none !important;
+}
+html[data-theme="light"] #queen-terminal-workspace .chat-input::placeholder { color:#6c7780 !important; }
+html[data-theme="light"] #queen-terminal-workspace .chat-input-row .btn { min-height:66px; }
+html[data-theme="light"] #queen-terminal-workspace .rq-chat-hints {
+  color:#fff !important;
+  border-top-color:rgba(255,255,255,.08) !important;
+  background:#090c0e !important;
+}
+html[data-theme="light"] #queen-terminal-workspace .rq-chat-hints button { color:rgba(255,255,255,.64) !important; }
+html[data-theme="light"] #queen-terminal-workspace .rq-chat-hints button:hover { color:#ff315c !important; }
+
+html[data-theme="light"] .rq-advanced-compute {
+  border-top:1px solid rgba(229,0,61,.34) !important;
+  background:rgba(249,250,251,.96) !important;
+}
+html[data-theme="light"] .rq-advanced-compute > summary {
+  background:linear-gradient(90deg,rgba(229,0,61,.07),transparent 58%) !important;
+}
+html[data-theme="light"] .rq-advanced-compute > summary :is(strong,small) { color:#263038 !important; }
+html[data-theme="light"] .rq-terminal-sidebar {
+  border-left-color:rgba(17,22,27,.2) !important;
+  background:#eef1f2 !important;
+}
+html[data-theme="light"] .rq-terminal-sidebar .rq-loop-card {
+  color:#fff !important;
+  border-color:rgba(229,0,61,.42) !important;
+  background:linear-gradient(145deg,#1a1115,#080b0d 72%) !important;
+  box-shadow:0 16px 34px rgba(15,9,12,.14) !important;
+}
+html[data-theme="light"] .rq-terminal-sidebar .rq-loop-card :is(strong,b,a) { color:#fff !important; }
+html[data-theme="light"] .rq-terminal-sidebar .rq-loop-card :is(span,small) { color:rgba(255,255,255,.62) !important; }
+html[data-theme="light"] .rq-terminal-sidebar > div:nth-child(2) > div {
+  color:#fff !important;
+  border-color:rgba(255,255,255,.1) !important;
+  background:#101417 !important;
+}
+
+/* Prepare reads as an operational board, not a blank settings page. */
+html[data-theme="light"] .prepare-hero {
+  background:
+    linear-gradient(105deg,rgba(247,248,249,.99) 0%,rgba(238,241,242,.95) 62%,rgba(229,0,61,.09)),
+    repeating-linear-gradient(90deg,transparent 0 63px,rgba(17,22,27,.035) 64px),
+    repeating-linear-gradient(0deg,transparent 0 63px,rgba(17,22,27,.03) 64px) !important;
+  border-bottom:2px solid rgba(229,0,61,.34) !important;
+}
+html[data-theme="light"] .prepare-hero::before {
+  content:"RQ // READINESS PROTOCOL";
+  position:absolute;
+  right:4vw;
+  top:28px;
+  color:rgba(229,0,61,.09);
+  font:800 clamp(18px,2vw,34px) var(--mono);
+  letter-spacing:.18em;
+}
+html[data-theme="light"] .prepare-status-panel {
+  color:#fff !important;
+  border-color:rgba(229,0,61,.55) !important;
+  border-top-width:3px !important;
+  background:linear-gradient(145deg,#171c20,#090c0e 76%) !important;
+  box-shadow:0 22px 48px rgba(12,17,21,.17) !important;
+}
+html[data-theme="light"] .prepare-status-panel :is(strong) { color:#fff !important; }
+html[data-theme="light"] .prepare-status-panel :is(p,small) { color:rgba(255,255,255,.58) !important; }
+html[data-theme="light"] .prepare-status-panel .prepare-area { border-top-color:rgba(255,255,255,.12) !important; }
+html[data-theme="light"] .prepare-status-panel input {
+  color:#fff !important;
+  border-bottom-color:rgba(255,255,255,.22) !important;
+  background:transparent !important;
+}
+html[data-theme="light"] .prepare-status-panel input::placeholder { color:rgba(255,255,255,.48) !important; }
+html[data-theme="light"] .prepare-trust-strip {
+  border-color:rgba(25,130,80,.25) !important;
+  background:rgba(255,255,255,.62) !important;
+}
+html[data-theme="light"] .prepare-trust-strip p { color:#465159 !important; }
+html[data-theme="light"] .prepare-trust-strip a { color:#11171c !important; }
+html[data-theme="light"] .prepare-next-action {
+  border-color:rgba(229,0,61,.45) !important;
+  background:linear-gradient(100deg,rgba(229,0,61,.1),rgba(250,250,251,.97) 42%) !important;
+  box-shadow:inset 4px 0 var(--accent),0 16px 36px rgba(12,17,21,.07) !important;
+}
+html[data-theme="light"] .prepare-next-action :is(h2,a) { color:#11171c !important; }
+html[data-theme="light"] .prepare-next-action p { color:#47525a !important; }
+
+/* Dark visual archives preserve each source image and prevent pasted rectangles. */
+html[data-theme="light"] .library-hero,
+html[data-theme="light"] .community-hero {
+  color:#fff !important;
+  background:#050709 !important;
+  border-bottom:2px solid rgba(229,0,61,.52) !important;
+  box-shadow:0 24px 56px rgba(10,14,17,.13) !important;
+}
+html[data-theme="light"] .library-hero-art {
+  opacity:.68 !important;
+  filter:contrast(1.16) saturate(1.08) brightness(.8) !important;
+  mix-blend-mode:screen;
+}
+html[data-theme="light"] .library-hero-shade {
+  background:linear-gradient(90deg,#050709 0%,rgba(5,7,9,.98) 29%,rgba(5,7,9,.72) 52%,rgba(5,7,9,.15) 78%,rgba(5,7,9,.38)),linear-gradient(0deg,#050709,transparent 28%) !important;
+}
+html[data-theme="light"] .library-hero :is(h1,p,strong,a),
+html[data-theme="light"] .community-hero :is(h1,p,strong,a) { color:#fff !important; }
+html[data-theme="light"] .library-hero .pulse-eyebrow,
+html[data-theme="light"] .community-hero-copy > span { color:#ff315c !important; }
+html[data-theme="light"] .library-trust-banner {
+  border-color:rgba(255,255,255,.14) !important;
+  background:rgba(7,9,11,.78) !important;
+  backdrop-filter:blur(14px);
+}
+html[data-theme="light"] .library-trust-banner :is(span,strong,a) { color:#fff !important; }
+html[data-theme="light"] .community-hero-queen {
+  opacity:.88 !important;
+  filter:contrast(1.18) saturate(1.08) drop-shadow(0 0 46px rgba(229,0,61,.2)) !important;
+}
+html[data-theme="light"] .community-hero-shade {
+  background:linear-gradient(90deg,#050709 0%,rgba(5,7,9,.94) 47%,rgba(5,7,9,.18) 78%,rgba(5,7,9,.42)) !important;
+}
+html[data-theme="light"] .community-hero-nav {
+  background:#11161a !important;
+  border-color:rgba(255,255,255,.1) !important;
+}
+html[data-theme="light"] .community-hero-nav a {
+  color:rgba(255,255,255,.68) !important;
+  border-color:rgba(255,255,255,.09) !important;
+}
+html[data-theme="light"] .community-hero-nav a:hover { color:#fff !important; background:rgba(229,0,61,.16) !important; }
+
+/* Existing transparent Queen art receives the same White Room treatment. */
+html[data-theme="light"] :is(.queen-presence-art,.guide-queen img) {
+  filter:contrast(1.18) saturate(1.12) brightness(.98) drop-shadow(0 0 34px rgba(229,0,61,.14)) !important;
+  mix-blend-mode:multiply;
+}
+
+/* x402, merchant and on-chain identity are deliberately elevated. */
+html[data-theme="light"] :is(
+  .rq-home-operations,.intelligence-market-status,.x402-health,
+  .agent-identity-services article,.onchain-reference
+) {
+  color:#fff !important;
+  border-color:rgba(229,0,61,.42) !important;
+  background:linear-gradient(145deg,#161b1f,#080b0d 74%) !important;
+  box-shadow:0 18px 42px rgba(12,17,21,.13) !important;
+}
+html[data-theme="light"] :is(
+  .rq-home-operations,.intelligence-market-status,.x402-health,
+  .agent-identity-services article,.onchain-reference
+) :is(h2,h3,h4,strong,a) { color:#fff !important; }
+html[data-theme="light"] :is(
+  .rq-home-operations,.intelligence-market-status,.x402-health,
+  .agent-identity-services article,.onchain-reference
+) :is(p,small,span) { color:rgba(255,255,255,.62) !important; }
+
+html[data-theme="light"] .queen-dock {
+  border-top:2px solid var(--accent) !important;
+  box-shadow:0 18px 48px rgba(12,17,21,.17),0 0 28px rgba(229,0,61,.08) !important;
+}
+
+@media (max-width:900px) {
+  html[data-theme="light"] .rq-terminal-core-art { mix-blend-mode:screen; }
+  html[data-theme="light"] .community-hero-shade {
+    background:linear-gradient(0deg,#050709 0%,rgba(5,7,9,.91) 48%,rgba(5,7,9,.45)),linear-gradient(90deg,rgba(5,7,9,.82),rgba(5,7,9,.14)) !important;
+  }
+  html[data-theme="light"] #queen-terminal-workspace .chat-input-row { padding:10px 12px !important; }
+  html[data-theme="light"] #queen-terminal-workspace .chat-input,
+  html[data-theme="light"] #queen-terminal-workspace .chat-input-row .btn { min-height:56px; }
+}
+
+/* WHITE ROOM // CASCADE LOCK
+   Keep classified surfaces dark even when the broad light-theme panel rule wins
+   through :is() specificity. These are deliberate contrast islands, not leftovers. */
+html[data-theme="light"] body .rq-terminal-core .rq-terminal-memory-state {
+  color:#fff !important;
+  background:rgba(8,11,13,.86) !important;
+  border-color:rgba(255,255,255,.15) !important;
+  box-shadow:0 18px 46px rgba(0,0,0,.2) !important;
+}
+html[data-theme="light"] body .rq-terminal-core .rq-terminal-memory-state > div {
+  border-color:rgba(255,255,255,.1) !important;
+}
+html[data-theme="light"] body .rq-terminal-core .rq-terminal-memory-state span {
+  color:rgba(255,255,255,.58) !important;
+}
+html[data-theme="light"] body .rq-terminal-core .rq-terminal-memory-state strong {
+  color:#fff !important;
+}
+
+html[data-theme="light"] body .prepare-hero .prepare-status-panel {
+  color:#fff !important;
+  background:linear-gradient(145deg,#171c20,#080b0d 76%) !important;
+  border-color:rgba(229,0,61,.58) !important;
+  box-shadow:0 22px 48px rgba(12,17,21,.2) !important;
+}
+html[data-theme="light"] body .prepare-hero .prepare-status-panel :is(strong,h2,h3) {
+  color:#fff !important;
+}
+html[data-theme="light"] body .prepare-hero .prepare-status-panel :is(p,small,span) {
+  color:rgba(255,255,255,.64) !important;
+}
+html[data-theme="light"] body .prepare-hero .prepare-status-panel input {
+  color:#fff !important;
+  background:transparent !important;
+}
+
+html[data-theme="light"] body .library-hero > .container > p {
+  color:rgba(255,255,255,.72) !important;
+}
+html[data-theme="light"] body .library-hero .library-trust-banner {
+  color:#fff !important;
+  background:rgba(7,9,11,.88) !important;
+  border-color:rgba(255,255,255,.16) !important;
+  box-shadow:0 16px 38px rgba(0,0,0,.24) !important;
+}
+html[data-theme="light"] body .library-hero .library-trust-banner :is(span,strong,a) {
+  color:#fff !important;
+}
+html[data-theme="light"] body .library-hero .library-trust-banner > b {
+  color:rgba(255,255,255,.3) !important;
+}
+
+html[data-theme="light"] body .pulse-hero .queen-presence-copy {
+  color:#fff !important;
+  background:linear-gradient(100deg,rgba(8,11,13,.92),rgba(19,9,13,.84)) !important;
+  border-color:rgba(229,0,61,.52) !important;
+  box-shadow:0 16px 42px rgba(12,17,21,.2) !important;
+  backdrop-filter:blur(12px);
+}
+html[data-theme="light"] body .pulse-hero .queen-presence-copy :is(span,strong) {
+  color:#fff !important;
+}
+html[data-theme="light"] body .pulse-hero .queen-presence-copy small {
+  color:#ff8aa2 !important;
+}
+
+/* Stronger brand mark in compact navigation without turning the room pink. */
+html[data-theme="light"] body .navbar .solvival-icon-image,
+html[data-theme="light"] body .queen-dock .solvival-icon-image {
+  filter:contrast(1.2) saturate(1.35) drop-shadow(0 0 9px rgba(229,0,61,.16)) !important;
+}
