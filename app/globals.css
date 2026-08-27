@@ -7904,3 +7904,258 @@ html[data-theme="light"] body .navbar .solvival-icon-image,
 html[data-theme="light"] body .queen-dock .solvival-icon-image {
   filter:contrast(1.2) saturate(1.35) drop-shadow(0 0 9px rgba(229,0,61,.16)) !important;
 }
+
+/* WHITE ROOM // BRAND RED PASS
+   White Room is light by construction. RED QUEEN red supplies the threat signal;
+   large black cards are reserved for the original dark theme. */
+html[data-theme="light"] {
+  --accent:#ff0033 !important;
+  --accent-dim:#cc0029 !important;
+  --accent-glow:rgba(255,0,51,.14) !important;
+}
+
+html[data-theme="light"] body :is(.btn-primary,.threat-swap-connect .wallet-adapter-button) {
+  border-color:#ff0033 !important;
+  background:#ff0033 !important;
+}
+
+html[data-theme="light"] body .rq-terminal-core .rq-terminal-memory-state,
+html[data-theme="light"] body .prepare-hero .prepare-status-panel,
+html[data-theme="light"] body .pulse-hero .queen-presence-copy,
+html[data-theme="light"] body :is(
+  .rq-home-operations,.intelligence-market-status,.x402-health,
+  .agent-identity-services article,.onchain-reference
+) {
+  color:#13181d !important;
+  border-color:rgba(255,0,51,.3) !important;
+  background:
+    linear-gradient(110deg,rgba(255,0,51,.065),transparent 36%),
+    rgba(255,255,255,.94) !important;
+  box-shadow:inset 3px 0 #ff0033,0 15px 38px rgba(35,42,48,.09) !important;
+}
+html[data-theme="light"] body .rq-terminal-core .rq-terminal-memory-state > div {
+  border-color:rgba(20,26,31,.11) !important;
+}
+html[data-theme="light"] body :is(
+  .rq-terminal-core .rq-terminal-memory-state,
+  .prepare-hero .prepare-status-panel,
+  .pulse-hero .queen-presence-copy,
+  .rq-home-operations,.intelligence-market-status,.x402-health,
+  .agent-identity-services article,.onchain-reference
+) :is(h2,h3,h4,strong,a) { color:#11161a !important; }
+html[data-theme="light"] body :is(
+  .rq-terminal-core .rq-terminal-memory-state,
+  .prepare-hero .prepare-status-panel,
+  .pulse-hero .queen-presence-copy,
+  .rq-home-operations,.intelligence-market-status,.x402-health,
+  .agent-identity-services article,.onchain-reference
+) :is(p,small,span) { color:#56616a !important; }
+html[data-theme="light"] body .prepare-hero .prepare-status-panel input {
+  color:#11161a !important;
+  border-bottom-color:rgba(20,26,31,.22) !important;
+}
+html[data-theme="light"] body .pulse-hero .queen-presence-copy small { color:#b0002a !important; }
+
+/* Jupiter remains a Solana operation, but belongs visually to White Room. */
+html[data-theme="light"] body .onchain-main > .threat-swap {
+  color:#11161a !important;
+  border:1px solid rgba(255,0,51,.28) !important;
+  border-top:3px solid #ff0033 !important;
+  background:
+    radial-gradient(circle at 88% 12%,rgba(153,69,255,.08),transparent 28%),
+    linear-gradient(112deg,rgba(255,0,51,.075),rgba(255,255,255,.98) 38%,rgba(246,248,249,.98)) !important;
+  box-shadow:0 22px 56px rgba(28,35,40,.1) !important;
+}
+html[data-theme="light"] body .onchain-main .threat-swap-copy h2 { color:#11161a !important; }
+html[data-theme="light"] body .onchain-main .threat-swap-copy h2 em { color:#ff0033 !important; }
+html[data-theme="light"] body .onchain-main .threat-swap-copy > p,
+html[data-theme="light"] body .onchain-main .threat-swap-copy code { color:#53606a !important; }
+html[data-theme="light"] body .onchain-main .threat-swap-rules span {
+  color:#a80029 !important;
+  border-color:rgba(255,0,51,.24) !important;
+  background:rgba(255,0,51,.035) !important;
+}
+html[data-theme="light"] body .onchain-main .threat-swap-console {
+  color:#11161a !important;
+  border-color:rgba(18,24,29,.16) !important;
+  background:rgba(255,255,255,.86) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.8) !important;
+}
+html[data-theme="light"] body .onchain-main .threat-swap-console > header span { color:#11161a !important; }
+html[data-theme="light"] body .onchain-main .threat-swap-console > small,
+html[data-theme="light"] body .onchain-main .threat-swap-connect p { color:#5b6670 !important; }
+html[data-theme="light"] body .onchain-main .threat-swap-connect {
+  border-color:rgba(18,24,29,.18) !important;
+  background:rgba(243,246,247,.82) !important;
+}
+html[data-theme="light"] body .onchain-main :is(
+  .threat-swap-input-row input,.threat-swap-input-row > div button,
+  .threat-swap-order dl > div,.threat-swap-consent,.threat-swap-actions button
+) {
+  color:#11161a !important;
+  border-color:rgba(18,24,29,.18) !important;
+  background:#fff !important;
+}
+html[data-theme="light"] body .onchain-main :is(.threat-swap-order dd,.threat-swap-order > div:first-child strong) {
+  color:#11161a !important;
+}
+html[data-theme="light"] body .onchain-main :is(.threat-swap-input-row label span,.threat-swap-order dt,.threat-swap-consent span) {
+  color:#5b6670 !important;
+}
+
+/* Brighter, cleaner light-theme brand asset at small UI sizes. */
+html[data-theme="light"] body .solvival-icon-image {
+  opacity:1 !important;
+  filter:contrast(1.42) saturate(1.62) drop-shadow(0 0 7px rgba(255,0,51,.18)) !important;
+}
+
+/* WHITE ROOM // OPERATIONAL SURFACES
+   On-chain tools must read as part of the light product, not embedded dark pages. */
+html[data-theme="light"] body .onchain-main :is(
+  .onchain-console,
+  .onchain-balance-grid > div,
+  .onchain-proof-grid > div,
+  .onchain-utility-result,
+  .onchain-session-gate,
+  .onchain-console-error,
+  .onchain-console-loading,
+  .onchain-product-grid > article,
+  .onchain-production-gates > div,
+  .onchain-stack-grid > article,
+  .onchain-safety > ul > li,
+  .action-history-panel,
+  .agent-identity-services > article,
+  .rq-onchain-console,
+  .rq-onchain-console > article,
+  .rq-agentic-economy-grid > article,
+  .rq-threat-feature-standalone,
+  .rq-asset-roles
+) {
+  color:#11161a !important;
+  border-color:rgba(255,0,51,.24) !important;
+  background:
+    linear-gradient(118deg,rgba(255,0,51,.055),transparent 32%),
+    rgba(255,255,255,.97) !important;
+  box-shadow:0 16px 42px rgba(28,35,40,.08) !important;
+}
+html[data-theme="light"] body .onchain-main .onchain-console {
+  border-top:3px solid #ff0033 !important;
+  box-shadow:inset 3px 0 #ff0033,0 18px 48px rgba(28,35,40,.09) !important;
+}
+html[data-theme="light"] body .onchain-main :is(
+  .onchain-console,
+  .onchain-balance-grid > div,
+  .onchain-proof-grid > div,
+  .onchain-utility-result,
+  .onchain-session-gate,
+  .onchain-product-grid > article,
+  .onchain-production-gates > div,
+  .onchain-stack-grid > article,
+  .onchain-safety > ul > li,
+  .action-history-panel,
+  .agent-identity-services > article,
+  .rq-onchain-console,
+  .rq-onchain-console > article,
+  .rq-agentic-economy-grid > article,
+  .rq-threat-feature-standalone,
+  .rq-asset-roles
+) :is(h2,h3,h4,strong,b,a) { color:#11161a !important; }
+html[data-theme="light"] body .onchain-main :is(
+  .onchain-console,
+  .onchain-balance-grid > div,
+  .onchain-proof-grid > div,
+  .onchain-utility-result,
+  .onchain-session-gate,
+  .onchain-product-grid > article,
+  .onchain-production-gates > div,
+  .onchain-stack-grid > article,
+  .onchain-safety > ul > li,
+  .action-history-panel,
+  .agent-identity-services > article,
+  .rq-onchain-console,
+  .rq-onchain-console > article,
+  .rq-agentic-economy-grid > article,
+  .rq-threat-feature-standalone,
+  .rq-asset-roles
+) :is(p,small,span,dt) { color:#56616a !important; }
+html[data-theme="light"] body .onchain-main .onchain-console-head {
+  border-bottom-color:rgba(17,22,26,.12) !important;
+}
+html[data-theme="light"] body .onchain-main .onchain-console-head > span,
+html[data-theme="light"] body .onchain-main .onchain-console-head > b.is-error {
+  color:#ff0033 !important;
+}
+html[data-theme="light"] body .onchain-main .onchain-console-head > b:not(.is-live):not(.is-error) {
+  color:#5c6670 !important;
+}
+html[data-theme="light"] body .onchain-main .onchain-console.is-disconnected > p,
+html[data-theme="light"] body .onchain-main .onchain-console.is-disconnected > small {
+  color:#56616a !important;
+}
+html[data-theme="light"] body .onchain-main .onchain-console.is-disconnected .wallet-adapter-button {
+  color:#fff !important;
+  border-color:#ff0033 !important;
+  background:#ff0033 !important;
+  box-shadow:0 10px 24px rgba(255,0,51,.18) !important;
+}
+html[data-theme="light"] body .onchain-main :is(.onchain-session-gate button,.onchain-session-gate a,.onchain-console-error button) {
+  color:#ff0033 !important;
+  border-color:rgba(255,0,51,.34) !important;
+  background:#fff !important;
+}
+html[data-theme="light"] body .onchain-main .rq-onchain-console-head {
+  border-bottom-color:rgba(17,22,26,.12) !important;
+}
+
+html[data-theme="light"] body .onchain-main :is(
+  .onchain-contract-grid > article,
+  .onchain-stack-grid > article,
+  .onchain-safety,
+  .agent-identity-shell,
+  .agent-wallet-console
+) {
+  color:#11161a !important;
+  border-color:rgba(255,0,51,.24) !important;
+  background:
+    linear-gradient(120deg,rgba(255,0,51,.055),transparent 38%),
+    rgba(255,255,255,.97) !important;
+  box-shadow:0 16px 42px rgba(28,35,40,.08) !important;
+}
+html[data-theme="light"] body .onchain-main :is(
+  .onchain-contract-grid > article,
+  .onchain-stack-grid > article,
+  .onchain-safety,
+  .agent-identity-status,
+  .agent-wallet-console
+) :is(h2,h3,h4,strong,b,a,dd) { color:#11161a !important; }
+html[data-theme="light"] body .onchain-main :is(
+  .onchain-contract-grid > article,
+  .onchain-stack-grid > article,
+  .onchain-safety,
+  .agent-identity-status,
+  .agent-wallet-console
+) :is(p,li,small,span,dt,code) { color:#56616a !important; }
+html[data-theme="light"] body .onchain-main .agent-identity-shell::before {
+  background-image:
+    linear-gradient(rgba(20,26,31,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(20,26,31,.035) 1px,transparent 1px) !important;
+}
+html[data-theme="light"] body .onchain-main .agent-identity-portrait {
+  border-right-color:rgba(255,0,51,.18) !important;
+  background:linear-gradient(150deg,#fff 0%,#fff4f6 62%,#f5f7f8 100%) !important;
+}
+html[data-theme="light"] body .onchain-main .agent-identity-portrait img {
+  filter:contrast(1.14) saturate(1.16) drop-shadow(0 0 30px rgba(255,0,51,.15)) !important;
+  mix-blend-mode:multiply;
+}
+html[data-theme="light"] body .onchain-main .agent-identity-status,
+html[data-theme="light"] body .onchain-main .agent-identity-ledger,
+html[data-theme="light"] body .onchain-main .agent-identity-ledger > div,
+html[data-theme="light"] body .onchain-main .rq-onchain-console article {
+  border-color:rgba(17,22,26,.11) !important;
+}
+html[data-theme="light"] body .onchain-main .agent-identity-actions a:not(:first-child) {
+  color:#ff0033 !important;
+  border-color:rgba(255,0,51,.34) !important;
+  background:#fff !important;
+}
