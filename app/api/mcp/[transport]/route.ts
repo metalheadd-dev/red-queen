@@ -11,6 +11,8 @@ import { GET as localDeltaGet } from "@/app/api/intel/local-delta/route";
 import { POST as preparednessPlanPost } from "@/app/api/intel/preparedness-plan/route";
 import { GET as incidentDossierGet } from "@/app/api/intel/incident-dossier/route";
 import { POST as transactionRiskPost } from "@/app/api/intel/transaction-risk/route";
+import { POST as premiumAreaPost } from "@/app/api/intel/premium-area/route";
+import { POST as survivalKitPost } from "@/app/api/market/survival-kit/route";
 import { POST as analyzeWalletPost } from "@/app/api/terminal/analyze-wallet/route";
 
 async function invokePaidRoute(input: {
@@ -415,6 +417,55 @@ const handler = createMcpHandler(
         body: { transaction, wallet: expectedWallet },
         operationId,
         paymentSignature,
+      }),
+    );
+
+    server.registerTool(
+      "purchase_premium_area_intelligence",
+      {
+        title: "Purchase RED QUEEN Premium Area Intelligence",
+        description: "Purchase provider-metered geospatial evidence for one broad area through x402. RED QUEEN discloses the upstream data boundary, compares purchased records, and returns a procurement receipt. An exact address is never required.",
+        inputSchema: z.object({
+          area: z.string().min(2).max(80),
+          latitude: z.number().min(-90).max(90),
+          longitude: z.number().min(-180).max(180),
+          radiusKm: z.number().int().min(25).max(1000).default(250),
+          focus: z.enum(["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"]).default("LOCAL_THREATS"),
+          operationId: z.string().uuid().optional(),
+          paymentSignature: z.string().optional(),
+        }),
+        outputSchema: z.object({ success: z.boolean().optional(), report: z.any().optional(), procurementReceipt: z.any().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ area, latitude, longitude, radiusKm, focus, operationId, paymentSignature }) => invokePaidRoute({
+        route: premiumAreaPost,
+        url: "http://localhost:3000/api/intel/premium-area",
+        method: "POST",
+        body: { area, lat: latitude, lng: longitude, radiusKm, focus },
+        operationId,
+        paymentSignature,
+      }),
+    );
+
+    server.registerTool(
+      "build_72_hour_survival_cart",
+      {
+        title: "Build a RED QUEEN 72-Hour Survival Cart",
+        description: "Create a provider-ready 72-hour essentials cart for a broad area and household context. This tool does not place an order, disclose a delivery address, move funds, or award XP.",
+        inputSchema: z.object({
+          area: z.string().min(2).max(80),
+          focus: z.enum(["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"]).default("HOUSEHOLD"),
+          people: z.number().int().min(1).max(12).default(1),
+          constraints: z.string().max(320).default(""),
+        }),
+        outputSchema: z.object({ success: z.boolean().optional(), kit: z.any().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ area, focus, people, constraints }) => invokePaidRoute({
+        route: survivalKitPost,
+        url: "http://localhost:3000/api/market/survival-kit",
+        method: "POST",
+        body: { area, focus, people, constraints },
       }),
     );
   },

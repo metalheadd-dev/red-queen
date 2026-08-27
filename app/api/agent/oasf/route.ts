@@ -14,6 +14,8 @@ export async function GET() {
       "Evidence and uncertainty remain visible.",
       "No seed phrases, private keys or custody.",
       "No automatic transaction approval.",
+      "No paid provider purchase without an exact user or calling-agent x402 approval.",
+      "No physical checkout, delivery-address disclosure or seller payment without a separate approval.",
       "Paid intelligence never creates BIO-SCORE or readiness.",
     ],
   }, {

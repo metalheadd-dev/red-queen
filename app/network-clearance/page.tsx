@@ -11,6 +11,7 @@ import ThreatSwapClient from "@/components/ThreatSwapClient";
 import AgentRegistryIdentity from "@/components/AgentRegistryIdentity";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
 import MobileCommandHeader from "@/components/MobileCommandHeader";
+import SurvivalMarketClient from "@/components/SurvivalMarketClient";
 
 const LEVEL_COLORS = ["#8a8a8a", "#d8d8d8", "#f0c929", "#ff884d", "#ff4d4d"];
 
@@ -63,6 +64,7 @@ export default function NetworkClearancePage() {
         />
         <div id="onchain-actions" />
         <IntelligenceOperationsClient />
+        <SurvivalMarketClient />
         <OnchainClearanceClient />
         <ThreatSwapClient />
         <AgentRegistryIdentity />

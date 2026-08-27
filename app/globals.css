@@ -3499,7 +3499,7 @@ body:has(#game-player-root) .page-content {
 .intelligence-market-status i.is-live { background:#9cff59; box-shadow:0 0 12px rgba(156,255,89,.6); }
 .intelligence-market-status strong { color:#fff; font:700 10px var(--mono); letter-spacing:.1em; }
 .intelligence-market-status span { margin-left:auto; color:rgba(255,255,255,.52); font:600 11px var(--mono); }
-.intelligence-market-tabs { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; }
+.intelligence-market-tabs { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:7px; }
 .intelligence-market-tabs button { min-height:92px; display:grid; grid-template-columns:auto 1fr; gap:8px 12px; align-content:center; padding:15px 17px; border:1px solid rgba(255,255,255,.09); background:#07080a; color:#fff; text-align:left; cursor:pointer; }
 .intelligence-market-tabs button:hover,.intelligence-market-tabs button.active { border-color:rgba(255,0,51,.48); background:linear-gradient(120deg,rgba(255,0,51,.09),#07080a 58%); }
 .intelligence-market-tabs span { grid-row:1 / 3; color:var(--accent); font:700 11px var(--mono); }
@@ -3572,6 +3572,74 @@ body:has(#game-player-root) .page-content {
 .paid-report-sources a { padding:8px 10px; border:1px solid rgba(20,241,149,.25); color:#b7ffcf; background:rgba(20,241,149,.035); font:700 10px/1.35 var(--mono); text-decoration:none; }
 .paid-report-sources b { color:#fff; }
 .paid-report-note { display:grid; gap:8px; padding:14px 16px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.018); }
+.premium-procurement-quote { display:grid; gap:0; margin-top:18px; border:1px solid rgba(240,201,41,.25); background:rgba(240,201,41,.025); }
+.premium-procurement-quote > header,.premium-procurement-quote > div { display:flex; justify-content:space-between; gap:16px; padding:11px 13px; border-bottom:1px solid rgba(255,255,255,.07); }
+.premium-procurement-quote > header span,.premium-procurement-quote > header strong,.premium-procurement-quote > div span,.premium-procurement-quote > div strong,.premium-procurement-quote > small { font:700 9px/1.45 var(--mono); letter-spacing:.08em; }
+.premium-procurement-quote > header span { color:#f0c929; }
+.premium-procurement-quote > header strong,.premium-procurement-quote > div strong { color:#f0c929; text-align:right; }
+.premium-procurement-quote > div span { color:#fff; }
+.premium-procurement-quote > p { margin:0; padding:12px 13px 7px; color:rgba(255,255,255,.62); font-size:12px; line-height:1.55; }
+.premium-procurement-quote > small { padding:0 13px 12px; color:rgba(255,255,255,.34); }
+.premium-procurement-quote.is-ready { border-color:rgba(20,241,149,.3); background:rgba(20,241,149,.025); }
+.premium-procurement-quote.is-ready > header span,.premium-procurement-quote.is-ready > header strong,.premium-procurement-quote.is-ready > div strong { color:#14f195; }
+.premium-procurement-receipt { display:grid; gap:9px; }
+.premium-procurement-receipt > span { color:#14f195; font:700 9px var(--mono); letter-spacing:.1em; }
+.premium-procurement-receipt > div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.premium-procurement-receipt article { display:grid; gap:8px; padding:14px; border:1px solid rgba(20,241,149,.18); background:rgba(20,241,149,.025); }
+.premium-procurement-receipt article header { display:flex; justify-content:space-between; gap:12px; }
+.premium-procurement-receipt article strong { color:#fff; font-size:13px; }
+.premium-procurement-receipt article em { color:#14f195; font:700 8px var(--mono); font-style:normal; }
+.premium-procurement-receipt article em.is-failed { color:#ff7087; }
+.premium-procurement-receipt article em.is-optional_not_configured { color:#f0c929; }
+.premium-procurement-receipt article p,.premium-procurement-receipt > p { margin:0; color:rgba(255,255,255,.62); font-size:12px; line-height:1.55; }
+.premium-procurement-receipt article small { color:rgba(255,255,255,.38); font:700 8px/1.5 var(--mono); }
+
+.survival-market { padding-top:90px; scroll-margin-top:82px; }
+.survival-market-grid { display:grid; grid-template-columns:minmax(340px,.72fr) minmax(0,1.28fr); border:1px solid rgba(255,0,51,.25); background:#050608; }
+.survival-market-form,.survival-market-output { padding:28px; }
+.survival-market-form { border-right:1px solid rgba(255,255,255,.08); background:linear-gradient(135deg,rgba(255,0,51,.07),transparent 42%); }
+.survival-market-form > span,.survival-market-empty > span,.survival-market-output > header span { color:var(--accent); font:700 9px var(--mono); letter-spacing:.12em; }
+.survival-market-form label { display:grid; gap:7px; margin-top:15px; }
+.survival-market-form label b { color:rgba(255,255,255,.58); font:700 9px var(--mono); letter-spacing:.09em; }
+.survival-market-form input,.survival-market-form select,.survival-market-form textarea { width:100%; min-height:46px; padding:12px 13px; border:1px solid rgba(255,255,255,.13); border-radius:0; outline:none; background:#020304; color:#fff; font:500 14px var(--body-font); }
+.survival-market-form textarea { min-height:100px; resize:vertical; }
+.survival-market-form-row { display:grid; grid-template-columns:minmax(0,1fr) 110px; gap:10px; }
+.survival-market-build { width:100%; min-height:50px; margin-top:22px; border:1px solid var(--accent); background:var(--accent); color:#050505; font:800 10px var(--mono); letter-spacing:.1em; cursor:pointer; }
+.survival-market-build:disabled { opacity:.42; cursor:not-allowed; }
+.survival-market-form > small { display:block; margin-top:11px; color:rgba(255,255,255,.36); font:700 8px var(--mono); letter-spacing:.08em; }
+.survival-market-error { margin:12px 0 0; padding:12px; border:1px solid rgba(255,0,51,.34); color:#ff8b9c; background:rgba(255,0,51,.055); font-size:12px; }
+.survival-market-output { min-height:520px; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 50% 38%,rgba(255,0,51,.09),transparent 33%); }
+.survival-market-output.has-kit { display:block; }
+.survival-market-empty { max-width:530px; text-align:center; }
+.survival-market-empty strong { display:block; margin:16px 0 10px; color:#fff; font-size:clamp(23px,2.5vw,36px); line-height:1.1; }
+.survival-market-empty p { color:rgba(255,255,255,.62); font-size:14px; line-height:1.65; }
+.survival-market-output > header { display:flex; justify-content:space-between; gap:14px; margin-bottom:16px; }
+.survival-market-output > header strong { color:#14f195; font:700 9px var(--mono); }
+.survival-market-items { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.survival-market-items article { display:flex; flex-direction:column; min-height:210px; padding:15px; border:1px solid rgba(255,255,255,.09); background:rgba(255,255,255,.018); }
+.survival-market-items article > div { display:flex; justify-content:space-between; gap:10px; }
+.survival-market-items article > div span,.survival-market-items article > div em { color:var(--accent); font:700 8px var(--mono); font-style:normal; letter-spacing:.08em; }
+.survival-market-items article > div em { color:#14f195; }
+.survival-market-items h3 { margin:17px 0 5px; color:#fff; font-size:17px; text-transform:none; }
+.survival-market-items article > strong { color:#fff; font:700 12px var(--mono); }
+.survival-market-items p { margin:10px 0; color:rgba(255,255,255,.61); font-size:12px; line-height:1.55; }
+.survival-market-items article > small { color:#f0c929; font-size:10px; line-height:1.45; }
+.survival-market-items a { margin-top:auto; padding-top:13px; color:var(--accent); font:700 9px var(--mono); text-decoration:none; }
+.survival-market-item-actions { display:flex !important; flex-wrap:wrap; align-items:center; justify-content:flex-start !important; gap:7px !important; margin-top:auto; padding-top:13px; }
+.survival-market-item-actions button,.survival-market-item-actions a { margin:0; padding:8px 9px; border:1px solid rgba(255,255,255,.11); background:transparent; color:rgba(255,255,255,.72); font:700 8px var(--mono); text-decoration:none; cursor:pointer; }
+.survival-market-item-actions button { border-color:rgba(20,241,149,.28); color:#b7ffcf; }
+.survival-market-item-actions button:disabled { cursor:wait; opacity:.55; }
+.survival-market-search-note { margin:9px 0 0 !important; padding:8px; border-left:2px solid #f0c929; background:rgba(240,201,41,.04); color:#f0c929 !important; font:700 8px/1.45 var(--mono) !important; }
+.survival-market-search-note.is-error { border-color:var(--accent); background:rgba(255,0,51,.04); color:#ff8b9c !important; }
+.survival-market-offers { display:grid !important; gap:6px !important; margin-top:9px; }
+.survival-market-offers a { display:flex; justify-content:space-between; gap:10px; margin:0; padding:9px; border:1px solid rgba(20,241,149,.2); background:rgba(20,241,149,.025); }
+.survival-market-offers a strong { color:#fff; font:700 9px var(--mono); }
+.survival-market-offers a span { color:#b7ffcf !important; font:700 8px var(--mono) !important; }
+.survival-market-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.survival-market-actions button,.survival-market-actions a { padding:11px 14px; border:1px solid rgba(20,241,149,.3); background:rgba(20,241,149,.035); color:#b7ffcf; font:700 9px var(--mono); text-decoration:none; cursor:pointer; }
+.survival-market-boundary { margin-top:14px; padding:14px; border-left:3px solid #f0c929; background:rgba(240,201,41,.035); }
+.survival-market-boundary strong { color:#f0c929; font:700 9px var(--mono); }
+.survival-market-boundary p { margin:7px 0 0; color:rgba(255,255,255,.58); font-size:12px; line-height:1.55; }
 .onchain-section-head { display:grid; grid-template-columns:minmax(270px,.65fr) minmax(0,1.1fr); gap:12px 60px; margin-bottom:30px; }
 .onchain-section-head > span { grid-row:1 / 3; color:var(--accent); font:700 8px var(--mono); letter-spacing:.16em; }
 .onchain-section-head h2 { color:#fff; font-size:clamp(28px,4vw,44px); text-transform:none; letter-spacing:-.02em; }
@@ -3695,6 +3763,8 @@ body:has(#game-player-root) .page-content {
   .onchain-tier-grid { grid-template-columns:repeat(5,minmax(190px,1fr)); overflow-x:auto; padding-bottom:8px; }
   .threat-swap { grid-template-columns:1fr; }
   .intelligence-market-tabs { grid-template-columns:repeat(3,1fr); }
+  .survival-market-grid { grid-template-columns:1fr; }
+  .survival-market-form { border-right:0; border-bottom:1px solid rgba(255,255,255,.08); }
 }
 
 @media (max-width: 760px) {
@@ -3740,6 +3810,11 @@ body:has(#game-player-root) .page-content {
   .intelligence-market-form,.intelligence-market-output { padding:22px 18px; }
   .intelligence-market-form { border-right:0; border-bottom:1px solid rgba(255,255,255,.08); }
   .intelligence-market-output { min-height:430px; }
+  .survival-market { padding-top:66px; }
+  .survival-market-form,.survival-market-output { padding:22px 18px; }
+  .survival-market-output { min-height:360px; }
+  .survival-market-items { grid-template-columns:1fr; }
+  .premium-procurement-receipt > div { grid-template-columns:1fr; }
   .onchain-contract-grid article { min-height:300px; padding:22px; }
   .onchain-bio-rule { grid-template-columns:1fr; gap:7px; }
   .onchain-safety { margin-top:66px; padding:25px 18px; }
@@ -5368,7 +5443,11 @@ html[data-theme="light"] :is(
   .intelligence-market-status,.intelligence-market-tabs button,.intelligence-market-grid,
   .intelligence-market-form input,.intelligence-market-form select,.intelligence-market-form textarea,
   .intelligence-market-output,.paid-report-context,.paid-report-facts,.paid-report-signals > a,
-  .paid-report-note,.threat-swap-input-row input,.threat-swap-input-row > div button,
+  .paid-report-note,.premium-procurement-quote,.premium-procurement-receipt article,
+  .survival-market-grid,.survival-market-form input,.survival-market-form select,
+  .survival-market-form textarea,.survival-market-items article,.survival-market-boundary,
+  .survival-market-item-actions button,.survival-market-item-actions a,.survival-market-offers a,
+  .threat-swap-input-row input,.threat-swap-input-row > div button,
   .agent-identity-services article,.community-architecture-line,.community-organ-grid article,
   .community-filter button,.community-file-list button,.community-board-contract > div,
   .community-board-cta,.community-origin,.guide-start li,.guide-page-grid a,
@@ -5382,6 +5461,15 @@ html[data-theme="light"] :is(
   border-color:rgba(18,24,30,.13) !important;
   box-shadow:none;
 }
+html[data-theme="light"] :is(.premium-procurement-quote,.survival-market-boundary) { background:rgba(200,16,50,.035) !important; }
+html[data-theme="light"] :is(.premium-procurement-quote p,.premium-procurement-quote small,
+  .premium-procurement-receipt p,.premium-procurement-receipt small,.survival-market-empty p,
+  .survival-market-items p,.survival-market-boundary p,.survival-market-form > small) { color:var(--text-dim) !important; }
+html[data-theme="light"] :is(.premium-procurement-quote > div span,.premium-procurement-receipt article strong,
+  .survival-market-empty strong,.survival-market-items h3,.survival-market-items article > strong,
+  .survival-market-offers a strong) { color:var(--text) !important; }
+html[data-theme="light"] .survival-market-item-actions button { color:#087f53 !important; }
+html[data-theme="light"] .survival-market-item-actions a { color:var(--text) !important; }
 
 html[data-theme="light"] :is(input,select,textarea) {
   background:#fff !important;

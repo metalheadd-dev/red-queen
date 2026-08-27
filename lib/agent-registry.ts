@@ -16,7 +16,7 @@ export const RED_QUEEN_AGENT_IDENTITY_PATH = "/api/agent/identity";
 export const RED_QUEEN_AGENT_REGISTRY_PROGRAM = "8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ";
 export const RED_QUEEN_AGENT_INDEXER = "https://8004-indexer-main.qnt.sh";
 export const RED_QUEEN_AGENT_DESCRIPTION =
-  "RED QUEEN is an agentic survival intelligence system on Solana, developed and operated by SOLvival Corp. She synthesizes verified public, geospatial, emergency, cyber, and on-chain signals; explains relevance, provenance, and uncertainty; and converts findings into location-aware briefs, preparedness protocols, and wallet-risk analysis. Users can request and approve paid intelligence operations in USDC through x402. RED QUEEN may prepare actions and transactions, but never holds user assets, signs on their behalf, or acts without explicit approval.";
+  "RED QUEEN is an agentic survival intelligence system on Solana, developed and operated by SOLvival Corp. She synthesizes verified public, purchased geospatial, emergency, environmental, cyber, and on-chain evidence; explains relevance, provenance, and uncertainty; and converts findings into location-aware briefs, preparedness protocols, wallet-risk analysis, and provider-ready survival carts. Users and agents can approve paid intelligence operations in USDC through x402. RED QUEEN may procure metered data and prepare actions or transactions, but never holds user assets, signs on their behalf, checks out a physical order, or spends without explicit approval.";
 
 export const RED_QUEEN_AGENT_SKILLS = [
   "advanced_reasoning_planning/strategic_planning",
@@ -70,7 +70,7 @@ export function buildRedQueenRegistrationFile() {
         meta: {
           version: "2025-06-18",
           transport: "streamable-http",
-          tools: 9,
+          tools: 11,
         },
       },
       {

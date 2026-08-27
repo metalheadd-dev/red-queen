@@ -161,18 +161,31 @@ export default function ProductGuidePage() {
           <div id="x402">
             <div className="guide-section-head"><span>04 // x402</span><h2>Pay for a declared output</h2></div>
             <p>x402 uses a separate wallet approval for an exact USDC amount. A connected or signed-in wallet cannot silently pay. Each live request receives an operation ID, settlement receipt, replay protection, and a private receipt summary in My Readiness.</p>
-            <ul><li>0.01 USDC global verified-source synthesis.</li><li>0.01 USDC 24-hour Local Delta.</li><li>0.02 USDC personalized 72-hour preparedness plan.</li><li>0.02 USDC verified Incident Dossier.</li><li>0.01 USDC pre-sign Solana transaction risk explanation.</li><li>0.02 USDC Solana network health or wallet authority audit.</li><li>Disabled automatically when recipient, facilitator, required source data, or receipt storage is not healthy.</li></ul>
+            <ul><li>0.01 USDC global verified-source synthesis.</li><li>0.01 USDC 24-hour Local Delta.</li><li>0.02 USDC personalized 72-hour preparedness plan.</li><li>0.02 USDC verified Incident Dossier.</li><li>0.01 USDC pre-sign Solana transaction risk explanation.</li><li>0.02 USDC Solana network health or wallet authority audit.</li><li>0.05 USDC Premium Area Intelligence, including metered external geospatial evidence and an upstream procurement receipt.</li><li>Disabled automatically when recipient, facilitator, required source data, provider readiness, or receipt storage is not healthy.</li></ul>
+            <p>Premium Area Intelligence does not replace RED QUEEN&apos;s free official-source layer. It purchases specialized evidence only for the approved operation, discloses which provider receives which broad-area data, and returns both the analysis and procurement record after settlement.</p>
             <Link href="/onchain">CHECK SETTLEMENT STATUS →</Link>
           </div>
         </section>
 
+        <section className="guide-section guide-two-column" id="survival-market">
+          <div>
+            <div className="guide-section-head"><span>05 // SURVIVAL MARKET</span><h2>Build the cart before approving commerce</h2></div>
+            <p>RED QUEEN can turn household size, broad-area context and constraints into a practical 72-hour supply cart. The preview is free and does not contact a seller, reserve inventory, transmit a delivery address or move funds.</p>
+          </div>
+          <div>
+            <div className="guide-section-head"><span>CHECKOUT BOUNDARY</span><h2>Discovery and purchase stay separate</h2></div>
+            <ul><li>Review quantities, reasons and cautions first.</li><li>Search live verified physical listings through the x402 Market catalog.</li><li>Use a retailer search when no agent-native offer exists.</li><li>Every future checkout requires a new quote, disclosed seller and explicit wallet approval.</li></ul>
+            <Link href="/onchain#survival-market">BUILD A 72-HOUR CART →</Link>
+          </div>
+        </section>
+
         <section className="guide-section guide-visage" id="visage">
-          <div><span>05 // SOLVIVOR AVATAR · RQ VISAGE / V2</span><h2>Your face. Her visual language.</h2><p>Any SOLvivor can choose a personal avatar; it is cropped locally to a square and can stay on that device or be explicitly saved to a private profile. Queen Visage generation unlocks at Analyst clearance with a freshly verified balance of at least 500,000 $THREAT. It follows a stricter visual contract: preserve identity, use a deep black silhouette, precise white facial linework, sparse red circuitry, luminous eyes and a restrained circular crown halo.</p><p>No text, logo, weapon, gore or extra person may appear. The source portrait is sent only after Generate and is never stored by RED QUEEN. Only the final 1:1 result can be saved privately, downloaded or shared to X, Discord and other profiles.</p></div>
+          <div><span>06 // SOLVIVOR AVATAR · RQ VISAGE / V2</span><h2>Your face. Her visual language.</h2><p>Any SOLvivor can choose a personal avatar; it is cropped locally to a square and can stay on that device or be explicitly saved to a private profile. Queen Visage generation unlocks at Analyst clearance with a freshly verified balance of at least 500,000 $THREAT. It follows a stricter visual contract: preserve identity, use a deep black silhouette, precise white facial linework, sparse red circuitry, luminous eyes and a restrained circular crown halo.</p><p>No text, logo, weapon, gore or extra person may appear. The source portrait is sent only after Generate and is never stored by RED QUEEN. Only the final 1:1 result can be saved privately, downloaded or shared to X, Discord and other profiles.</p></div>
           <Image src="/art/red-queen-sigil.png" alt="RED QUEEN visual language reference" width={1536} height={1536} />
         </section>
 
         <section className="guide-section guide-roadmap" id="next-solana">
-          <div className="guide-section-head"><span>06 // SOLANA EXECUTION LAYER</span><h2>What is beta now, and what comes next</h2><p>Every label below is an implementation state, not a decorative promise.</p></div>
+          <div className="guide-section-head"><span>07 // SOLANA EXECUTION LAYER</span><h2>What is beta now, and what comes next</h2><p>Every label below is an implementation state, not a decorative promise.</p></div>
           <div>
             <article><span>BETA</span><strong>Wallet Lockdown</strong><p>Inspect SPL authorities now; simulate and explicitly approve delegate revocation only after the mainnet feature gate is enabled.</p></article>
             <article><span>BETA</span><strong>Jupiter $THREAT swap</strong><p>Request a fresh Swap V2 order, lock output to the canonical mint, inspect output and fees, then sign explicitly in the wallet.</p></article>

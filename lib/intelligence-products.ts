@@ -44,6 +44,17 @@ export const X402_INTELLIGENCE_PRODUCTS: IntelligenceProduct[] = [
     endpoint: "/api/intel/local-delta?area={area}&lat={lat}&lng={lng}&radiusKm={radius}",
   },
   {
+    id: "premium-area-intelligence",
+    status: "BETA",
+    name: "Premium area intelligence",
+    price: "0.05 USDC",
+    scheme: "SVM EXACT",
+    value: "Purchase provider-metered geospatial and optional weather evidence for one broad area, then let RED QUEEN compare it and explain what deserves action.",
+    output: "Sourced area report + upstream procurement receipt",
+    endpoint: "/api/intel/premium-area",
+    method: "POST",
+  },
+  {
     id: "preparedness-compiler",
     status: "BETA",
     name: "Preparedness plan compiler",

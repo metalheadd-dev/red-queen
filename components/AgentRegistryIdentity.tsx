@@ -80,7 +80,7 @@ export default function AgentRegistryIdentity() {
           )}
 
           <div className="agent-identity-services">
-            <article><span>MCP</span><strong>9 AGENT TOOLS</strong><p>Signals, Solana telemetry, wallet audits, incident dossiers and preparedness protocols.</p></article>
+            <article><span>MCP</span><strong>11 AGENT TOOLS</strong><p>Signals, Solana telemetry, wallet audits, paid evidence procurement, survival carts, incident dossiers and preparedness protocols.</p></article>
             <article><span>x402</span><strong>{identity.x402}</strong><p>Exact USDC compute payments with explicit approval, receipts and replay protection.</p></article>
             <article><span>OASF</span><strong>{RED_QUEEN_AGENT_SKILLS.length} SKILLS · {RED_QUEEN_AGENT_DOMAINS.length} DOMAINS</strong><p>Machine-readable survival intelligence, risk analysis and emergency-management capabilities.</p></article>
           </div>
