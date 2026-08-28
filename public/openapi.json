@@ -1,54 +1,204 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "RED QUEEN Intelligence API",
-    "description": "Source-bounded survival intelligence and Solana wallet telemetry protected by x402 v2 exact-SVM payments. Purchases never award XP or BIO-SCORE.",
-    "version": "2.1.0"
+    "title": "RED QUEEN Intelligence Merchant API",
+    "description": "Machine-readable survival intelligence and Solana wallet-risk resources protected by x402 v2 exact-SVM payments. Call once without payment to receive a 402 challenge, settle the declared USDC amount, then retry with the same X-Operation-Id and Payment-Signature. Purchases never award XP or BIO-SCORE.",
+    "version": "3.0.0"
   },
   "servers": [{ "url": "https://redqueen.space" }],
+  "externalDocs": {
+    "description": "RED QUEEN agent and merchant documentation",
+    "url": "https://redqueen.space/for-agents"
+  },
+  "tags": [
+    { "name": "Survival Intelligence" },
+    { "name": "Premium Procurement" },
+    { "name": "Solana Intelligence" }
+  ],
   "paths": {
     "/api/intel/premium": {
       "get": {
-        "summary": "Seven-source verified signal synthesis",
+        "tags": ["Survival Intelligence"],
+        "summary": "Synthesize the verified global signal grid",
+        "description": "Returns a ranked synthesis with source coverage, confidence, freshness and source links.",
         "operationId": "getGlobalSourceSynthesis",
-        "x-payment-info": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.01 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
+        "x-payment-info": { "$ref": "#/components/x-payment-info/GlobalSynthesis" },
         "parameters": [{ "$ref": "#/components/parameters/OperationId" }, { "$ref": "#/components/parameters/PaymentSignature" }],
         "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
       }
     },
     "/api/intel/depin": {
       "get": {
-        "summary": "Solana network health snapshot",
+        "tags": ["Solana Intelligence"],
+        "summary": "Read current Solana network health",
+        "description": "Returns validator, epoch, performance and priority-fee telemetry from configured Solana RPC sources.",
         "operationId": "getSolanaNetworkHealth",
-        "x-payment-info": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
+        "x-payment-info": { "$ref": "#/components/x-payment-info/SolanaHealth" },
         "parameters": [{ "$ref": "#/components/parameters/OperationId" }, { "$ref": "#/components/parameters/PaymentSignature" }],
         "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
       }
     },
-    "/api/intel/wallet-exposure": {
+    "/api/intel/local-delta": {
       "get": {
-        "summary": "Solana wallet authority exposure audit",
-        "description": "Reports public SPL and Token-2022 delegate and authority state without identity inference or a signature request.",
-        "operationId": "getWalletExposureAudit",
-        "x-payment-info": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
+        "tags": ["Survival Intelligence"],
+        "summary": "Explain verified 24-hour changes around a broad area",
+        "description": "Compares the current source grid against one broad city or region. Exact home addresses are neither required nor retained.",
+        "operationId": "getLocalDeltaBrief",
+        "x-payment-info": { "$ref": "#/components/x-payment-info/LocalDelta" },
         "parameters": [
-          { "name": "address", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "area", "in": "query", "required": true, "description": "Broad city or region; never an exact address.", "schema": { "type": "string", "minLength": 2, "maxLength": 80 }, "example": "Madrid" },
+          { "name": "lat", "in": "query", "required": false, "schema": { "type": "number", "minimum": -90, "maximum": 90 }, "example": 40.4168 },
+          { "name": "lng", "in": "query", "required": false, "schema": { "type": "number", "minimum": -180, "maximum": 180 }, "example": -3.7038 },
+          { "name": "radiusKm", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 25, "maximum": 1000, "default": 250 } },
           { "$ref": "#/components/parameters/OperationId" },
           { "$ref": "#/components/parameters/PaymentSignature" }
         ],
-        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "description": "Invalid public Solana address." }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/intel/premium-area": {
+      "post": {
+        "tags": ["Premium Procurement"],
+        "summary": "Procure metered area intelligence and synthesize the result",
+        "description": "Purchases configured provider data only after x402 approval and returns the sourced area report with an upstream procurement receipt.",
+        "operationId": "createPremiumAreaIntelligence",
+        "x-payment-info": { "$ref": "#/components/x-payment-info/PremiumArea" },
+        "parameters": [{ "$ref": "#/components/parameters/OperationId" }, { "$ref": "#/components/parameters/PaymentSignature" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PremiumAreaInput" }, "example": { "area": "Valencia", "lat": 39.4699, "lng": -0.3763, "radiusKm": 250, "focus": "LOCAL_THREATS" } } }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/intel/preparedness-plan": {
+      "post": {
+        "tags": ["Survival Intelligence"],
+        "summary": "Compile a personalized 72-hour preparedness protocol",
+        "description": "Turns a selected hazard and household constraints into phased actions, checklist items and cited sources.",
+        "operationId": "createPreparednessPlan",
+        "x-payment-info": { "$ref": "#/components/x-payment-info/Preparedness" },
+        "parameters": [{ "$ref": "#/components/parameters/OperationId" }, { "$ref": "#/components/parameters/PaymentSignature" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PreparednessInput" }, "example": { "area": "Berlin", "focus": "HOUSEHOLD", "household": "One adult and one child", "constraints": "Limited storage; no car" } } }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/intel/incident-dossier": {
+      "get": {
+        "tags": ["Survival Intelligence"],
+        "summary": "Build a dossier for one current verified signal",
+        "description": "Returns timestamped fact, assessment, uncertainty, action protocol and source metadata for a signal still present in the live source window.",
+        "operationId": "getIncidentDossier",
+        "x-payment-info": { "$ref": "#/components/x-payment-info/IncidentDossier" },
+        "parameters": [
+          { "name": "signalId", "in": "query", "required": true, "description": "Current verified signal ID returned by RED QUEEN Pulse or Map.", "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/OperationId" },
+          { "$ref": "#/components/parameters/PaymentSignature" }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "404": { "description": "Signal left the verified source window; no payment is requested." }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/intel/transaction-risk": {
+      "post": {
+        "tags": ["Solana Intelligence"],
+        "summary": "Simulate and explain a Solana transaction before signing",
+        "description": "Decodes a serialized versioned transaction and reports signer, writable-account, authority and known-program risks. It never signs or submits the inspected transaction.",
+        "operationId": "explainTransactionRisk",
+        "x-payment-info": { "$ref": "#/components/x-payment-info/TransactionRisk" },
+        "parameters": [{ "$ref": "#/components/parameters/OperationId" }, { "$ref": "#/components/parameters/PaymentSignature" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TransactionRiskInput" }, "example": { "transaction": "BASE64_SERIALIZED_VERSIONED_TRANSACTION", "wallet": "OPTIONAL_EXPECTED_SIGNER" } } }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "422": { "description": "The transaction could not be inspected." }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/intel/wallet-exposure": {
+      "get": {
+        "tags": ["Solana Intelligence"],
+        "summary": "Audit public Solana token-authority exposure",
+        "description": "Reports SPL and Token-2022 delegates, frozen state, empty accounts and external close authorities without identity inference or a signature request.",
+        "operationId": "getWalletExposureAudit",
+        "x-payment-info": { "$ref": "#/components/x-payment-info/WalletExposure" },
+        "parameters": [
+          { "name": "address", "in": "query", "required": true, "description": "Public Solana wallet address. Never provide a seed phrase or private key.", "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/OperationId" },
+          { "$ref": "#/components/parameters/PaymentSignature" }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
       }
     }
   },
   "components": {
     "parameters": {
-      "OperationId": { "name": "X-Operation-Id", "in": "header", "required": true, "description": "UUID binding the request, settlement receipt and delivered output for replay-safe retries.", "schema": { "type": "string", "format": "uuid" } },
-      "PaymentSignature": { "name": "Payment-Signature", "in": "header", "required": false, "description": "Base64 x402 v2 payment payload created from the runtime challenge.", "schema": { "type": "string" } }
+      "OperationId": { "name": "X-Operation-Id", "in": "header", "required": true, "description": "Client-generated UUID binding request input, settlement receipt and output for replay-safe retries.", "schema": { "type": "string", "format": "uuid" } },
+      "PaymentSignature": { "name": "Payment-Signature", "in": "header", "required": false, "description": "Base64 x402 v2 payment payload. Omit on the first call; include when retrying after settlement.", "schema": { "type": "string" } }
+    },
+    "schemas": {
+      "PremiumAreaInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "area": { "type": "string", "minLength": 2, "maxLength": 80, "description": "Broad city or region." },
+          "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+          "lng": { "type": "number", "minimum": -180, "maximum": 180 },
+          "radiusKm": { "type": "integer", "minimum": 25, "maximum": 1000 },
+          "focus": { "type": "string", "enum": ["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"], "default": "LOCAL_THREATS" }
+        },
+        "required": ["area", "lat", "lng", "radiusKm"]
+      },
+      "PreparednessInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "area": { "type": "string", "description": "Optional broad city or region." },
+          "focus": { "type": "string", "enum": ["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"] },
+          "household": { "type": "string", "maxLength": 320 },
+          "constraints": { "type": "string", "maxLength": 320 }
+        },
+        "required": ["focus"],
+        "anyOf": [{ "required": ["household"] }, { "required": ["constraints"] }]
+      },
+      "TransactionRiskInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "transaction": { "type": "string", "description": "Base64 serialized Solana versioned transaction.", "minLength": 40, "maxLength": 240000 },
+          "wallet": { "type": "string", "description": "Optional expected signer public key." }
+        },
+        "required": ["transaction"]
+      }
     },
     "responses": {
-      "Delivered": { "description": "Settled output with X-Operation-Id, X-Receipt-Status and Payment-Response headers.", "content": { "application/json": { "schema": { "type": "object", "additionalProperties": true } } } },
-      "PaymentRequired": { "description": "Runtime x402 v2 exact-SVM challenge in the Payment-Required header." },
-      "Unavailable": { "description": "Payment rail, receipt storage, or required source data is unavailable; no paid output is delivered." }
+      "Delivered": {
+        "description": "Settled output. Payment-Response proves settlement and X-Receipt-Status reports durable delivery state.",
+        "headers": {
+          "Payment-Response": { "description": "Base64 x402 settlement response.", "schema": { "type": "string" } },
+          "X-Operation-Id": { "description": "Operation UUID used for this delivery.", "schema": { "type": "string", "format": "uuid" } },
+          "X-Receipt-Status": { "description": "Durable receipt status.", "schema": { "type": "string" } }
+        },
+        "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean", "const": true } }, "required": ["success"], "additionalProperties": true } } }
+      },
+      "PaymentRequired": {
+        "description": "x402 v2 exact-SVM challenge. Payment-Required includes accepted payment requirements and Bazaar input/output discovery metadata.",
+        "headers": { "Payment-Required": { "description": "Base64 x402 challenge with Bazaar extension metadata.", "schema": { "type": "string" } } },
+        "content": { "application/json": { "schema": { "type": "object", "additionalProperties": true } } }
+      },
+      "InvalidInput": { "description": "Input validation failed before any payment was requested." },
+      "Unavailable": { "description": "Payment rail, receipt storage, upstream provider or required source coverage is unavailable. No paid output is delivered." }
+    },
+    "x-payment-info": {
+      "GlobalSynthesis": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.01 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
+      "SolanaHealth": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
+      "LocalDelta": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.01 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
+      "PremiumArea": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.05 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", "upstreamProcurement": true },
+      "Preparedness": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
+      "IncidentDossier": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
+      "TransactionRisk": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.01 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
+      "WalletExposure": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" }
     }
   }
 }

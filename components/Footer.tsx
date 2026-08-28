@@ -12,6 +12,7 @@ export default function Footer() {
         <Link href="/onchain#agent-identity"><span>8004 REGISTERED</span> · AGENT ID {RED_QUEEN_AGENT_ID_SHORT} · SOLANA MAINNET</Link>
       </p>
       <p style={{ marginTop: "12px", display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", fontSize: "10px" }}>
+        <Link href="/for-agents">FOR AGENTS</Link>
         <Link href="/docs">PRODUCT GUIDE</Link>
         <Link href="/license">LICENSE</Link>
         <Link href="/copyright">COPYRIGHT</Link>

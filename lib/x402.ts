@@ -11,6 +11,7 @@ import {
   persistX402Delivery,
 } from "@/lib/x402-operations";
 import { isValidSolanaPublicKey } from "@/lib/solana";
+import { discoveryExtensionsFor } from "@/lib/x402-discovery";
 
 // Fallback to PayAI's default facilitator endpoint if not configured
 const facilitatorUrl = process.env.PAYAI_FACILITATOR_URL || "https://facilitator.payai.network";
@@ -43,6 +44,13 @@ export function withFriendlyX402(
 ) {
   return async (req: NextRequest) => {
     const { preflight, ...paymentRouteConfig } = routeConfig || {};
+    const productId = String(paymentRouteConfig?.productId || new URL(req.url).pathname);
+    const declaredExtensions = discoveryExtensionsFor(productId);
+    paymentRouteConfig.extensions = {
+      ...(paymentRouteConfig.extensions || {}),
+      ...declaredExtensions,
+    };
+    delete paymentRouteConfig.productId;
     const payTo = paymentRouteConfig?.accepts?.payTo;
     if (typeof payTo !== "string" || !isValidSolanaPublicKey(payTo.trim())) {
       return NextResponse.json({
@@ -73,7 +81,6 @@ export function withFriendlyX402(
       }, { status: 503, headers: { "X-Operation-Id": operationId } });
     }
 
-    const productId = String(paymentRouteConfig?.productId || new URL(req.url).pathname);
     const requestBody = req.method === "GET" || req.method === "HEAD"
       ? ""
       : await req.clone().text().catch(() => "");

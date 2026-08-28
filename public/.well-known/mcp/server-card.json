@@ -1,9 +1,19 @@
 {
   "serverInfo": {
-    "name": "Red Queen Mainframe Gateway",
-    "version": "1.0.0"
+    "name": "RED QUEEN",
+    "version": "2.0.0"
   },
   "homepage": "https://redqueen.space",
   "iconUrl": "https://redqueen.space/favicon.ico",
-  "description": "Premium real-time apocalypse telemetry and survival containment data feeds. Protected by x402 open-protocol stablecoin micropayments."
+  "description": "Agentic survival intelligence, paid x402 resources and Solana wallet-risk tools operated by SOLvival Corp.",
+  "transport": "streamable-http",
+  "endpoint": "https://redqueen.space/api/mcp/mcp",
+  "protocolVersion": "2025-06-18",
+  "discovery": "https://redqueen.space/.well-known/x402",
+  "openapi": "https://redqueen.space/openapi.json",
+  "identity": "https://redqueen.space/.well-known/agent-registration.json",
+  "authentication": {
+    "publicTools": "Read-only source brief, wallet triage and survival-cart planning",
+    "paidTools": "x402 v2 exact-SVM payment challenge with replay-safe operation receipts"
+  }
 }
