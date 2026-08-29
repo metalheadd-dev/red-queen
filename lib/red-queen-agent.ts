@@ -17,6 +17,13 @@ export const RED_QUEEN_RESPONSE_SCHEMA = z.object({
     steps: z.array(z.string().min(1).max(220)).min(2).max(5),
     reviewInDays: z.number().int().min(1).max(365),
   }).nullable(),
+  procurement: z.object({
+    title: z.string().min(1).max(100),
+    focus: z.enum(["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"]),
+    people: z.number().int().min(1).max(12),
+    constraints: z.string().max(320),
+    rationale: z.string().min(1).max(260),
+  }).nullable(),
   readiness: z.object({
     eligible: z.boolean(),
     xp: z.number().int().min(-5).max(20),
@@ -41,9 +48,33 @@ export interface RedQueenSource {
   verified: boolean;
 }
 
+export interface RedQueenCommerceItem {
+  id: string;
+  category: string;
+  name: string;
+  quantity: string;
+  priority: "ESSENTIAL" | "CONTEXTUAL";
+  why: string;
+  cautions?: string;
+  amazonUrl: string;
+}
+
+export interface RedQueenCommerceCart {
+  status: "CART_READY";
+  title: string;
+  rationale: string;
+  area: string;
+  people: number;
+  items: RedQueenCommerceItem[];
+  fullMarketUrl: string;
+  retailerMode: "AMAZON_SEARCH";
+  checkoutBoundary: string;
+}
+
 export interface RedQueenClientResponse extends RedQueenAgentResponse {
   message: string;
   sources: RedQueenSource[];
+  commerce: RedQueenCommerceCart | null;
   readiness: RedQueenAgentResponse["readiness"] & {
     applied: boolean;
     totalXp: number;
@@ -76,5 +107,8 @@ export function formatAgentMessage(response: RedQueenAgentResponse) {
   const readiness = response.readiness.eligible
     ? `\n\nREADINESS: ${response.readiness.xp >= 0 ? "+" : ""}${response.readiness.xp} XP · ${response.readiness.reason}`
     : "";
-  return `${response.situation}${facts}\n\nQUEEN ASSESSMENT: ${response.answer}\n\nUNCERTAINTY: ${response.uncertainty}\n\nNEXT ACTION: ${response.action}${plan}${readiness}`;
+  const procurement = response.procurement
+    ? `\n\nPROCUREMENT: ${response.procurement.title} · ${response.procurement.rationale}`
+    : "";
+  return `${response.situation}${facts}\n\nQUEEN ASSESSMENT: ${response.answer}\n\nUNCERTAINTY: ${response.uncertainty}\n\nNEXT ACTION: ${response.action}${plan}${procurement}${readiness}`;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
+import type { RedQueenClientResponse, RedQueenCommerceItem } from "@/lib/red-queen-agent";
 
 interface AgentResponseCardProps {
   response: RedQueenClientResponse;
@@ -26,6 +26,24 @@ const GROUNDING_LABELS: Record<RedQueenClientResponse["grounding"], string> = {
   SCENARIO_SIMULATION: "SCENARIO SIMULATION",
 };
 
+function ProcurementItem({ item, index }: { item: RedQueenCommerceItem; index: number }) {
+  return (
+    <article className="rq-procurement__item">
+      <div className="rq-procurement__index">{String(index + 1).padStart(2, "0")}</div>
+      <div className="rq-procurement__copy">
+        <span>{item.category} · {item.priority}</span>
+        <h4>{item.name}</h4>
+        <strong>{item.quantity}</strong>
+        <p>{item.why}</p>
+        {item.cautions && <small>{item.cautions}</small>}
+      </div>
+      <a href={item.amazonUrl} target="_blank" rel="noopener noreferrer sponsored">
+        SEARCH AMAZON ↗
+      </a>
+    </article>
+  );
+}
+
 export default function AgentResponseCard({
   response,
   onFollowUp,
@@ -35,6 +53,9 @@ export default function AgentResponseCard({
   actionSaved = false,
   planSaved = false,
 }: AgentResponseCardProps) {
+  const primaryCommerceItems = response.commerce?.items.slice(0, 4) ?? [];
+  const additionalCommerceItems = response.commerce?.items.slice(4) ?? [];
+
   return (
     <div className="rq-response">
       <div className="rq-response__meta">
@@ -92,6 +113,44 @@ export default function AgentResponseCard({
           <ol>{response.plan.steps.map((step) => <li key={step}>{step}</li>)}</ol>
           <small>REVIEW IN {response.plan.reviewInDays} DAYS · LOCAL COMPLETION IS NOT AUTOMATIC BIO EVIDENCE</small>
         </div>
+      )}
+
+      {response.commerce && (
+        <section className="rq-procurement" aria-label="RED QUEEN preparedness cart">
+          <header className="rq-procurement__head">
+            <div>
+              <span>QUEEN PROCUREMENT // CART READY</span>
+              <h3>{response.commerce.title}</h3>
+              <p>{response.commerce.rationale}</p>
+            </div>
+            <strong>{response.commerce.items.length} ITEMS</strong>
+          </header>
+
+          <div className="rq-procurement__items">
+            {primaryCommerceItems.map((item, index) => (
+              <ProcurementItem key={item.id} item={item} index={index} />
+            ))}
+          </div>
+
+          {additionalCommerceItems.length > 0 && (
+            <details className="rq-procurement__more">
+              <summary>SHOW {additionalCommerceItems.length} MORE RECOMMENDATIONS</summary>
+              <div className="rq-procurement__items">
+                {additionalCommerceItems.map((item, index) => (
+                  <ProcurementItem key={item.id} item={item} index={index + primaryCommerceItems.length} />
+                ))}
+              </div>
+            </details>
+          )}
+
+          <footer className="rq-procurement__foot">
+            <div>
+              <strong>REVIEW BEFORE PURCHASE</strong>
+              <span>No seller selected · no address shared · no order placed</span>
+            </div>
+            <Link href={response.commerce.fullMarketUrl}>OPEN FULL MARKET →</Link>
+          </footer>
+        </section>
       )}
 
       {response.sources.length > 0 && (

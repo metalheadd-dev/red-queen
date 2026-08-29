@@ -24,8 +24,10 @@ import {
   formatAgentMessage,
   RED_QUEEN_RESPONSE_SCHEMA,
   RedQueenAgentResponse,
+  RedQueenCommerceCart,
 } from "@/lib/red-queen-agent";
 import { AgentMode, isAgentMode, isSurvivalFocus, sanitizeArea, sanitizeSignalId, sanitizeSignalIds, SurvivalFocus } from "@/lib/survival-context";
+import { buildAmazonSearchUrl, buildSurvivalKit } from "@/lib/survival-market";
 
 export const maxDuration = 30;
 export const dynamic = "force-dynamic";
@@ -232,12 +234,74 @@ function selfHarmResponse(): RedQueenAgentResponse {
     usesLiveContext: false,
     followUps: ["Help me find a crisis line", "Help me write the message", "Stay with me for the next step"],
     plan: null,
+    procurement: null,
     readiness: {
       eligible: false,
       xp: 0,
       reason: "Crisis support is never gamified.",
       gains: { ...ZERO_GAINS },
     },
+  };
+}
+
+const PREPAREDNESS_COMMERCE_PATTERN = /(?:zombie|зомбі|apocalyp|апокаліп|survival\s*(?:kit|supplies)|emergency\s*(?:kit|supplies)|72[- ]?hour\s*(?:kit|supplies)|готую(?:сь|ся)|підготуват|підготовк|кошик|список\s+(?:речей|товарів)|що\s+(?:мені\s+)?потрібно\s+(?:мати|купити))/i;
+
+function inferProcurementFocus(message: string, fallback?: SurvivalFocus): SurvivalFocus {
+  if (/(?:blackout|power outage|блекаут|відключенн|електроенерг)/i.test(message)) return "BLACKOUT";
+  if (/(?:outbreak|pandemic|virus|health|епідем|пандем|вірус|здоров)/i.test(message)) return "HEALTH";
+  if (/(?:wallet|cyber|digital|гаманець|кібер|цифров)/i.test(message)) return "DIGITAL_SECURITY";
+  if (/(?:local|near me|місто|поруч|евакуац)/i.test(message)) return "LOCAL_THREATS";
+  return fallback || "HOUSEHOLD";
+}
+
+function inferPeople(message: string) {
+  const match = message.match(/\b(\d{1,2})\s*(?:people|persons?|adults?|children|людей|особ(?:и|а)?|доросл(?:их|і)|дітей)/i);
+  return match ? Math.min(12, Math.max(1, Number(match[1]))) : 1;
+}
+
+function buildCommerceCart(
+  response: RedQueenAgentResponse,
+  message: string,
+  context: AgentSessionContext,
+): RedQueenCommerceCart | null {
+  const inferred = PREPAREDNESS_COMMERCE_PATTERN.test(message);
+  const intent = response.procurement || (inferred ? {
+    title: response.grounding === "SCENARIO_SIMULATION" ? "Scenario-ready 72-hour kit" : "Personal 72-hour preparedness kit",
+    focus: inferProcurementFocus(message, context.focus),
+    people: inferPeople(message),
+    constraints: response.grounding === "SCENARIO_SIMULATION"
+      ? "Scenario simulation. Prioritize shelter, blackout resilience, hygiene, communications and evacuation basics. Exclude weapons."
+      : "",
+    rationale: "A bounded supply list turns the recommended action into items the user can review and source.",
+  } : null);
+  if (!intent) return null;
+
+  const area = context.area || "GENERAL PREPAREDNESS";
+  const kit = buildSurvivalKit({
+    area,
+    focus: intent.focus,
+    people: intent.people,
+    constraints: intent.constraints,
+  });
+  return {
+    status: "CART_READY",
+    title: intent.title || kit.title,
+    rationale: intent.rationale,
+    area,
+    people: kit.people,
+    items: kit.items.map((entry) => ({
+      id: entry.id,
+      category: entry.category,
+      name: entry.name,
+      quantity: entry.quantity,
+      priority: entry.priority,
+      why: entry.why,
+      cautions: entry.cautions,
+      amazonUrl: buildAmazonSearchUrl(kit.suppliers.amazon.url, entry.searchQuery),
+    })),
+    fullMarketUrl: "/onchain#survival-market",
+    retailerMode: "AMAZON_SEARCH",
+    checkoutBoundary: kit.checkoutBoundary,
   };
 }
 
@@ -417,6 +481,11 @@ ${buildLiveContext(livePulse, attachedSignals, requestedSignalIds.length, tokenC
     }
 
     const message = formatAgentMessage(agentResponse);
+    const commerce = selfHarmIntent ? null : buildCommerceCart(
+      agentResponse,
+      latestUserMessage.content,
+      sessionContext,
+    );
     if (supabase && persistentMemory) {
       const logRows = [
         { role: "user", content: latestUserMessage.content, wallet_address: hashedIdentifier },
@@ -459,6 +528,7 @@ ${buildLiveContext(livePulse, attachedSignals, requestedSignalIds.length, tokenC
       ...agentResponse,
       message,
       sources,
+      commerce,
       readiness: {
         ...agentResponse.readiness,
         applied: readinessApplied,

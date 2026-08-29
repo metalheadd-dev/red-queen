@@ -20,6 +20,8 @@ export type SurvivalKitItem = {
   cautions?: string;
 };
 
+export type SurvivalKit = ReturnType<typeof buildSurvivalKit>;
+
 const VALID_FOCUS: SurvivalFocus[] = ["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"];
 
 export function parseSurvivalKitInput(value: unknown): SurvivalKitInput | null {
@@ -40,6 +42,26 @@ export function parseSurvivalKitInput(value: unknown): SurvivalKitInput | null {
 
 function item(id: string, category: string, name: string, quantity: string, why: string, searchQuery: string, priority: SurvivalKitItem["priority"] = "ESSENTIAL", cautions?: string): SurvivalKitItem {
   return { id, category, name, quantity, why, searchQuery, priority, cautions };
+}
+
+function defaultAmazonBase(area: string) {
+  const normalized = area.toLowerCase();
+  if (/spain|españa|madrid|barcelona|valencia|sevilla/.test(normalized)) return "https://www.amazon.es/s";
+  if (/germany|deutschland|berlin|munich|münchen|hamburg/.test(normalized)) return "https://www.amazon.de/s";
+  if (/france|paris|lyon|marseille/.test(normalized)) return "https://www.amazon.fr/s";
+  if (/italy|italia|rome|roma|milan|milano/.test(normalized)) return "https://www.amazon.it/s";
+  if (/united kingdom|\buk\b|london|england|scotland/.test(normalized)) return "https://www.amazon.co.uk/s";
+  return "https://www.amazon.com/s";
+}
+
+export function buildAmazonSearchUrl(baseUrl: string, query: string) {
+  try {
+    const url = new URL(baseUrl);
+    url.searchParams.set("k", query);
+    return url.toString();
+  } catch {
+    return `https://www.amazon.com/s?k=${encodeURIComponent(query)}`;
+  }
 }
 
 export function buildSurvivalKit(input: SurvivalKitInput) {
@@ -76,7 +98,7 @@ export function buildSurvivalKit(input: SurvivalKitInput) {
     items.push(item("accessibility", "ACCESSIBILITY", "Accessibility backup supplies", "One tested backup set", "Preserves the specific device, battery or communication support named in your plan.", "accessible emergency preparedness supplies", "CONTEXTUAL"));
   }
 
-  const amazonBase = process.env.SURVIVAL_MARKET_AMAZON_BASE_URL?.trim() || "https://www.amazon.com/s";
+  const amazonBase = process.env.SURVIVAL_MARKET_AMAZON_BASE_URL?.trim() || defaultAmazonBase(input.area);
   const x402Market = process.env.X402_MARKET_BASE_URL?.trim() || "https://x402-market.com/shop";
   return {
     title: `72-hour survival kit · ${input.area}`,

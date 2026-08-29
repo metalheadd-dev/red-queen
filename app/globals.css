@@ -3834,6 +3834,45 @@ body:has(#game-player-root) .page-content {
 .rq-preparedness-plan > p { margin: 0; color: rgba(255,255,255,.56); font-size: 11px; line-height: 1.55; }
 .rq-preparedness-plan ol { display: grid; gap: 5px; margin: 13px 0; padding-left: 24px; color: rgba(255,255,255,.76); font-size: 11px; line-height: 1.5; }
 .rq-preparedness-plan > small { color: rgba(255,255,255,.32); font: 700 7px var(--mono); letter-spacing: .05em; }
+.rq-procurement { position:relative; overflow:hidden; margin-top:14px; border:1px solid rgba(255,0,51,.34); background:linear-gradient(145deg,rgba(255,0,51,.09),rgba(5,6,8,.98) 42%); }
+.rq-procurement::after { content:""; position:absolute; right:-90px; top:-120px; width:280px; height:280px; border:1px solid rgba(255,0,51,.12); border-radius:50%; box-shadow:0 0 0 34px rgba(255,0,51,.025),0 0 0 72px rgba(255,0,51,.018); pointer-events:none; }
+.rq-procurement__head { position:relative; z-index:1; display:flex; justify-content:space-between; gap:22px; padding:20px; border-bottom:1px solid rgba(255,255,255,.08); }
+.rq-procurement__head > div > span { color:var(--accent); font:800 9px var(--mono); letter-spacing:.13em; }
+.rq-procurement__head h3 { margin:9px 0 5px; color:#fff; font-size:20px; line-height:1.12; text-transform:none; }
+.rq-procurement__head p { max-width:640px; margin:0; color:rgba(255,255,255,.6); font-size:12px; line-height:1.55; }
+.rq-procurement__head > strong { align-self:flex-start; flex:0 0 auto; padding:7px 9px; border:1px solid rgba(20,241,149,.3); color:#14f195; font:800 8px var(--mono); letter-spacing:.08em; }
+.rq-procurement__items { position:relative; z-index:1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.rq-procurement__item { display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:12px; min-height:144px; padding:17px; border-right:1px solid rgba(255,255,255,.07); border-bottom:1px solid rgba(255,255,255,.07); }
+.rq-procurement__index { color:rgba(255,0,51,.54); font:800 20px var(--display-font); }
+.rq-procurement__copy > span { color:rgba(255,255,255,.4); font:700 8px var(--mono); letter-spacing:.09em; }
+.rq-procurement__copy h4 { margin:8px 0 3px; color:#fff; font-size:14px; line-height:1.25; text-transform:none; }
+.rq-procurement__copy > strong { color:#fff; font:700 10px var(--mono); }
+.rq-procurement__copy p { margin:8px 0 0; color:rgba(255,255,255,.57); font-size:10px; line-height:1.5; }
+.rq-procurement__copy small { display:block; margin-top:7px; color:#f0c929; font-size:9px; line-height:1.45; }
+.rq-procurement__item > a { align-self:end; padding:8px 9px; border:1px solid rgba(255,0,51,.3); color:#ff6b82; font:800 8px var(--mono); text-decoration:none; white-space:nowrap; transition:.2s ease; }
+.rq-procurement__item > a:hover { background:var(--accent); color:#050505; }
+.rq-procurement__more { position:relative; z-index:1; border-bottom:1px solid rgba(255,255,255,.07); }
+.rq-procurement__more > summary { padding:13px 18px; color:#ff6b82; font:800 8px var(--mono); letter-spacing:.1em; cursor:pointer; list-style:none; }
+.rq-procurement__more > summary::-webkit-details-marker { display:none; }
+.rq-procurement__more > summary::after { content:" +"; color:var(--accent); }
+.rq-procurement__more[open] > summary::after { content:" −"; }
+.rq-procurement__foot { position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:15px 18px; background:rgba(255,255,255,.025); }
+.rq-procurement__foot > div { display:grid; gap:3px; }
+.rq-procurement__foot strong { color:#f0c929; font:800 8px var(--mono); letter-spacing:.08em; }
+.rq-procurement__foot span { color:rgba(255,255,255,.4); font-size:9px; }
+.rq-procurement__foot > a { padding:10px 12px; border:1px solid rgba(20,241,149,.27); color:#b7ffcf; font:800 8px var(--mono); text-decoration:none; white-space:nowrap; }
+@media (max-width:780px) {
+  .rq-procurement__items { grid-template-columns:1fr; }
+  .rq-procurement__item { grid-template-columns:28px minmax(0,1fr); }
+  .rq-procurement__item > a { grid-column:2; justify-self:start; }
+  .rq-procurement__foot { align-items:flex-start; flex-direction:column; }
+}
+html[data-theme="light"] .rq-procurement { background:linear-gradient(145deg,rgba(200,16,50,.08),rgba(255,255,255,.96) 44%); border-color:rgba(200,16,50,.35); }
+html[data-theme="light"] .rq-procurement :is(.rq-procurement__head h3,.rq-procurement__copy h4,.rq-procurement__copy > strong) { color:var(--text); }
+html[data-theme="light"] .rq-procurement :is(.rq-procurement__head p,.rq-procurement__copy p,.rq-procurement__foot span,.rq-procurement__copy > span) { color:var(--text-dim); }
+html[data-theme="light"] .rq-procurement__head,
+html[data-theme="light"] .rq-procurement__item,
+html[data-theme="light"] .rq-procurement__more { border-color:rgba(20,28,35,.11); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    RED QUEEN PRESENCE // DESKTOP READABILITY + LIVING PLATFORM
