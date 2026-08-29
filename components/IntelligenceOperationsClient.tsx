@@ -19,7 +19,7 @@ const WalletMultiButton = dynamic(
   { ssr: false },
 );
 
-type ProductId = "local" | "plan" | "incident" | "transaction" | "wallet" | "premium";
+type ProductId = "local" | "plan" | "incident" | "transaction" | "wallet" | "premium" | "external";
 
 const PRODUCT_META: Record<ProductId, { index: string; name: string; price: string; promise: string }> = {
   local: { index: "01", name: "LOCAL DELTA", price: "0.01 USDC", promise: "Verified changes around one broad location during the last 24 hours." },
@@ -28,6 +28,7 @@ const PRODUCT_META: Record<ProductId, { index: string; name: string; price: stri
   transaction: { index: "04", name: "TRANSACTION RISK", price: "0.01 USDC", promise: "Decode and simulate a Solana transaction before you decide whether to sign." },
   wallet: { index: "05", name: "WALLET EXPOSURE", price: "0.02 USDC", promise: "Expand the connected wallet's public delegate and authority surface into an evidence-bounded audit." },
   premium: { index: "06", name: "PREMIUM AREA", price: "0.05 USDC", promise: "Queen purchases provider-metered geospatial data, compares it and returns one sourced assessment plus a procurement receipt." },
+  external: { index: "07", name: "QUEEN BUYER", price: "0.08 USDC", promise: "Queen buys missing evidence from another x402 merchant, verifies it and returns one decision with both receipts." },
 };
 
 function filenameFor(product: ProductId) {
@@ -50,6 +51,7 @@ function reportTitle(product: ProductId, data: any) {
   if (product === "incident") return data?.dossier?.title || "Incident dossier delivered";
   if (product === "wallet") return data?.audit?.headline || "Wallet exposure audit delivered";
   if (product === "premium") return data?.report?.title || "Premium area intelligence delivered";
+  if (product === "external") return data?.report?.title || "External survival intelligence delivered";
   return `Transaction risk: ${data?.report?.overallRisk || "inspection delivered"}`;
 }
 
@@ -59,6 +61,7 @@ function reportSummary(product: ProductId, data: any) {
   if (product === "incident") return data?.dossier?.queenAssessment || data?.dossier?.exportNotice;
   if (product === "wallet") return data?.audit?.assessment || data?.audit?.trustBoundary;
   if (product === "premium") return data?.report?.headline || data?.report?.assessment;
+  if (product === "external") return data?.report?.headline || data?.report?.assessment;
   return data?.report?.queenDirective || "Compare the final wallet simulation before signing.";
 }
 
@@ -99,6 +102,18 @@ function outputValue(value: unknown) {
 function PaidReportContent({ product, data }: { product: ProductId; data: any }) {
   const report = product === "local" ? data?.report : product === "plan" ? data?.plan : product === "incident" ? data?.dossier : product === "wallet" ? data?.audit : data?.report;
   if (!report) return null;
+
+  if (product === "external") {
+    const receipt = data?.procurementReceipt;
+    return <div className="paid-report paid-report-premium">
+      <div className="paid-report-next"><span>ONE NEXT ACTION</span><strong>{report.nextAction}</strong></div>
+      <div className="paid-report-context"><div><span>AREA</span><strong>{report.area}</strong></div><div><span>FOCUS</span><strong>{String(report.focus || "SURVIVAL").replaceAll("_", " ")}</strong></div><div><span>UPSTREAM</span><strong>{receipt?.upstreamCost || "0.03 USDC"}</strong></div></div>
+      {Array.isArray(report.findings) && report.findings.length > 0 && <div className="paid-report-phases"><article><header><span>PURCHASED FINDINGS</span></header><ol>{report.findings.map((finding: any, index: number) => <li key={index}><strong>{finding.confidence}</strong> · {finding.fact}<br /><small>{finding.relevance}</small></li>)}</ol></article></div>}
+      {sourceList(report.sources)}
+      <section className="premium-procurement-receipt"><span>UPSTREAM x402 RECEIPTS</span><div>{(receipt?.purchases || []).map((entry: any, index: number) => <article key={`${entry.resource}-${index}`}><header><strong>{entry.merchant}</strong><em className="is-purchased">SETTLED</em></header><p>{entry.amountUsdc} USDC · {entry.resource}</p><small>{entry.transaction ? `TX: ${entry.transaction}` : `IDEMPOTENCY: ${entry.idempotencyKey}`}</small></article>)}</div><p>SHARED: {(receipt?.dataShared || []).join(" · ")}</p></section>
+      <div className="paid-report-note"><strong>UNCERTAINTY</strong><p>{report.uncertainty}</p></div>
+    </div>;
+  }
 
   if (product === "premium") {
     const receipt = data?.procurementReceipt;
@@ -185,6 +200,9 @@ export default function IntelligenceOperationsClient() {
   const [transaction, setTransaction] = useState("");
   const [savedPlan, setSavedPlan] = useState(false);
   const [premiumQuote, setPremiumQuote] = useState<any>(null);
+  const [externalQuestion, setExternalQuestion] = useState("What current external evidence could change my 72-hour preparedness priorities?");
+  const [externalQuote, setExternalQuote] = useState<any>(null);
+  const [quoteBusy, setQuoteBusy] = useState(false);
 
   useEffect(() => {
     fetch("/api/x402/status", { cache: "no-store" })
@@ -209,6 +227,10 @@ export default function IntelligenceOperationsClient() {
   }, [active]);
 
   useEffect(() => {
+    if (active === "external") setExternalQuote(null);
+  }, [active, area, focus, externalQuestion]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const requestedProduct = params.get("product");
     if (requestedProduct === "incident") setActive("incident");
@@ -231,6 +253,7 @@ export default function IntelligenceOperationsClient() {
     if (active === "incident") return output?.dossier?.sources?.length || 0;
     if (active === "wallet") return output?.audit?.surface?.tokenAccounts || 0;
     if (active === "premium") return output?.report?.signals?.length || 0;
+    if (active === "external") return output?.report?.sources?.length || 0;
     return output?.report?.instructions?.length || 0;
   }, [active, output]);
 
@@ -268,6 +291,11 @@ export default function IntelligenceOperationsClient() {
         endpoint = "/api/intel/premium-area";
         method = "POST";
         body = { area: location.area, lat: location.lat, lng: location.lng, radiusKm, focus };
+      } else if (active === "external") {
+        if (!externalQuote?.eligible || !externalQuote?.quoteToken) throw new Error("Review a fresh upstream procurement quote before payment.");
+        endpoint = "/api/intel/external-intelligence";
+        method = "POST";
+        body = { area: area.trim(), focus, question: externalQuestion.trim(), quoteToken: externalQuote.quoteToken };
       } else if (active === "plan") {
         endpoint = "/api/intel/preparedness-plan";
         method = "POST";
@@ -297,6 +325,29 @@ export default function IntelligenceOperationsClient() {
       setStatus("");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function prepareExternalQuote() {
+    if (area.trim().length < 2) { setError("Enter a broad city or region."); return; }
+    if (externalQuestion.trim().length < 8) { setError("Enter a specific survival-intelligence question."); return; }
+    setQuoteBusy(true);
+    setError("");
+    setExternalQuote(null);
+    try {
+      const response = await fetch("/api/intel/external-intelligence/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ area: area.trim(), focus, question: externalQuestion.trim() }),
+        cache: "no-store",
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Procurement quote unavailable.");
+      setExternalQuote(data.quote || null);
+    } catch (quoteError) {
+      setError(quoteError instanceof Error ? quoteError.message : "Procurement quote unavailable.");
+    } finally {
+      setQuoteBusy(false);
     }
   }
 
@@ -363,6 +414,20 @@ export default function IntelligenceOperationsClient() {
               <small>NO UPSTREAM CALL HAS BEEN MADE YET.</small>
             </div>
           </>}
+          {active === "external" && <>
+            <label><span>BROAD CITY OR REGION</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
+            <label><span>INTELLIGENCE FOCUS</span><select value={focus} onChange={(event) => setFocus(event.target.value as SurvivalFocus)}>{SURVIVAL_FOCUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
+            <label><span>WHAT EVIDENCE SHOULD QUEEN BUY?</span><textarea value={externalQuestion} onChange={(event) => setExternalQuestion(event.target.value)} maxLength={320} /></label>
+            {!externalQuote && <button className="intelligence-market-pay" type="button" disabled={quoteBusy} onClick={() => void prepareExternalQuote()}>{quoteBusy ? "BUILDING DISCLOSURE…" : "REVIEW UPSTREAM PURCHASE"}</button>}
+            {externalQuote && <div className={`premium-procurement-quote${externalQuote.eligible ? " is-ready" : ""}`}>
+              <header><span>QUEEN BUYER DISCLOSURE</span><strong>{externalQuote.eligible ? "READY" : "NOT CONFIGURED"}</strong></header>
+              {(externalQuote.merchant?.resources || []).map((resource: any) => <div key={resource.endpoint}><span>{resource.name}</span><strong>{resource.price}</strong></div>)}
+              <p><strong>MERCHANT:</strong> {externalQuote.merchant?.name} · <strong>MAX UPSTREAM:</strong> {externalQuote.upstreamBudget}</p>
+              <p><strong>SHARED:</strong> {(externalQuote.dataShared || []).join(" · ")}</p>
+              <p><strong>NEVER SHARED:</strong> {(externalQuote.dataNotShared || []).join(" · ")}</p>
+              <small>NO UPSTREAM CALL OR PAYMENT HAS OCCURRED.</small>
+            </div>}
+          </>}
           {active === "plan" && <>
             <label><span>AREA · OPTIONAL</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
             <label><span>PROTOCOL FOCUS</span><select value={focus} onChange={(event) => setFocus(event.target.value as SurvivalFocus)}>{SURVIVAL_FOCUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
@@ -382,7 +447,7 @@ export default function IntelligenceOperationsClient() {
             <div className="intelligence-market-wallet"><span>CONNECTED PUBLIC ADDRESS</span><strong>{publicKey ? `${publicKey.toBase58().slice(0, 9)}…${publicKey.toBase58().slice(-9)}` : "CONNECT WALLET"}</strong><p>The paid audit expands the public SPL and Token-2022 authority scan. It never asks for a signature from the audited wallet.</p></div>
           </>}
 
-          {!connected ? <WalletMultiButton /> : <button className="intelligence-market-pay" type="button" disabled={!canPurchase || (active === "premium" && premiumQuote?.eligible !== true)} onClick={() => void purchase()}>{busy ? status || "PROCESSING…" : active === "premium" && premiumQuote?.eligible !== true ? "PREMIUM PROVIDER NOT READY" : available ? `REVIEW & PAY ${meta.price}` : "PAYMENT UNAVAILABLE"}</button>}
+          {!connected ? <WalletMultiButton /> : active === "external" && !externalQuote ? null : <button className="intelligence-market-pay" type="button" disabled={!canPurchase || (active === "premium" && premiumQuote?.eligible !== true) || (active === "external" && externalQuote?.eligible !== true)} onClick={() => void purchase()}>{busy ? status || "PROCESSING…" : active === "premium" && premiumQuote?.eligible !== true ? "PREMIUM PROVIDER NOT READY" : active === "external" && externalQuote?.eligible !== true ? "BUYER WALLET NOT READY" : available ? `REVIEW & PAY ${meta.price}` : "PAYMENT UNAVAILABLE"}</button>}
           {status && <div className="intelligence-market-progress">{status}</div>}
           {error && <div className="intelligence-market-error"><strong>OUTPUT NOT DELIVERED</strong><p>{error}</p></div>}
         </div>
@@ -392,7 +457,7 @@ export default function IntelligenceOperationsClient() {
             <header><span>PAID OUTPUT DELIVERED</span><strong>{delivery.receiptStored ? "RECEIPT STORED" : "CHECK RECEIPT"}</strong></header>
             <h3>{reportTitle(active, output)}</h3>
             <p>{reportSummary(active, output)}</p>
-            <div className="intelligence-market-output-meta"><span>{sourceCount} {active === "transaction" ? "INSTRUCTIONS" : active === "premium" ? "PURCHASED RECORDS" : "SOURCE RECORDS"}</span><span>{delivery.operationId}</span></div>
+            <div className="intelligence-market-output-meta"><span>{sourceCount} {active === "transaction" ? "INSTRUCTIONS" : active === "premium" ? "PURCHASED RECORDS" : active === "external" ? "PURCHASED SOURCES" : "SOURCE RECORDS"}</span><span>{delivery.operationId}</span></div>
             <PaidReportContent product={active} data={output} />
             <div className="intelligence-market-output-actions">
               <button type="button" onClick={() => download(output, `${filenameFor(active)}.json`, "application/json")}>DOWNLOAD JSON</button>
@@ -400,6 +465,17 @@ export default function IntelligenceOperationsClient() {
               {active === "plan" && <button type="button" onClick={storePlan} disabled={savedPlan}>{savedPlan ? "SAVED TO PREPARE" : "SAVE AS ACTIVE PLAN"}</button>}
               {delivery.transactionSignature && <a href={`https://explorer.solana.com/tx/${delivery.transactionSignature}`} target="_blank" rel="noreferrer">SETTLEMENT ↗</a>}
             </div>
+          </> : active === "external" ? <>
+            <span>RED QUEEN // BUYER PROTOCOL</span>
+            <h3>She buys the missing evidence. You receive the decision.</h3>
+            <div className="queen-buyer-flow">
+              <div><i>01</i><strong>DISCLOSE</strong><small>Merchant · data · cap</small></div>
+              <b>→</b>
+              <div><i>02</i><strong>PAY UPSTREAM</strong><small>Search + extraction</small></div>
+              <b>→</b>
+              <div><i>03</i><strong>SYNTHESIZE</strong><small>Sources + uncertainty</small></div>
+            </div>
+            <p>Two independent x402 settlements. One evidence-bounded RED QUEEN report. No subscription and no autonomous budget.</p>
           </> : <>
             <div className="intelligence-market-orb"><i /></div>
             <span>RED QUEEN // MERCHANT OUTPUT</span>

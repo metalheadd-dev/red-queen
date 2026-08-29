@@ -3,7 +3,7 @@
   "info": {
     "title": "RED QUEEN Intelligence API",
     "description": "Source-bounded survival intelligence and Solana telemetry. Paid operations use runtime x402 v2 exact-SVM requirements and never award XP or BIO-SCORE.",
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "servers": [
     {
@@ -138,6 +138,28 @@
           "503": { "$ref": "#/components/responses/Unavailable" }
         }
       }
+    },
+    "/api/intel/external-intelligence/quote": {
+      "post": {
+        "summary": "Review an external survival-intelligence procurement quote",
+        "description": "Declares the Agent402 resources, data boundary, 0.03 USDC upstream cap and final price without calling an upstream merchant or moving funds.",
+        "operationId": "quoteExternalSurvivalIntelligence",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ExternalIntelligenceQuoteInput" } } } },
+        "responses": { "200": { "description": "Quote and short-lived quote token returned." }, "400": { "description": "Invalid input." }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/intel/external-intelligence": {
+      "post": {
+        "summary": "Purchase external evidence and RED QUEEN synthesis",
+        "description": "Pays the disclosed Agent402 search and extraction resources from a dedicated buyer wallet after explicit RED QUEEN x402 settlement, then returns a bounded report and upstream receipts.",
+        "operationId": "createExternalSurvivalIntelligence",
+        "x-payment-required": true,
+        "x-x402Version": 2,
+        "x-payment-info": { "protocol": "x402", "scheme": "exact", "price": "0.08 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", "upstreamMerchant": "Agent402.Tools", "upstreamCap": "0.03 USDC" },
+        "parameters": [{ "$ref": "#/components/parameters/OperationId" }, { "$ref": "#/components/parameters/PaymentSignature" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ExternalIntelligenceInput" } } } },
+        "responses": { "200": { "description": "Settled report with RED QUEEN and upstream receipts." }, "409": { "description": "Quote missing, expired or mismatched." }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
     }
   },
   "components": {
@@ -253,6 +275,22 @@
           "clearance": { "type": "string" },
           "audit": { "type": "object", "additionalProperties": true }
         }
+      },
+      "ExternalIntelligenceQuoteInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["area", "focus", "question"],
+        "properties": {
+          "area": { "type": "string", "minLength": 2, "maxLength": 80 },
+          "focus": { "type": "string", "enum": ["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"] },
+          "question": { "type": "string", "minLength": 8, "maxLength": 320 }
+        }
+      },
+      "ExternalIntelligenceInput": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ExternalIntelligenceQuoteInput" },
+          { "type": "object", "required": ["quoteToken"], "properties": { "quoteToken": { "type": "string" } } }
+        ]
       },
       "Error": {
         "type": "object",

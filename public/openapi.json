@@ -3,7 +3,7 @@
   "info": {
     "title": "RED QUEEN Intelligence Merchant API",
     "description": "Machine-readable survival intelligence and Solana wallet-risk resources protected by x402 v2 exact-SVM payments. Call once without payment to receive a 402 challenge, settle the declared USDC amount, then retry with the same X-Operation-Id and Payment-Signature. Purchases never award XP or BIO-SCORE.",
-    "version": "3.0.0"
+    "version": "3.1.0"
   },
   "servers": [{ "url": "https://redqueen.space" }],
   "externalDocs": {
@@ -69,6 +69,34 @@
           "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PremiumAreaInput" }, "example": { "area": "Valencia", "lat": 39.4699, "lng": -0.3763, "radiusKm": 250, "focus": "LOCAL_THREATS" } } }
         },
         "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/intel/external-intelligence/quote": {
+      "post": {
+        "tags": ["Premium Procurement"],
+        "summary": "Review a Queen Buyer procurement disclosure",
+        "description": "Returns the allowlisted merchant, two upstream resources, data shared, 0.03 USDC upstream cap, final user price and a short-lived quote token. It makes no external call and moves no funds.",
+        "operationId": "quoteExternalSurvivalIntelligence",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ExternalIntelligenceQuoteInput" } } }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/intel/external-intelligence": {
+      "post": {
+        "tags": ["Premium Procurement"],
+        "summary": "Buy missing external evidence and synthesize one survival decision",
+        "description": "After quote review and RED QUEEN x402 settlement, Queen pays Agent402 search and extraction calls with a dedicated Solana buyer wallet, then returns a bounded report with upstream receipts.",
+        "operationId": "createExternalSurvivalIntelligence",
+        "x-payment-info": { "$ref": "#/components/x-payment-info/ExternalIntelligence" },
+        "parameters": [{ "$ref": "#/components/parameters/OperationId" }, { "$ref": "#/components/parameters/PaymentSignature" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ExternalIntelligenceInput" } } }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "409": { "description": "Quote missing, expired or does not match the request." }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
       }
     },
     "/api/intel/preparedness-plan": {
@@ -150,6 +178,22 @@
         },
         "required": ["area", "lat", "lng", "radiusKm"]
       },
+      "ExternalIntelligenceQuoteInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "area": { "type": "string", "minLength": 2, "maxLength": 80, "description": "Broad city or region; never an exact address." },
+          "focus": { "type": "string", "enum": ["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"] },
+          "question": { "type": "string", "minLength": 8, "maxLength": 320 }
+        },
+        "required": ["area", "focus", "question"]
+      },
+      "ExternalIntelligenceInput": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ExternalIntelligenceQuoteInput" },
+          { "type": "object", "properties": { "quoteToken": { "type": "string", "description": "Short-lived token returned by the quote endpoint for identical inputs." } }, "required": ["quoteToken"] }
+        ]
+      },
       "PreparednessInput": {
         "type": "object",
         "additionalProperties": false,
@@ -195,6 +239,7 @@
       "SolanaHealth": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
       "LocalDelta": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.01 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
       "PremiumArea": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.05 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", "upstreamProcurement": true },
+      "ExternalIntelligence": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.08 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", "upstreamProcurement": true, "upstreamCap": "0.03 USDC", "upstreamMerchant": "Agent402.Tools" },
       "Preparedness": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
       "IncidentDossier": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
       "TransactionRisk": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.01 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },

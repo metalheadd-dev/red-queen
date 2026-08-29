@@ -12,6 +12,8 @@ import { POST as preparednessPlanPost } from "@/app/api/intel/preparedness-plan/
 import { GET as incidentDossierGet } from "@/app/api/intel/incident-dossier/route";
 import { POST as transactionRiskPost } from "@/app/api/intel/transaction-risk/route";
 import { POST as premiumAreaPost } from "@/app/api/intel/premium-area/route";
+import { POST as externalIntelligenceQuotePost } from "@/app/api/intel/external-intelligence/quote/route";
+import { POST as externalIntelligencePost } from "@/app/api/intel/external-intelligence/route";
 import { POST as survivalKitPost } from "@/app/api/market/survival-kit/route";
 import { POST as analyzeWalletPost } from "@/app/api/terminal/analyze-wallet/route";
 
@@ -442,6 +444,53 @@ const handler = createMcpHandler(
         url: "http://localhost:3000/api/intel/premium-area",
         method: "POST",
         body: { area, lat: latitude, lng: longitude, radiusKm, focus },
+        operationId,
+        paymentSignature,
+      }),
+    );
+
+    server.registerTool(
+      "quote_external_survival_intelligence",
+      {
+        title: "Quote RED QUEEN External Survival Intelligence",
+        description: "Return the exact upstream merchant, purchased resources, data disclosure, maximum upstream cost and final RED QUEEN price without making any external call or payment.",
+        inputSchema: z.object({
+          area: z.string().min(2).max(80),
+          focus: z.enum(["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"]).default("LOCAL_THREATS"),
+          question: z.string().min(8).max(320),
+        }),
+        outputSchema: z.object({ success: z.boolean().optional(), quote: z.any().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+      },
+      async ({ area, focus, question }) => invokePaidRoute({
+        route: externalIntelligenceQuotePost,
+        url: "http://localhost:3000/api/intel/external-intelligence/quote",
+        method: "POST",
+        body: { area, focus, question },
+      }),
+    );
+
+    server.registerTool(
+      "purchase_external_survival_intelligence",
+      {
+        title: "Purchase External Survival Intelligence",
+        description: "After a quote is reviewed, pay RED QUEEN through x402. Queen then buys the disclosed Agent402 search and extraction calls on Solana, synthesizes the evidence and returns both upstream receipts.",
+        inputSchema: z.object({
+          area: z.string().min(2).max(80),
+          focus: z.enum(["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"]).default("LOCAL_THREATS"),
+          question: z.string().min(8).max(320),
+          quoteToken: z.string().min(20).max(300).describe("Short-lived token returned by quote_external_survival_intelligence for identical inputs."),
+          operationId: z.string().uuid().optional(),
+          paymentSignature: z.string().optional(),
+        }),
+        outputSchema: z.object({ success: z.boolean().optional(), report: z.any().optional(), procurementReceipt: z.any().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ area, focus, question, quoteToken, operationId, paymentSignature }) => invokePaidRoute({
+        route: externalIntelligencePost,
+        url: "http://localhost:3000/api/intel/external-intelligence",
+        method: "POST",
+        body: { area, focus, question, quoteToken },
         operationId,
         paymentSignature,
       }),

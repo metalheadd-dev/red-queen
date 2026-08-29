@@ -92,6 +92,35 @@ export const X402_PRODUCT_DISCOVERY: Record<string, ProductDiscovery> = {
       procurementReceipt: { provider: "metered upstream provider", delivered: true },
     }),
   },
+  "external-survival-intelligence": {
+    method: "POST",
+    bodyType: "json",
+    input: {
+      area: "Barcelona, Spain",
+      focus: "LOCAL_THREATS",
+      question: "What current external evidence could change my 72-hour preparedness priorities?",
+      quoteToken: "FETCH_FROM_QUOTE_ENDPOINT_FIRST",
+    },
+    inputSchema: {
+      properties: {
+        area: { type: "string", description: "Broad city or region; never an exact address." },
+        focus: {
+          type: "string",
+          enum: ["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"],
+          default: "LOCAL_THREATS",
+        },
+        question: { type: "string", minLength: 8, maxLength: 320, description: "Bounded survival-intelligence question." },
+        quoteToken: { type: "string", description: "Short-lived token returned by POST /api/intel/external-intelligence/quote after disclosure review." },
+      },
+      required: ["area", "focus", "question", "quoteToken"],
+    },
+    output: jsonObjectOutput({
+      success: true,
+      clearance: "QUEEN BUYER // UPSTREAM x402 SETTLED",
+      report: { assessment: "", uncertainty: "", nextAction: "", findings: [], sources: [] },
+      procurementReceipt: { merchant: "Agent402.Tools", upstreamCost: "0.03 USDC", purchases: [] },
+    }),
+  },
   "preparedness-compiler": {
     method: "POST",
     bodyType: "json",

@@ -55,6 +55,17 @@ export const X402_INTELLIGENCE_PRODUCTS: IntelligenceProduct[] = [
     method: "POST",
   },
   {
+    id: "external-survival-intelligence",
+    status: "BETA",
+    name: "External survival intelligence",
+    price: "0.08 USDC",
+    scheme: "SVM EXACT",
+    value: "Authorize RED QUEEN to buy two disclosed x402 resources from an allowlisted merchant, verify the purchased evidence and synthesize one bounded survival-intelligence decision.",
+    output: "Queen assessment + sources + upstream x402 receipts",
+    endpoint: "/api/intel/external-intelligence",
+    method: "POST",
+  },
+  {
     id: "preparedness-compiler",
     status: "BETA",
     name: "Preparedness plan compiler",
