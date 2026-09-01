@@ -7,6 +7,10 @@ import {
 } from "8004-solana";
 import { SOLANA_MAINNET_CAIP2 } from "@/lib/onchain";
 import { RED_QUEEN_AGENT_ASSET, RED_QUEEN_AGENT_ID } from "@/lib/agent-identity-public";
+import {
+  RED_QUEEN_MCP_PROTOCOL_VERSION,
+  RED_QUEEN_MCP_TOOLS,
+} from "@/lib/mcp-discovery";
 
 export const RED_QUEEN_AGENT_SITE = "https://redqueen.space";
 export const RED_QUEEN_AGENT_METADATA_PATH = "/.well-known/agent-registration.json";
@@ -68,9 +72,14 @@ export function buildRedQueenRegistrationFile() {
         type: ServiceType.MCP,
         value: `${RED_QUEEN_AGENT_SITE}${RED_QUEEN_AGENT_MCP_PATH}`,
         meta: {
-          version: "2025-06-18",
+          version: RED_QUEEN_MCP_PROTOCOL_VERSION,
           transport: "streamable-http",
-          tools: 11,
+          tools: RED_QUEEN_MCP_TOOLS.length,
+          capabilities: {
+            tools: [...RED_QUEEN_MCP_TOOLS],
+            prompts: [],
+            resources: [],
+          },
         },
       },
       {

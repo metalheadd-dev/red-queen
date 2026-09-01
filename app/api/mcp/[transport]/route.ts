@@ -16,6 +16,7 @@ import { POST as externalIntelligenceQuotePost } from "@/app/api/intel/external-
 import { POST as externalIntelligencePost } from "@/app/api/intel/external-intelligence/route";
 import { POST as survivalKitPost } from "@/app/api/market/survival-kit/route";
 import { POST as analyzeWalletPost } from "@/app/api/terminal/analyze-wallet/route";
+import { buildRedQueenMcpDiscovery } from "@/lib/mcp-discovery";
 
 async function invokePaidRoute(input: {
   route: (request: NextRequest) => Promise<Response>;
@@ -525,4 +526,39 @@ const handler = createMcpHandler(
   }
 );
 
-export { handler as GET, handler as POST };
+export const POST = handler;
+
+export async function GET(request: Request) {
+  const acceptsEventStream = request.headers
+    .get("accept")
+    ?.toLowerCase()
+    .includes("text/event-stream");
+
+  // Preserve the protocol-native GET path for MCP clients that explicitly
+  // request an SSE stream. Bare browser/indexer probes receive a bounded
+  // discovery document instead of a misleading 405 liveness failure.
+  if (acceptsEventStream) {
+    return handler(request);
+  }
+
+  return Response.json(buildRedQueenMcpDiscovery(), {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Cache-Control": "public, max-age=60, s-maxage=300",
+      "X-MCP-Transport": "streamable-http",
+    },
+  });
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Headers": "Content-Type, Accept, MCP-Protocol-Version, MCP-Session-Id, Last-Event-ID",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
+}

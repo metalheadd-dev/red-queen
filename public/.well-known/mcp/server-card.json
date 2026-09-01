@@ -15,5 +15,25 @@
   "authentication": {
     "publicTools": "Read-only source brief, wallet triage and survival-cart planning",
     "paidTools": "x402 v2 exact-SVM payment challenge with replay-safe operation receipts"
-  }
+  },
+  "capabilities": {
+    "tools": [
+      "get_threat_forecast",
+      "get_depin_telemetry",
+      "get_premium_intel",
+      "analyze_wallet_security",
+      "get_wallet_exposure_audit",
+      "get_local_delta_brief",
+      "compile_72_hour_plan",
+      "get_incident_dossier",
+      "explain_solana_transaction_risk",
+      "purchase_premium_area_intelligence",
+      "quote_external_survival_intelligence",
+      "purchase_external_survival_intelligence",
+      "build_72_hour_survival_cart"
+    ],
+    "prompts": [],
+    "resources": []
+  },
+  "x402Support": true
 }
