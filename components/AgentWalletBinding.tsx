@@ -106,6 +106,15 @@ function bytesEqual(left: Uint8Array, right: Uint8Array) {
   return left.length === right.length && left.every((byte, index) => byte === right[index]);
 }
 
+function isExpiredBlockhashError(error: unknown) {
+  const message = error instanceof Error ? `${error.name} ${error.message}` : String(error);
+  const normalized = message.toLowerCase();
+  return normalized.includes("block height exceeded")
+    || normalized.includes("blockhash not found")
+    || normalized.includes("transactionexpiredblockheightexceedederror")
+    || normalized.includes("signature has expired");
+}
+
 function assertPreparedMessage(prepared: PreparedMessage, owner: string, asset: string, program: string) {
   if (prepared.owner !== owner || prepared.wallet !== owner || prepared.asset !== asset || prepared.program !== program) {
     throw new Error("Wallet proof returned unexpected identity parameters.");
@@ -257,63 +266,104 @@ export default function AgentWalletBinding({ owner, asset, program }: { owner: s
       const messageSignature = await signMessage(message);
       if (messageSignature.length !== 64) throw new Error("Wallet did not return a valid ownership proof.");
 
-      setStatus("BUILDING THE OWNER-APPROVED 8004 TRANSACTION");
-      const transactionResponse = await fetch("/api/agent/wallet", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          owner: address,
-          wallet: address,
-          deadline: preparedMessage.deadline,
-          signature: encodeBase64(messageSignature),
-        }),
-      });
-      const prepared = await transactionResponse.json() as PreparedBinding & { error?: string };
-      if (!transactionResponse.ok) throw new Error(prepared.error || "Binding transaction preflight failed.");
-      if (prepared.alreadyBound) {
-        setRemoteStatus({ bound: true, matchesProjectWallet: true, wallet: address, explorerUrl: `https://explorer.solana.com/address/${asset}` });
-        setStatus("OPERATIONAL WALLET WAS ALREADY VERIFIED");
-        return;
+      const encodedProof = encodeBase64(messageSignature);
+      let lastExpiryError: unknown = null;
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        setStatus(attempt === 0
+          ? "BUILDING THE OWNER-APPROVED 8004 TRANSACTION"
+          : "BLOCKHASH EXPIRED · BUILDING A FRESH TRANSACTION");
+
+        const transactionResponse = await fetch("/api/agent/wallet", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            owner: address,
+            wallet: address,
+            deadline: preparedMessage.deadline,
+            signature: encodedProof,
+          }),
+        });
+        const prepared = await transactionResponse.json() as PreparedBinding & { error?: string };
+        if (!transactionResponse.ok) throw new Error(prepared.error || "Binding transaction preflight failed.");
+        if (prepared.alreadyBound) {
+          setRemoteStatus({ bound: true, matchesProjectWallet: true, wallet: address, explorerUrl: `https://explorer.solana.com/address/${asset}` });
+          setStatus("OPERATIONAL WALLET WAS ALREADY VERIFIED");
+          return;
+        }
+
+        const transaction = Transaction.from(decodeBase64(prepared.transaction));
+        assertSafeTransaction(transaction, prepared, owner, asset, program);
+
+        const currentBlockHeight = await connection.getBlockHeight("confirmed");
+        if (currentBlockHeight >= prepared.lastValidBlockHeight - 12) {
+          lastExpiryError = new Error("Prepared blockhash was already near expiry.");
+          if (attempt === 0) continue;
+          throw lastExpiryError;
+        }
+
+        setStatus("SIMULATING EXACT INSTRUCTIONS · NO TRANSACTION SIGNATURE YET");
+        const simulation = await connection.simulateTransaction(transaction);
+        if (simulation.value.err) throw new Error("Binding simulation failed. The wallet was not asked to sign the transaction.");
+
+        setStatus(attempt === 0
+          ? "TRANSACTION REVIEW REQUIRED · VERIFY 8004 PROGRAM AND NETWORK FEE"
+          : "FRESH TRANSACTION READY · APPROVE ONCE MORE");
+        const signed = await signTransaction(transaction);
+        const ownerSignature = signed.signatures.find((item) => item.publicKey.equals(publicKey));
+        if (!ownerSignature?.signature) throw new Error("Wallet did not return the required transaction signature.");
+
+        let transactionSignature = "";
+        try {
+          setStatus("APPROVED · SUBMITTING TO SOLANA MAINNET");
+          transactionSignature = await connection.sendRawTransaction(signed.serialize(), {
+            skipPreflight: false,
+            maxRetries: 3,
+          });
+
+          setStatus("TRANSACTION SENT · WAITING FOR CONFIRMATION");
+          const confirmation = await connection.confirmTransaction({
+            signature: transactionSignature,
+            blockhash: prepared.blockhash,
+            lastValidBlockHeight: prepared.lastValidBlockHeight,
+          }, "confirmed");
+          if (confirmation.value.err) throw new Error("Solana rejected the operational wallet binding.");
+
+          setStatus("CONFIRMED · VERIFYING FINAL ON-CHAIN STATE");
+          const verifyResponse = await fetch("/api/agent/wallet", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ signature: transactionSignature }),
+          });
+          const verified = await verifyResponse.json() as VerifiedBinding & { error?: string };
+          if (!verifyResponse.ok) throw new Error(verified.error || "On-chain wallet verification failed.");
+
+          setResult(verified);
+          setRemoteStatus({ bound: true, matchesProjectWallet: true, wallet: verified.wallet, explorerUrl: `https://explorer.solana.com/address/${asset}` });
+          setStatus("RED QUEEN OPERATIONAL WALLET VERIFIED ON SOLANA MAINNET");
+          return;
+        } catch (transactionError) {
+          if (!isExpiredBlockhashError(transactionError) || attempt > 0) throw transactionError;
+
+          lastExpiryError = transactionError;
+          if (transactionSignature) {
+            const statusResponse = await fetch("/api/agent/wallet", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ signature: transactionSignature }),
+            });
+            if (statusResponse.ok) {
+              const verified = await statusResponse.json() as VerifiedBinding;
+              setResult(verified);
+              setRemoteStatus({ bound: true, matchesProjectWallet: true, wallet: verified.wallet, explorerUrl: `https://explorer.solana.com/address/${asset}` });
+              setStatus("RED QUEEN OPERATIONAL WALLET VERIFIED ON SOLANA MAINNET");
+              return;
+            }
+          }
+        }
       }
 
-      const transaction = Transaction.from(decodeBase64(prepared.transaction));
-      assertSafeTransaction(transaction, prepared, owner, asset, program);
-
-      setStatus("SIMULATING EXACT INSTRUCTIONS · NO TRANSACTION SIGNATURE YET");
-      const simulation = await connection.simulateTransaction(transaction);
-      if (simulation.value.err) throw new Error("Binding simulation failed. The wallet was not asked to sign the transaction.");
-
-      setStatus("TRANSACTION REVIEW REQUIRED · VERIFY 8004 PROGRAM AND NETWORK FEE");
-      const signed = await signTransaction(transaction);
-      const ownerSignature = signed.signatures.find((item) => item.publicKey.equals(publicKey));
-      if (!ownerSignature?.signature) throw new Error("Wallet did not return the required transaction signature.");
-
-      setStatus("APPROVED · SUBMITTING TO SOLANA MAINNET");
-      const transactionSignature = await connection.sendRawTransaction(signed.serialize(), {
-        skipPreflight: false,
-        maxRetries: 3,
-      });
-
-      setStatus("TRANSACTION SENT · WAITING FOR CONFIRMATION");
-      const confirmation = await connection.confirmTransaction({
-        signature: transactionSignature,
-        blockhash: prepared.blockhash,
-        lastValidBlockHeight: prepared.lastValidBlockHeight,
-      }, "confirmed");
-      if (confirmation.value.err) throw new Error("Solana rejected the operational wallet binding.");
-
-      setStatus("CONFIRMED · VERIFYING FINAL ON-CHAIN STATE");
-      const verifyResponse = await fetch("/api/agent/wallet", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signature: transactionSignature }),
-      });
-      const verified = await verifyResponse.json() as VerifiedBinding & { error?: string };
-      if (!verifyResponse.ok) throw new Error(verified.error || "On-chain wallet verification failed.");
-
-      setResult(verified);
-      setRemoteStatus({ bound: true, matchesProjectWallet: true, wallet: verified.wallet, explorerUrl: `https://explorer.solana.com/address/${asset}` });
-      setStatus("RED QUEEN OPERATIONAL WALLET VERIFIED ON SOLANA MAINNET");
+      throw lastExpiryError || new Error("The binding transaction expired before confirmation.");
     } catch (bindingError) {
       const message = bindingError instanceof Error ? bindingError.message : "Wallet binding failed or was rejected.";
       const phantomBlockedBinaryProof = message.toLowerCase().includes("cannot sign solana transactions using sign_message")

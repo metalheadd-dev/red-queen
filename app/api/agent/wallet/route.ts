@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const WALLET_MESSAGE_PREFIX = Buffer.from("8004_WALLET_SET:");
-const WALLET_MESSAGE_TTL_SECONDS = 180;
+const WALLET_MESSAGE_TTL_SECONDS = 285;
 
 function getRpcUrl() {
   return process.env.SOLANA_RPC_URL?.trim()
