@@ -87,11 +87,6 @@ export function buildRedQueenRegistrationFile() {
         value: `${RED_QUEEN_AGENT_SITE}${RED_QUEEN_AGENT_OASF_PATH}`,
         meta: { version: "0.8" },
       },
-      {
-        type: ServiceType.WALLET,
-        value: `${SOLANA_MAINNET_CAIP2}:${runtime.owner}`,
-        meta: { purpose: "project-operational-wallet" },
-      },
     ],
     skills: [...RED_QUEEN_AGENT_SKILLS],
     domains: [...RED_QUEEN_AGENT_DOMAINS],

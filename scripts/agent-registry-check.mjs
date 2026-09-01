@@ -22,9 +22,10 @@ async function getJson(url) {
 }
 
 async function main() {
-  const [metadata, identity, oasf] = await Promise.all([
+  const [metadata, identity, walletStatus, oasf] = await Promise.all([
     getJson(expected.metadata),
     getJson(expected.identity),
+    getJson(expected.wallet),
     getJson(expected.oasf),
   ]);
 
@@ -35,10 +36,10 @@ async function main() {
 
   const mcp = metadata.services.find((service) => service.name === "MCP");
   const oasfService = metadata.services.find((service) => service.name === "OASF");
-  const wallet = metadata.services.find((service) => service.name === "wallet" || service.name === "agentWallet");
+  const duplicateWalletService = metadata.services.find((service) => service.name === "wallet" || service.name === "agentWallet");
   assert(new URL(mcp?.endpoint || "https://invalid.local").pathname === "/api/mcp/mcp", "MCP endpoint must use /api/mcp/mcp");
   assert(new URL(oasfService?.endpoint || "https://invalid.local").pathname === "/api/agent/oasf", "OASF endpoint must use /api/agent/oasf");
-  assert(typeof wallet?.endpoint === "string" && wallet.endpoint.startsWith("solana:"), "Solana operational wallet declaration is missing");
+  assert(!duplicateWalletService, "Operational wallet must come from canonical on-chain agent state, not a duplicate custom service");
 
   const skills = oasfService.skills || oasf.skills || [];
   const domains = oasfService.domains || oasf.domains || [];
@@ -52,6 +53,8 @@ async function main() {
   assert(identity.identity?.registered === true, "RED QUEEN Agent Asset is not marked as registered");
   assert(typeof identity.identity?.asset === "string" && identity.identity.asset.length >= 32, "Registered Agent Asset is missing");
   assert(identity.identity?.agentId === identity.identity.asset, "Agent ID must equal the canonical Solana Agent Asset");
+  assert(walletStatus.bound === true, "Operational wallet is not bound on-chain");
+  assert(walletStatus.matchesProjectWallet === true, "On-chain operational wallet does not match the approved project wallet");
 
   const mcpResponse = await fetch(expected.mcp, {
     method: "POST",
@@ -79,7 +82,7 @@ async function main() {
   console.log(`- x402: declared`);
   console.log(`- ATOM: disabled for initial registration`);
   console.log(`- Agent ID: ${identity.identity.agentId}`);
-  console.log(`- Operational wallet: inspect ${expected.wallet}`);
+  console.log(`- Operational wallet: bound and matched on-chain`);
 }
 
 main().catch((error) => {
