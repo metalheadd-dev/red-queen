@@ -7,7 +7,6 @@ import {
   RED_QUEEN_AGENT_SKILLS,
 } from "@/lib/agent-registry";
 import AgentRegistrationConsole from "@/components/AgentRegistrationConsole";
-import AgentWalletBinding from "@/components/AgentWalletBinding";
 
 function compact(value: string, lead = 7, tail = 7) {
   if (!value) return "ASSIGNED AFTER REGISTRATION";
@@ -69,14 +68,6 @@ export default function AgentRegistryIdentity() {
                 />
               )}
             </>
-          )}
-
-          {identity.registered && (
-            <AgentWalletBinding
-              owner={identity.owner}
-              asset={identity.asset}
-              program={RED_QUEEN_AGENT_REGISTRY_PROGRAM}
-            />
           )}
 
           <div className="agent-identity-services">
