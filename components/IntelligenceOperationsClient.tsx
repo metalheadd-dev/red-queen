@@ -247,6 +247,12 @@ export default function IntelligenceOperationsClient() {
   const output = delivery?.data;
   const canPurchase = available === true && connected && publicKey && signTransaction && !busy;
   const meta = PRODUCT_META[active];
+  const operationStatus = active === "premium"
+    ? premiumQuote === null ? "CHECKING PROVIDER" : premiumQuote.eligible ? "UPSTREAM READY" : "REQUIRES ACTIVATION"
+    : active === "external"
+      ? externalQuote?.eligible ? "UPSTREAM READY" : "REQUIRES DISCLOSURE"
+      : "READY";
+  const operationNeedsProvider = active === "premium" || active === "external";
   const sourceCount = useMemo(() => {
     if (active === "local") return output?.report?.changes?.length || 0;
     if (active === "plan") return output?.plan?.sources?.length || 0;
@@ -379,9 +385,9 @@ export default function IntelligenceOperationsClient() {
 
   return (
     <section className="intelligence-market" id="queen-operations">
-      <div className="onchain-section-head">
-        <span>x402 // AGENTIC INTELLIGENCE MARKET</span>
-        <h2>Request the operation. Pay only for the result.</h2>
+      <div className="onchain-section-head commerce-desk-head">
+        <span>01 // PAID INTELLIGENCE</span>
+        <h2>Choose the intelligence. Approve one operation.</h2>
         <p>RED QUEEN declares the output and exact USDC price before wallet approval. After x402 settlement, the result and receipt are delivered.</p>
       </div>
 
@@ -389,15 +395,16 @@ export default function IntelligenceOperationsClient() {
       <div className="intelligence-market-tabs" role="tablist" aria-label="RED QUEEN paid operations">
         {(Object.keys(PRODUCT_META) as ProductId[]).map((product) => (
           <button key={product} type="button" className={active === product ? "active" : ""} onClick={() => { setActive(product); setDelivery(null); setError(""); setStatus(""); }}>
-            <span>{PRODUCT_META[product].index}</span><strong>{PRODUCT_META[product].name}</strong><small>{PRODUCT_META[product].price}</small>
+            <span>{PRODUCT_META[product].index}</span><strong>{PRODUCT_META[product].name}</strong><small>{PRODUCT_META[product].price}</small><em>{product === "premium" || product === "external" ? "UPSTREAM" : "READY"}</em>
           </button>
         ))}
       </div>
 
-      <div className="intelligence-market-grid">
+      <div className={`intelligence-market-grid${delivery ? " has-delivery" : " is-configuring"}`}>
         <div className="intelligence-market-form">
           <header><span>{meta.name}</span><strong>{meta.price}</strong></header>
           <p>{meta.promise}</p>
+          <div className={`commerce-operation-state${operationNeedsProvider ? " requires-provider" : ""}`}><i /><strong>{operationStatus}</strong><span>{operationNeedsProvider ? "Provider, shared data and upstream cost are checked before payment." : "One wallet approval · one result · one receipt."}</span></div>
           {active === "local" && <>
             <label><span>BROAD CITY OR REGION</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
             <label><span>SEARCH RADIUS · {radiusKm} KM</span><input type="range" min="25" max="1000" step="25" value={radiusKm} onChange={(event) => setRadiusKm(Number(event.target.value))} /></label>
@@ -452,8 +459,8 @@ export default function IntelligenceOperationsClient() {
           {error && <div className="intelligence-market-error"><strong>OUTPUT NOT DELIVERED</strong><p>{error}</p></div>}
         </div>
 
-        <div className={`intelligence-market-output${delivery ? " has-output" : ""}`}>
-          {delivery ? <>
+        {delivery && <div className="intelligence-market-output has-output">
+          <>
             <header><span>PAID OUTPUT DELIVERED</span><strong>{delivery.receiptStored ? "RECEIPT STORED" : "CHECK RECEIPT"}</strong></header>
             <h3>{reportTitle(active, output)}</h3>
             <p>{reportSummary(active, output)}</p>
@@ -465,24 +472,8 @@ export default function IntelligenceOperationsClient() {
               {active === "plan" && <button type="button" onClick={storePlan} disabled={savedPlan}>{savedPlan ? "SAVED TO PREPARE" : "SAVE AS ACTIVE PLAN"}</button>}
               {delivery.transactionSignature && <a href={`https://explorer.solana.com/tx/${delivery.transactionSignature}`} target="_blank" rel="noreferrer">SETTLEMENT ↗</a>}
             </div>
-          </> : active === "external" ? <>
-            <span>RED QUEEN // BUYER PROTOCOL</span>
-            <h3>She buys the missing evidence. You receive the decision.</h3>
-            <div className="queen-buyer-flow">
-              <div><i>01</i><strong>DISCLOSE</strong><small>Merchant · data · cap</small></div>
-              <b>→</b>
-              <div><i>02</i><strong>PAY UPSTREAM</strong><small>Search + extraction</small></div>
-              <b>→</b>
-              <div><i>03</i><strong>SYNTHESIZE</strong><small>Sources + uncertainty</small></div>
-            </div>
-            <p>Two independent x402 settlements. One evidence-bounded RED QUEEN report. No subscription and no autonomous budget.</p>
-          </> : <>
-            <div className="intelligence-market-orb"><i /></div>
-            <span>RED QUEEN // MERCHANT OUTPUT</span>
-            <h3>No subscription. One declared operation.</h3>
-            <p>The x402 payment is a separate wallet approval. It cannot authorize future spending or change the requested input.</p>
-          </>}
-        </div>
+          </>
+        </div>}
       </div>
     </section>
   );

@@ -13,7 +13,7 @@ type NavIconName = "home" | "pulse" | "queen" | "prepare" | "onchain" | "me";
 const primaryLinks = [
   { href: "/red-queen", label: "RED QUEEN", subtitle: "Ask, analyze, prepare or simulate", match: "terminal" },
   { href: "/pulse", label: "PULSE", subtitle: "Your daily intelligence brief", match: "pulse" },
-  { href: "/onchain", label: "ONCHAIN", subtitle: "x402 agentic payments, wallet intelligence and $THREAT", match: "onchain" },
+  { href: "/onchain", label: "COMMERCE", subtitle: "Paid intelligence, survival gear and x402 agentic commerce", match: "onchain" },
   { href: "/prepare", label: "PREPARE", subtitle: "Build practical readiness", match: "prepare" },
   { href: "/pulse#live-map", label: "MAP", subtitle: "Verified signals on the live field", match: "map" },
   { href: "/library", label: "LIBRARY", subtitle: "Open the threat intelligence archive", match: "library" },
@@ -100,7 +100,7 @@ export default function NavBar() {
               return (
                 <li key={link.match} className="nav-item-wrap">
                   <Link href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>
-                    {link.match === "onchain" ? "MARKET" : link.label}
+                    {link.label}
                   </Link>
                   <div className="nav-item-tooltip">{link.subtitle}</div>
                 </li>
@@ -154,7 +154,7 @@ export default function NavBar() {
           {primaryLinks.map((link, index) => (
             <Link key={link.match} href={link.href} tabIndex={menuOpen ? 0 : -1}>
               <span>0{index + 1}</span>
-              <div><strong>{link.match === "onchain" ? "MARKET" : link.label}</strong><small>{link.subtitle}</small></div>
+              <div><strong>{link.label}</strong><small>{link.subtitle}</small></div>
             </Link>
           ))}
           <Link href={accountHref} tabIndex={menuOpen ? 0 : -1}>
@@ -189,7 +189,7 @@ export default function NavBar() {
           <NavIcon name="queen" /><span>RED QUEEN</span>
         </Link>
         <Link href="/onchain" className={isActive("onchain") ? "active" : ""} aria-current={isActive("onchain") ? "page" : undefined}>
-          <NavIcon name="onchain" /><span>MARKET</span>
+          <NavIcon name="onchain" /><span>COMMERCE</span>
         </Link>
         <Link href={accountHref} className={pathname === "/profile" || pathname === "/operative" || pathname === "/login" ? "active" : ""} aria-current={pathname === "/profile" || pathname === "/operative" ? "page" : undefined}>
           <NavIcon name="me" /><span>ME</span>

@@ -26,22 +26,22 @@ export default function NetworkClearancePage() {
   return (
     <div className="onchain-page">
       <MobileCommandHeader
-        eyebrow="x402 MARKET // SOLANA"
-        title="Pay per operation. Keep control."
-        description="Request RED QUEEN intelligence, review the exact USDC price, then approve settlement in your wallet."
+        eyebrow="RED QUEEN AGENTIC COMMERCE"
+        title="Intelligence and survival gear. One command layer."
+        description="Buy intelligence. Build your survival cart. Be ready for the threat ahead."
         status="SOLANA MAINNET · USER APPROVAL"
         actions={[
-          { href: "#queen-operations", label: "OPEN x402 MARKET" },
-          { href: "#buy-threat", label: "BUY $THREAT", tone: "secondary" },
+          { href: "#queen-operations", label: "PAID INTELLIGENCE" },
+          { href: "#survival-market", label: "SURVIVAL GEAR", tone: "secondary" },
         ]}
         steps={["REQUEST", "APPROVE", "RECEIVE"]}
       />
       <header className="onchain-hero">
         <div className="container onchain-hero-grid">
           <div>
-            <span className="pulse-eyebrow">MARKET // SOLANA MAINNET</span>
-            <h1>Choose. Review. <em>Approve.</em></h1>
-            <p>Buy intelligence through x402, verify $THREAT access or swap on Jupiter. RED QUEEN never moves funds without your wallet approval.</p>
+            <span className="pulse-eyebrow">RED QUEEN // AGENTIC COMMERCE</span>
+            <h1>Buy intelligence.<br />Build your <em>survival cart.</em></h1>
+            <p>Be ready for the threat ahead. Queen turns live signals into paid decisions and practical gear manifests while every payment and checkout remains under your control.</p>
             <div className="onchain-hero-tags"><span>SIWS IDENTITY</span><span>SPL BALANCE PROOF</span><span>x402 USDC</span><span>JUPITER SWAP V2</span><span>NO CUSTODY</span></div>
           </div>
           <div className="onchain-network-card">
@@ -63,6 +63,10 @@ export default function NetworkClearancePage() {
           accessNote="CONNECT ≠ SIGN IN ≠ PAY · RED QUEEN NEVER REQUESTS A SEED PHRASE"
         />
         <div id="onchain-actions" />
+        <section className="commerce-command" aria-label="Commerce desks">
+          <div><span>CHOOSE A DESK</span><strong>One Queen. Two ways to act.</strong></div>
+          <nav><a href="#queen-operations"><b>01</b><span>PAID INTELLIGENCE<small>x402 reports · exact USDC price</small></span></a><a href="#survival-market"><b>02</b><span>SURVIVAL GEAR<small>Free cart · Amazon and agent-market search</small></span></a></nav>
+        </section>
         <IntelligenceOperationsClient />
         <SurvivalMarketClient />
         <OnchainClearanceClient />
