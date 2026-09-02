@@ -98,6 +98,33 @@ if (strictEnvironment) {
   if (!hasConfiguredValue("JUPITER_API_KEY")) {
     warnings.push("Jupiter $THREAT swap remains runtime-disabled until JUPITER_API_KEY is configured");
   }
+
+  const payAiKeyId = hasConfiguredValue("PAYAI_API_KEY_ID");
+  const payAiKeySecret = hasConfiguredValue("PAYAI_API_KEY_SECRET");
+  requireCondition(payAiKeyId === payAiKeySecret, "PayAI production authentication requires both PAYAI_API_KEY_ID and PAYAI_API_KEY_SECRET");
+  if (!payAiKeyId) warnings.push("PayAI uses the working public facilitator tier; add merchant credentials before sustained production traffic");
+
+  const buyerKey = hasConfiguredValue("RED_QUEEN_BUYER_PRIVATE_KEY");
+  if (buyerKey) {
+    for (const name of ["RED_QUEEN_BUYER_ADDRESS", "RED_QUEEN_BUYER_MAX_CALL_USDC", "RED_QUEEN_BUYER_DAILY_LIMIT_USDC", "AGENT402_EXPECTED_PAY_TO"]) {
+      requireCondition(hasConfiguredValue(name), `Queen Buyer is configured but ${name} is missing`);
+    }
+  } else {
+    warnings.push("Queen Buyer remains disabled until RED_QUEEN_BUYER_PRIVATE_KEY is configured and its public address matches");
+  }
+
+  if (!hasConfiguredValue("OFF_NADIR_API_KEY")) warnings.push("Premium Area Intelligence remains disabled until OFF_NADIR_API_KEY is configured");
+  if (!hasConfiguredValue("OPENWEATHER_API_KEY")) warnings.push("OpenWeather evidence remains optional and disabled");
+  if (!hasConfiguredValue("FIRMS_MAP_KEY")) warnings.push("Granular NASA FIRMS active-fire map data remains disabled; the seven-source signal grid still works");
+
+  const amazonClientId = hasConfiguredValue("AMAZON_CREATORS_CLIENT_ID");
+  const amazonClientSecret = hasConfiguredValue("AMAZON_CREATORS_CLIENT_SECRET");
+  requireCondition(amazonClientId === amazonClientSecret, "Amazon Creators API requires both AMAZON_CREATORS_CLIENT_ID and AMAZON_CREATORS_CLIENT_SECRET");
+  if (!amazonClientId) warnings.push("Exact Amazon product cards remain disabled; search links and SP3ND MCP checkout still work");
+
+  if (process.env.SP3ND_PARTNER_MODE_ENABLED === "true") {
+    failures.push("SP3ND_PARTNER_MODE_ENABLED must remain false for this no-key MCP release");
+  }
 }
 
 if (warnings.length) {
