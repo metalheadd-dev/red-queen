@@ -1,4 +1,4 @@
-import { createTransferCheckedInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
+import { createTransferCheckedInstruction } from "@solana/spl-token";
 import {
   ComputeBudgetProgram,
   PublicKey,
@@ -6,7 +6,6 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { withWorkingConnection } from "@/lib/solana";
 
 export type X402Delivery = {
   data: any;
@@ -99,47 +98,39 @@ export async function purchaseX402Output(input: X402ClientInput): Promise<X402De
   const feePayer = String(accept.extra?.feePayer || "");
   if (!/^\d+$/.test(amount) || BigInt(amount) <= BigInt(0)) throw new Error("The x402 amount is invalid.");
   const mint = new PublicKey(asset);
-  const recipient = new PublicKey(payTo);
   const payer = new PublicKey(feePayer);
-  const isDevnet = String(accept.network).includes("EtWTRABZaYq6iMfeYKouRu166VU2xqa1") || String(accept.network).includes("devnet");
   input.onStatus?.("VERIFYING USDC AND NETWORK FEE…");
-  const { connection, result: paymentState } = await withWorkingConnection(async (candidate) => {
-    const [lamports, accounts] = await Promise.all([
-      candidate.getBalance(input.publicKey),
-      candidate.getParsedTokenAccountsByOwner(input.publicKey, { mint }),
-    ]);
-    return { lamports, accounts: accounts.value };
-  }, isDevnet);
-  const { lamports } = paymentState;
+  const paymentStateResponse = await fetch("/api/x402/payment-state", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      wallet: input.publicKey.toBase58(),
+      asset,
+      payTo,
+      network: String(accept.network || ""),
+      amount,
+    }),
+    cache: "no-store",
+  });
+  if (!paymentStateResponse.ok) throw new Error(await parseFailure(paymentStateResponse));
+  const paymentState = await paymentStateResponse.json();
+  const lamports = Number(paymentState.lamports || 0);
   if (lamports < 100_000) throw new Error("The connected wallet needs a small SOL balance for network fees.");
-  const spendableAccounts = paymentState.accounts
-    .map((account) => ({
-      publicKey: account.pubkey,
-      amount: BigInt((account.account.data as any)?.parsed?.info?.tokenAmount?.amount || "0"),
-    }))
-    .sort((left, right) => left.amount === right.amount ? 0 : left.amount > right.amount ? -1 : 1);
-  const source = spendableAccounts.find((account) => account.amount >= BigInt(amount));
-  if (!source) {
+  if (!paymentState.sourceAccount || BigInt(String(paymentState.tokenAmount || "0")) < BigInt(amount)) {
     const required = Number(amount) / 1_000_000;
     throw new Error(`Insufficient USDC. This operation requires ${required.toFixed(2)} USDC.`);
   }
-  const sourceAccount = source.publicKey;
-  const destinationAccount = await getAssociatedTokenAddress(mint, recipient);
-
-  let decimals = 6;
-  const mintInfo = await connection.getParsedAccountInfo(mint).catch(() => null);
-  if (mintInfo?.value && typeof mintInfo.value.data === "object" && "parsed" in mintInfo.value.data) {
-    decimals = Number((mintInfo.value.data as any).parsed?.info?.decimals ?? 6);
-  }
+  const sourceAccount = new PublicKey(paymentState.sourceAccount);
+  const destinationAccount = new PublicKey(paymentState.destinationAccount);
+  const decimals = Number(paymentState.decimals || 6);
   const instructions: TransactionInstruction[] = [
     ComputeBudgetProgram.setComputeUnitLimit({ units: 20_000 }),
     ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 5 }),
     createTransferCheckedInstruction(sourceAccount, mint, destinationAccount, input.publicKey, BigInt(amount), decimals),
   ];
-  const { blockhash } = await connection.getLatestBlockhash("confirmed");
   const transaction = new VersionedTransaction(new TransactionMessage({
     payerKey: payer,
-    recentBlockhash: blockhash,
+    recentBlockhash: String(paymentState.blockhash),
     instructions,
   }).compileToV0Message());
 

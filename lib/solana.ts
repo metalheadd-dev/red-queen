@@ -43,7 +43,8 @@ export async function withWorkingConnection<T>(
       const result = await Promise.race([
         (async () => {
           const genesisHash = await connection.getGenesisHash();
-          if (genesisHash !== expectedGenesisHash) {
+          // CAIP-2 uses the first 32 characters of the Solana genesis hash.
+          if (!genesisHash.startsWith(expectedGenesisHash)) {
             throw new Error(`RPC network mismatch: expected ${expectedGenesisHash}, received ${genesisHash}`);
           }
           return await operation(connection);
