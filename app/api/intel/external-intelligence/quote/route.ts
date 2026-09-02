@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   const input = parseExternalIntelligenceInput(await request.json().catch(() => null));
   if (!input) return NextResponse.json({ success: false, error: "A broad area and bounded survival-intelligence question are required." }, { status: 400 });
-  const quote = externalIntelligenceQuote(input);
+  const quote = await externalIntelligenceQuote(input);
   return NextResponse.json({
     success: true,
     quote,

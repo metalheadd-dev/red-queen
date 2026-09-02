@@ -57,6 +57,26 @@ export interface RedQueenCommerceItem {
   why: string;
   cautions?: string;
   amazonUrl: string;
+  x402Offer?: {
+    listingId: string;
+    title: string;
+    price: string;
+    currency: string;
+    availability: string;
+    seller: string;
+    verified: boolean;
+    detailUrl: string;
+  };
+  amazonProduct?: {
+    asin: string;
+    title: string;
+    url: string;
+    imageUrl: string | null;
+    price: string | null;
+    availability: string | null;
+    marketplace: string;
+    provider: "Amazon Creators API";
+  };
 }
 
 export interface RedQueenCommerceCart {

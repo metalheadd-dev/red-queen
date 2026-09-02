@@ -5,7 +5,8 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
 import { sanitizeArea, SurvivalFocus } from "@/lib/survival-context";
-import { paidAgent402Fetch, upstreamBuyerReady, type UpstreamX402Receipt } from "@/lib/upstream-x402-client";
+import { paidAgent402Fetch, upstreamBuyerPolicy, upstreamBuyerReadiness, type UpstreamX402Receipt } from "@/lib/upstream-x402-client";
+import { checkUpstreamSpendStore } from "@/lib/upstream-x402-spends";
 import { fetchSignalGrid } from "@/lib/signal-engine";
 
 export const EXTERNAL_INTELLIGENCE_PRICE = "$0.08";
@@ -68,10 +69,11 @@ function signature(payload: string) {
   return createHmac("sha256", quoteSecret()).update(payload).digest("base64url");
 }
 
-export function externalIntelligenceQuote(input?: ExternalIntelligenceInput) {
-  const buyerReady = upstreamBuyerReady();
+export async function externalIntelligenceQuote(input?: ExternalIntelligenceInput) {
+  const buyer = upstreamBuyerReadiness();
+  const spendStore = await checkUpstreamSpendStore();
   const computeReady = Boolean(process.env.OPENAI_API_KEY?.trim());
-  const eligible = buyerReady && computeReady;
+  const eligible = buyer.ready && spendStore.available && computeReady;
   const expiresAt = Date.now() + 10 * 60_000;
   const quoteToken = input && eligible
     ? `${expiresAt}.${signature(quotePayload(input, expiresAt))}`
@@ -83,6 +85,7 @@ export function externalIntelligenceQuote(input?: ExternalIntelligenceInput) {
     userPrice: EXTERNAL_INTELLIGENCE_PRICE_LABEL,
     settlement: "x402 exact USDC on Solana",
     upstreamBudget: EXTERNAL_UPSTREAM_CAP,
+    buyerPolicy: upstreamBuyerPolicy(),
     merchant: {
       id: "AGENT402",
       name: "Agent402.Tools",
@@ -98,7 +101,10 @@ export function externalIntelligenceQuote(input?: ExternalIntelligenceInput) {
     dataNotShared: ["exact address", "wallet address or balance", "profile", "BIO score", "saved plans"],
     delivery: ["Queen assessment", "uncertainty", "one next action", "sources", "upstream x402 receipts", "RED QUEEN receipt"],
     readiness: {
-      buyerWallet: buyerReady,
+      buyerWallet: buyer.ready,
+      buyerAddress: buyer.expectedAddress,
+      buyerAddressMatches: buyer.addressMatches,
+      spendLedger: spendStore.available,
       synthesisCompute: computeReady,
     },
     notice: "No external call or upstream payment is made until this quote is returned, displayed and approved through the separate RED QUEEN x402 payment.",

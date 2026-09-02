@@ -24,6 +24,18 @@ export type X402MarketCartItem = {
   quantity: number;
 };
 
+export type X402PhysicalOfferCard = {
+  listingId: string;
+  title: string;
+  description: string;
+  price: string;
+  currency: string;
+  availability: string;
+  seller: string;
+  verified: boolean;
+  detailUrl: string;
+};
+
 export function x402MarketOrigin() {
   const raw = process.env.X402_MARKET_BASE_URL?.trim() || DEFAULT_MARKET_ORIGIN;
   const url = new URL(raw);
@@ -119,4 +131,39 @@ export function findMarketId(payload: any, key: "session" | "checkout") {
     ? [payload?.session_id, payload?.sessionId, payload?.session?.id, payload?.id]
     : [payload?.checkout_id, payload?.checkoutId, payload?.checkout?.id, payload?.id];
   return candidates.map(cleanMarketId).find(Boolean) || "";
+}
+
+export async function searchX402PhysicalOffers(query: string, limit = 6) {
+  const cleanQuery = cleanText(query, 120);
+  if (cleanQuery.length < 2) return [] as X402PhysicalOfferCard[];
+  const response = await marketFetch("/api/v1/catalog/search", {
+    method: "POST",
+    headers: marketHeaders(),
+    body: JSON.stringify({
+      query: cleanQuery,
+      listing_types: ["physical_product"],
+      filters: { seller_verified_only: true },
+      limit: Math.min(10, Math.max(1, limit)),
+      offset: 0,
+    }),
+    signal: AbortSignal.timeout(6_000),
+  });
+  if (!response.ok) throw new Error(`x402 Market catalog returned HTTP ${response.status}.`);
+  const payload = await readMarketJson(response);
+  const results = Array.isArray(payload?.results) ? payload.results : [];
+  return results.slice(0, limit).flatMap((entry: any) => {
+    const listingId = cleanMarketId(entry?.listing_id);
+    if (!listingId) return [];
+    return [{
+      listingId,
+      title: cleanText(entry?.title, 180) || "x402 physical offer",
+      description: cleanText(entry?.description, 500),
+      price: cleanText(entry?.price?.amount, 40) || "QUOTE",
+      currency: cleanText(entry?.price?.currency, 12) || "PYUSD",
+      availability: cleanText(entry?.availability?.status, 40) || "CHECK STOCK",
+      seller: cleanText(entry?.seller?.name, 120) || "x402 Market seller",
+      verified: entry?.seller?.verified === true,
+      detailUrl: `${x402MarketOrigin()}/p/${encodeURIComponent(listingId)}`,
+    } satisfies X402PhysicalOfferCard];
+  });
 }

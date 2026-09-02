@@ -17,6 +17,9 @@ import { POST as externalIntelligencePost } from "@/app/api/intel/external-intel
 import { POST as survivalKitPost } from "@/app/api/market/survival-kit/route";
 import { POST as physicalOfferSearchPost } from "@/app/api/market/catalog-search/route";
 import { POST as physicalCheckoutQuotePost } from "@/app/api/market/cart-quote/route";
+import { POST as physicalCheckoutConfirmPost } from "@/app/api/market/cart-checkout/[checkoutId]/confirm/route";
+import { GET as physicalOrderTrackingGet } from "@/app/api/market/orders/[orderId]/tracking/route";
+import { POST as physicalOrderCancelPost } from "@/app/api/market/orders/[orderId]/cancel/route";
 import { POST as analyzeWalletPost } from "@/app/api/terminal/analyze-wallet/route";
 import { buildRedQueenMcpDiscovery } from "@/lib/mcp-discovery";
 
@@ -571,6 +574,68 @@ const handler = createMcpHandler(
         url: "http://localhost:3000/api/market/cart-quote",
         method: "POST",
         body: { items, destination, ownerAuthorizedDestinationDisclosure },
+      }),
+    );
+
+    server.registerTool(
+      "confirm_physical_checkout",
+      {
+        title: "Confirm x402 Physical Checkout",
+        description: "Receive the exact PYUSD x402 challenge for an already reviewed held checkout, then retry with the same operationId and paymentSignature. A successful call creates real physical orders.",
+        inputSchema: z.object({
+          checkoutId: z.string().min(1).max(160),
+          operationId: z.string().optional(),
+          paymentSignature: z.string().optional(),
+          ownerAuthorizedExactPayment: z.literal(true),
+        }),
+        outputSchema: z.any(),
+        annotations: { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ checkoutId, operationId, paymentSignature }) => invokePaidRoute({
+        route: (request) => physicalCheckoutConfirmPost(request, { params: Promise.resolve({ checkoutId }) }),
+        url: `http://localhost:3000/api/market/cart-checkout/${encodeURIComponent(checkoutId)}/confirm`,
+        method: "POST",
+        body: {},
+        operationId,
+        paymentSignature,
+      }),
+    );
+
+    server.registerTool(
+      "get_physical_order_tracking",
+      {
+        title: "Get Physical Order Tracking",
+        description: "Read fulfillment and tracking state for a RED QUEEN x402 Market physical order.",
+        inputSchema: z.object({ orderId: z.string().min(1).max(160) }),
+        outputSchema: z.any(),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ orderId }) => invokePaidRoute({
+        route: (request) => physicalOrderTrackingGet(request, { params: Promise.resolve({ orderId }) }),
+        url: `http://localhost:3000/api/market/orders/${encodeURIComponent(orderId)}/tracking`,
+        method: "GET",
+      }),
+    );
+
+    server.registerTool(
+      "cancel_physical_order",
+      {
+        title: "Request Physical Order Cancellation",
+        description: "Request cancellation of a marketplace order. Cancellation is not guaranteed once fulfillment has begun; the marketplace response is authoritative.",
+        inputSchema: z.object({
+          orderId: z.string().min(1).max(160),
+          operationId: z.string().optional(),
+          ownerAuthorizedCancellation: z.literal(true),
+        }),
+        outputSchema: z.any(),
+        annotations: { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ orderId, operationId }) => invokePaidRoute({
+        route: (request) => physicalOrderCancelPost(request, { params: Promise.resolve({ orderId }) }),
+        url: `http://localhost:3000/api/market/orders/${encodeURIComponent(orderId)}/cancel`,
+        method: "POST",
+        body: {},
+        operationId,
       }),
     );
   },

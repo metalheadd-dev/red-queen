@@ -27,18 +27,23 @@ const GROUNDING_LABELS: Record<RedQueenClientResponse["grounding"], string> = {
 };
 
 function ProcurementItem({ item, index }: { item: RedQueenCommerceItem; index: number }) {
+  const product = item.amazonProduct;
+  const x402Offer = item.x402Offer;
   return (
     <article className="rq-procurement__item">
       <div className="rq-procurement__index">{String(index + 1).padStart(2, "0")}</div>
+      {product?.imageUrl && <a className="rq-procurement__image" href={product.url} target="_blank" rel="noopener noreferrer sponsored"><img src={product.imageUrl} alt="" width={160} height={160} loading="lazy" /></a>}
       <div className="rq-procurement__copy">
         <span>{item.category} · {item.priority}</span>
         <h4>{item.name}</h4>
         <strong>{item.quantity}</strong>
         <p>{item.why}</p>
         {item.cautions && <small>{item.cautions}</small>}
+        {x402Offer && <div className="rq-procurement__x402"><b>LIVE x402 OFFER</b><strong>{x402Offer.price} {x402Offer.currency}</strong><span>{x402Offer.seller}{x402Offer.verified ? " · VERIFIED" : ""} · {x402Offer.availability}</span></div>}
+        {product && <div className="rq-procurement__amazon"><b>{product.title}</b><span>{product.price || "PRICE ON AMAZON"} · {product.availability || "CHECK AVAILABILITY"}</span><small>ASIN {product.asin} · PRODUCT DATA BY AMAZON</small></div>}
       </div>
-      <a href={item.amazonUrl} target="_blank" rel="noopener noreferrer sponsored">
-        SEARCH AMAZON ↗
+      <a href={x402Offer?.detailUrl || product?.url || item.amazonUrl} target="_blank" rel="noopener noreferrer sponsored">
+        {x402Offer ? "VIEW x402 OFFER ↗" : product ? "VIEW PRODUCT ↗" : "SEARCH AMAZON ↗"}
       </a>
     </article>
   );
@@ -145,8 +150,8 @@ export default function AgentResponseCard({
 
           <footer className="rq-procurement__foot">
             <div>
-              <strong>REVIEW BEFORE PURCHASE</strong>
-              <span>No seller selected · no address shared · no order placed</span>
+              <strong>{response.commerce.items.some((item) => item.x402Offer) ? "LIVE x402 INVENTORY FOUND" : "x402 MARKET HAS NO MATCHING LIVE INVENTORY"}</strong>
+              <span>{response.commerce.items.some((item) => item.x402Offer) ? "Review seller, shipping and exact PYUSD total before approval" : "Amazon remains external discovery · no address shared · no order placed"}</span>
             </div>
             <Link href={response.commerce.fullMarketUrl}>FIND x402 OFFERS &amp; CHECKOUT →</Link>
           </footer>

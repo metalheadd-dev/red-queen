@@ -28,6 +28,8 @@ import {
 } from "@/lib/red-queen-agent";
 import { AgentMode, isAgentMode, isSurvivalFocus, sanitizeArea, sanitizeSignalId, sanitizeSignalIds, SurvivalFocus } from "@/lib/survival-context";
 import { buildAmazonSearchUrl, buildSurvivalKit } from "@/lib/survival-market";
+import { searchAmazonProduct } from "@/lib/amazon-creators";
+import { searchX402PhysicalOffers } from "@/lib/x402-market";
 
 export const maxDuration = 30;
 export const dynamic = "force-dynamic";
@@ -259,11 +261,11 @@ function inferPeople(message: string) {
   return match ? Math.min(12, Math.max(1, Number(match[1]))) : 1;
 }
 
-function buildCommerceCart(
+async function buildCommerceCart(
   response: RedQueenAgentResponse,
   message: string,
   context: AgentSessionContext,
-): RedQueenCommerceCart | null {
+): Promise<RedQueenCommerceCart | null> {
   const inferred = PREPAREDNESS_COMMERCE_PATTERN.test(message);
   const intent = response.procurement || (inferred ? {
     title: response.grounding === "SCENARIO_SIMULATION" ? "Scenario-ready 72-hour kit" : "Personal 72-hour preparedness kit",
@@ -277,28 +279,57 @@ function buildCommerceCart(
   if (!intent) return null;
 
   const area = context.area || "GENERAL PREPAREDNESS";
+  const threatContext = message.replace(/[\r\n\t]/g, " ").replace(/\s+/g, " ").trim().slice(0, 180);
+  const kitConstraints = [intent.constraints, threatContext ? `Threat context: ${threatContext}` : ""]
+    .filter(Boolean)
+    .join(" ")
+    .slice(0, 320);
   const kit = buildSurvivalKit({
     area,
     focus: intent.focus,
     people: intent.people,
-    constraints: intent.constraints,
+    constraints: kitConstraints,
   });
+  const commerceItems: RedQueenCommerceCart["items"] = kit.items.map((entry) => ({
+    id: entry.id,
+    category: entry.category,
+    name: entry.name,
+    quantity: entry.quantity,
+    priority: entry.priority,
+    why: entry.why,
+    cautions: entry.cautions,
+    amazonUrl: buildAmazonSearchUrl(kit.suppliers.amazon.url, entry.searchQuery),
+  }));
+  const [exactProducts, x402Offers] = await Promise.all([
+    Promise.all(commerceItems.slice(0, 4).map(async (_entry, index) => {
+      try { return await searchAmazonProduct(kit.items[index].searchQuery, area); }
+      catch (error) {
+        console.error("Amazon Creators API enrichment failed:", error instanceof Error ? error.message : error);
+        return null;
+      }
+    })),
+    Promise.all(commerceItems.slice(0, 4).map(async (_entry, index) => {
+      try { return (await searchX402PhysicalOffers(kit.items[index].searchQuery, 1))[0] || null; }
+      catch (error) {
+        console.error("x402 Market chat discovery failed:", error instanceof Error ? error.message : error);
+        return null;
+      }
+    })),
+  ]);
+  exactProducts.forEach((product, index) => {
+    if (product) commerceItems[index].amazonProduct = product;
+  });
+  x402Offers.forEach((offer, index) => {
+    if (offer) commerceItems[index].x402Offer = offer;
+  });
+
   return {
     status: "CART_READY",
     title: intent.title || kit.title,
     rationale: intent.rationale,
     area,
     people: kit.people,
-    items: kit.items.map((entry) => ({
-      id: entry.id,
-      category: entry.category,
-      name: entry.name,
-      quantity: entry.quantity,
-      priority: entry.priority,
-      why: entry.why,
-      cautions: entry.cautions,
-      amazonUrl: buildAmazonSearchUrl(kit.suppliers.amazon.url, entry.searchQuery),
-    })),
+    items: commerceItems,
     fullMarketUrl: `/onchain?${new URLSearchParams({ area, focus: intent.focus, people: String(kit.people) }).toString()}#survival-market`,
     retailerMode: "X402_WITH_AMAZON_FALLBACK",
     checkoutBoundary: kit.checkoutBoundary,
@@ -481,7 +512,7 @@ ${buildLiveContext(livePulse, attachedSignals, requestedSignalIds.length, tokenC
     }
 
     const message = formatAgentMessage(agentResponse);
-    const commerce = selfHarmIntent ? null : buildCommerceCart(
+    const commerce = selfHarmIntent ? null : await buildCommerceCart(
       agentResponse,
       latestUserMessage.content,
       sessionContext,

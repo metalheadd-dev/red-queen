@@ -17,6 +17,9 @@ export const RED_QUEEN_MCP_TOOLS = [
   "build_72_hour_survival_cart",
   "search_physical_survival_offers",
   "prepare_physical_checkout_quote",
+  "confirm_physical_checkout",
+  "get_physical_order_tracking",
+  "cancel_physical_order",
 ] as const;
 
 export function buildRedQueenMcpDiscovery() {
@@ -25,7 +28,7 @@ export function buildRedQueenMcpDiscovery() {
     title: "RED QUEEN Survival Intelligence MCP",
     description:
       "Source-backed survival intelligence, preparedness, wallet-risk and x402 agentic commerce tools on Solana.",
-    version: "1.0.0",
+    version: "1.1.0",
     status: "ok",
     endpoint: RED_QUEEN_MCP_ENDPOINT,
     transport: "streamable-http",

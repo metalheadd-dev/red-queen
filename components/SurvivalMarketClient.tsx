@@ -351,7 +351,7 @@ export default function SurvivalMarketClient() {
               <a href={amazonSearch(kit.suppliers.amazon.url, entry.searchQuery)} target="_blank" rel="noreferrer">SEARCH ON AMAZON ↗</a>
             </div>
             {search?.error && <p className="survival-market-search-note is-error">{search.error}</p>}
-            {search?.results && search.results.length === 0 && <p className="survival-market-search-note">NO VERIFIED AGENT-MARKET OFFER YET · RETAILER FALLBACK AVAILABLE</p>}
+            {search?.results && search.results.length === 0 && <p className="survival-market-search-note">x402 MARKET CHECKED · 0 LIVE PHYSICAL OFFERS · THIS IS AN INVENTORY GAP, NOT A PAYMENT ERROR · AMAZON FALLBACK AVAILABLE</p>}
             {search?.results && search.results.length > 0 && <div className="survival-market-offers">{search.results.map((offer) => {
               const id = listingId(offer);
               const isSelected = selected?.offer.listing_id === id;

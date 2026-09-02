@@ -3,7 +3,7 @@
   "info": {
     "title": "RED QUEEN Intelligence Merchant API",
     "description": "Machine-readable survival intelligence and owner-approved physical commerce on Solana. Intelligence resources use exact USDC x402 payments; x402 Market physical orders use exact PYUSD checkout after a separate destination-disclosure approval. Purchases never award XP or BIO-SCORE.",
-    "version": "3.2.0"
+    "version": "3.3.0"
   },
   "servers": [{ "url": "https://redqueen.space" }],
   "externalDocs": {
@@ -201,6 +201,19 @@
         "operationId": "getPhysicalOrderTracking",
         "parameters": [{ "name": "orderId", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "502": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/market/orders/{orderId}/cancel": {
+      "post": {
+        "tags": ["Physical Commerce"],
+        "summary": "Request cancellation of a physical order",
+        "description": "Forwards an owner-authorized cancellation request to x402 Market. The marketplace may refuse once fulfillment has begun.",
+        "operationId": "cancelPhysicalOrder",
+        "parameters": [
+          { "name": "orderId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/OperationId" }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "409": { "description": "Order can no longer be cancelled." }, "502": { "$ref": "#/components/responses/Unavailable" } }
       }
     }
   },

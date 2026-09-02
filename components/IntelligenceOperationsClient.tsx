@@ -430,6 +430,7 @@ export default function IntelligenceOperationsClient() {
               <header><span>QUEEN BUYER DISCLOSURE</span><strong>{externalQuote.eligible ? "READY" : "NOT CONFIGURED"}</strong></header>
               {(externalQuote.merchant?.resources || []).map((resource: any) => <div key={resource.endpoint}><span>{resource.name}</span><strong>{resource.price}</strong></div>)}
               <p><strong>MERCHANT:</strong> {externalQuote.merchant?.name} · <strong>MAX UPSTREAM:</strong> {externalQuote.upstreamBudget}</p>
+              <p><strong>BUYER:</strong> {externalQuote.readiness?.buyerAddress || "DEDICATED WALLET"} · <strong>DAILY CAP:</strong> {externalQuote.buyerPolicy?.dailyLimit || "POLICY CHECK"}</p>
               <p><strong>SHARED:</strong> {(externalQuote.dataShared || []).join(" · ")}</p>
               <p><strong>NEVER SHARED:</strong> {(externalQuote.dataNotShared || []).join(" · ")}</p>
               <small>NO UPSTREAM CALL OR PAYMENT HAS OCCURRED.</small>
