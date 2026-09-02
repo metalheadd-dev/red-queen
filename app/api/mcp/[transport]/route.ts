@@ -20,6 +20,11 @@ import { POST as physicalCheckoutQuotePost } from "@/app/api/market/cart-quote/r
 import { POST as physicalCheckoutConfirmPost } from "@/app/api/market/cart-checkout/[checkoutId]/confirm/route";
 import { GET as physicalOrderTrackingGet } from "@/app/api/market/orders/[orderId]/tracking/route";
 import { POST as physicalOrderCancelPost } from "@/app/api/market/orders/[orderId]/cancel/route";
+import { POST as sp3ndCartPost } from "@/app/api/market/sp3nd/cart/route";
+import { POST as sp3ndOrderPost } from "@/app/api/market/sp3nd/orders/route";
+import { GET as sp3ndOrderGet } from "@/app/api/market/sp3nd/orders/[orderId]/route";
+import { POST as sp3ndShippingPost } from "@/app/api/market/sp3nd/orders/[orderId]/shipping/route";
+import { POST as sp3ndPaymentPost } from "@/app/api/market/sp3nd/orders/[orderId]/pay/route";
 import { POST as analyzeWalletPost } from "@/app/api/terminal/analyze-wallet/route";
 import { buildRedQueenMcpDiscovery } from "@/lib/mcp-discovery";
 
@@ -636,6 +641,123 @@ const handler = createMcpHandler(
         method: "POST",
         body: {},
         operationId,
+      }),
+    );
+
+    server.registerTool(
+      "create_sp3nd_product_cart",
+      {
+        title: "Create SP3ND Server-Priced Product Cart",
+        description: "Send exact Amazon or eBay product URLs plus an owner-approved destination country/postal code to SP3ND. Returns a short-lived server-priced cart; it does not create an order or payment.",
+        inputSchema: z.object({
+          items: z.array(z.object({ productUrl: z.string().url().max(1000), quantity: z.number().int().min(1).max(12).default(1) })).min(1).max(12),
+          userWallet: z.string().min(32).max(64),
+          country: z.string().length(2),
+          postalCode: z.string().min(1).max(24),
+          ownerAuthorizedDestinationDisclosure: z.literal(true),
+        }),
+        outputSchema: z.any(),
+        annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: true },
+      },
+      async ({ items, userWallet, country, postalCode, ownerAuthorizedDestinationDisclosure }) => invokePaidRoute({
+        route: sp3ndCartPost,
+        url: "http://localhost:3000/api/market/sp3nd/cart",
+        method: "POST",
+        body: { items, userWallet, country, postalCode, ownerAuthorizedDestinationDisclosure },
+      }),
+    );
+
+    server.registerTool(
+      "create_sp3nd_fulfillment_order",
+      {
+        title: "Create Idempotent SP3ND Fulfillment Order",
+        description: "After explicit owner authorization, submit one SP3ND cart and exact delivery destination. The result may be ready for payment or awaiting manual review/shipping. Never pay unless payment_ready is true.",
+        inputSchema: z.object({
+          cartId: z.string().min(1).max(180),
+          checkoutKey: z.string().min(8).max(180),
+          userWallet: z.string().min(32).max(64),
+          destination: z.object({
+            name: z.string().min(1).max(100),
+            line1: z.string().min(1).max(160),
+            line2: z.string().max(160).optional(),
+            city: z.string().min(1).max(100),
+            state: z.string().min(1).max(100),
+            postalCode: z.string().min(1).max(24),
+            country: z.string().length(2),
+            email: z.string().email(),
+            phone: z.string().max(40).optional(),
+          }),
+          ownerAuthorizedDestinationDisclosure: z.literal(true),
+        }),
+        outputSchema: z.any(),
+        annotations: { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ cartId, checkoutKey, userWallet, destination, ownerAuthorizedDestinationDisclosure }) => invokePaidRoute({
+        route: sp3ndOrderPost,
+        url: "http://localhost:3000/api/market/sp3nd/orders",
+        method: "POST",
+        body: { cartId, checkoutKey, userWallet, destination, ownerAuthorizedDestinationDisclosure },
+      }),
+    );
+
+    server.registerTool(
+      "get_sp3nd_order_status",
+      {
+        title: "Get SP3ND Order and Fulfillment Status",
+        description: "Refresh a SP3ND order before payment retries and while waiting for manual quote, payment settlement or fulfillment.",
+        inputSchema: z.object({ orderId: z.string().min(1).max(180) }),
+        outputSchema: z.any(),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ orderId }) => invokePaidRoute({
+        route: (request) => sp3ndOrderGet(request, { params: Promise.resolve({ orderId }) }),
+        url: `http://localhost:3000/api/market/sp3nd/orders/${encodeURIComponent(orderId)}`,
+        method: "GET",
+      }),
+    );
+
+    server.registerTool(
+      "select_sp3nd_shipping",
+      {
+        title: "Select Current SP3ND Shipping Quote",
+        description: "Submit one opaque shipping option exactly as returned by SP3ND after the owner approves it. The server remains authoritative for tax, shipping and total.",
+        inputSchema: z.object({
+          orderId: z.string().min(1).max(180),
+          shippingOptionId: z.string().min(1).max(180),
+          ownerAuthorizedShippingSelection: z.literal(true),
+        }),
+        outputSchema: z.any(),
+        annotations: { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ orderId, shippingOptionId, ownerAuthorizedShippingSelection }) => invokePaidRoute({
+        route: (request) => sp3ndShippingPost(request, { params: Promise.resolve({ orderId }) }),
+        url: `http://localhost:3000/api/market/sp3nd/orders/${encodeURIComponent(orderId)}/shipping`,
+        method: "POST",
+        body: { shippingOptionId, ownerAuthorizedShippingSelection },
+      }),
+    );
+
+    server.registerTool(
+      "pay_sp3nd_order",
+      {
+        title: "Pay Payment-Ready SP3ND Order in Solana USDC",
+        description: "Refresh and gate a SP3ND order, return its exact x402 USDC challenge, then retry with the same operationId and paymentSignature after explicit owner approval. Never use this tool while payment_ready is false.",
+        inputSchema: z.object({
+          orderId: z.string().min(1).max(180),
+          operationId: z.string().optional(),
+          paymentSignature: z.string().optional(),
+          ownerAuthorizedExactPayment: z.literal(true),
+        }),
+        outputSchema: z.any(),
+        annotations: { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ orderId, operationId, paymentSignature }) => invokePaidRoute({
+        route: (request) => sp3ndPaymentPost(request, { params: Promise.resolve({ orderId }) }),
+        url: `http://localhost:3000/api/market/sp3nd/orders/${encodeURIComponent(orderId)}/pay`,
+        method: "POST",
+        body: {},
+        operationId,
+        paymentSignature,
       }),
     );
   },

@@ -37,6 +37,7 @@ type SurvivalKit = {
   suppliers: {
     x402Market: { name: string; url: string; rail: string };
     amazon: { name: string; url: string; rail: string };
+    sp3nd: { name: string; url: string; rail: string };
   };
   checkoutStatus: string;
   checkoutBoundary: string;
@@ -319,12 +320,12 @@ export default function SurvivalMarketClient() {
     <div className="onchain-section-head commerce-desk-head">
       <span>02 // SURVIVAL GEAR</span>
       <h2>Describe the threat. Build the cart.</h2>
-      <p>Queen sizes essential supplies, finds live agent-market inventory and can complete an owner-approved x402 order. Amazon remains a discovery fallback when no purchasable agent offer exists.</p>
+      <p>Queen sizes essential supplies and searches live agent inventory. Exact Amazon or eBay product pages can continue into the SP3ND USDC checkout below; x402 Market remains a second physical rail.</p>
     </div>
     <div className={`survival-market-grid${kit ? " has-kit" : " is-configuring"}`}>
       <div className="survival-market-form">
         <div className="survival-market-form-head"><span>BUILD THE MANIFEST</span><strong>FREE CART</strong></div>
-        <div className="survival-market-providers"><div><strong>x402 PHYSICAL CHECKOUT</strong><span>PYUSD on Solana · explicit approval</span></div><div><strong>AMAZON FALLBACK</strong><span>Discovery only · external checkout</span></div></div>
+        <div className="survival-market-providers"><div><strong>SP3ND FULFILLMENT</strong><span>Amazon/eBay · USDC on Solana</span></div><div><strong>x402 MARKET</strong><span>Agent inventory · PYUSD on Solana</span></div></div>
         <label><b>BROAD CITY OR REGION</b><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
         <div className="survival-market-form-row">
           <label><b>FOCUS</b><select value={focus} onChange={(event) => setFocus(event.target.value as SurvivalFocus)}>{SURVIVAL_FOCUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
@@ -351,7 +352,7 @@ export default function SurvivalMarketClient() {
               <a href={amazonSearch(kit.suppliers.amazon.url, entry.searchQuery)} target="_blank" rel="noreferrer">SEARCH ON AMAZON ↗</a>
             </div>
             {search?.error && <p className="survival-market-search-note is-error">{search.error}</p>}
-            {search?.results && search.results.length === 0 && <p className="survival-market-search-note">x402 MARKET CHECKED · 0 LIVE PHYSICAL OFFERS · THIS IS AN INVENTORY GAP, NOT A PAYMENT ERROR · AMAZON FALLBACK AVAILABLE</p>}
+            {search?.results && search.results.length === 0 && <p className="survival-market-search-note">x402 MARKET CHECKED · 0 LIVE OFFERS · USE AN EXACT AMAZON/EBAY PRODUCT URL IN THE SP3ND USDC DESK BELOW</p>}
             {search?.results && search.results.length > 0 && <div className="survival-market-offers">{search.results.map((offer) => {
               const id = listingId(offer);
               const isSelected = selected?.offer.listing_id === id;
@@ -369,7 +370,7 @@ export default function SurvivalMarketClient() {
             <button type="button" onClick={() => void copyKit()}>{copied ? "COPIED" : "COPY CART"}</button>
             <a href={kit.suppliers.x402Market.url} target="_blank" rel="noreferrer">OPEN AGENT MARKET ↗</a>
           </div>
-          <div className="survival-market-boundary"><strong>x402 CHECKOUT IS OWNER-CONTROLLED</strong><p>Selected agent-market products can now be held, quoted and paid in PYUSD on Solana below. Amazon links remain external and are never purchased by RED QUEEN.</p></div>
+          <div className="survival-market-boundary"><strong>PHYSICAL CHECKOUT IS OWNER-CONTROLLED</strong><p>x402 Market offers use PYUSD. Exact Amazon/eBay pages can be server-priced and fulfilled through SP3ND in USDC below. Both require separate destination disclosure and wallet approval.</p></div>
         </>
       </div>}
     </div>

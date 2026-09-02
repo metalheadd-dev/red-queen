@@ -205,9 +205,10 @@ export function buildSurvivalKit(input: SurvivalKitInput) {
     items,
     suppliers: {
       x402Market: { name: "x402 Market", url: x402Market, rail: "Agent-readable catalog · PYUSD checkout · separate approval" },
-      amazon: { name: "Amazon search", url: amazonBase, rail: "External retailer · checkout stays outside RED QUEEN" },
+      amazon: { name: "Amazon search", url: amazonBase, rail: "Product discovery · exact pages can enter SP3ND fulfillment" },
+      sp3nd: { name: "SP3ND", url: "https://www.sp3nd.shop", rail: "Amazon/eBay fulfillment · Solana USDC · separate approval" },
     },
-    checkoutStatus: "READY_FOR_X402_OFFER_SELECTION",
-    checkoutBoundary: "RED QUEEN prepared the threat-specific manifest. No seller, address or payment is selected yet. A live x402 offer can proceed only through separate destination-disclosure, quote and exact-payment approvals.",
+    checkoutStatus: "READY_FOR_PHYSICAL_PROVIDER_SELECTION",
+    checkoutBoundary: "RED QUEEN prepared the threat-specific manifest. No seller, address or payment is selected yet. SP3ND and x402 Market can proceed only through separate destination-disclosure, server-quote and exact-payment approvals.",
   };
 }

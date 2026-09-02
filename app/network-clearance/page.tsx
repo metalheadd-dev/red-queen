@@ -12,6 +12,7 @@ import AgentRegistryIdentity from "@/components/AgentRegistryIdentity";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
 import MobileCommandHeader from "@/components/MobileCommandHeader";
 import SurvivalMarketClient from "@/components/SurvivalMarketClient";
+import Sp3ndCheckoutClient from "@/components/Sp3ndCheckoutClient";
 
 const LEVEL_COLORS = ["#8a8a8a", "#d8d8d8", "#f0c929", "#ff884d", "#ff4d4d"];
 
@@ -65,10 +66,11 @@ export default function NetworkClearancePage() {
         <div id="onchain-actions" />
         <section className="commerce-command" aria-label="Commerce desks">
           <div><span>CHOOSE A DESK</span><strong>One Queen. Two ways to act.</strong></div>
-          <nav><a href="#queen-operations"><b>01</b><span>PAID INTELLIGENCE<small>x402 reports · exact USDC price</small></span></a><a href="#survival-market"><b>02</b><span>PHYSICAL READINESS<small>Threat cart · PYUSD x402 checkout</small></span></a></nav>
+          <nav><a href="#queen-operations"><b>01</b><span>PAID INTELLIGENCE<small>x402 reports · exact USDC price</small></span></a><a href="#survival-market"><b>02</b><span>PHYSICAL READINESS<small>Amazon/eBay · USDC on Solana</small></span></a></nav>
         </section>
         <IntelligenceOperationsClient />
         <SurvivalMarketClient />
+        <Sp3ndCheckoutClient />
         <OnchainClearanceClient />
         <ThreatSwapClient />
         <AgentRegistryIdentity />

@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "RED QUEEN Intelligence Merchant API",
-    "description": "Machine-readable survival intelligence and owner-approved physical commerce on Solana. Intelligence resources use exact USDC x402 payments; x402 Market physical orders use exact PYUSD checkout after a separate destination-disclosure approval. Purchases never award XP or BIO-SCORE.",
-    "version": "3.3.0"
+    "description": "Machine-readable survival intelligence and owner-approved physical commerce on Solana. Intelligence resources use exact USDC x402 payments; SP3ND fulfills Amazon/eBay orders with USDC and x402 Market remains available for PYUSD inventory. Purchases never award XP or BIO-SCORE.",
+    "version": "3.4.0"
   },
   "servers": [{ "url": "https://redqueen.space" }],
   "externalDocs": {
@@ -215,6 +215,60 @@
         ],
         "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "409": { "description": "Order can no longer be cancelled." }, "502": { "$ref": "#/components/responses/Unavailable" } }
       }
+    },
+    "/api/market/sp3nd/cart": {
+      "post": {
+        "tags": ["Physical Commerce"],
+        "summary": "Create a server-priced Amazon or eBay cart",
+        "description": "Relays exact product URLs, the user wallet and an owner-approved country/postal destination to SP3ND. Product facts and all monetary fields remain server-authoritative. No order or payment is created.",
+        "operationId": "createSp3ndProductCart",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Sp3ndCartInput" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/market/sp3nd/orders": {
+      "post": {
+        "tags": ["Physical Commerce"],
+        "summary": "Create an idempotent SP3ND fulfillment order",
+        "description": "Creates one destination-bound order after explicit owner approval. The response can be payment-ready, awaiting manual review or awaiting shipping selection. Payment must remain locked unless payment_ready is true.",
+        "operationId": "createSp3ndFulfillmentOrder",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Sp3ndOrderInput" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "409": { "description": "Idempotency conflict or quote state changed." }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/market/sp3nd/orders/{orderId}": {
+      "get": {
+        "tags": ["Physical Commerce"],
+        "summary": "Read current SP3ND order and fulfillment state",
+        "operationId": "getSp3ndOrderStatus",
+        "parameters": [{ "name": "orderId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "502": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/market/sp3nd/orders/{orderId}/shipping": {
+      "post": {
+        "tags": ["Physical Commerce"],
+        "summary": "Select one current SP3ND shipping option",
+        "description": "Submits the opaque shipping option ID exactly as returned by SP3ND after owner approval. The provider recalculates the authoritative total.",
+        "operationId": "selectSp3ndShipping",
+        "parameters": [{ "name": "orderId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "shippingOptionId": { "type": "string" }, "ownerAuthorizedShippingSelection": { "type": "boolean", "const": true } }, "required": ["shippingOptionId", "ownerAuthorizedShippingSelection"] } } } },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "409": { "description": "Quote expired or changed." }, "502": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/market/sp3nd/orders/{orderId}/pay": {
+      "post": {
+        "tags": ["Physical Commerce"],
+        "summary": "Pay one payment-ready SP3ND order through x402 USDC",
+        "description": "Refreshes the order and refuses payment unless payment_ready is true, the quote is current and shipping is selected. First call returns the exact SP3ND x402 challenge; retry with the same operation ID and Payment-Signature.",
+        "operationId": "paySp3ndOrder",
+        "parameters": [
+          { "name": "orderId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/OperationId" },
+          { "$ref": "#/components/parameters/PaymentSignature" }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "201": { "$ref": "#/components/responses/Delivered" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "409": { "description": "Order is not payment-ready, quote expired, or settlement is unresolved." }, "502": { "$ref": "#/components/responses/Unavailable" } }
+      }
     }
   },
   "components": {
@@ -280,6 +334,30 @@
           "destination": { "type": "object", "description": "Exact delivery data. Send only after the owner explicitly authorizes disclosure to x402 Market and selected sellers.", "properties": { "name": { "type": "string" }, "line1": { "type": "string" }, "line2": { "type": "string" }, "city": { "type": "string" }, "state": { "type": "string" }, "postalCode": { "type": "string" }, "country": { "type": "string", "minLength": 2, "maxLength": 2 }, "email": { "type": "string", "format": "email" }, "phone": { "type": "string" }, "deliveryNotes": { "type": "string" } }, "required": ["name", "line1", "city", "state", "postalCode", "country"] }
         },
         "required": ["items", "destination"]
+      },
+      "Sp3ndCartInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": { "type": "array", "minItems": 1, "maxItems": 12, "items": { "type": "object", "properties": { "productUrl": { "type": "string", "format": "uri", "description": "Exact Amazon or eBay product page." }, "quantity": { "type": "integer", "minimum": 1, "maximum": 12 } }, "required": ["productUrl", "quantity"] } },
+          "userWallet": { "type": "string", "description": "End-user Solana address used for order attribution." },
+          "country": { "type": "string", "minLength": 2, "maxLength": 2 },
+          "postalCode": { "type": "string", "minLength": 1, "maxLength": 24 },
+          "ownerAuthorizedDestinationDisclosure": { "type": "boolean", "const": true }
+        },
+        "required": ["items", "userWallet", "country", "postalCode", "ownerAuthorizedDestinationDisclosure"]
+      },
+      "Sp3ndOrderInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "cartId": { "type": "string" },
+          "checkoutKey": { "type": "string", "description": "Stable idempotency key reused for retries of this exact checkout." },
+          "userWallet": { "type": "string" },
+          "destination": { "type": "object", "description": "Exact delivery data sent only to SP3ND after explicit owner authorization.", "properties": { "name": { "type": "string" }, "line1": { "type": "string" }, "line2": { "type": "string" }, "city": { "type": "string" }, "state": { "type": "string" }, "postalCode": { "type": "string" }, "country": { "type": "string", "minLength": 2, "maxLength": 2 }, "email": { "type": "string", "format": "email" }, "phone": { "type": "string" } }, "required": ["name", "line1", "city", "state", "postalCode", "country", "email"] },
+          "ownerAuthorizedDestinationDisclosure": { "type": "boolean", "const": true }
+        },
+        "required": ["cartId", "checkoutKey", "userWallet", "destination", "ownerAuthorizedDestinationDisclosure"]
       }
     },
     "responses": {

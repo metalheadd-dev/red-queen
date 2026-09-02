@@ -331,7 +331,7 @@ async function buildCommerceCart(
     people: kit.people,
     items: commerceItems,
     fullMarketUrl: `/onchain?${new URLSearchParams({ area, focus: intent.focus, people: String(kit.people) }).toString()}#survival-market`,
-    retailerMode: "X402_WITH_AMAZON_FALLBACK",
+    retailerMode: "AGENTIC_PHYSICAL_COMMERCE",
     checkoutBoundary: kit.checkoutBoundary,
   };
 }

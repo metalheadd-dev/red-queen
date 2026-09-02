@@ -87,7 +87,7 @@ export interface RedQueenCommerceCart {
   people: number;
   items: RedQueenCommerceItem[];
   fullMarketUrl: string;
-  retailerMode: "X402_WITH_AMAZON_FALLBACK";
+  retailerMode: "AGENTIC_PHYSICAL_COMMERCE";
   checkoutBoundary: string;
 }
 
