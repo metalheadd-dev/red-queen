@@ -20,11 +20,6 @@ export const RED_QUEEN_MCP_TOOLS = [
   "confirm_physical_checkout",
   "get_physical_order_tracking",
   "cancel_physical_order",
-  "create_sp3nd_product_cart",
-  "create_sp3nd_fulfillment_order",
-  "get_sp3nd_order_status",
-  "select_sp3nd_shipping",
-  "pay_sp3nd_order",
 ] as const;
 
 export function buildRedQueenMcpDiscovery() {

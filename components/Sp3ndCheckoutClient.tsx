@@ -34,6 +34,15 @@ type Sp3ndGate = {
 
 type Sp3ndOrder = Record<string, any>;
 
+type McpTool = { name: string; description: string };
+type McpProposal = {
+  proposal: string;
+  toolName: string;
+  arguments: Record<string, unknown>;
+  summary: string;
+  intent: "quote" | "order" | "checkout" | "status";
+};
+
 function orderTotal(order: Sp3ndOrder | null) {
   if (!order) return "SERVER QUOTE PENDING";
   const amount = order.total_amount ?? order.grand_total ?? order.total ?? order.amount;
@@ -46,6 +55,37 @@ function cleanProductLines(value: string) {
   return value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).slice(0, 12);
 }
 
+function sp3ndResultText(value: unknown) {
+  if (!value) return "SP3ND returned no visible output.";
+  if (typeof value === "string") return value;
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    if (Array.isArray(record.content)) {
+      const text = record.content
+        .map((item) => item && typeof item === "object" && typeof (item as Record<string, unknown>).text === "string"
+          ? (item as Record<string, unknown>).text
+          : "")
+        .filter(Boolean)
+        .join("\n");
+      if (text) return text;
+    }
+    return JSON.stringify(value, null, 2);
+  }
+  return String(value);
+}
+
+function sp3ndResultLinks(value: unknown) {
+  const matches = sp3ndResultText(value).match(/https:\/\/[^\s"'<>]+/g) || [];
+  return Array.from(new Set(matches)).filter((candidate) => {
+    try {
+      const host = new URL(candidate).hostname.toLowerCase();
+      return host === "sp3nd.shop" || host.endsWith(".sp3nd.shop");
+    } catch {
+      return false;
+    }
+  }).slice(0, 4);
+}
+
 export default function Sp3ndCheckoutClient() {
   const { connection } = useConnection();
   const { connected, publicKey, signTransaction } = useWallet();
@@ -56,6 +96,12 @@ export default function Sp3ndCheckoutClient() {
   const [consent, setConsent] = useState(false);
   const [paymentConsent, setPaymentConsent] = useState(false);
   const [providerReady, setProviderReady] = useState<boolean | null>(null);
+  const [mcpConnected, setMcpConnected] = useState<boolean | null>(null);
+  const [mcpReturnTo, setMcpReturnTo] = useState("/onchain#sp3nd-checkout");
+  const [mcpTools, setMcpTools] = useState<McpTool[]>([]);
+  const [mcpProposal, setMcpProposal] = useState<McpProposal | null>(null);
+  const [mcpResult, setMcpResult] = useState<unknown>(null);
+  const [mcpIntent, setMcpIntent] = useState<McpProposal["intent"]>("quote");
   const [checkoutKey, setCheckoutKey] = useState("");
   const [cartId, setCartId] = useState("");
   const [orderId, setOrderId] = useState("");
@@ -69,6 +115,7 @@ export default function Sp3ndCheckoutClient() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    setMcpReturnTo(`${window.location.pathname}${window.location.search}#sp3nd-checkout`);
     const product = params.get("sp3ndProduct");
     if (product?.startsWith("https://")) setProducts(product.slice(0, 1_000));
     setCheckoutKey(`rq-sp3nd-${crypto.randomUUID()}`);
@@ -76,6 +123,16 @@ export default function Sp3ndCheckoutClient() {
       .then((response) => response.json())
       .then((payload) => setProviderReady(payload.ready === true))
       .catch(() => setProviderReady(false));
+    void fetch("/api/market/sp3nd/mcp/status", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((payload) => {
+        setMcpConnected(payload.connected === true);
+        setMcpTools(Array.isArray(payload.tools) ? payload.tools : []);
+        if (payload.error) setError(payload.error);
+      })
+      .catch(() => setMcpConnected(false));
+    const oauthError = params.get("sp3ndError");
+    if (oauthError) setError(oauthError.slice(0, 240));
   }, []);
 
   function resetQuote() {
@@ -90,6 +147,65 @@ export default function Sp3ndCheckoutClient() {
   function changeDestination(field: keyof Destination, value: string) {
     setDestination((current) => ({ ...current, [field]: value }));
     resetQuote();
+  }
+
+  async function prepareMcpStep(intent: McpProposal["intent"]) {
+    if (!consent || productUrls.length === 0 || mcpConnected !== true) return;
+    setBusy(true);
+    setError("");
+    setMcpProposal(null);
+    setStatus(`RED QUEEN IS MAPPING THE ${intent.toUpperCase()} TO A LIVE SP3ND TOOL…`);
+    try {
+      const response = await fetch("/api/market/sp3nd/mcp/propose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          intent,
+          context: {
+            items: productUrls.map((productUrl) => ({ product_url: productUrl, quantity: 1 })),
+            user_wallet: publicKey?.toBase58() || undefined,
+            destination: intent === "quote"
+              ? { country: destination.country, postalCode: destination.postalCode }
+              : destination,
+            previous_result: mcpResult,
+          },
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "RED QUEEN could not prepare the SP3ND action.");
+      setMcpProposal(payload);
+      setMcpIntent(intent);
+      setStatus("OWNER REVIEW REQUIRED · NO TOOL HAS RUN YET");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "SP3ND MCP proposal failed.");
+      setStatus("");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function executeMcpStep() {
+    if (!mcpProposal || !consent) return;
+    setBusy(true);
+    setError("");
+    setStatus(`RUNNING ${mcpProposal.toolName} THROUGH THE AUTHORIZED SP3ND MCP SESSION…`);
+    try {
+      const response = await fetch("/api/market/sp3nd/mcp/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposal: mcpProposal.proposal, ownerAuthorized: true }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "SP3ND MCP could not complete the approved step.");
+      setMcpResult(payload.result);
+      setMcpProposal(null);
+      setStatus(`${mcpIntent.toUpperCase()} STEP DELIVERED · REVIEW BEFORE CONTINUING`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "SP3ND MCP action failed.");
+      setStatus("");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function prepareOrder() {
@@ -208,8 +324,8 @@ export default function Sp3ndCheckoutClient() {
 
   return <section className="sp3nd-checkout" id="sp3nd-checkout" aria-label="SP3ND Amazon and eBay USDC checkout">
     <header>
-      <div><span>03 // SP3ND PHYSICAL COMMERCE</span><h2>Amazon and eBay. Paid in Solana USDC.</h2><p>Paste exact product pages—or arrive from a Queen product card. SP3ND verifies the listing, calculates the real delivered total and fulfills only after your separate wallet approval.</p></div>
-      <strong>{providerReady === null ? "CHECKING RAIL" : providerReady ? "PRODUCTION RAIL READY" : "PARTNER KEY REQUIRED"}</strong>
+      <div><span>03 // SP3ND COMMERCE MCP</span><h2>Amazon and eBay. Paid in Solana USDC.</h2><p>Connect once through SP3ND OAuth. Queen can then prepare live product quotes and unpaid orders; every checkout still opens a separate wallet approval.</p></div>
+      <strong>{mcpConnected === null ? "CHECKING MCP" : mcpConnected ? "MCP CONNECTED" : "ONE-TIME CONNECT"}</strong>
     </header>
     <div className="sp3nd-checkout-grid">
       <div className="sp3nd-checkout-products">
@@ -229,13 +345,32 @@ export default function Sp3ndCheckoutClient() {
           <label><span>EMAIL</span><input type="email" value={destination.email} onChange={(event) => changeDestination("email", event.target.value)} autoComplete="email" /></label>
           <label><span>PHONE · OPTIONAL</span><input value={destination.phone} onChange={(event) => changeDestination("phone", event.target.value)} autoComplete="tel" /></label>
         </div>
-        {!connected ? <div className="physical-checkout-wallet"><p>Connect the wallet that will receive order attribution and approve the exact USDC payment.</p><WalletMultiButton /></div> : <>
-          <label className="physical-checkout-consent"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>I authorize RED QUEEN to send these product URLs, my public wallet and this delivery destination to SP3ND solely for pricing and fulfillment.</span></label>
-          <button className="physical-checkout-review" type="button" onClick={() => void prepareOrder()} disabled={busy || providerReady !== true || !checkoutKey || !consent || productUrls.length === 0}>{busy ? status || "CONTACTING SP3ND…" : providerReady === false ? "ADD SP3ND PARTNER CREDENTIALS" : "CREATE SERVER-PRICED ORDER"}</button>
-        </>}
+        <label className="physical-checkout-consent"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>I authorize this approved step to send the shown product URLs and destination fields to SP3ND solely for pricing and fulfillment.</span></label>
+        {mcpConnected === true
+          ? <button className="physical-checkout-review" type="button" onClick={() => void prepareMcpStep("quote")} disabled={busy || !consent || productUrls.length === 0}>{busy ? status || "CONTACTING SP3ND…" : "PREPARE LIVE SP3ND QUOTE"}</button>
+          : <a className="physical-checkout-review sp3nd-connect-link" href={`/api/market/sp3nd/mcp/connect?returnTo=${encodeURIComponent(mcpReturnTo)}`}>CONNECT SP3ND MCP · NO API KEY</a>}
       </div>
     </div>
-    {providerReady === false && <div className="sp3nd-setup-note"><strong>ACTIVATION REQUIRED</strong><p>Register RED QUEEN in the SP3ND partner dashboard, then add <code>SP3ND_API_KEY</code> and <code>SP3ND_API_SECRET</code> to Vercel. Product planning and Amazon links continue to work meanwhile.</p><a href="https://www.sp3nd.shop/partner-api/dashboard" target="_blank" rel="noreferrer">OPEN SP3ND PARTNER DASHBOARD ↗</a></div>}
+    {mcpConnected === false && <div className="sp3nd-setup-note"><strong>ONE-TIME WALLET AUTHORIZATION</strong><p>No Partner API account and no service keys. SP3ND OAuth proves wallet ownership without moving funds. Checkout remains a separate approval.</p><a href="https://www.sp3nd.shop/mcp" target="_blank" rel="noreferrer">READ SP3ND MCP GUIDE ↗</a></div>}
+    {mcpConnected && <div className="sp3nd-setup-note is-connected"><strong>SP3ND MCP ONLINE · {mcpTools.length} TOOLS</strong><p>Queen selects only a currently advertised tool and shows its exact arguments before execution.</p></div>}
+    {mcpProposal && <div className="sp3nd-order-panel sp3nd-mcp-proposal">
+      <div><span>QUEEN PROPOSES</span><strong>{mcpProposal.toolName}</strong><p>{mcpProposal.summary}</p></div>
+      <pre>{JSON.stringify(mcpProposal.arguments, null, 2)}</pre>
+      <button className="physical-checkout-pay" type="button" onClick={() => void executeMcpStep()} disabled={busy || !consent}>AUTHORIZE THIS SP3ND STEP</button>
+    </div>}
+    {mcpResult !== null && <div className="sp3nd-order-panel sp3nd-mcp-result">
+      <div><span>SP3ND MCP RESULT</span><strong>REVIEW BEFORE THE NEXT STEP</strong><p>This result is provider data, not proof of payment or delivery.</p></div>
+      <pre>{sp3ndResultText(mcpResult).slice(0, 12_000)}</pre>
+      <div className="sp3nd-mcp-actions">
+        {sp3ndResultLinks(mcpResult).map((href) => <a key={href} href={href} target="_blank" rel="noreferrer">OPEN SECURE SP3ND PAGE ↗</a>)}
+        <button type="button" onClick={() => void prepareMcpStep("order")} disabled={busy}>PREPARE UNPAID ORDER</button>
+        <button type="button" onClick={() => void prepareMcpStep("checkout")} disabled={busy}>PREPARE SECURE CHECKOUT</button>
+        <button type="button" onClick={() => void prepareMcpStep("status")} disabled={busy}>REFRESH STATUS</button>
+      </div>
+    </div>}
+    {providerReady === true && <details className="sp3nd-partner-fallback"><summary>PARTNER API FALLBACK</summary>
+      {!connected ? <div className="physical-checkout-wallet"><p>Connect the wallet that will approve the exact Partner API USDC payment.</p><WalletMultiButton /></div> : <button className="physical-checkout-review" type="button" onClick={() => void prepareOrder()} disabled={busy || !checkoutKey || !consent || productUrls.length === 0}>CREATE PARTNER SERVER-PRICED ORDER</button>}
+    </details>}
     {order && <div className="sp3nd-order-panel">
       <div><span>SP3ND ORDER</span><strong>{order.order_number || orderId}</strong><p>{order.status || "Created"} · {order.pricing_status || "pricing pending"}</p></div>
       <div><span>DELIVERED TOTAL</span><strong>{orderTotal(order)}</strong><p>{gate.payable ? "PAYMENT READY" : "PAYMENT LOCKED UNTIL QUOTE IS READY"}</p></div>

@@ -68,10 +68,14 @@ function sp3ndCredentials() {
   };
 }
 
+function partnerModeEnabled() {
+  return process.env.SP3ND_PARTNER_MODE_ENABLED === "true";
+}
+
 export function sp3ndReadiness() {
   const credentials = sp3ndCredentials();
   return {
-    ready: Boolean(credentials.apiKey && credentials.apiSecret),
+    ready: partnerModeEnabled() && Boolean(credentials.apiKey && credentials.apiSecret),
     provider: "SP3ND",
     network: "Solana mainnet",
     asset: "USDC",
@@ -161,6 +165,7 @@ export function sp3ndShippingAddress(destination: Sp3ndDestination) {
 }
 
 export function sp3ndAuthHeaders(idempotencyKey?: string, paymentSignature?: string) {
+  if (!partnerModeEnabled()) throw new Error("SP3ND Partner API is disabled. Use the public SP3ND MCP connection.");
   const credentials = sp3ndCredentials();
   if (!credentials.apiKey || !credentials.apiSecret) throw new Error("SP3ND partner credentials are not configured.");
   return {
