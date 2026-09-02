@@ -6,7 +6,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { getWorkingConnection } from "@/lib/solana";
+import { withWorkingConnection } from "@/lib/solana";
 
 export type X402Delivery = {
   data: any;
@@ -102,20 +102,29 @@ export async function purchaseX402Output(input: X402ClientInput): Promise<X402De
   const recipient = new PublicKey(payTo);
   const payer = new PublicKey(feePayer);
   const isDevnet = String(accept.network).includes("EtWTRABZaYq6iMfeYKouRu166VU2xqa1") || String(accept.network).includes("devnet");
-  const connection = await getWorkingConnection(isDevnet);
-
   input.onStatus?.("VERIFYING USDC AND NETWORK FEE…");
-  const [lamports, sourceAccount, destinationAccount] = await Promise.all([
-    connection.getBalance(input.publicKey),
-    getAssociatedTokenAddress(mint, input.publicKey),
-    getAssociatedTokenAddress(mint, recipient),
-  ]);
+  const { connection, result: paymentState } = await withWorkingConnection(async (candidate) => {
+    const [lamports, accounts] = await Promise.all([
+      candidate.getBalance(input.publicKey),
+      candidate.getParsedTokenAccountsByOwner(input.publicKey, { mint }),
+    ]);
+    return { lamports, accounts: accounts.value };
+  }, isDevnet);
+  const { lamports } = paymentState;
   if (lamports < 100_000) throw new Error("The connected wallet needs a small SOL balance for network fees.");
-  const tokenBalance = await connection.getTokenAccountBalance(sourceAccount).catch(() => null);
-  if (!tokenBalance || BigInt(tokenBalance.value.amount) < BigInt(amount)) {
+  const spendableAccounts = paymentState.accounts
+    .map((account) => ({
+      publicKey: account.pubkey,
+      amount: BigInt((account.account.data as any)?.parsed?.info?.tokenAmount?.amount || "0"),
+    }))
+    .sort((left, right) => left.amount === right.amount ? 0 : left.amount > right.amount ? -1 : 1);
+  const source = spendableAccounts.find((account) => account.amount >= BigInt(amount));
+  if (!source) {
     const required = Number(amount) / 1_000_000;
     throw new Error(`Insufficient USDC. This operation requires ${required.toFixed(2)} USDC.`);
   }
+  const sourceAccount = source.publicKey;
+  const destinationAccount = await getAssociatedTokenAddress(mint, recipient);
 
   let decimals = 6;
   const mintInfo = await connection.getParsedAccountInfo(mint).catch(() => null);
