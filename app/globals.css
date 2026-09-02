@@ -3671,14 +3671,82 @@ body:has(#game-player-root) .page-content {
 .survival-market-search-note { margin:9px 0 0 !important; padding:8px; border-left:2px solid #f0c929; background:rgba(240,201,41,.04); color:#f0c929 !important; font:700 8px/1.45 var(--mono) !important; }
 .survival-market-search-note.is-error { border-color:var(--accent); background:rgba(255,0,51,.04); color:#ff8b9c !important; }
 .survival-market-offers { display:grid !important; gap:6px !important; margin-top:9px; }
-.survival-market-offers a { display:flex; justify-content:space-between; gap:10px; margin:0; padding:9px; border:1px solid rgba(20,241,149,.2); background:rgba(20,241,149,.025); }
-.survival-market-offers a strong { color:#fff; font:700 9px var(--mono); }
-.survival-market-offers a span { color:#b7ffcf !important; font:700 8px var(--mono) !important; }
+.survival-market-offer { display:grid !important; gap:10px !important; padding:11px; border:1px solid rgba(20,241,149,.2); background:rgba(20,241,149,.025); }
+.survival-market-offer.is-selected { border-color:#14f195; box-shadow:inset 3px 0 #14f195; }
+.survival-market-offer > div { display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 10px; }
+.survival-market-offer > div:first-child { display:grid; }
+.survival-market-offer strong { color:#fff; font:700 9px var(--mono); }
+.survival-market-offer span { color:#b7ffcf !important; font:700 8px var(--mono) !important; }
+.survival-market-offer small { color:rgba(255,255,255,.38); font:700 7px var(--mono); }
+.survival-market-offer button,.survival-market-offer a { margin:0; padding:8px 9px; border:1px solid rgba(20,241,149,.3); background:transparent; color:#b7ffcf; font:700 7px var(--mono); text-decoration:none; cursor:pointer; }
+.survival-market-offer.is-selected button { background:#14f195; color:#031009; }
+.survival-market-offer-controls { display:grid !important; grid-template-columns:120px minmax(0,1fr); gap:8px !important; padding-top:9px; border-top:1px solid rgba(255,255,255,.07); }
+.survival-market-offer-controls label { display:grid; gap:5px; }
+.survival-market-offer-controls input,.survival-market-offer-controls select { width:100%; min-height:34px; padding:7px 8px; border:1px solid rgba(255,255,255,.13); background:#030405; color:#fff; }
 .survival-market-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
 .survival-market-actions button,.survival-market-actions a { padding:11px 14px; border:1px solid rgba(20,241,149,.3); background:rgba(20,241,149,.035); color:#b7ffcf; font:700 9px var(--mono); text-decoration:none; cursor:pointer; }
 .survival-market-boundary { margin-top:14px; padding:14px; border-left:3px solid #f0c929; background:rgba(240,201,41,.035); }
 .survival-market-boundary strong { color:#f0c929; font:700 9px var(--mono); }
 .survival-market-boundary p { margin:7px 0 0; color:rgba(255,255,255,.58); font-size:12px; line-height:1.55; }
+.physical-checkout { margin-top:14px; border:1px solid rgba(255,0,51,.32); background:linear-gradient(125deg,rgba(255,0,51,.07),transparent 28%),#050608; }
+.physical-checkout > header { display:flex; justify-content:space-between; gap:28px; padding:25px 28px; border-bottom:1px solid rgba(255,255,255,.08); }
+.physical-checkout > header span { color:var(--accent); font:800 8px var(--mono); letter-spacing:.15em; }
+.physical-checkout > header h3 { margin:10px 0 7px; color:#fff; font-size:clamp(22px,3vw,34px); text-transform:none; }
+.physical-checkout > header p { max-width:700px; margin:0; color:rgba(255,255,255,.52); font-size:12px; line-height:1.55; }
+.physical-checkout > header > strong { align-self:flex-start; padding:8px 10px; border:1px solid rgba(20,241,149,.35); color:#14f195; font:800 8px var(--mono); white-space:nowrap; }
+.physical-checkout-grid { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr); }
+.physical-checkout-destination,.physical-checkout-authorization { padding:26px 28px; }
+.physical-checkout-destination { border-right:1px solid rgba(255,255,255,.08); }
+.physical-checkout-step { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+.physical-checkout-step b { color:var(--accent); font:800 20px var(--display-font); }
+.physical-checkout-step span { color:#fff; font:800 9px var(--mono); letter-spacing:.1em; }
+.physical-checkout-step small { margin-left:auto; color:rgba(255,255,255,.34); font:700 7px var(--mono); }
+.physical-checkout-fields { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.physical-checkout-fields label { display:grid; gap:6px; }
+.physical-checkout-fields label.is-wide { grid-column:1 / -1; }
+.physical-checkout-fields span { color:rgba(255,255,255,.5); font:700 7px var(--mono); letter-spacing:.08em; }
+.physical-checkout-fields input { width:100%; min-height:42px; padding:10px 11px; border:1px solid rgba(255,255,255,.12); border-radius:0; outline:none; background:#020304; color:#fff; }
+.physical-checkout-fields input:focus { border-color:rgba(255,0,51,.62); }
+.physical-checkout-consent { display:flex; align-items:flex-start; gap:10px; margin-top:16px; padding:13px; border:1px solid rgba(255,255,255,.09); cursor:pointer; }
+.physical-checkout-consent input { margin-top:2px; accent-color:#14f195; }
+.physical-checkout-consent span { color:rgba(255,255,255,.58); font-size:10px; line-height:1.55; }
+.physical-checkout-review,.physical-checkout-pay { width:100%; min-height:49px; margin-top:10px; border:1px solid var(--accent); background:var(--accent); color:#050505; font:800 9px var(--mono); letter-spacing:.09em; cursor:pointer; }
+.physical-checkout-pay { border-color:#14f195; background:#14f195; }
+.physical-checkout-review:disabled,.physical-checkout-pay:disabled { opacity:.36; cursor:not-allowed; }
+.physical-checkout-awaiting { display:grid; place-content:center; min-height:315px; padding:30px; border:1px dashed rgba(255,255,255,.1); text-align:center; }
+.physical-checkout-awaiting strong { color:rgba(255,255,255,.55); font:800 10px var(--mono); }
+.physical-checkout-awaiting p { max-width:440px; color:rgba(255,255,255,.38); font-size:11px; line-height:1.6; }
+.physical-checkout-quote { padding:18px; border:1px solid rgba(20,241,149,.3); background:linear-gradient(135deg,rgba(20,241,149,.07),rgba(0,0,0,.22)); }
+.physical-checkout-quote > span { color:#14f195; font:800 8px var(--mono); letter-spacing:.12em; }
+.physical-checkout-quote > strong { display:block; margin:16px 0 5px; color:#fff; font:700 26px var(--title-font); }
+.physical-checkout-quote p,.physical-checkout-quote small { display:block; margin:5px 0; color:rgba(255,255,255,.48); font:700 8px/1.5 var(--mono); overflow-wrap:anywhere; }
+.physical-checkout-quote a,.physical-checkout-error a { display:inline-block; margin-top:13px; color:#b7ffcf; font:800 8px var(--mono); text-decoration:none; }
+.physical-checkout-wallet { margin-top:10px; padding:14px; border:1px solid rgba(255,255,255,.08); }
+.physical-checkout-wallet p { color:rgba(255,255,255,.52); font-size:11px; }
+.physical-checkout-wallet .wallet-adapter-button { width:100%; justify-content:center; border-radius:0; background:var(--accent); color:#050505; font:800 9px var(--mono); }
+.physical-checkout-status { color:#14f195; font:800 8px var(--mono); }
+.physical-checkout-error { margin-top:12px; padding:14px; border:1px solid rgba(255,0,51,.36); background:rgba(255,0,51,.055); }
+.physical-checkout-error strong { color:#ff7890; font:800 8px var(--mono); }
+.physical-checkout-error p { color:rgba(255,255,255,.6); font-size:11px; line-height:1.5; }
+.physical-checkout-success { min-height:300px; display:grid; place-content:center; padding:40px; text-align:center; }
+.physical-checkout-success > span { color:#14f195; font:800 9px var(--mono); letter-spacing:.15em; }
+.physical-checkout-success h3 { margin:16px 0 8px; color:#fff; font-size:clamp(25px,4vw,42px); text-transform:none; }
+.physical-checkout-success p { max-width:700px; color:rgba(255,255,255,.56); line-height:1.65; }
+.physical-checkout-success > div { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:12px 0; }
+.physical-checkout-success a { padding:10px 12px; border:1px solid rgba(20,241,149,.35); color:#b7ffcf; font:800 8px var(--mono); text-decoration:none; }
+.physical-checkout-success small { color:rgba(255,255,255,.34); font:700 8px var(--mono); }
+@media (max-width:900px) {
+  .physical-checkout-grid { grid-template-columns:1fr; }
+  .physical-checkout-destination { border-right:0; border-bottom:1px solid rgba(255,255,255,.08); }
+}
+@media (max-width:560px) {
+  .physical-checkout > header { align-items:flex-start; flex-direction:column; }
+  .physical-checkout-fields { grid-template-columns:1fr; }
+  .physical-checkout-fields label.is-wide { grid-column:auto; }
+  .physical-checkout-destination,.physical-checkout-authorization { padding:20px; }
+  .physical-checkout-step { align-items:flex-start; flex-wrap:wrap; }
+  .physical-checkout-step small { width:100%; margin-left:34px; }
+}
 .onchain-section-head { display:grid; grid-template-columns:minmax(270px,.65fr) minmax(0,1.1fr); gap:12px 60px; margin-bottom:30px; }
 .onchain-section-head > span { grid-row:1 / 3; color:var(--accent); font:700 8px var(--mono); letter-spacing:.16em; }
 .onchain-section-head h2 { color:#fff; font-size:clamp(28px,4vw,44px); text-transform:none; letter-spacing:-.02em; }
@@ -5536,7 +5604,9 @@ html[data-theme="light"] :is(
   .paid-report-note,.premium-procurement-quote,.premium-procurement-receipt article,.queen-buyer-flow > div,
   .survival-market-grid,.survival-market-providers > div,.survival-market-form input,.survival-market-form select,
   .survival-market-form textarea,.survival-market-items article,.survival-market-boundary,
-  .survival-market-item-actions button,.survival-market-item-actions a,.survival-market-offers a,.survival-market-chat,
+  .survival-market-item-actions button,.survival-market-item-actions a,.survival-market-offer,.survival-market-chat,
+  .physical-checkout,.physical-checkout-fields input,.physical-checkout-consent,.physical-checkout-awaiting,
+  .physical-checkout-quote,.physical-checkout-wallet,.physical-checkout-error,
   .threat-swap-input-row input,.threat-swap-input-row > div button,
   .agent-identity-services article,.community-architecture-line,.community-organ-grid article,
   .community-filter button,.community-file-list button,.community-board-contract > div,
@@ -5559,11 +5629,19 @@ html[data-theme="light"] :is(.premium-procurement-quote p,.premium-procurement-q
   .survival-market-items p,.survival-market-boundary p,.survival-market-form > small) { color:var(--text-dim) !important; }
 html[data-theme="light"] :is(.premium-procurement-quote > div span,.premium-procurement-receipt article strong,
   .queen-buyer-flow strong,.survival-market-empty strong,.survival-market-items h3,.survival-market-items article > strong,
-  .survival-market-offers a strong) { color:var(--text) !important; }
+  .survival-market-offer strong,.physical-checkout h3,.physical-checkout-step span,
+  .physical-checkout-quote > strong,.physical-checkout-awaiting strong) { color:var(--text) !important; }
 html[data-theme="light"] .queen-buyer-flow small { color:var(--text-dim) !important; }
 html[data-theme="light"] .survival-market-item-actions button { color:#087f53 !important; }
 html[data-theme="light"] .survival-market-item-actions a { color:var(--text) !important; }
 html[data-theme="light"] .survival-market-chat { color:var(--text) !important; }
+html[data-theme="light"] :is(.survival-market-offer small,.physical-checkout > header p,.physical-checkout-step small,
+  .physical-checkout-fields span,.physical-checkout-consent span,.physical-checkout-awaiting p,
+  .physical-checkout-quote p,.physical-checkout-quote small,.physical-checkout-wallet p,
+  .physical-checkout-error p,.physical-checkout-success p,.physical-checkout-success small) { color:var(--text-dim) !important; }
+html[data-theme="light"] .physical-checkout { background:linear-gradient(125deg,rgba(255,0,51,.06),transparent 28%),rgba(251,251,252,.96) !important; }
+html[data-theme="light"] :is(.physical-checkout > header,.physical-checkout-destination,.physical-checkout-offer-controls) { border-color:rgba(18,24,30,.12) !important; }
+html[data-theme="light"] .physical-checkout-wallet .wallet-adapter-button { color:#fff !important; background:#ff0033 !important; }
 
 html[data-theme="light"] :is(input,select,textarea) {
   background:#fff !important;

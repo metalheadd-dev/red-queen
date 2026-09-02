@@ -299,8 +299,8 @@ function buildCommerceCart(
       cautions: entry.cautions,
       amazonUrl: buildAmazonSearchUrl(kit.suppliers.amazon.url, entry.searchQuery),
     })),
-    fullMarketUrl: "/onchain#survival-market",
-    retailerMode: "AMAZON_SEARCH",
+    fullMarketUrl: `/onchain?${new URLSearchParams({ area, focus: intent.focus, people: String(kit.people) }).toString()}#survival-market`,
+    retailerMode: "X402_WITH_AMAZON_FALLBACK",
     checkoutBoundary: kit.checkoutBoundary,
   };
 }

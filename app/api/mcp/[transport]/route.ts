@@ -15,6 +15,8 @@ import { POST as premiumAreaPost } from "@/app/api/intel/premium-area/route";
 import { POST as externalIntelligenceQuotePost } from "@/app/api/intel/external-intelligence/quote/route";
 import { POST as externalIntelligencePost } from "@/app/api/intel/external-intelligence/route";
 import { POST as survivalKitPost } from "@/app/api/market/survival-kit/route";
+import { POST as physicalOfferSearchPost } from "@/app/api/market/catalog-search/route";
+import { POST as physicalCheckoutQuotePost } from "@/app/api/market/cart-quote/route";
 import { POST as analyzeWalletPost } from "@/app/api/terminal/analyze-wallet/route";
 import { buildRedQueenMcpDiscovery } from "@/lib/mcp-discovery";
 
@@ -516,6 +518,59 @@ const handler = createMcpHandler(
         url: "http://localhost:3000/api/market/survival-kit",
         method: "POST",
         body: { area, focus, people, constraints },
+      }),
+    );
+
+    server.registerTool(
+      "search_physical_survival_offers",
+      {
+        title: "Search x402 Physical Survival Offers",
+        description: "Search current physical-product inventory on the allowlisted x402 Market. This read-only step does not hold stock, disclose an address or prepare a payment.",
+        inputSchema: z.object({ query: z.string().min(2).max(120) }),
+        outputSchema: z.object({ success: z.boolean().optional(), results: z.array(z.any()).optional(), checkoutBoundary: z.string().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ query }) => invokePaidRoute({
+        route: physicalOfferSearchPost,
+        url: "http://localhost:3000/api/market/catalog-search",
+        method: "POST",
+        body: { query },
+      }),
+    );
+
+    server.registerTool(
+      "prepare_physical_checkout_quote",
+      {
+        title: "Prepare Owner-Approved x402 Physical Checkout",
+        description: "After the owner authorizes destination disclosure, hold selected x402 Market inventory and return shipping, tax, fee and exact PYUSD total. This step does not move funds; use the returned confirm endpoint for the separate x402 payment.",
+        inputSchema: z.object({
+          items: z.array(z.object({
+            listingId: z.string().min(1).max(160),
+            variantId: z.string().max(160).optional(),
+            quantity: z.number().int().min(1).max(12).default(1),
+          })).min(1).max(12),
+          destination: z.object({
+            name: z.string().min(1).max(100),
+            line1: z.string().min(1).max(160),
+            line2: z.string().max(160).optional(),
+            city: z.string().min(1).max(100),
+            state: z.string().min(1).max(100),
+            postalCode: z.string().min(1).max(24),
+            country: z.string().length(2),
+            email: z.string().email().optional(),
+            phone: z.string().max(40).optional(),
+            deliveryNotes: z.string().max(240).optional(),
+          }).refine((value) => Boolean(value.email || value.phone), "Email or phone is required."),
+          ownerAuthorizedDestinationDisclosure: z.literal(true),
+        }),
+        outputSchema: z.object({ success: z.boolean().optional(), checkoutId: z.string().optional(), checkout: z.any().optional(), payment: z.any().optional(), privacy: z.string().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: true },
+      },
+      async ({ items, destination, ownerAuthorizedDestinationDisclosure }) => invokePaidRoute({
+        route: physicalCheckoutQuotePost,
+        url: "http://localhost:3000/api/market/cart-quote",
+        method: "POST",
+        body: { items, destination, ownerAuthorizedDestinationDisclosure },
       }),
     );
   },

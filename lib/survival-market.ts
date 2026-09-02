@@ -112,7 +112,7 @@ export function buildSurvivalKit(input: SurvivalKitInput) {
       x402Market: { name: "x402 Market", url: x402Market, rail: "Agent-readable catalog · PYUSD checkout · separate approval" },
       amazon: { name: "Amazon search", url: amazonBase, rail: "External retailer · checkout stays outside RED QUEEN" },
     },
-    checkoutStatus: "CART_PREVIEW_ONLY",
-    checkoutBoundary: "RED QUEEN prepared search-ready items. She has not reserved inventory, selected a seller, transmitted a delivery address or moved funds. Every supplier and final checkout requires a separate user review.",
+    checkoutStatus: "READY_FOR_X402_OFFER_SELECTION",
+    checkoutBoundary: "RED QUEEN prepared the threat-specific manifest. No seller, address or payment is selected yet. A live x402 offer can proceed only through separate destination-disclosure, quote and exact-payment approvals.",
   };
 }

@@ -1,10 +1,17 @@
-import { getAssociatedTokenAddress } from "@solana/spl-token";
+import {
+  getAssociatedTokenAddress,
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { USDC_MINT } from "@/lib/jupiter";
 import { SOLANA_MAINNET_CAIP2 } from "@/lib/onchain";
 import { isValidSolanaPublicKey, withWorkingConnection } from "@/lib/solana";
 
 export const dynamic = "force-dynamic";
+
+export const PYUSD_MINT = "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo";
+const SUPPORTED_PAYMENT_ASSETS = new Set([USDC_MINT, PYUSD_MINT]);
 
 type PaymentStateRequest = {
   wallet?: string;
@@ -31,8 +38,8 @@ export async function POST(request: Request) {
   if (!isValidSolanaPublicKey(wallet) || !isValidSolanaPublicKey(payTo)) {
     return Response.json({ error: "Valid payer and recipient addresses are required." }, { status: 400 });
   }
-  if (network !== SOLANA_MAINNET_CAIP2 || asset !== USDC_MINT) {
-    return Response.json({ error: "Only canonical USDC on Solana mainnet is supported." }, { status: 400 });
+  if ((network !== SOLANA_MAINNET_CAIP2 && network !== "solana") || !SUPPORTED_PAYMENT_ASSETS.has(asset)) {
+    return Response.json({ error: "Only canonical USDC or PYUSD on Solana mainnet is supported." }, { status: 400 });
   }
   if (!/^\d+$/.test(amount) || BigInt(amount) <= BigInt(0)) {
     return Response.json({ error: "A valid exact payment amount is required." }, { status: 400 });
@@ -64,7 +71,11 @@ export async function POST(request: Request) {
     const decimals = parsedMint && typeof parsedMint === "object" && "parsed" in parsedMint
       ? Number((parsedMint as any).parsed?.info?.decimals ?? 6)
       : 6;
-    const destinationAccount = await getAssociatedTokenAddress(mint, recipient);
+    const tokenProgram = result.mintInfo.value?.owner;
+    if (!tokenProgram || (!tokenProgram.equals(TOKEN_PROGRAM_ID) && !tokenProgram.equals(TOKEN_2022_PROGRAM_ID))) {
+      return Response.json({ error: "The requested payment asset is not owned by a supported token program." }, { status: 400 });
+    }
+    const destinationAccount = await getAssociatedTokenAddress(mint, recipient, false, tokenProgram);
 
     return Response.json({
       network,
@@ -73,6 +84,7 @@ export async function POST(request: Request) {
       sourceAccount: source?.publicKey || null,
       tokenAmount: source?.amount.toString() || "0",
       destinationAccount: destinationAccount.toBase58(),
+      tokenProgram: tokenProgram.toBase58(),
       decimals,
       blockhash: result.latestBlockhash.blockhash,
       lastValidBlockHeight: result.latestBlockhash.lastValidBlockHeight,

@@ -174,7 +174,7 @@ export default function ProductGuidePage() {
           </div>
           <div>
             <div className="guide-section-head"><span>CHECKOUT BOUNDARY</span><h2>Discovery and purchase stay separate</h2></div>
-            <ul><li>Review quantities, reasons and cautions first.</li><li>Search live verified physical listings through the x402 Market catalog.</li><li>Use a retailer search when no agent-native offer exists.</li><li>Every future checkout requires a new quote, disclosed seller and explicit wallet approval.</li></ul>
+            <ul><li>Review quantities, reasons and cautions first.</li><li>Search live physical listings through the x402 Market catalog.</li><li>Select offers and disclose a destination only after a dedicated approval.</li><li>Queen holds inventory, displays shipping, tax, fee and exact total, then requests a separate PYUSD wallet signature.</li><li>Confirmed orders return marketplace receipts and tracking links. Amazon remains an external fallback when no agent-native offer exists.</li></ul>
             <Link href="/onchain#survival-market">BUILD A 72-HOUR CART →</Link>
           </div>
         </section>

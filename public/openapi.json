@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "RED QUEEN Intelligence Merchant API",
-    "description": "Machine-readable survival intelligence and Solana wallet-risk resources protected by x402 v2 exact-SVM payments. Call once without payment to receive a 402 challenge, settle the declared USDC amount, then retry with the same X-Operation-Id and Payment-Signature. Purchases never award XP or BIO-SCORE.",
-    "version": "3.1.0"
+    "description": "Machine-readable survival intelligence and owner-approved physical commerce on Solana. Intelligence resources use exact USDC x402 payments; x402 Market physical orders use exact PYUSD checkout after a separate destination-disclosure approval. Purchases never award XP or BIO-SCORE.",
+    "version": "3.2.0"
   },
   "servers": [{ "url": "https://redqueen.space" }],
   "externalDocs": {
@@ -13,7 +13,8 @@
   "tags": [
     { "name": "Survival Intelligence" },
     { "name": "Premium Procurement" },
-    { "name": "Solana Intelligence" }
+    { "name": "Solana Intelligence" },
+    { "name": "Physical Commerce" }
   ],
   "paths": {
     "/api/intel/premium": {
@@ -158,6 +159,49 @@
         ],
         "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
       }
+    },
+    "/api/market/catalog-search": {
+      "post": {
+        "tags": ["Physical Commerce"],
+        "summary": "Search purchasable physical survival inventory",
+        "description": "Searches allowlisted x402 Market physical listings. This step is read-only: it does not hold stock, disclose a destination or prepare payment.",
+        "operationId": "searchPhysicalSurvivalOffers",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "query": { "type": "string", "minLength": 2, "maxLength": 120 } }, "required": ["query"] } } } },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "502": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/market/cart-quote": {
+      "post": {
+        "tags": ["Physical Commerce"],
+        "summary": "Hold selected inventory and prepare the exact physical checkout",
+        "description": "Relays the owner-authorized destination to x402 Market, holds selected stock, and returns item, shipping, tax, fee and grand-total receipt. No payment occurs at this step.",
+        "operationId": "preparePhysicalCheckoutQuote",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PhysicalCheckoutInput" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "403": { "description": "Marketplace owner verification is required." }, "502": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/market/cart-checkout/{checkoutId}/confirm": {
+      "post": {
+        "tags": ["Physical Commerce"],
+        "summary": "Pay and confirm a real physical order through x402",
+        "description": "Call without payment to receive the exact PYUSD x402 challenge, then retry with X-PAYMENT or Payment-Signature. A successful call creates the marketplace orders and returns receipt identifiers.",
+        "operationId": "confirmPhysicalCheckout",
+        "parameters": [
+          { "name": "checkoutId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "X-PAYMENT", "in": "header", "required": false, "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/OperationId" }
+        ],
+        "responses": { "201": { "$ref": "#/components/responses/Delivered" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "403": { "description": "Marketplace owner verification is required." }, "410": { "description": "Held checkout expired; inventory was released." }, "502": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/market/orders/{orderId}/tracking": {
+      "get": {
+        "tags": ["Physical Commerce"],
+        "summary": "Read marketplace order tracking",
+        "operationId": "getPhysicalOrderTracking",
+        "parameters": [{ "name": "orderId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "502": { "$ref": "#/components/responses/Unavailable" } }
+      }
     }
   },
   "components": {
@@ -214,6 +258,15 @@
           "wallet": { "type": "string", "description": "Optional expected signer public key." }
         },
         "required": ["transaction"]
+      },
+      "PhysicalCheckoutInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": { "type": "array", "minItems": 1, "maxItems": 12, "items": { "type": "object", "properties": { "listingId": { "type": "string" }, "variantId": { "type": "string" }, "quantity": { "type": "integer", "minimum": 1, "maximum": 12 } }, "required": ["listingId", "quantity"] } },
+          "destination": { "type": "object", "description": "Exact delivery data. Send only after the owner explicitly authorizes disclosure to x402 Market and selected sellers.", "properties": { "name": { "type": "string" }, "line1": { "type": "string" }, "line2": { "type": "string" }, "city": { "type": "string" }, "state": { "type": "string" }, "postalCode": { "type": "string" }, "country": { "type": "string", "minLength": 2, "maxLength": 2 }, "email": { "type": "string", "format": "email" }, "phone": { "type": "string" }, "deliveryNotes": { "type": "string" } }, "required": ["name", "line1", "city", "state", "postalCode", "country"] }
+        },
+        "required": ["items", "destination"]
       }
     },
     "responses": {

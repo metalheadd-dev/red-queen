@@ -15,6 +15,8 @@ export const RED_QUEEN_MCP_TOOLS = [
   "quote_external_survival_intelligence",
   "purchase_external_survival_intelligence",
   "build_72_hour_survival_cart",
+  "search_physical_survival_offers",
+  "prepare_physical_checkout_quote",
 ] as const;
 
 export function buildRedQueenMcpDiscovery() {

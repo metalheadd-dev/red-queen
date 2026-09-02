@@ -42,7 +42,7 @@ export default function NetworkClearancePage() {
             <span className="pulse-eyebrow">RED QUEEN // AGENTIC COMMERCE</span>
             <h1>Buy intelligence.<br />Build your <em>survival cart.</em></h1>
             <p>Be ready for the threat ahead. Queen turns live signals into paid decisions and practical gear manifests while every payment and checkout remains under your control.</p>
-            <div className="onchain-hero-tags"><span>SIWS IDENTITY</span><span>SPL BALANCE PROOF</span><span>x402 USDC</span><span>JUPITER SWAP V2</span><span>NO CUSTODY</span></div>
+            <div className="onchain-hero-tags"><span>SIWS IDENTITY</span><span>SPL BALANCE PROOF</span><span>x402 USDC + PYUSD</span><span>PHYSICAL CHECKOUT</span><span>NO CUSTODY</span></div>
           </div>
           <div className="onchain-network-card">
             <span>ACTIVE NETWORK</span>
@@ -65,7 +65,7 @@ export default function NetworkClearancePage() {
         <div id="onchain-actions" />
         <section className="commerce-command" aria-label="Commerce desks">
           <div><span>CHOOSE A DESK</span><strong>One Queen. Two ways to act.</strong></div>
-          <nav><a href="#queen-operations"><b>01</b><span>PAID INTELLIGENCE<small>x402 reports · exact USDC price</small></span></a><a href="#survival-market"><b>02</b><span>SURVIVAL GEAR<small>Free cart · Amazon and agent-market search</small></span></a></nav>
+          <nav><a href="#queen-operations"><b>01</b><span>PAID INTELLIGENCE<small>x402 reports · exact USDC price</small></span></a><a href="#survival-market"><b>02</b><span>PHYSICAL READINESS<small>Threat cart · PYUSD x402 checkout</small></span></a></nav>
         </section>
         <IntelligenceOperationsClient />
         <SurvivalMarketClient />

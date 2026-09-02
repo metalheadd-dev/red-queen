@@ -148,7 +148,7 @@ export default function AgentResponseCard({
               <strong>REVIEW BEFORE PURCHASE</strong>
               <span>No seller selected · no address shared · no order placed</span>
             </div>
-            <Link href={response.commerce.fullMarketUrl}>OPEN FULL MARKET →</Link>
+            <Link href={response.commerce.fullMarketUrl}>FIND x402 OFFERS &amp; CHECKOUT →</Link>
           </footer>
         </section>
       )}

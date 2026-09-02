@@ -7,6 +7,7 @@ import {
   RED_QUEEN_AGENT_SKILLS,
 } from "@/lib/agent-registry";
 import AgentRegistrationConsole from "@/components/AgentRegistrationConsole";
+import { RED_QUEEN_MCP_TOOLS } from "@/lib/mcp-discovery";
 
 function compact(value: string, lead = 7, tail = 7) {
   if (!value) return "ASSIGNED AFTER REGISTRATION";
@@ -71,8 +72,8 @@ export default function AgentRegistryIdentity() {
           )}
 
           <div className="agent-identity-services">
-            <article><span>MCP</span><strong>11 AGENT TOOLS</strong><p>Signals, Solana telemetry, wallet audits, paid evidence procurement, survival carts, incident dossiers and preparedness protocols.</p></article>
-            <article><span>x402</span><strong>{identity.x402}</strong><p>Exact USDC compute payments with explicit approval, receipts and replay protection.</p></article>
+            <article><span>MCP</span><strong>{RED_QUEEN_MCP_TOOLS.length} AGENT TOOLS</strong><p>Signals, wallet audits, paid evidence, physical offer search, held checkout quotes and preparedness protocols.</p></article>
+            <article><span>x402</span><strong>{identity.x402}</strong><p>Exact USDC intelligence payments and owner-approved PYUSD physical checkout on Solana.</p></article>
             <article><span>OASF</span><strong>{RED_QUEEN_AGENT_SKILLS.length} SKILLS · {RED_QUEEN_AGENT_DOMAINS.length} DOMAINS</strong><p>Machine-readable survival intelligence, risk analysis and emergency-management capabilities.</p></article>
           </div>
 

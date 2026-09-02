@@ -4,7 +4,7 @@
 
 **Name:** RED QUEEN
 
-**Description:** RED QUEEN is an agentic survival intelligence system on Solana operated by SOLvival Corp. She monitors verified public, environmental, geospatial and on-chain signals, explains relevance and uncertainty, turns findings into practical preparedness protocols, can purchase specialized evidence for an explicitly approved x402 operation, and builds reviewable 72-hour survival carts. She never has custody or automatic authority over user funds, and physical checkout always requires a separate approval.
+**Description:** RED QUEEN is an agentic survival intelligence system on Solana operated by SOLvival Corp. She monitors verified public, environmental, geospatial and on-chain signals, explains relevance and uncertainty, turns findings into practical preparedness protocols, can purchase specialized evidence for an explicitly approved x402 operation, and builds threat-specific survival carts. Available x402 Market inventory can be held and purchased in PYUSD only after separate destination-disclosure and exact-payment approvals. She never has custody or automatic authority over user funds.
 
 **Registration metadata:** `https://redqueen.space/.well-known/agent-registration.json`
 
@@ -25,7 +25,7 @@
 - Seven SDK-validated OASF skills and five SDK-validated domains.
 - x402 support declaration and the public Solana operational-wallet reference.
 - User-approved premium provider procurement with disclosed data boundaries and receipts.
-- Read-only 72-hour survival-cart construction without seller contact or checkout authority.
+- Threat-specific survival-cart construction, x402 Market offer selection, held checkout quotes and owner-approved PYUSD physical orders with receipts and tracking.
 - Public registered identity at `https://redqueen.space/api/agent/identity`.
 - No BIO-SCORE, profile memory, private plan, or user location in registry metadata.
 
