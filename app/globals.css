@@ -3517,7 +3517,12 @@ body:has(#game-player-root) .page-content {
 .intelligence-market-tabs strong { font:700 12px var(--title-font); }
 .intelligence-market-tabs small { color:rgba(255,255,255,.45); font:700 10px var(--mono); }
 .intelligence-market-tabs em { grid-column:2 / 4; color:#9cff59; font:700 8px var(--mono); font-style:normal; letter-spacing:.08em; }
-.intelligence-market-tabs button:nth-last-child(-n+2) em { color:#f0c929; }
+.intelligence-market-tabs em.is-checking { color:#f0c929; }
+.intelligence-market-tabs em.is-blocked { color:#ff728d; }
+.intelligence-market-status button { border:1px solid currentColor; padding:7px 10px; background:transparent; color:inherit; font:700 9px var(--mono); cursor:pointer; }
+html[data-theme="light"] .intelligence-market-tabs em.is-ready { color:#176b3a; }
+html[data-theme="light"] .intelligence-market-tabs em.is-checking { color:#785600; }
+html[data-theme="light"] .intelligence-market-tabs em.is-blocked { color:#ba1232; }
 .intelligence-market-grid { display:grid; grid-template-columns:minmax(360px,.84fr) minmax(0,1.16fr); min-height:610px; margin-top:8px; border:1px solid rgba(255,0,51,.24); background:#050608; }
 .intelligence-market-grid.is-configuring { grid-template-columns:minmax(0,900px); min-height:0; }
 .intelligence-market-grid.is-configuring .intelligence-market-form { border-right:0; }

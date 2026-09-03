@@ -13,6 +13,7 @@ import {
 } from "@/lib/preparedness-plan";
 import { SURVIVAL_FOCUS_OPTIONS, SurvivalFocus } from "@/lib/survival-context";
 import { purchaseX402Output, X402Delivery } from "@/lib/x402-client";
+import { commerceAvailability } from "@/lib/commerce-readiness";
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((module) => module.WalletMultiButton),
@@ -202,9 +203,12 @@ export default function IntelligenceOperationsClient() {
   const [premiumQuote, setPremiumQuote] = useState<any>(null);
   const [externalQuestion, setExternalQuestion] = useState("What current external evidence could change my 72-hour preparedness priorities?");
   const [externalQuote, setExternalQuote] = useState<any>(null);
+  const [buyerReadiness, setBuyerReadiness] = useState<any>(null);
+  const [readinessVersion, setReadinessVersion] = useState(0);
   const [quoteBusy, setQuoteBusy] = useState(false);
 
   useEffect(() => {
+    setAvailable(null);
     fetch("/api/x402/status", { cache: "no-store" })
       .then(async (response) => response.json())
       .then((data) => {
@@ -215,16 +219,23 @@ export default function IntelligenceOperationsClient() {
         setAvailable(false);
         setAvailabilityReason("Settlement health check failed");
       });
-  }, []);
+  }, [readinessVersion]);
 
   useEffect(() => {
-    if (active !== "premium") return;
     setPremiumQuote(null);
     fetch("/api/intel/premium-area/quote", { cache: "no-store" })
-      .then(async (response) => response.json())
+      .then(async (response) => { if (!response.ok) throw new Error("Provider check failed"); return response.json(); })
       .then((data) => setPremiumQuote(data.quote || null))
       .catch(() => setPremiumQuote({ eligible: false, providers: [], dataBoundary: "Provider quote unavailable." }));
-  }, [active]);
+  }, [readinessVersion]);
+
+  useEffect(() => {
+    setBuyerReadiness(null);
+    fetch("/api/intel/external-intelligence/quote", { cache: "no-store" })
+      .then(async (response) => { if (!response.ok) throw new Error("Buyer check failed"); return response.json(); })
+      .then((data) => setBuyerReadiness(data.quote || { eligible: false }))
+      .catch(() => setBuyerReadiness({ eligible: false, reason: "Buyer availability could not be checked. Please refresh." }));
+  }, [readinessVersion]);
 
   useEffect(() => {
     if (active === "external") setExternalQuote(null);
@@ -233,8 +244,7 @@ export default function IntelligenceOperationsClient() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const requestedProduct = params.get("product");
-    if (requestedProduct === "incident") setActive("incident");
-    if (requestedProduct === "wallet") setActive("wallet");
+    if (requestedProduct && Object.prototype.hasOwnProperty.call(PRODUCT_META, requestedProduct)) setActive(requestedProduct as ProductId);
     const requestedSignal = params.get("signalId");
     if (requestedSignal) setSignalId(requestedSignal.slice(0, 240));
     try {
@@ -247,18 +257,19 @@ export default function IntelligenceOperationsClient() {
   const output = delivery?.data;
   const canPurchase = available === true && connected && publicKey && signTransaction && !busy;
   const meta = PRODUCT_META[active];
-  const operationStatus = active === "premium"
-    ? premiumQuote === null ? "CHECKING PROVIDER" : premiumQuote.eligible ? "UPSTREAM READY" : "REQUIRES ACTIVATION"
-    : active === "external"
-      ? externalQuote?.eligible ? "UPSTREAM READY" : "REQUIRES DISCLOSURE"
-      : "READY";
+  function productAvailability(product: ProductId) {
+    return commerceAvailability(available, product === "premium" || product === "external",
+      product === "premium" ? premiumQuote?.eligible : product === "external" ? (externalQuote || buyerReadiness)?.eligible : undefined);
+  }
+  const selectedAvailability = productAvailability(active);
+  const operationStatus = selectedAvailability.label;
   const operationNeedsProvider = active === "premium" || active === "external";
   const sourceCount = useMemo(() => {
     if (active === "local") return output?.report?.changes?.length || 0;
     if (active === "plan") return output?.plan?.sources?.length || 0;
     if (active === "incident") return output?.dossier?.sources?.length || 0;
     if (active === "wallet") return output?.audit?.surface?.tokenAccounts || 0;
-    if (active === "premium") return output?.report?.signals?.length || 0;
+    if (active === "premium") return (output?.report?.signals?.length || 0) + (output?.report?.weather?.length || 0);
     if (active === "external") return output?.report?.sources?.length || 0;
     return output?.report?.instructions?.length || 0;
   }, [active, output]);
@@ -391,11 +402,11 @@ export default function IntelligenceOperationsClient() {
         <p>RED QUEEN declares the output and exact USDC price before wallet approval. After x402 settlement, the result and receipt are delivered.</p>
       </div>
 
-      <div className="intelligence-market-status"><i className={available ? "is-live" : ""} /><strong>{available === null ? "CHECKING" : available ? "SETTLEMENT READY" : "PAYMENTS BLOCKED"}</strong><span>{availabilityReason}</span></div>
+      <div className="intelligence-market-status"><i className={available ? "is-live" : ""} /><strong>{available === null ? "CHECKING" : available ? "PAYMENTS AVAILABLE" : "PAYMENTS UNAVAILABLE"}</strong><span>{availabilityReason}</span><button type="button" disabled={busy} onClick={() => { setExternalQuote(null); setReadinessVersion((value) => value + 1); }}>REFRESH STATUS</button></div>
       <div className="intelligence-market-tabs" role="tablist" aria-label="RED QUEEN paid operations">
         {(Object.keys(PRODUCT_META) as ProductId[]).map((product) => (
-          <button key={product} type="button" className={active === product ? "active" : ""} onClick={() => { setActive(product); setDelivery(null); setError(""); setStatus(""); }}>
-            <span>{PRODUCT_META[product].index}</span><strong>{PRODUCT_META[product].name}</strong><small>{PRODUCT_META[product].price}</small><em>{product === "premium" || product === "external" ? "UPSTREAM" : "READY"}</em>
+          <button key={product} type="button" role="tab" aria-selected={active === product} disabled={busy} className={active === product ? "active" : ""} onClick={() => { setActive(product); setDelivery(null); setError(""); setStatus(""); }}>
+            <span>{PRODUCT_META[product].index}</span><strong>{PRODUCT_META[product].name}</strong><small>{PRODUCT_META[product].price}</small><em className={`is-${productAvailability(product).state}`}>{productAvailability(product).label}</em>
           </button>
         ))}
       </div>
@@ -404,7 +415,9 @@ export default function IntelligenceOperationsClient() {
         <div className="intelligence-market-form">
           <header><span>{meta.name}</span><strong>{meta.price}</strong></header>
           <p>{meta.promise}</p>
-          <div className={`commerce-operation-state${operationNeedsProvider ? " requires-provider" : ""}`}><i /><strong>{operationStatus}</strong><span>{operationNeedsProvider ? "Provider, shared data and upstream cost are checked before payment." : "One wallet approval · one result · one receipt."}</span></div>
+          <div className={`commerce-operation-state${selectedAvailability.state !== "ready" ? " requires-provider" : ""}`}><i /><strong>{operationStatus}</strong><span>{operationNeedsProvider ? "Review the data provider, shared information and cost before approving payment." : "One wallet approval · one result · one receipt."}</span></div>
+          {active === "premium" && premiumQuote?.reason && <p role="status">{premiumQuote.reason}</p>}
+          {active === "external" && (externalQuote || buyerReadiness)?.reason && <p role="status">{(externalQuote || buyerReadiness).reason}</p>}
           {active === "local" && <>
             <label><span>BROAD CITY OR REGION</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
             <label><span>SEARCH RADIUS · {radiusKm} KM</span><input type="range" min="25" max="1000" step="25" value={radiusKm} onChange={(event) => setRadiusKm(Number(event.target.value))} /></label>
@@ -415,25 +428,25 @@ export default function IntelligenceOperationsClient() {
             <label><span>INTELLIGENCE FOCUS</span><select value={focus} onChange={(event) => setFocus(event.target.value as SurvivalFocus)}>{SURVIVAL_FOCUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
             <label><span>SEARCH RADIUS · {radiusKm} KM</span><input type="range" min="25" max="1000" step="25" value={radiusKm} onChange={(event) => setRadiusKm(Number(event.target.value))} /></label>
             <div className={`premium-procurement-quote${premiumQuote?.eligible ? " is-ready" : ""}`}>
-              <header><span>UPSTREAM PROCUREMENT</span><strong>{premiumQuote ? premiumQuote.eligible ? "READY" : "NOT CONFIGURED" : "CHECKING"}</strong></header>
+              <header><span>DATA SOURCES FOR THIS REPORT</span><strong>{premiumQuote ? premiumQuote.eligible ? "READY" : "NOT READY" : "CHECKING"}</strong></header>
               {(premiumQuote?.providers || []).map((provider: any) => <div key={provider.id}><span>{provider.name}</span><strong>{provider.configured ? provider.estimatedUnits : provider.required ? "REQUIRED" : "OPTIONAL"}</strong></div>)}
               <p>{premiumQuote?.dataBoundary || "Checking what RED QUEEN will disclose before payment…"}</p>
-              <small>NO UPSTREAM CALL HAS BEEN MADE YET.</small>
+              <small>ACCESS CHECK ONLY. NO METERED DATA CALL OR PAYMENT YET.</small>
             </div>
           </>}
           {active === "external" && <>
             <label><span>BROAD CITY OR REGION</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
             <label><span>INTELLIGENCE FOCUS</span><select value={focus} onChange={(event) => setFocus(event.target.value as SurvivalFocus)}>{SURVIVAL_FOCUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
             <label><span>WHAT EVIDENCE SHOULD QUEEN BUY?</span><textarea value={externalQuestion} onChange={(event) => setExternalQuestion(event.target.value)} maxLength={320} /></label>
-            {!externalQuote && <button className="intelligence-market-pay" type="button" disabled={quoteBusy} onClick={() => void prepareExternalQuote()}>{quoteBusy ? "BUILDING DISCLOSURE…" : "REVIEW UPSTREAM PURCHASE"}</button>}
+            {!externalQuote && <button className="intelligence-market-pay" type="button" disabled={quoteBusy || selectedAvailability.state !== "ready"} onClick={() => void prepareExternalQuote()}>{quoteBusy ? "PREPARING DATA PURCHASE…" : "REVIEW DATA PURCHASE"}</button>}
             {externalQuote && <div className={`premium-procurement-quote${externalQuote.eligible ? " is-ready" : ""}`}>
               <header><span>QUEEN BUYER DISCLOSURE</span><strong>{externalQuote.eligible ? "READY" : "NOT CONFIGURED"}</strong></header>
               {(externalQuote.merchant?.resources || []).map((resource: any) => <div key={resource.endpoint}><span>{resource.name}</span><strong>{resource.price}</strong></div>)}
-              <p><strong>MERCHANT:</strong> {externalQuote.merchant?.name} · <strong>MAX UPSTREAM:</strong> {externalQuote.upstreamBudget}</p>
+              <p><strong>DATA PROVIDER:</strong> {externalQuote.merchant?.name} · <strong>DATA COST LIMIT:</strong> {externalQuote.upstreamBudget}</p>
               <p><strong>BUYER:</strong> {externalQuote.readiness?.buyerAddress || "DEDICATED WALLET"} · <strong>DAILY CAP:</strong> {externalQuote.buyerPolicy?.dailyLimit || "POLICY CHECK"}</p>
               <p><strong>SHARED:</strong> {(externalQuote.dataShared || []).join(" · ")}</p>
               <p><strong>NEVER SHARED:</strong> {(externalQuote.dataNotShared || []).join(" · ")}</p>
-              <small>NO UPSTREAM CALL OR PAYMENT HAS OCCURRED.</small>
+              <small>NO DATA PURCHASE OR PAYMENT HAS OCCURRED.</small>
             </div>}
           </>}
           {active === "plan" && <>

@@ -53,6 +53,9 @@ const handler = async (request: NextRequest) => {
 
 export const GET = withFriendlyX402(handler, {
   productId: "wallet-exposure-audit",
+  preflight: async (request: NextRequest) => isValidSolanaPublicKey(request.nextUrl.searchParams.get("address")?.trim())
+    ? null
+    : NextResponse.json({ error: "A valid Solana public address is required. No payment was requested." }, { status: 400 }),
   accepts: {
     scheme: "exact",
     price: "$0.02",

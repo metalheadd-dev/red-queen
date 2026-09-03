@@ -46,7 +46,7 @@ export const POST = withFriendlyX402(handler, {
     const input = await readBody(request);
     if (!input) return NextResponse.json({ error: "A broad area and bounded survival-intelligence question are required." }, { status: 400 });
     const quote = await externalIntelligenceQuote(input);
-    if (!quote.eligible) return NextResponse.json({ error: "The Queen Buyer flow is not configured. No payment was requested.", quote }, { status: 503 });
+    if (!quote.eligible) return NextResponse.json({ error: quote.reason || "Queen Buyer is not ready. No payment was requested.", quote }, { status: 503 });
     if (!verifyExternalQuote(input)) return NextResponse.json({ error: "Fetch and review a fresh procurement quote before payment.", quoteEndpoint: "/api/intel/external-intelligence/quote" }, { status: 409 });
     return null;
   },

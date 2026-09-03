@@ -329,8 +329,9 @@ async function buildCommerceCart(
     rationale: intent.rationale,
     area,
     people: kit.people,
+    constraints: kitConstraints,
     items: commerceItems,
-    fullMarketUrl: `/onchain?${new URLSearchParams({ area, focus: intent.focus, people: String(kit.people) }).toString()}#survival-market`,
+    fullMarketUrl: `/onchain?${new URLSearchParams({ area, focus: intent.focus, people: String(kit.people), fromChat: "1" }).toString()}#survival-market`,
     retailerMode: "AGENTIC_PHYSICAL_COMMERCE",
     checkoutBoundary: kit.checkoutBoundary,
   };

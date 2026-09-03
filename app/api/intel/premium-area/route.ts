@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   parsePremiumAreaInput,
   PREMIUM_AREA_PRICE,
-  premiumProviderQuote,
+  checkedPremiumProviderQuote,
   procurePremiumArea,
 } from "@/lib/premium-survival-intelligence";
 import { withFriendlyX402 } from "@/lib/x402";
@@ -40,10 +40,10 @@ export const POST = withFriendlyX402(handler, {
   preflight: async (request: NextRequest) => {
     const input = await readBody(request);
     if (!input) return NextResponse.json({ error: "A valid broad area, approximate coordinates and radius are required." }, { status: 400 });
-    const quote = premiumProviderQuote();
+    const quote = await checkedPremiumProviderQuote();
     if (!quote.eligible) {
       return NextResponse.json({
-        error: "Premium Area Intelligence is not active until Off-Nadir Delta is configured server-side. No payment was requested.",
+        error: quote.reason || "Premium Area's data provider is unavailable. No payment was requested.",
         quote,
       }, { status: 503 });
     }

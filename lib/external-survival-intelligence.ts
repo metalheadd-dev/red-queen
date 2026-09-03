@@ -8,6 +8,7 @@ import { sanitizeArea, SurvivalFocus } from "@/lib/survival-context";
 import { paidAgent402Fetch, upstreamBuyerPolicy, upstreamBuyerReadiness, type UpstreamX402Receipt } from "@/lib/upstream-x402-client";
 import { checkUpstreamSpendStore } from "@/lib/upstream-x402-spends";
 import { fetchSignalGrid } from "@/lib/signal-engine";
+import { checkBuyerFunding } from "@/lib/buyer-funding";
 
 export const EXTERNAL_INTELLIGENCE_PRICE = "$0.08";
 export const EXTERNAL_INTELLIGENCE_PRICE_LABEL = "0.08 USDC";
@@ -71,21 +72,27 @@ function signature(payload: string) {
 
 export async function externalIntelligenceQuote(input?: ExternalIntelligenceInput) {
   const buyer = upstreamBuyerReadiness();
-  const spendStore = await checkUpstreamSpendStore();
+  const [spendStore, funding] = await Promise.all([
+    checkUpstreamSpendStore(),
+    buyer.ready ? checkBuyerFunding(buyer.expectedAddress) : Promise.resolve({ ready: false, reason: buyer.reason }),
+  ]);
   const computeReady = Boolean(process.env.OPENAI_API_KEY?.trim());
-  const eligible = buyer.ready && spendStore.available && computeReady;
+  const policy = upstreamBuyerPolicy();
+  const policyReady = Number.parseFloat(policy.maxPerCall) >= 0.02 && Number.parseFloat(policy.dailyLimit) >= 0.03;
+  const eligible = buyer.ready && funding.ready && spendStore.available && computeReady && policyReady;
   const expiresAt = Date.now() + 10 * 60_000;
   const quoteToken = input && eligible
     ? `${expiresAt}.${signature(quotePayload(input, expiresAt))}`
     : null;
   return {
     eligible,
+    reason: !buyer.ready ? buyer.reason : !funding.ready ? funding.reason : !spendStore.available ? spendStore.reason : !computeReady ? "Queen's analysis service is not configured." : !policyReady ? "Queen's spending limits do not cover the declared data purchase." : null,
     quoteToken,
     expiresAt: new Date(expiresAt).toISOString(),
     userPrice: EXTERNAL_INTELLIGENCE_PRICE_LABEL,
     settlement: "x402 exact USDC on Solana",
     upstreamBudget: EXTERNAL_UPSTREAM_CAP,
-    buyerPolicy: upstreamBuyerPolicy(),
+    buyerPolicy: policy,
     merchant: {
       id: "AGENT402",
       name: "Agent402.Tools",
@@ -104,6 +111,8 @@ export async function externalIntelligenceQuote(input?: ExternalIntelligenceInpu
       buyerWallet: buyer.ready,
       buyerAddress: buyer.expectedAddress,
       buyerAddressMatches: buyer.addressMatches,
+      buyerFunded: funding.ready,
+      spendingPolicy: policyReady,
       spendLedger: spendStore.available,
       synthesisCompute: computeReady,
     },

@@ -109,6 +109,30 @@ export function premiumProviderQuote() {
   };
 }
 
+// /usage is a free provider endpoint: validate access before requesting payment.
+export async function checkedPremiumProviderQuote() {
+  const quote = premiumProviderQuote();
+  if (!quote.eligible) return { ...quote, reason: "Premium Area needs its data provider connected. No payment was requested." };
+  try {
+    const baseUrl = process.env.OFF_NADIR_BASE_URL?.trim() || "https://offnadir-delta.com/api/v1";
+    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/usage`, {
+      headers: { Accept: "application/json", Authorization: `Bearer ${process.env.OFF_NADIR_API_KEY?.trim()}` },
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(6_000),
+    });
+    if (!response.ok) return { ...quote, eligible: false, reason: `Off-Nadir access check returned HTTP ${response.status}. No payment was requested.` };
+    const usage = await response.json();
+    const remaining = usage?.tokens?.remaining;
+    if (typeof remaining !== "number" || !Number.isFinite(remaining) || remaining < 3) {
+      return { ...quote, eligible: false, reason: "Off-Nadir did not confirm enough credits for this report. No payment was requested." };
+    }
+    return { ...quote, reason: null };
+  } catch {
+    return { ...quote, eligible: false, reason: "Off-Nadir is temporarily unreachable. No payment was requested." };
+  }
+}
+
 function boundingBox(lat: number, lng: number, radiusKm: number) {
   const latDelta = radiusKm / 111.32;
   const cos = Math.max(0.15, Math.cos((lat * Math.PI) / 180));

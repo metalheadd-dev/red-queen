@@ -136,6 +136,8 @@ export default function Sp3ndCheckoutClient() {
   }, []);
 
   function resetQuote() {
+    setMcpProposal(null);
+    setMcpResult(null);
     setCartId("");
     setOrderId("");
     setOrder(null);
@@ -196,7 +198,8 @@ export default function Sp3ndCheckoutClient() {
         body: JSON.stringify({ proposal: mcpProposal.proposal, ownerAuthorized: true }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "SP3ND MCP could not complete the approved step.");
+      if (!response.ok) { setMcpProposal(null); throw new Error(payload.error || "SP3ND MCP could not complete the approved step. Check status before retrying."); }
+      if (payload.result?.isError) { setMcpProposal(null); throw new Error(sp3ndResultText(payload.result).slice(0, 800)); }
       setMcpResult(payload.result);
       setMcpProposal(null);
       setStatus(`${mcpIntent.toUpperCase()} STEP DELIVERED · REVIEW BEFORE CONTINUING`);

@@ -154,7 +154,9 @@ export default function AgentResponseCard({
               <strong>{response.commerce.items.some((item) => item.x402Offer) ? "LIVE x402 INVENTORY FOUND" : response.commerce.items.some((item) => item.amazonProduct) ? "EXACT PRODUCTS READY FOR SP3ND USDC CHECKOUT" : "AMAZON SEARCH FALLBACK READY"}</strong>
               <span>{response.commerce.items.some((item) => item.x402Offer) ? "Review seller, shipping and exact PYUSD total before approval" : "Amazon remains external discovery · no address shared · no order placed"}</span>
             </div>
-            <Link href={response.commerce.fullMarketUrl}>FIND x402 OFFERS &amp; CHECKOUT →</Link>
+            <Link href={response.commerce.fullMarketUrl} onClick={() => {
+              try { sessionStorage.setItem("rq-commerce-handoff-v1", JSON.stringify({ constraints: response.commerce?.constraints || "", expiresAt: Date.now() + 600_000 })); } catch {}
+            }}>REVIEW CART &amp; SHOP →</Link>
           </footer>
         </section>
       )}

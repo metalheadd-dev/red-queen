@@ -85,6 +85,7 @@ export interface RedQueenCommerceCart {
   rationale: string;
   area: string;
   people: number;
+  constraints?: string;
   items: RedQueenCommerceItem[];
   fullMarketUrl: string;
   retailerMode: "AGENTIC_PHYSICAL_COMMERCE";

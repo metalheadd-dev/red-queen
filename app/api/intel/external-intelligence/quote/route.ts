@@ -3,6 +3,11 @@ import { externalIntelligenceQuote, parseExternalIntelligenceInput } from "@/lib
 
 export const dynamic = "force-dynamic";
 
+export async function GET() {
+  const quote = await externalIntelligenceQuote();
+  return NextResponse.json({ success: true, quote }, { headers: { "Cache-Control": "private, no-store" } });
+}
+
 export async function POST(request: NextRequest) {
   const input = parseExternalIntelligenceInput(await request.json().catch(() => null));
   if (!input) return NextResponse.json({ success: false, error: "A broad area and bounded survival-intelligence question are required." }, { status: 400 });
@@ -12,6 +17,6 @@ export async function POST(request: NextRequest) {
     quote,
     notice: quote.eligible
       ? "Review the merchant, disclosed data and maximum upstream cost. No external call or payment has occurred."
-      : "Buyer flow remains disabled until the dedicated buyer wallet and synthesis compute are configured.",
+      : quote.reason,
   }, { headers: { "Cache-Control": "private, no-store" } });
 }

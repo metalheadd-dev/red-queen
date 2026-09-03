@@ -164,6 +164,13 @@ export default function SurvivalMarketClient() {
     if (requestedArea) setArea(requestedArea.slice(0, 80));
     if (requestedFocus && SURVIVAL_FOCUS_OPTIONS.some((option) => option.id === requestedFocus)) setFocus(requestedFocus as SurvivalFocus);
     if (Number.isInteger(requestedPeople) && requestedPeople >= 1 && requestedPeople <= 12) setPeople(requestedPeople);
+    if (params.get("fromChat") === "1") {
+      try {
+        const handoff = JSON.parse(sessionStorage.getItem("rq-commerce-handoff-v1") || "null");
+        if (handoff?.expiresAt > Date.now() && typeof handoff.constraints === "string") setConstraints(handoff.constraints.slice(0, 320));
+        sessionStorage.removeItem("rq-commerce-handoff-v1");
+      } catch {}
+    }
     try {
       const context = JSON.parse(localStorage.getItem("rq-survival-context-v1") || "null");
       if (!requestedArea && typeof context?.area === "string") setArea(context.area.slice(0, 80));

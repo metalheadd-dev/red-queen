@@ -58,15 +58,6 @@ export function withFriendlyX402(
       }, { status: 503 });
     }
 
-    if (typeof preflight === "function") {
-      // A NextRequest clone is a standard Request and no longer exposes
-      // `nextUrl`. Preflight functions that validate GET query parameters
-      // must receive the original request. POST preflights clone only their
-      // body internally, so the protected handler can still read it later.
-      const preflightResponse = await preflight(req);
-      if (preflightResponse) return preflightResponse;
-    }
-
     const requestedOperationId = req.headers.get("x-operation-id")?.trim();
     if (requestedOperationId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedOperationId)) {
       return NextResponse.json({ error: "X-Operation-Id must be a valid UUID." }, { status: 400 });
@@ -120,6 +111,13 @@ export function withFriendlyX402(
           "Cache-Control": "private, no-store",
         },
       });
+    }
+
+    // Deliver an authenticated stored result before checking today's provider
+    // balance or quote expiry. A completed purchase must remain retrievable.
+    if (typeof preflight === "function") {
+      const preflightResponse = await preflight(req);
+      if (preflightResponse) return preflightResponse;
     }
 
     // Initialize only for an actual paid resource request. Importing an API route
