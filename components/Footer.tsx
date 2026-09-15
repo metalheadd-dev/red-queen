@@ -1,27 +1,4 @@
 import Link from "next/link";
-import { RED_QUEEN_AGENT_ID_SHORT } from "@/lib/agent-identity-public";
-
 export default function Footer() {
-  return (
-    <footer className="footer">
-      <p>
-        <span>[ RED QUEEN // ONLINE ]</span> &nbsp;|&nbsp;
-        SURVIVAL INTELLIGENCE ECOSYSTEM ON SOLANA
-      </p>
-      <p className="footer-agent-trust">
-        <Link href="/onchain#agent-identity"><span>8004 REGISTERED</span> · AGENT ID {RED_QUEEN_AGENT_ID_SHORT} · SOLANA MAINNET</Link>
-      </p>
-      <p style={{ marginTop: "12px", display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", fontSize: "10px" }}>
-        <Link href="/for-agents">FOR AGENTS</Link>
-        <Link href="/docs">PRODUCT GUIDE</Link>
-        <Link href="/license">LICENSE</Link>
-        <Link href="/copyright">COPYRIGHT</Link>
-        <Link href="/privacy">PRIVACY POLICY</Link>
-        <Link href="/terms">TERMS OF SERVICE</Link>
-      </p>
-      <p style={{ marginTop: "12px", fontSize: "10px" }}>
-        PUBLIC SIGNALS ARE INFORMATIONAL. RED QUEEN SEPARATES VERIFIED FACTS, ASSESSMENT AND UNCERTAINTY. YOU KEEP CONTROL OF YOUR DATA AND DECISIONS.
-      </p>
-    </footer>
-  );
+  return <footer className="footer rq-footer"><div className="rq-shell"><div><Link className="rq-wordmark" href="/">RQ<span>/</span></Link><p>Stay informed. Adapt. SOLvive.</p><small>Home of Red Queen. Built on Solana.</small></div><nav aria-label="Footer navigation"><Link href="/docs">How it works</Link><Link href="/community">The world of RQ</Link><Link href="/for-agents">For agents</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav><p className="rq-footer-note">Red Queen helps you prepare. Follow local authorities during an emergency.</p></div></footer>;
 }

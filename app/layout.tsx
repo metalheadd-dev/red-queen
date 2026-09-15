@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./rq-experience.css";
+import RqWelcome from "@/components/RqWelcome";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import SolanaProvider from "@/components/SolanaProvider";
@@ -19,15 +21,15 @@ const themeBootstrapScript = `
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://redqueen.space"),
-  title: "RED QUEEN | Survival Intelligence on Solana",
+  title: "RQ | Your next move, with Red Queen",
   description:
-    "RED QUEEN is an AI survival intelligence system that turns verified threat signals into clear assessments, practical actions, and readiness training on Solana.",
+    "Meet RQ, your survival intelligence app. Ask Red Queen, understand real threats, make a plan and find the gear you need. Built on Solana.",
   keywords: ["survival intelligence", "threat monitoring", "red queen", "Solana", "AI agent", "$THREAT token", "preparedness"],
   openGraph: {
-    title: "RED QUEEN | Survival Intelligence on Solana",
+    title: "RQ | Your next move, with Red Queen",
     description: "Meet RED QUEEN, the AI survival intelligence system that watches the field, removes the noise, and gives you one clear move.",
     type: "website",
-    siteName: "RED QUEEN | SOLVIVAL CORP",
+    siteName: "RQ",
     images: [
       {
         url: "/red-queen-social-card.png",
@@ -39,7 +41,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "RED QUEEN | Survival Intelligence on Solana",
+    title: "RQ | Your next move, with Red Queen",
     description: "The AI survival intelligence system that watches the field, removes the noise, and gives you one clear move.",
     images: ["/red-queen-social-card.png"],
   },
@@ -56,7 +58,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="page-bg">
             <MobileExperienceProvider />
             <NavBar />
-            <main className="page-content">{children}</main>
+            <main className="page-content" id="rq-main">{children}</main>
+            <RqWelcome />
             <QueenDock />
             <Footer />
           </div>

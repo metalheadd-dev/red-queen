@@ -15,13 +15,13 @@ const dockContent: Array<{
   actions: DockAction[];
 }> = [
   {
-    match: (pathname) => pathname.startsWith("/onchain") || pathname.startsWith("/network-clearance"),
-    eyebrow: "SOLANA CONTROL PLANE",
-    title: "Every privilege leaves a trace.",
-    note: "I will show you what the chain proves, what it cannot prove, and the safest next action. I will never ask for your secrets.",
+    match: (pathname) => pathname.startsWith("/onchain") || pathname.startsWith("/network-clearance") || pathname.startsWith("/reports") || pathname.startsWith("/shop"),
+    eyebrow: "RQ / NEED A HAND?",
+    title: "Tell me what you need.",
+    note: "I can help you choose a report, build a kit or understand a wallet concern.",
     actions: [
-      { label: "AUDIT MY WALLET SAFETY", mode: "ANALYZE", prompt: "Run a safe Solana wallet security triage. Do not claim to query private vendor databases and never ask for a seed phrase or private key." },
-      { label: "EXPLAIN MY CLEARANCE", mode: "ANALYZE", prompt: "Explain how $THREAT clearance, BIO-SCORE, and x402 USDC payments differ inside RED QUEEN." },
+      { label: "HELP ME BUILD A KIT", mode: "ANALYZE", prompt: "Help me build a survival kit. Ask about my threat, household and budget first." },
+      { label: "HELP ME CHOOSE A REPORT", mode: "ANALYZE", prompt: "Help me choose an RQ intelligence report. First ask what I need to understand." },
     ],
   },
   {
@@ -96,7 +96,7 @@ const dockContent: Array<{
   },
 ];
 
-const visibleCoreRoutes = ["/", "/pulse", "/red-queen", "/prepare", "/library", "/docs", "/profile", "/onchain", "/community", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance"];
+const visibleCoreRoutes = ["/shop", "/reports", "/", "/pulse", "/red-queen", "/prepare", "/library", "/docs", "/profile", "/onchain", "/community", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance"];
 
 function buildHref(action: DockAction, area: string) {
   const query = new URLSearchParams({ mode: action.mode, prompt: action.prompt });
@@ -128,7 +128,7 @@ export default function QueenDock() {
   );
 
   const isVisible = visibleCoreRoutes.some((route) => route === "/" ? pathname === "/" : pathname.startsWith(route));
-  if (!isVisible || pathname.startsWith("/red-queen") || pathname.startsWith("/terminal")) return null;
+  if (!isVisible || pathname === "/" || pathname.startsWith("/red-queen") || pathname.startsWith("/terminal")) return null;
 
   const minimizeDock = () => {
     setOpen(false);
@@ -170,7 +170,7 @@ export default function QueenDock() {
         <div className="queen-dock-launcher">
           <button className="queen-dock-trigger" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
             <span className="queen-dock-orb"><i /></span>
-            <span><strong>ASK RED QUEEN</strong><small>{area ? `${area} · SHE REMEMBERS` : "SURVIVAL INTELLIGENCE · LISTENING"}</small></span>
+            <span><strong>Ask Queen</strong><small>{area ? `${area} · SHE REMEMBERS` : "SURVIVAL INTELLIGENCE · LISTENING"}</small></span>
             <b>{open ? "×" : "↑"}</b>
           </button>
           <button className="queen-dock-minimize" onClick={minimizeDock} aria-label="Minimize Red Queen assistant">−</button>

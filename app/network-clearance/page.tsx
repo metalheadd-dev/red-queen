@@ -2,17 +2,13 @@ import Link from "next/link";
 import { RED_QUEEN_AGENT_ID_SHORT } from "@/lib/agent-identity-public";
 import type { CSSProperties } from "react";
 import OnchainClearanceClient from "@/components/OnchainClearanceClient";
-import { SOLANA_MAINNET_CAIP2 } from "@/lib/onchain";
 import { QUEEN_VISAGE_MIN_BALANCE, THREAT_CLEARANCE_LEVELS, THREAT_TOKEN_MINT } from "@/lib/threat-token";
 import { X402_INTELLIGENCE_PRODUCTS } from "@/lib/intelligence-products";
 import X402HealthBadge from "@/components/X402HealthBadge";
-import IntelligenceOperationsClient from "@/components/IntelligenceOperationsClient";
 import ThreatSwapClient from "@/components/ThreatSwapClient";
 import AgentRegistryIdentity from "@/components/AgentRegistryIdentity";
-import CoreLoopGuide from "@/components/CoreLoopGuide";
-import MobileCommandHeader from "@/components/MobileCommandHeader";
-import SurvivalMarketClient from "@/components/SurvivalMarketClient";
-import Sp3ndCheckoutClient from "@/components/Sp3ndCheckoutClient";
+
+import RqPageIntro from "@/components/RqPageIntro";
 
 const LEVEL_COLORS = ["#8a8a8a", "#d8d8d8", "#f0c929", "#ff884d", "#ff4d4d"];
 
@@ -25,52 +21,9 @@ function formatRequirement(threshold: number) {
 
 export default function NetworkClearancePage() {
   return (
-    <div className="onchain-page">
-      <MobileCommandHeader
-        eyebrow="RED QUEEN AGENTIC COMMERCE"
-        title="Intelligence and survival gear. One command layer."
-        description="Buy intelligence. Build your survival cart. Be ready for the threat ahead."
-        status="SOLANA MAINNET · USER APPROVAL"
-        actions={[
-          { href: "#queen-operations", label: "PAID INTELLIGENCE" },
-          { href: "#survival-market", label: "SURVIVAL GEAR", tone: "secondary" },
-        ]}
-        steps={["REQUEST", "APPROVE", "RECEIVE"]}
-      />
-      <header className="onchain-hero">
-        <div className="container onchain-hero-grid">
-          <div>
-            <span className="pulse-eyebrow">RED QUEEN // AGENTIC COMMERCE</span>
-            <h1>Buy intelligence.<br />Build your <em>survival cart.</em></h1>
-            <p>Be ready for the threat ahead. Queen turns live signals into paid decisions and practical gear manifests while every payment and checkout remains under your control.</p>
-            <div className="onchain-hero-tags"><span>SIWS IDENTITY</span><span>SPL BALANCE PROOF</span><span>x402 USDC + PYUSD</span><span>PHYSICAL CHECKOUT</span><span>NO CUSTODY</span></div>
-          </div>
-          <div className="onchain-network-card">
-            <span>ACTIVE NETWORK</span>
-            <strong>SOLANA MAINNET</strong>
-            <p>{SOLANA_MAINNET_CAIP2}</p>
-            <div><i /> READS USE CONFIRMED COMMITMENT</div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container onchain-main">
-        <CoreLoopGuide
-          eyebrow="ONCHAIN // CHOOSE ONE OPERATION"
-          title="Review first. Sign only what you understand."
-          description="Connect for read-only checks. Every swap, payment or authority change shows its network, asset, amount and destination before approval."
-          actionHref="#onchain-actions"
-          actionLabel="OPEN ONCHAIN ACTIONS"
-          accessNote="CONNECT ≠ SIGN IN ≠ PAY · RED QUEEN NEVER REQUESTS A SEED PHRASE"
-        />
-        <div id="onchain-actions" />
-        <section className="commerce-command" aria-label="Commerce desks">
-          <div><span>CHOOSE A DESK</span><strong>One Queen. Two ways to act.</strong></div>
-          <nav><a href="#queen-operations"><b>01</b><span>PAID INTELLIGENCE<small>x402 reports · exact USDC price</small></span></a><a href="#survival-market"><b>02</b><span>PHYSICAL READINESS<small>Amazon/eBay · USDC on Solana</small></span></a></nav>
-        </section>
-        <IntelligenceOperationsClient />
-        <SurvivalMarketClient />
-        <Sp3ndCheckoutClient />
+    <div className="onchain-page rq-experience rq-product-page"><div className="container onchain-main">
+        <RqPageIntro eyebrow="WALLET & $THREAT" title="Your wallet. Your control." description="Check your public Solana wallet, explore optional holder benefits or review a $THREAT swap. Connecting a wallet never approves spending." action={{ href: "/reports?product=wallet", label: "Get a wallet report" }} />
+        <nav className="rq-wallet-shortcuts" aria-label="Wallet sections"><a href="#wallet-intelligence">Wallet tools</a><a href="#buy-threat">$THREAT swap</a><a href="#agent-identity">Queen’s identity</a><Link href="/reports">Intelligence reports ↗</Link></nav>
         <OnchainClearanceClient />
         <ThreatSwapClient />
         <AgentRegistryIdentity />
@@ -147,7 +100,7 @@ export default function NetworkClearancePage() {
             <article className="is-live"><span>LIVE</span><strong>SPL holder proof</strong><p>Server-side canonical mint read, aggregated token accounts, confirmed commitment, and fail-closed persistence.</p></article>
             <article className="is-beta"><span>BETA</span><strong>x402 exact SVM</strong><p>USDC-gated HTTP resources with exact prices. Available when the production facilitator and receiving wallet are configured.</p></article>
             <article className="is-beta"><span>BETA</span><strong>Jupiter $THREAT swap</strong><p>SOL/USDC input, canonical output mint, fresh Swap V2 order, fee disclosure and explicit wallet approval. Runtime-gated by the server API key.</p></article>
-            <article className="is-beta" id="wallet-intelligence"><span>BETA</span><strong>Wallet Intelligence</strong><p>Read-only SPL and Token-2022 authority scans, paid evidence-bounded audit, and feature-gated simulated delegate revocation.</p></article>
+            <article className="is-beta"><span>BETA</span><strong>Wallet Intelligence</strong><p>Read-only SPL and Token-2022 authority scans, paid evidence-bounded audit, and feature-gated simulated delegate revocation.</p></article>
             <article className="is-live"><span>LIVE</span><strong>8004 Agent Registry · ID {RED_QUEEN_AGENT_ID_SHORT}</strong><p>The RED QUEEN Agent Asset is registered on Solana mainnet with public metadata, MCP tools, OASF capabilities and x402 support. Operational-wallet binding remains owner-controlled.</p></article>
             <article className="is-next"><span>AFTER CORE</span><strong>Solana Actions / Blinks</strong><p>Share a verified RED QUEEN protocol or paid intelligence action after the daily web loop is stable.</p></article>
             <article className="is-next"><span>NEXT</span><strong>Kora fee abstraction</strong><p>Sponsor fees only for allowlisted RED QUEEN transactions after Wallet Lockdown passes mainnet QA.</p></article>

@@ -76,8 +76,8 @@ export default function CommunityPage() {
         <div className="community-hero-shade" />
         <Image className="community-hero-queen" src="/art/community-red-queen-hero-v2.png" alt="" width={1536} height={1024} priority aria-hidden="true" />
         <div className="container community-hero-copy">
-          <span>COMMUNITY // QUEEN TRANSMISSIONS</span>
-          <h1>The Queen is<br /><em>the system.</em></h1>
+          <span>RQ / THE WORLD BEHIND THE QUEEN</span>
+          <h1>Enter her world.<br /><em>Keep your instincts.</em></h1>
           <p>RED QUEEN is not a feature inside SOLvival. She is the intelligence connecting every signal, decision, protocol and survivor willing to prepare.</p>
           <div><Link className="btn btn-primary" href="#community-files">ENTER THE ARCHIVE</Link><a className="btn btn-ghost" href="https://x.com/redqueen_agent" target="_blank" rel="noreferrer">OPEN X CHANNEL ↗</a></div>
         </div>

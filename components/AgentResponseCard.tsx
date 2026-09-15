@@ -29,7 +29,7 @@ const GROUNDING_LABELS: Record<RedQueenClientResponse["grounding"], string> = {
 function ProcurementItem({ item, index }: { item: RedQueenCommerceItem; index: number }) {
   const product = item.amazonProduct;
   const x402Offer = item.x402Offer;
-  const sp3ndUrl = product ? `/onchain?${new URLSearchParams({ sp3ndProduct: product.url }).toString()}#sp3nd-checkout` : "";
+  const sp3ndUrl = product ? `/shop?${new URLSearchParams({ sp3ndProduct: product.url }).toString()}#sp3nd-checkout` : "";
   return (
     <article className="rq-procurement__item">
       <div className="rq-procurement__index">{String(index + 1).padStart(2, "0")}</div>

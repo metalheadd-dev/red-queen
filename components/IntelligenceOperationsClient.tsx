@@ -23,13 +23,13 @@ const WalletMultiButton = dynamic(
 type ProductId = "local" | "plan" | "incident" | "transaction" | "wallet" | "premium" | "external";
 
 const PRODUCT_META: Record<ProductId, { index: string; name: string; price: string; promise: string }> = {
-  local: { index: "01", name: "LOCAL DELTA", price: "0.01 USDC", promise: "Verified changes around one broad location during the last 24 hours." },
-  plan: { index: "02", name: "72-HOUR PLAN", price: "0.02 USDC", promise: "A phased protocol built around your real household constraints." },
-  incident: { index: "03", name: "INCIDENT DOSSIER", price: "0.02 USDC", promise: "One verified signal expanded into facts, uncertainty, sources and action." },
-  transaction: { index: "04", name: "TRANSACTION RISK", price: "0.01 USDC", promise: "Decode and simulate a Solana transaction before you decide whether to sign." },
-  wallet: { index: "05", name: "WALLET EXPOSURE", price: "0.02 USDC", promise: "Expand the connected wallet's public delegate and authority surface into an evidence-bounded audit." },
-  premium: { index: "06", name: "PREMIUM AREA", price: "0.05 USDC", promise: "Queen purchases provider-metered geospatial data, compares it and returns one sourced assessment plus a procurement receipt." },
-  external: { index: "07", name: "QUEEN BUYER", price: "0.08 USDC", promise: "Queen buys missing evidence from another x402 merchant, verifies it and returns one decision with both receipts." },
+  local: { index: "01", name: "Local threat brief", price: "0.01 USDC", promise: "Verified changes around one broad location during the last 24 hours." },
+  plan: { index: "02", name: "72-hour plan", price: "0.02 USDC", promise: "A step-by-step plan for the next 72 hours, tailored to your household." },
+  incident: { index: "03", name: "Incident explained", price: "0.02 USDC", promise: "One verified signal expanded into facts, uncertainty, sources and action." },
+  transaction: { index: "04", name: "Transaction check", price: "0.01 USDC", promise: "Decode and simulate a Solana transaction before you decide whether to sign." },
+  wallet: { index: "05", name: "Wallet check", price: "0.02 USDC", promise: "Find token permissions and wallet exposures that deserve your attention. This is a read-only check." },
+  premium: { index: "06", name: "Area deep dive", price: "0.05 USDC", promise: "Get additional event and weather data for your area, with sources and practical next steps." },
+  external: { index: "07", name: "Queen research", price: "0.08 USDC", promise: "Queen purchases web research, reads a source article and combines it with relevant signals to answer your question." },
 };
 
 function filenameFor(product: ProductId) {
@@ -108,10 +108,10 @@ function PaidReportContent({ product, data }: { product: ProductId; data: any })
     const receipt = data?.procurementReceipt;
     return <div className="paid-report paid-report-premium">
       <div className="paid-report-next"><span>ONE NEXT ACTION</span><strong>{report.nextAction}</strong></div>
-      <div className="paid-report-context"><div><span>AREA</span><strong>{report.area}</strong></div><div><span>FOCUS</span><strong>{String(report.focus || "SURVIVAL").replaceAll("_", " ")}</strong></div><div><span>UPSTREAM</span><strong>{receipt?.upstreamCost || "0.03 USDC"}</strong></div></div>
+      <div className="paid-report-context"><div><span>AREA</span><strong>{report.area}</strong></div><div><span>FOCUS</span><strong>{String(report.focus || "SURVIVAL").replaceAll("_", " ")}</strong></div><div><span>DATA COST</span><strong>{receipt?.upstreamCost || "0.03 USDC"}</strong></div></div>
       {Array.isArray(report.findings) && report.findings.length > 0 && <div className="paid-report-phases"><article><header><span>PURCHASED FINDINGS</span></header><ol>{report.findings.map((finding: any, index: number) => <li key={index}><strong>{finding.confidence}</strong> · {finding.fact}<br /><small>{finding.relevance}</small></li>)}</ol></article></div>}
       {sourceList(report.sources)}
-      <section className="premium-procurement-receipt"><span>UPSTREAM x402 RECEIPTS</span><div>{(receipt?.purchases || []).map((entry: any, index: number) => <article key={`${entry.resource}-${index}`}><header><strong>{entry.merchant}</strong><em className="is-purchased">SETTLED</em></header><p>{entry.amountUsdc} USDC · {entry.resource}</p><small>{entry.transaction ? `TX: ${entry.transaction}` : `IDEMPOTENCY: ${entry.idempotencyKey}`}</small></article>)}</div><p>SHARED: {(receipt?.dataShared || []).join(" · ")}</p></section>
+      <section className="premium-procurement-receipt"><span>DATA PURCHASE RECEIPTS</span><div>{(receipt?.purchases || []).map((entry: any, index: number) => <article key={`${entry.resource}-${index}`}><header><strong>{entry.merchant}</strong><em className="is-purchased">SETTLED</em></header><p>{entry.amountUsdc} USDC · {entry.resource}</p><small>{entry.transaction ? `TX: ${entry.transaction}` : `IDEMPOTENCY: ${entry.idempotencyKey}`}</small></article>)}</div><p>SHARED: {(receipt?.dataShared || []).join(" · ")}</p></section>
       <div className="paid-report-note"><strong>UNCERTAINTY</strong><p>{report.uncertainty}</p></div>
     </div>;
   }
@@ -398,8 +398,8 @@ export default function IntelligenceOperationsClient() {
     <section className="intelligence-market" id="queen-operations">
       <div className="onchain-section-head commerce-desk-head">
         <span>01 // PAID INTELLIGENCE</span>
-        <h2>Choose the intelligence. Approve one operation.</h2>
-        <p>RED QUEEN declares the output and exact USDC price before wallet approval. After x402 settlement, the result and receipt are delivered.</p>
+        <h2>Choose the report you need.</h2>
+        <p>Choose a report, review the price and approve payment. Queen returns the result with sources and a receipt.</p>
       </div>
 
       <div className="intelligence-market-status"><i className={available ? "is-live" : ""} /><strong>{available === null ? "CHECKING" : available ? "PAYMENTS AVAILABLE" : "PAYMENTS UNAVAILABLE"}</strong><span>{availabilityReason}</span><button type="button" disabled={busy} onClick={() => { setExternalQuote(null); setReadinessVersion((value) => value + 1); }}>REFRESH STATUS</button></div>
@@ -419,12 +419,12 @@ export default function IntelligenceOperationsClient() {
           {active === "premium" && premiumQuote?.reason && <p role="status">{premiumQuote.reason}</p>}
           {active === "external" && (externalQuote || buyerReadiness)?.reason && <p role="status">{(externalQuote || buyerReadiness).reason}</p>}
           {active === "local" && <>
-            <label><span>BROAD CITY OR REGION</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
+            <label><span>CITY OR REGION</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
             <label><span>SEARCH RADIUS · {radiusKm} KM</span><input type="range" min="25" max="1000" step="25" value={radiusKm} onChange={(event) => setRadiusKm(Number(event.target.value))} /></label>
             <small>The broad place is resolved through OpenStreetMap. Exact home address is neither requested nor stored.</small>
           </>}
           {active === "premium" && <>
-            <label><span>BROAD CITY OR REGION</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
+            <label><span>CITY OR REGION</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
             <label><span>INTELLIGENCE FOCUS</span><select value={focus} onChange={(event) => setFocus(event.target.value as SurvivalFocus)}>{SURVIVAL_FOCUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
             <label><span>SEARCH RADIUS · {radiusKm} KM</span><input type="range" min="25" max="1000" step="25" value={radiusKm} onChange={(event) => setRadiusKm(Number(event.target.value))} /></label>
             <div className={`premium-procurement-quote${premiumQuote?.eligible ? " is-ready" : ""}`}>
@@ -435,7 +435,7 @@ export default function IntelligenceOperationsClient() {
             </div>
           </>}
           {active === "external" && <>
-            <label><span>BROAD CITY OR REGION</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
+            <label><span>CITY OR REGION</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
             <label><span>INTELLIGENCE FOCUS</span><select value={focus} onChange={(event) => setFocus(event.target.value as SurvivalFocus)}>{SURVIVAL_FOCUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
             <label><span>WHAT EVIDENCE SHOULD QUEEN BUY?</span><textarea value={externalQuestion} onChange={(event) => setExternalQuestion(event.target.value)} maxLength={320} /></label>
             {!externalQuote && <button className="intelligence-market-pay" type="button" disabled={quoteBusy || selectedAvailability.state !== "ready"} onClick={() => void prepareExternalQuote()}>{quoteBusy ? "PREPARING DATA PURCHASE…" : "REVIEW DATA PURCHASE"}</button>}
@@ -470,7 +470,7 @@ export default function IntelligenceOperationsClient() {
 
           {!connected ? <WalletMultiButton /> : active === "external" && !externalQuote ? null : <button className="intelligence-market-pay" type="button" disabled={!canPurchase || (active === "premium" && premiumQuote?.eligible !== true) || (active === "external" && externalQuote?.eligible !== true)} onClick={() => void purchase()}>{busy ? status || "PROCESSING…" : active === "premium" && premiumQuote?.eligible !== true ? "PREMIUM PROVIDER NOT READY" : active === "external" && externalQuote?.eligible !== true ? "BUYER WALLET NOT READY" : available ? `REVIEW & PAY ${meta.price}` : "PAYMENT UNAVAILABLE"}</button>}
           {status && <div className="intelligence-market-progress">{status}</div>}
-          {error && <div className="intelligence-market-error"><strong>OUTPUT NOT DELIVERED</strong><p>{error}</p></div>}
+          {error && <div className="intelligence-market-error"><strong>Report not delivered</strong><p>{error}</p></div>}
         </div>
 
         {delivery && <div className="intelligence-market-output has-output">

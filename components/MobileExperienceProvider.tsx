@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import BootSequence from "@/components/BootSequence";
+import { useEffect } from "react";
 import {
   mobileSoundEnabled,
   playMobileTone,
@@ -53,11 +52,7 @@ function matchesWatch(signal: MobileSignal, memory: SignalWatchMemory, location?
 }
 
 export default function MobileExperienceProvider() {
-  const [showBoot, setShowBoot] = useState(false);
-
   useEffect(() => {
-    const mobile = window.matchMedia("(max-width: 700px)").matches;
-    if (mobile && sessionStorage.getItem("rq-app-booted-v2") !== "1") setShowBoot(true);
     void registerRedQueenServiceWorker().catch(() => undefined);
   }, []);
 
@@ -144,11 +139,5 @@ export default function MobileExperienceProvider() {
     };
   }, []);
 
-  function finishBoot() {
-    sessionStorage.setItem("rq-app-booted-v2", "1");
-    sessionStorage.setItem("rq-booted", "1");
-    setShowBoot(false);
-  }
-
-  return showBoot ? <BootSequence onComplete={finishBoot} /> : null;
+  return null;
 }

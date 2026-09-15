@@ -138,10 +138,10 @@ export default function ForAgentsPage() {
           <h2>Find the signal. Buy the missing evidence. Deliver the decision.</h2>
         </div>
         <div className={styles.actions}>
-          <Link className="btn btn-primary" href="/onchain">
-            OPEN HUMAN MARKET
+          <Link className="btn btn-primary" href="/reports">
+            EXPLORE INTELLIGENCE REPORTS
           </Link>
-          <Link className="btn btn-ghost" href={`/onchain#agent-identity`} title={RED_QUEEN_AGENT_ID}>
+          <Link className="btn btn-ghost" href="/network-clearance#agent-identity" title={RED_QUEEN_AGENT_ID}>
             VERIFY IDENTITY
           </Link>
         </div>

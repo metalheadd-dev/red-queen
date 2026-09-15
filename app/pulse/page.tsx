@@ -375,7 +375,7 @@ export default function PulsePage() {
     : ["priority", "all", "verified"];
 
   return (
-    <div className="pulse-page">
+    <div className="pulse-page rq-compact-page">
       <div className="pulse-alert-strip">
         <span className="pulse-alert-dot" />
         RED QUEEN ONLINE
@@ -398,18 +398,18 @@ export default function PulsePage() {
       <header className="pulse-hero">
         <div className="container pulse-hero-grid">
           <div className="pulse-hero-copy">
-            <div className="pulse-kicker">DAILY PULSE // RED QUEEN ONLINE</div>
+            <div className="pulse-kicker">RQ / LIVE THREATS</div>
             <h1>
-              She sees the field.<br />
-              <em>You choose the move.</em>
+              What’s happening.<br />
+              <em>What matters to you.</em>
             </h1>
             <p className="pulse-lead">
-              Verified signals become one clear brief: what changed, why it matters, and what to do next.
+              Explore reported events, check their sources and ask Queen what they mean for your situation.
             </p>
             <p className="pulse-queen-vow">“I do not promise safety. I make sure you do not choose blind.”</p>
             <div className="pulse-hero-actions">
-              <Link className="btn btn-primary" href={showStart ? "#first-contact" : "/red-queen"}>{showStart ? "GET MY FIRST BRIEF" : "CONTINUE WITH RED QUEEN"}</Link>
-              <a className="btn btn-ghost" href="#live-map">OPEN LIVE MAP</a>
+              <Link className="btn btn-primary" href={showStart ? "#first-contact" : "/red-queen"}>{showStart ? "Choose my area" : "Ask Queen"}</Link>
+              <a className="btn btn-ghost" href="#live-map">Explore the map</a>
             </div>
             <p className="pulse-entry-note">NO ACCOUNT · NO WALLET · NO EXACT ADDRESS REQUIRED</p>
           </div>
@@ -454,7 +454,7 @@ export default function PulsePage() {
         <section id="first-contact" className="container pulse-onboarding" aria-label="Start with Red Queen">
           <div className="pulse-onboarding-copy">
             <span className="pulse-eyebrow">FIRST CONTACT // ABOUT 60 SECONDS</span>
-            <h2>Get your first survival brief.</h2>
+            <h2>What matters near you?</h2>
             <p>Choose an area and a concern. RED QUEEN will return one useful next move.</p>
             <ol className="pulse-onboarding-steps">
               <li><span>1</span><div><strong>Tell her where to look</strong><small>A city or region is enough. This step is optional.</small></div></li>
@@ -537,7 +537,7 @@ export default function PulsePage() {
         <div className="pulse-section-heading">
           <div>
             <span className="pulse-eyebrow">TODAY // GLOBAL</span>
-            <h2>{pulseLoading ? "Synthesizing verified signals..." : pulse.name}</h2>
+            <h2>{pulseLoading ? "Checking the latest sources…" : pulse.name}</h2>
           </div>
           <div className={`pulse-trust ${pulse.verified ? "is-verified" : "is-limited"}`}>
             <span>{pulse.verified ? "VERIFIED" : "LIMITED"}</span>
@@ -566,7 +566,7 @@ export default function PulsePage() {
           <article className="pulse-card pulse-action-card">
             <span className="pulse-eyebrow">RED QUEEN // RECOMMENDED ACTION</span>
             <div className="pulse-action-index">01</div>
-            <h3>Do this now</h3>
+            <h3>Your next step</h3>
             <p>{pulse.countermeasure}</p>
             <div className="pulse-action-links">
               <Link href="/red-queen">ASK A FOLLOW-UP →</Link>
@@ -695,9 +695,9 @@ export default function PulsePage() {
             </header>
 
             <div className="pulse-dossier-grid">
-              <section><span>01 // SOURCE FACT</span><p>{selectedNode.desc}</p></section>
-              <section><span>02 // QUEEN ASSESSMENT</span><p>{selectedNode.analysis}</p></section>
-              <section className="is-action"><span>03 // SAFEST NEXT MOVE</span><p>{selectedNode.solution}</p></section>
+              <section><span>01 // WHAT HAPPENED</span><p>{selectedNode.desc}</p></section>
+              <section><span>02 // QUEEN’S TAKE</span><p>{selectedNode.analysis}</p></section>
+              <section className="is-action"><span>03 // WHAT TO DO NEXT</span><p>{selectedNode.solution}</p></section>
             </div>
 
             <div className="pulse-dossier-evidence">
@@ -752,7 +752,7 @@ export default function PulsePage() {
 
       <section className="container pulse-final-cta">
         <div className="queen-core queen-core-small"><span /></div>
-        <div><span className="pulse-eyebrow">RED QUEEN IS LISTENING</span><h2>Act now, or understand the system first.</h2></div>
+        <div><span className="pulse-eyebrow">RED QUEEN IS LISTENING</span><h2>Have a question about what you see?</h2></div>
         <div className="pulse-final-actions"><Link className="btn btn-primary" href="/red-queen">ASK RED QUEEN</Link><Link className="btn btn-ghost" href="/docs">OPEN PRODUCT GUIDE</Link></div>
       </section>
     </div>

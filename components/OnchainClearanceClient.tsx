@@ -225,7 +225,7 @@ export default function OnchainClearanceClient() {
 
   if (!connected || !address) {
     return (
-      <section className="onchain-console is-disconnected">
+      <section className="onchain-console is-disconnected" id="wallet-intelligence">
         <div className="onchain-console-head"><span>LIVE WALLET PROOF</span><b>NO WALLET CONNECTED</b></div>
         <div className="onchain-connect-orb"><i /></div>
         <h2>Connect for a read-only Solana scan.</h2>
@@ -237,7 +237,7 @@ export default function OnchainClearanceClient() {
   }
 
   return (
-    <section className="onchain-console">
+    <section className="onchain-console" id="wallet-intelligence">
       <div className="onchain-console-head">
         <span>LIVE WALLET PROOF</span>
         <b className={error ? "is-error" : "is-live"}>{loading ? "READING MAINNET…" : error ? "RPC UNAVAILABLE" : "MAINNET · CONFIRMED"}</b>

@@ -83,7 +83,7 @@ export default function SurvivalKitPage() {
     : "Audit my completed preparedness baseline. Find the weakest assumption and give me one realistic maintenance action.";
 
   return (
-    <div className="prepare-page">
+    <div className="prepare-page rq-compact-page">
       <MobileCommandHeader
         eyebrow="PREPARE // MY NEXT MOVE"
         title={nextItem ? nextItem.title : "Keep your baseline current."}
@@ -98,26 +98,26 @@ export default function SurvivalKitPage() {
       <header className="prepare-hero">
         <div className="container prepare-hero-grid">
           <div>
-            <span className="pulse-eyebrow">RED QUEEN // HANDS OF THE SYSTEM</span>
-            <h1>Turn intelligence<br /><em>into readiness.</em></h1>
+            <span className="pulse-eyebrow">RQ / MY PLAN</span>
+            <h1>Your plan.<br /><em>One step at a time.</em></h1>
             <p>
-              Check one gap, ask RED QUEEN to adapt it, then complete the action.
+              Start with your household checklist. Ask Queen for help with any step, then save a plan you can actually follow.
             </p>
             <div className="prepare-hero-actions">
-              <Link className="btn btn-primary" href={terminalHref(nextActionPrompt)}>ASK RED QUEEN FOR NEXT ACTION</Link>
-              <Link className="btn btn-ghost" href="/library">OPEN THREAT LIBRARY</Link>
+              <Link className="btn btn-primary" href={terminalHref(nextActionPrompt)}>Help me choose a next step</Link>
+              <Link className="btn btn-ghost" href="/shop">Find supplies</Link>
             </div>
           </div>
 
           <div className="prepare-status-panel">
             <div className="prepare-status-heading">
-              <span>LOCAL BASELINE</span>
+              <span>YOUR CHECKLIST PROGRESS</span>
               <strong>{ready ? `${progress}%` : "--"}</strong>
             </div>
             <div className="prepare-progress" aria-label={`${progress}% of local baseline checked`}>
               <span style={{ width: `${progress}%` }} />
             </div>
-            <p>{completedCount}/{PREPAREDNESS_CHECKLIST.length} checks marked on this device.</p>
+            <p>{completedCount}/{PREPAREDNESS_CHECKLIST.length} checks marked on this device. This is a self-check, not a safety rating.</p>
             <div className="prepare-area">
               <span>CONTEXT</span>
               <input
@@ -158,7 +158,7 @@ export default function SurvivalKitPage() {
           <div className="queen-core queen-core-small"><span /></div>
           <div>
             <span>BASELINE // NEXT OPEN GAP</span>
-            <h2>{nextItem ? nextItem.title : "Audit the baseline you completed"}</h2>
+            <h2>{nextItem ? nextItem.title : "Review your completed checklist"}</h2>
             <p>{nextItem?.evidence || "A completed list is only useful if the assumptions still match your household and local risks."}</p>
           </div>
           <Link href={terminalHref(nextActionPrompt)}>ASK RED QUEEN TO ADAPT →</Link>
@@ -169,7 +169,7 @@ export default function SurvivalKitPage() {
             <div className="prepare-section-heading">
               <div>
                 <span>01 // HOUSEHOLD BASELINE</span>
-                <h2 id="baseline-title">Evidence you can actually check</h2>
+                <h2 id="baseline-title">Your readiness checklist</h2>
               </div>
               <strong>{completedCount}/{PREPAREDNESS_CHECKLIST.length}</strong>
             </div>
@@ -199,7 +199,7 @@ export default function SurvivalKitPage() {
             <div className="prepare-section-heading">
               <div>
                 <span>02 // RESPONSE PROTOCOLS</span>
-                <h2 id="protocols-title">Start from the situation</h2>
+                <h2 id="protocols-title">Choose a situation</h2>
               </div>
             </div>
             <p className="prepare-section-intro">Each protocol opens RED QUEEN in the correct mode with a focused first request.</p>

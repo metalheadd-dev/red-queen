@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { readRqProfile } from "@/lib/rq-experience";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -173,6 +174,8 @@ export default function SurvivalMarketClient() {
     }
     try {
       const context = JSON.parse(localStorage.getItem("rq-survival-context-v1") || "null");
+      const profile = readRqProfile(localStorage);
+      if (!params.has("people") && profile) setPeople(profile.people);
       if (!requestedArea && typeof context?.area === "string") setArea(context.area.slice(0, 80));
       if (!requestedFocus && typeof context?.focus === "string" && SURVIVAL_FOCUS_OPTIONS.some((option) => option.id === context.focus)) setFocus(context.focus);
     } catch {}
@@ -331,15 +334,16 @@ export default function SurvivalMarketClient() {
     </div>
     <div className={`survival-market-grid${kit ? " has-kit" : " is-configuring"}`}>
       <div className="survival-market-form">
-        <div className="survival-market-form-head"><span>BUILD THE MANIFEST</span><strong>FREE CART</strong></div>
+        <div className="survival-market-form-head"><span>BUILD YOUR KIT</span><strong>FREE</strong></div>
         <div className="survival-market-providers"><div><strong>SP3ND FULFILLMENT</strong><span>Amazon/eBay · USDC on Solana</span></div><div><strong>x402 MARKET</strong><span>Agent inventory · PYUSD on Solana</span></div></div>
-        <label><b>BROAD CITY OR REGION</b><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
+        <label><b>CITY OR REGION</b><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="Barcelona, Spain" maxLength={80} /></label>
         <div className="survival-market-form-row">
           <label><b>FOCUS</b><select value={focus} onChange={(event) => setFocus(event.target.value as SurvivalFocus)}>{SURVIVAL_FOCUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
           <label><b>PEOPLE</b><input type="number" min="1" max="12" value={people} onChange={(event) => setPeople(Number(event.target.value))} /></label>
         </div>
-        <label><b>DEPENDENTS OR CONSTRAINTS</b><textarea value={constraints} onChange={(event) => setConstraints(event.target.value)} placeholder="Child, pet, limited storage, accessibility needs…" maxLength={320} /></label>
-        <button type="button" className="survival-market-build" onClick={() => void buildKit()} disabled={busy || area.trim().length < 2}>{busy ? "COMPILING CART…" : "PREPARE MY 72-HOUR KIT"}</button>
+        <label><b>ANYTHING ELSE QUEEN SHOULD KNOW?</b><textarea value={constraints} onChange={(event) => setConstraints(event.target.value)} placeholder="Children, pets, budget, limited storage, accessibility needs…" maxLength={320} /></label>
+        <button type="button" className="survival-market-build" onClick={() => void buildKit()} disabled={busy || area.trim().length < 2}>{busy ? "Building your kit…" : "Build my 72-hour kit"}</button>
+        {area.trim().length < 2 && <small>Add a city or region to build your kit. No exact address needed.</small>}
         <Link className="survival-market-chat" href={chatHref}>BUILD IT WITH RED QUEEN IN CHAT →</Link>
         {error && <p className="survival-market-error">{error}</p>}
         <small>BUILDING IS FREE · ADDRESS SHARING AND PAYMENT EACH REQUIRE A SEPARATE APPROVAL</small>

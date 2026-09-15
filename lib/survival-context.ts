@@ -21,20 +21,20 @@ export interface SurvivalContext {
 }
 
 export const AGENT_MODES: Array<{ id: AgentMode; label: string; description: string }> = [
-  { id: "MONITOR", label: "Monitor", description: "Verified facts and changes" },
-  { id: "ANALYZE", label: "Analyze", description: "Relevance and priorities" },
-  { id: "PREPARE", label: "Prepare", description: "Plans and checklists" },
-  { id: "SIMULATE", label: "Simulate", description: "Decision drills and BIO" },
+  { id: "MONITOR", label: "What’s happening", description: "Explore live threats" },
+  { id: "ANALYZE", label: "Help me understand", description: "Make sense of a concern" },
+  { id: "PREPARE", label: "Make a plan", description: "Steps and supplies" },
+  { id: "SIMULATE", label: "Test my instincts", description: "One decision at a time" },
 ];
 
 export const READINESS_BASELINE_PROMPT =
   "Run a short survival readiness baseline. Give me one realistic decision scenario at a time, wait for my answer, then score only the evidence in my decision.";
 
 export const MODE_STARTERS: Record<AgentMode, string[]> = {
-  MONITOR: ["What changed in the verified signal grid?", "Do any verified signals require action?", "Show facts, sources, and uncertainty"],
-  ANALYZE: ["What threats matter for my context?", "Prioritize my three biggest readiness gaps", "Analyze my wallet and device exposure"],
+  MONITOR: ["What threats should I know about?", "What changed near me?", "Help me understand a news story"],
+  ANALYZE: ["Where should I start?", "What am I missing in my preparation?", "Help me check my wallet security"],
   PREPARE: ["Build a 72-hour blackout plan", "Audit my emergency kit", "Create one action for today"],
-  SIMULATE: [READINESS_BASELINE_PROMPT, "Run a blackout decision drill", "Test my response to a wallet compromise"],
+  SIMULATE: ["Test my survival instincts, one decision at a time", "Put me in a fictional zombie outbreak", "Run a blackout decision drill"],
 };
 
 export const SURVIVAL_FOCUS_OPTIONS: Array<{

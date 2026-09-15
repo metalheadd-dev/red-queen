@@ -1,200 +1,60 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useAuth } from "./AuthProvider";
-import SolvivalIcon from "./SolvivalIcon";
 import ThemeToggle from "./ThemeToggle";
-
-type NavIconName = "home" | "pulse" | "queen" | "prepare" | "onchain" | "me";
+import { RQ_WELCOME_EVENT } from "@/lib/rq-experience";
 
 const primaryLinks = [
-  { href: "/red-queen", label: "RED QUEEN", subtitle: "Ask, analyze, prepare or simulate", match: "terminal" },
-  { href: "/pulse", label: "PULSE", subtitle: "Your daily intelligence brief", match: "pulse" },
-  { href: "/onchain", label: "COMMERCE", subtitle: "Paid intelligence, survival gear and x402 agentic commerce", match: "onchain" },
-  { href: "/prepare", label: "PREPARE", subtitle: "Build practical readiness", match: "prepare" },
-  { href: "/pulse#live-map", label: "MAP", subtitle: "Verified signals on the live field", match: "map" },
-  { href: "/library", label: "LIBRARY", subtitle: "Open the threat intelligence archive", match: "library" },
-  { href: "/community", label: "COMMUNITY", subtitle: "Lore, field notes and Queen transmissions", match: "community" },
-  { href: "/docs", label: "GUIDE", subtitle: "Understand scores, utility and every page", match: "guide" },
-] as const;
-
-const desktopPrimaryMatches = new Set(["terminal", "pulse", "prepare", "onchain"]);
-const desktopPrimaryLinks = primaryLinks.filter((link) => desktopPrimaryMatches.has(link.match));
-const desktopResourceLinks = primaryLinks.filter((link) => !desktopPrimaryMatches.has(link.match));
-
-function NavIcon({ name }: { name: NavIconName }) {
-  if (name === "home") {
-    return <svg className="mobile-home-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5V20h-6v-6H9v6H3Z" /></svg>;
-  }
-  if (name === "pulse") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6" /></svg>;
-  }
-  if (name === "onchain") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8a4 4 0 0 1 0 8h-3" /><path d="M16 17H8a4 4 0 0 1 0-8h3" /><path d="M9 12h6" /></svg>;
-  }
-  if (name === "queen") {
-    return <span className="mobile-queen-core"><i /></span>;
-  }
-  if (name === "prepare") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7Z" /><path d="m9 12 2 2 4-5" /></svg>;
-  }
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3" /><path d="M5 20c.7-4 3-6 7-6s6.3 2 7 6" /></svg>;
-}
-
+  { href: "/red-queen", label: "Ask Queen", subtitle: "Your AI survival agent", icon: "✦" },
+  { href: "/pulse", label: "Live threats", subtitle: "Map and verified sources", icon: "◎" },
+  { href: "/prepare", label: "My plan", subtitle: "Your next steps and checklists", icon: "✓" },
+  { href: "/shop", label: "Shop", subtitle: "Build a kit and find real gear", icon: "◇" },
+];
+const exploreLinks = [
+  { href: "/reports", label: "Intelligence reports", subtitle: "A focused answer, paid per request" },
+  { href: "/library", label: "Threat library", subtitle: "Learn about real and fictional threats" },
+  { href: "/community", label: "The world of RQ", subtitle: "Lore, community and the Queen's story" },
+  { href: "/network-clearance", label: "Wallet & $THREAT", subtitle: "Your wallet, benefits and agent identity" },
+  { href: "/for-agents", label: "For developers & agents", subtitle: "Connect your agent to RQ" },
+  { href: "/docs", label: "How RQ works", subtitle: "A quick guide to getting started" },
+];
 export default function NavBar() {
   const pathname = usePathname();
-  const { connected } = useWallet();
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [hash, setHash] = useState("");
-
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
   useEffect(() => {
-    const syncHash = () => setHash(window.location.hash);
-    syncHash();
-    window.addEventListener("hashchange", syncHash);
-    return () => window.removeEventListener("hashchange", syncHash);
-  }, [pathname]);
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    if (!menuOpen) return;
+    const main = document.getElementById("rq-main");
+    const footer = document.querySelector<HTMLElement>(".rq-footer");
+    if (main) main.inert = true;
+    if (footer) footer.inert = true;
+    const escape = (e: KeyboardEvent) => { if (e.key === "Escape") { setMenuOpen(false); document.querySelector<HTMLButtonElement>(".mobile-menu-toggle")?.focus(); } };
+    const resize = () => { if (window.innerWidth >= 1180) setMenuOpen(false); };
+    document.addEventListener("keydown", escape);
+    window.addEventListener("resize", resize);
+    return () => { if (main) main.inert = false; if (footer) footer.inert = false; document.removeEventListener("keydown", escape); window.removeEventListener("resize", resize); };
   }, [menuOpen]);
-
-  const isActive = (match: string) => {
-    if (match === "pulse") return pathname === "/pulse" && hash !== "#live-map";
-    if (match === "map") return pathname === "/pulse" && hash === "#live-map";
-    if (match === "library") return pathname.startsWith("/library") || pathname.startsWith("/threat-vector");
-    if (match === "guide") return pathname.startsWith("/docs");
-    if (match === "terminal") return pathname.startsWith("/red-queen") || pathname.startsWith("/terminal");
-    if (match === "prepare") return pathname.startsWith("/prepare") || pathname.startsWith("/survival-kit");
-    if (match === "community") return pathname.startsWith("/community") || pathname.startsWith("/solvivors");
-    if (match === "onchain") return pathname.startsWith("/onchain") || pathname.startsWith("/network-clearance") || pathname.startsWith("/clearance");
-    return false;
-  };
-
-  const accountHref = user ? "/profile" : "/login";
-  const accountLabel = user ? "MY READINESS" : connected ? "FINISH SIGN-IN" : "SIGN IN";
-
-  return (
-    <>
-      <nav className="navbar" aria-label="Primary navigation">
-        <div className="navbar-inner">
-          <Link href="/" className="navbar-logo" aria-label="Red Queen home">
-            <span className="navbar-logo-icon"><SolvivalIcon size={30} /></span>
-            <span className="navbar-logo-copy">
-              <strong>RED QUEEN</strong>
-              <small>SURVIVAL INTELLIGENCE</small>
-            </span>
-          </Link>
-
-          <ul className="navbar-nav desktop-only">
-            {desktopPrimaryLinks.map((link) => {
-              const active = isActive(link.match);
-              return (
-                <li key={link.match} className="nav-item-wrap">
-                  <Link href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>
-                    {link.label}
-                  </Link>
-                  <div className="nav-item-tooltip">{link.subtitle}</div>
-                </li>
-              );
-            })}
-            <li className="nav-more-wrap">
-              <details>
-                <summary>MORE <span>+</span></summary>
-                <div className="nav-more-menu">
-                  {desktopResourceLinks.map((link) => (
-                    <Link key={link.match} href={link.href} className={isActive(link.match) ? "active" : ""}>
-                      <strong>{link.label}</strong><small>{link.subtitle}</small>
-                    </Link>
-                  ))}
-                </div>
-              </details>
-            </li>
-          </ul>
-
-          <div className="navbar-actions desktop-only">
-            <span className="navbar-online" aria-label="Red Queen is online"><i />ONLINE</span>
-            <ThemeToggle />
-            <Link href={accountHref} className={`navbar-account${user ? " is-authenticated" : ""}`}>
-              {accountLabel}
-            </Link>
-          </div>
-
-          <div className="navbar-mobile-state">
-            <span><i /> RED QUEEN ONLINE</span>
-            <ThemeToggle compact />
-            <button
-              className={`mobile-menu-toggle${menuOpen ? " is-open" : ""}`}
-              onClick={() => setMenuOpen((open) => !open)}
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={menuOpen}
-            >
-              <b /><b /><b />
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <div className={`mobile-drawer${menuOpen ? " is-open" : ""}`} aria-hidden={!menuOpen}>
-        <div className="mobile-drawer-heading">
-          <span>PLATFORM INDEX</span>
-          <strong>Everything you need, without the noise.</strong>
-          <ThemeToggle />
-        </div>
-
-        <nav aria-label="Mobile expanded navigation" className="mobile-drawer-links">
-          {primaryLinks.map((link, index) => (
-            <Link key={link.match} href={link.href} tabIndex={menuOpen ? 0 : -1}>
-              <span>0{index + 1}</span>
-              <div><strong>{link.label}</strong><small>{link.subtitle}</small></div>
-            </Link>
-          ))}
-          <Link href={accountHref} tabIndex={menuOpen ? 0 : -1}>
-            <span>0{primaryLinks.length + 1}</span>
-            <div><strong>{accountLabel}</strong><small>Save context, readiness and clearance</small></div>
-          </Link>
-        </nav>
-
-        <div className="mobile-drawer-footer">
-          <div>
-            <Link href="/privacy" tabIndex={menuOpen ? 0 : -1}>PRIVACY</Link>
-            <Link href="/terms" tabIndex={menuOpen ? 0 : -1}>TERMS</Link>
-            <Link href="/license" tabIndex={menuOpen ? 0 : -1}>LICENSE</Link>
-          </div>
-          {user && (
-            <button onClick={() => { void logout(); setMenuOpen(false); }} tabIndex={menuOpen ? 0 : -1}>
-              SIGN OUT
-            </button>
-          )}
-          <p>Public intelligence is available without an account. A wallet is optional until you verify $THREAT clearance.</p>
-        </div>
-      </div>
-
-      <nav className="mobile-bottom-nav" aria-label="Core product navigation">
-        <Link href="/" className={pathname === "/" ? "active" : ""} aria-current={pathname === "/" ? "page" : undefined}>
-          <NavIcon name="home" /><span>HOME</span>
-        </Link>
-        <Link href="/pulse" className={isActive("pulse") ? "active" : ""} aria-current={isActive("pulse") ? "page" : undefined}>
-          <NavIcon name="pulse" /><span>PULSE</span>
-        </Link>
-        <Link href="/red-queen" className={`mobile-queen-link${isActive("terminal") ? " active" : ""}`} aria-current={isActive("terminal") ? "page" : undefined}>
-          <NavIcon name="queen" /><span>RED QUEEN</span>
-        </Link>
-        <Link href="/onchain" className={isActive("onchain") ? "active" : ""} aria-current={isActive("onchain") ? "page" : undefined}>
-          <NavIcon name="onchain" /><span>COMMERCE</span>
-        </Link>
-        <Link href={accountHref} className={pathname === "/profile" || pathname === "/operative" || pathname === "/login" ? "active" : ""} aria-current={pathname === "/profile" || pathname === "/operative" ? "page" : undefined}>
-          <NavIcon name="me" /><span>ME</span>
-        </Link>
-      </nav>
-    </>
-  );
+  function active(href: string) {
+    if (href === "/red-queen") return pathname === "/red-queen" || pathname === "/terminal";
+    if (href === "/prepare") return pathname === "/prepare" || pathname === "/survival-kit";
+    return pathname === href;
+  }
+  const account = user ? "/profile" : "/login";
+  return <>
+    <a className="rq-skip-link" href="#rq-main">Skip to content</a>
+    <nav className="navbar rq-navbar" aria-label="Primary navigation"><div className="navbar-inner">
+      <Link href="/" className="navbar-logo" aria-label="RQ home"><span className="rq-wordmark">RQ<span>/</span></span><span className="rq-brand-descriptor">SURVIVAL<br />INTELLIGENCE</span></Link>
+      <ul className="navbar-nav desktop-only">{primaryLinks.map(link => <li key={link.href}><Link href={link.href} className={active(link.href) ? "active" : ""} aria-current={active(link.href) ? "page" : undefined}>{link.label}</Link></li>)}<li className="nav-more-wrap"><details><summary>Explore <span>+</span></summary><div className="nav-more-menu">{exploreLinks.map(link => <Link key={link.href} href={link.href} onClick={e => e.currentTarget.closest("details")?.removeAttribute("open")}><strong>{link.label}</strong><small>{link.subtitle}</small></Link>)}<button className="rq-menu-personalise" onClick={e => { e.currentTarget.closest("details")?.removeAttribute("open"); window.dispatchEvent(new Event(RQ_WELCOME_EVENT)); }}>Personalise my RQ ↗</button></div></details></li></ul>
+      <div className="navbar-actions desktop-only"><ThemeToggle compact /><Link className="navbar-account" href={account}>{user ? "My profile" : "Sign in"}</Link></div>
+      <div className="navbar-mobile-state"><ThemeToggle compact /><button className={`mobile-menu-toggle${menuOpen ? " is-open" : ""}`} onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "Close menu" : "Open menu"} aria-controls="rq-mobile-menu" aria-expanded={menuOpen}><b /><b /><b /></button></div>
+    </div></nav>
+    <div id="rq-mobile-menu" className={`rq-mobile-menu${menuOpen ? " is-open" : ""}`} hidden={!menuOpen}>
+      <nav aria-label="All pages">{[...primaryLinks, ...exploreLinks].map(link => <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)}><strong>{link.label}</strong><small>{link.subtitle}</small><span>↗</span></Link>)}</nav>
+      <div className="rq-mobile-menu-foot"><button onClick={() => { setMenuOpen(false); window.dispatchEvent(new Event(RQ_WELCOME_EVENT)); }}>Personalise my RQ</button><Link href={account}>{user ? "My profile" : "Sign in"}</Link>{user && <button onClick={() => { void logout(); setMenuOpen(false); }}>Sign out</button>}</div>
+    </div>
+    <nav className="mobile-bottom-nav rq-bottom-nav" aria-label="Quick navigation"><Link href="/" className={pathname === "/" ? "active" : ""}><b aria-hidden="true">⌂</b><span>Home</span></Link>{primaryLinks.map(link => <Link key={link.href} href={link.href} className={`${link.href === "/red-queen" ? "mobile-queen-link " : ""}${active(link.href) ? "active" : ""}`} aria-current={active(link.href) ? "page" : undefined}><b aria-hidden="true">{link.icon}</b><span>{link.label}</span></Link>)}</nav>
+  </>;
 }

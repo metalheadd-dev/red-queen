@@ -76,15 +76,15 @@ export default function PreparednessPlansPanel() {
   return (
     <section className={`preparedness-plans${plans.length ? " has-plans" : " is-empty"}`}>
       <div className="prepare-section-heading">
-        <div><span>QUEEN PROTOCOLS // SURVIVAL MEMORY</span><h2>Plans that stay alive after the conversation</h2></div>
+        <div><span>YOUR NEXT MOVES</span><h2>Saved plans</h2></div>
         <strong>{active.length} ACTIVE · {completed} COMPLETE</strong>
       </div>
 
       {!plans.length ? (
         <div className="preparedness-plans-empty">
           <div>
-            <strong>No persistent protocol yet.</strong>
-            <p>Ask RED QUEEN for a blackout, outbreak, household or wallet-compromise plan. Save the structured protocol here and finish it step by step.</p>
+            <strong>Your first plan starts with a conversation.</strong>
+            <p>Ask Queen about your situation, then save her plan here. Work through the steps at your own pace. Plans stay on this device.</p>
           </div>
           <Link href="/red-queen?mode=PREPARE&focus=HOUSEHOLD&prompt=Build%20a%20practical%20preparedness%20plan%20for%20my%20highest-impact%20household%20gap.%20Give%20me%20observable%20steps%20and%20a%20realistic%20review%20date.">BUILD FIRST PLAN →</Link>
         </div>

@@ -84,14 +84,14 @@ export default function LoginPage() {
       <section className="rq-login-intro">
         <Link href="/pulse" className="rq-login-back">← RETURN TO PULSE</Link>
         <div className="rq-login-orb"><i /></div>
-        <span className="rq-login-kicker">PRIVATE CONTEXT CHANNEL</span>
-        <h1>Your survival context, remembered.</h1>
+        <span className="rq-login-kicker">YOUR RQ ACCOUNT</span>
+        <h1>Pick up where you left off.</h1>
         <p>
-          Sign in only when you want RED QUEEN to preserve your readiness, evidence and clearance across sessions.
+          Create an account to keep your conversations and evaluated progress with Red Queen.
           The public intelligence platform remains open without an account.
         </p>
         <div className="rq-login-benefits">
-          <div><span>01</span><strong>Save verified readiness</strong><small>BIO-SCORE evidence, Queen history and your SOLvivor identity.</small></div>
+          <div><span>01</span><strong>Keep your progress</strong><small>Your evaluated drills, conversation history and personal profile.</small></div>
           <div><span>02</span><strong>Keep Queen in context</strong><small>Account history persists; broad-area and checklist preferences remain on your device.</small></div>
           <div><span>03</span><strong>Verify $THREAT utility</strong><small>Connect Solana only when you want holder clearance and premium depth.</small></div>
         </div>
@@ -99,8 +99,8 @@ export default function LoginPage() {
 
       <section className="rq-login-card">
         <div className="rq-login-card-head">
-          <span>RED QUEEN ACCESS</span>
-          <strong>{isSignUp ? "Create your private readiness record" : "Continue your readiness record"}</strong>
+          <span>WELCOME TO RQ</span>
+          <strong>{isSignUp ? "Create your account" : "Sign in to your account"}</strong>
           <p>Choose email or Solana. Both lead to the same core platform.</p>
         </div>
 
@@ -143,7 +143,7 @@ export default function LoginPage() {
           {statusMsg && <div className="rq-login-message is-status" role="status">{statusMsg}</div>}
 
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? "SECURING CHANNEL…" : isSignUp ? "CREATE ACCOUNT" : "SIGN IN WITH EMAIL"}
+            {loading ? "Signing in…" : isSignUp ? "CREATE ACCOUNT" : "SIGN IN WITH EMAIL"}
           </button>
         </form>
 

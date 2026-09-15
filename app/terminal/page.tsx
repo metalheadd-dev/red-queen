@@ -17,6 +17,7 @@ import CoreLoopGuide from "@/components/CoreLoopGuide";
 import MobileCommandHeader from "@/components/MobileCommandHeader";
 import { RED_QUEEN_AGENT_ID_SHORT } from "@/lib/agent-identity-public";
 import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
+import { RQ_CHAT_DRAFT_KEY } from "@/lib/rq-experience";
 import { createDailyAction, DAILY_ACTION_EVENT, readDailyActions, saveDailyAction, updateDailyAction } from "@/lib/daily-action";
 import { buildDeviceSurvivalMemory } from "@/lib/device-survival-memory";
 import {
@@ -80,13 +81,11 @@ function renderContent(text: string) {
   });
 }
 
-const CORE_INTRO_MESSAGE = `[UPLINK ESTABLISHED]
+const CORE_INTRO_MESSAGE = `I’m Red Queen. Welcome to RQ.
 
-I am RED QUEEN.
+Tell me what you’re facing. We can understand a threat, make a plan, build your kit or test your survival instincts.
 
-Ask me about a live signal, risk, decision, plan or wallet. I separate verified facts from assessment and return one practical next action.
-
-Tell me what you need to understand.`;
+What’s on your mind?`;
 
 function getLocalStatsAndScore(messages: Message[]) {
   let stats = { ...DEFAULT_STATS };
@@ -544,6 +543,20 @@ export default function TerminalPage() {
     const requestedActionId = (params.get("action") || "").slice(0, 100);
     const reviewAction = readDailyActions(localStorage).find((action) => action.id === requestedActionId && action.status === "COMPLETED" && !action.reviewedAt);
     setReviewActionId(reviewAction?.id || "");
+    function applyDraft() {
+      try {
+        const draft = JSON.parse(sessionStorage.getItem(RQ_CHAT_DRAFT_KEY) || "null");
+        if (!draft) return;
+        sessionStorage.removeItem(RQ_CHAT_DRAFT_KEY);
+        if (typeof draft.prompt !== "string" || !Number.isFinite(draft.createdAt) || Date.now() - draft.createdAt > 15 * 60_000) return;
+        setInput(draft.prompt.slice(0, 2000));
+        setSurvivalContext(current => ({ ...current, mode: isAgentMode(draft.mode) ? draft.mode : "ANALYZE", focus: isSurvivalFocus(draft.focus) ? draft.focus : current.focus, signalId: undefined, signalIds: undefined }));
+        setFirstContact(false);
+      } catch { /* A conversation can start without device storage. */ }
+    }
+    if (!queryPrompt && !params.get("first")) applyDraft();
+    window.addEventListener("rq-chat-draft-ready", applyDraft);
+    return () => window.removeEventListener("rq-chat-draft-ready", applyDraft);
   }, []);
 
   useEffect(() => {
@@ -1071,7 +1084,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
 
 
   return (
-    <div className="rq-terminal-page">
+    <div className="rq-terminal-page rq-chat-simple">
       <MobileCommandHeader
         eyebrow="RED QUEEN // COGNITIVE CORE"
         title="Ask. Understand. Decide."
@@ -1115,8 +1128,8 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
       <div className="rq-terminal-identity-bar">
         <SolvivalIcon size={32} />
         <div className="rq-terminal-title">
-          <span>SECURE SURVIVAL INTELLIGENCE CHANNEL</span>
-          <strong>RED QUEEN TERMINAL</strong>
+          <span>RQ / YOUR SURVIVAL AGENT</span>
+          <h1>Red Queen</h1>
         </div>
         <Link className="rq-8004-badge rq-terminal-8004" href="/onchain#agent-identity" title="Inspect RED QUEEN's registered 8004 Agent Asset">
           8004 REGISTERED · ID {RED_QUEEN_AGENT_ID_SHORT}
@@ -1163,8 +1176,8 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
               ))}
             </div>
             <div className="rq-context-line">
-              <span>SESSION CONTEXT</span>
-              <strong>{survivalContext.area || "GLOBAL / AREA NOT SET"}</strong>
+              <span>YOUR AREA</span>
+              <strong>{survivalContext.area || "Add your city in your question"}</strong>
               <span>{getFocusOption(survivalContext.focus).label}</span>
               {requestedSignalCount > 0 && <span>{requestedSignalCount} SIGNAL ID{requestedSignalCount === 1 ? "" : "S"} · SERVER RE-VERIFIES</span>}
               {survivalContext.area && (
@@ -1188,7 +1201,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
               <div>
                 <span>FIRST CONTACT READY</span>
                 <strong>{survivalContext.area ? `${survivalContext.area} · ` : "GLOBAL · "}{getFocusOption(survivalContext.focus).label}</strong>
-                <p>Run the brief → save RED QUEEN&apos;s next action → complete it in My Plan. This first question creates an action; it does not change BIO-SCORE.</p>
+                <p>Your question is ready below. Send it when you’re ready, then save any useful steps to My plan.</p>
               </div>
               <button type="button" onClick={() => setFirstContact(false)}>DISMISS</button>
             </div>
@@ -1207,9 +1220,9 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
           }}>
             {loadingHistory ? (
               <div className="message message-ai">
-                <div className="message-label">[ SYSTEM // SEARCHING RECORDS ]</div>
+                <div className="message-label">YOUR CONVERSATION</div>
                 <div className="message-bubble" style={{ color: "var(--text-dim)" }}>
-                  RESTORING CLASSIFIED UPLINK DATA STREAM<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+                  Loading your history<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
                 </div>
               </div>
             ) : (
@@ -1220,8 +1233,8 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                 >
                   <div className="message-label">
                     {msg.role === "user"
-                      ? `[ SOLVIVOR // ${apocalypticName || "UNREGISTERED"} ]`
-                      : `[ RED QUEEN // ${msg.intel?.clearance.name || agentClearance.name} ANALYSIS ]`}
+                      ? apocalypticName || "YOU"
+                      : "RED QUEEN"}
                   </div>
                   {msg.intel ? (
                     <AgentResponseCard
@@ -1238,7 +1251,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                       {renderContent(msg.content)}
                     </div>
                   )}
-                  {msg.role === "assistant" && (
+                  {msg.role === "assistant" && msg.content !== CORE_INTRO_MESSAGE && (
                     <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "8px", flexWrap: "wrap" }}>
                       {!msg.intel && msg.bioScore && msg.bioScore !== "PENDING" && (
                         <div className="bio-score" style={{ color: scoreColor, marginTop: 0 }}>
@@ -1268,7 +1281,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                           display: "inline-block"
                         }}
                       >
-                        [ SHARE DOSSIER ]
+                        Share this answer ↗
                       </button>
                     </div>
                   )}
@@ -1300,7 +1313,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
               textAlign: "center"
             }}>
               <div className="tag tag-red" style={{ animation: "pulse-dot 2s infinite" }}>
-                [ UPLINK LOCKED // TELEMETRY LIMIT REACHED ]
+                TODAY’S GUEST LIMIT REACHED
               </div>
               <p style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--text-dim)", maxWidth: "550px", lineHeight: "1.7", margin: 0 }}>
                 Guest analysis is complete. Verify an account to preserve RED QUEEN memory and readiness. Wallet verification requires a signature; connecting alone only exposes a public address.
@@ -1333,7 +1346,8 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
               <textarea
                 className="chat-input"
                 rows={2}
-                placeholder="> Ask about a live signal, risk, decision, or preparedness plan..."
+                aria-label="Your message to Red Queen"
+                placeholder="Tell Queen what’s on your mind…"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKey}
@@ -1345,7 +1359,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                 disabled={loading || !input.trim()}
                 style={{ height: "100%", minWidth: "120px" }}
               >
-                {loading ? "PROCESSING..." : "TRANSMIT ▶"}
+                {loading ? "Thinking…" : "Send ↗"}
               </button>
             </div>
           )}
@@ -1383,8 +1397,8 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
           {/* Optional x402 compute. Intentionally outside the first-use core loop. */}
           <details className="rq-advanced-compute">
             <summary>
-              <span>ADVANCED COMPUTE // x402 USDC</span>
-              <strong>Optional paid intelligence operations</strong>
+              <span>NEED A DEEPER LOOK?</span>
+              <strong>Extra reports, paid per request</strong>
               <small>Exact price is shown before wallet approval. Core RED QUEEN guidance remains available above.</small>
             </summary>
           <div style={{
