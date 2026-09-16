@@ -32,6 +32,10 @@ const PRODUCT_META: Record<ProductId, { index: string; name: string; price: stri
   external: { index: "07", name: "Queen research", price: "0.08 USDC", promise: "Queen purchases web research, reads a source article and combines it with relevant signals to answer your question." },
 };
 
+function requestedProduct(value?: string): ProductId {
+  return value && Object.prototype.hasOwnProperty.call(PRODUCT_META, value) ? value as ProductId : "local";
+}
+
 function filenameFor(product: ProductId) {
   return `red-queen-${product}-${new Date().toISOString().replaceAll(":", "-")}`;
 }
@@ -182,10 +186,10 @@ function PaidReportContent({ product, data }: { product: ProductId; data: any })
   </div>;
 }
 
-export default function IntelligenceOperationsClient() {
+export default function IntelligenceOperationsClient({ initialProduct }: { initialProduct?: string }) {
   const { publicKey, connected, signTransaction } = useWallet();
   const { session } = useAuth();
-  const [active, setActive] = useState<ProductId>("local");
+  const [active, setActive] = useState<ProductId>(() => requestedProduct(initialProduct));
   const [available, setAvailable] = useState<boolean | null>(null);
   const [availabilityReason, setAvailabilityReason] = useState("Checking x402 settlement rail…");
   const [status, setStatus] = useState("");
@@ -242,9 +246,14 @@ export default function IntelligenceOperationsClient() {
   }, [active, area, focus, externalQuestion]);
 
   useEffect(() => {
+    setActive(requestedProduct(initialProduct));
+    setDelivery(null);
+    setError("");
+    setStatus("");
+  }, [initialProduct]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const requestedProduct = params.get("product");
-    if (requestedProduct && Object.prototype.hasOwnProperty.call(PRODUCT_META, requestedProduct)) setActive(requestedProduct as ProductId);
     const requestedSignal = params.get("signalId");
     if (requestedSignal) setSignalId(requestedSignal.slice(0, 240));
     try {
