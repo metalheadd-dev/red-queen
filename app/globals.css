@@ -1089,6 +1089,10 @@ h1, h2, h3, h4, h5 {
 }
 
 /* ── Boot Sequence ── */
+html:not([data-rq-boot="show"]) .rq-session-boot { display: none; }
+html[data-rq-boot="show"],
+html[data-rq-boot="show"] body { overflow: hidden; }
+
 .boot-screen {
   position: fixed;
   inset: 0;

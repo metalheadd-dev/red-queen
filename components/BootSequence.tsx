@@ -4,8 +4,8 @@ import Image from "next/image";
 import SolvivalIcon from "./SolvivalIcon";
 
 const BOOT_LINES = [
-  { text: "SIGNAL FIELD // CONNECTED", delay: 260, type: "default" },
-  { text: "AGENT ID 1474 // REGISTERED", delay: 700, type: "default" },
+  { text: "SOLANA MAINNET // CONNECTED", delay: 260, type: "default" },
+  { text: "x402 PAYMENT RAIL // READY", delay: 700, type: "default" },
   { text: "RED QUEEN // ONLINE", delay: 1140, type: "done" },
 ];
 
@@ -42,7 +42,9 @@ export default function BootSequence({ onComplete }: Props) {
 
   return (
     <div
-      className="boot-screen"
+      className="boot-screen rq-session-boot"
+      role="status"
+      aria-label="RQ survival network is connecting"
       style={{
         transition: "opacity 0.35s ease",
         opacity: exiting ? 0 : 1,
@@ -53,8 +55,8 @@ export default function BootSequence({ onComplete }: Props) {
         <Image src="/art/red-queen-agent-registry-v1.png" alt="" width={1024} height={1024} priority />
       </div>
 
-      <div className="boot-brand"><SolvivalIcon size={34} /><div><strong>RED QUEEN</strong><span>SURVIVAL INTELLIGENCE</span></div></div>
-      <p className="boot-directive">SURVIVAL INTELLIGENCE // ONLINE</p>
+      <div className="boot-brand"><SolvivalIcon size={34} /><div><strong>RQ</strong><span>RED QUEEN / SURVIVAL ECOSYSTEM</span></div></div>
+      <p className="boot-directive">SOLANA SURVIVAL NETWORK // INITIALIZING</p>
 
       {/* Boot lines */}
       <div className="boot-lines">

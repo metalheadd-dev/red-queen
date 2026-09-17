@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { draftQueenQuestion, profilePrompt, readRqProfile, RQ_PROFILE_EVENT, RQ_PROFILE_KEY, RQ_WELCOME_EVENT, type RqProfile } from "@/lib/rq-experience";
+import { RQ_BOOT_COMPLETE_EVENT } from "@/lib/rq-boot";
 
 const emptyProfile: RqProfile = { name: "", city: "", country: "", people: 1, interest: "both", favorite: "", goal: "prepare", completedAt: "" };
 
@@ -23,8 +24,21 @@ export default function RqWelcome() {
     }
     window.addEventListener(RQ_WELCOME_EVENT, open);
     let timer: ReturnType<typeof setTimeout> | undefined;
-    try { if (pathname === "/" && !readRqProfile(localStorage) && localStorage.getItem("rq-welcome-seen-v1") !== "1" && sessionStorage.getItem("rq-welcome-dismissed") !== "1") timer = setTimeout(open, 1200); } catch { /* Explicit introduction remains available. */ }
-    return () => { clearTimeout(timer); window.removeEventListener(RQ_WELCOME_EVENT, open); };
+    let waitingForBoot = false;
+    const scheduleOpen = () => { timer = setTimeout(open, 450); };
+    try {
+      const shouldOpen = pathname === "/" && !readRqProfile(localStorage) && localStorage.getItem("rq-welcome-seen-v1") !== "1" && sessionStorage.getItem("rq-welcome-dismissed") !== "1";
+      if (shouldOpen) {
+        waitingForBoot = document.documentElement.dataset.rqBoot === "show";
+        if (waitingForBoot) window.addEventListener(RQ_BOOT_COMPLETE_EVENT, scheduleOpen, { once: true });
+        else timer = setTimeout(open, 1200);
+      }
+    } catch { /* Explicit introduction remains available. */ }
+    return () => {
+      clearTimeout(timer);
+      if (waitingForBoot) window.removeEventListener(RQ_BOOT_COMPLETE_EVENT, scheduleOpen);
+      window.removeEventListener(RQ_WELCOME_EVENT, open);
+    };
   }, [pathname]);
 
   function close() {

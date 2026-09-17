@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./rq-experience.css";
 import RqWelcome from "@/components/RqWelcome";
+import RqBootGate from "@/components/RqBootGate";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import SolanaProvider from "@/components/SolanaProvider";
@@ -16,6 +17,11 @@ const themeBootstrapScript = `
     document.documentElement.style.colorScheme = theme;
   } catch (_) {
     document.documentElement.dataset.theme = "dark";
+  }
+  try {
+    document.documentElement.dataset.rqBoot = sessionStorage.getItem("rq-boot-seen-v1") === "1" ? "seen" : "show";
+  } catch (_) {
+    document.documentElement.dataset.rqBoot = "show";
   }
 `;
 
@@ -51,9 +57,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-scroll-behavior="smooth" data-theme="dark" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+        <script id="rq-bootstrap" dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
       </head>
       <body>
+        <RqBootGate />
         <SolanaProvider>
           <div className="page-bg">
             <MobileExperienceProvider />
