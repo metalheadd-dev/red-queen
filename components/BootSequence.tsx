@@ -16,12 +16,10 @@ export default function BootSequence({ onComplete }: { onComplete: () => void })
   const [progress, setProgress] = useState(0);
   const [exiting, setExiting] = useState(false);
   const reducedMotion = useRef(false);
-  const skip = useRef<HTMLButtonElement>(null);
   const finish = useCallback(() => setExiting(true), []);
 
   useEffect(() => {
     reducedMotion.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    skip.current?.focus({ preventScroll: true });
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     if (reducedMotion.current) {
@@ -49,25 +47,13 @@ export default function BootSequence({ onComplete }: { onComplete: () => void })
   return (
     <section
       className={`boot-screen rq-session-boot${exiting ? " is-exiting" : ""}`}
-      role="dialog"
-      aria-modal="true"
+      role="status"
+      aria-live="polite"
       aria-labelledby="rq-boot-title"
       aria-describedby="rq-boot-directive"
-      onKeyDown={event => {
-        if (event.key === "Escape") finish();
-        if (event.key === "Tab") {
-          event.preventDefault();
-          skip.current?.focus();
-        }
-      }}
     >
-      <button ref={skip} type="button" className="boot-skip" onClick={finish}>
-        ENTER RQ <span aria-hidden="true">↗</span>
-      </button>
-
       <div className="boot-core">
         <div className="boot-queen" aria-hidden="true">
-          <div className="boot-queen-ring" />
           <Image
             src="/art/red-queen-agent-registry-v1.png"
             alt=""
@@ -80,7 +66,7 @@ export default function BootSequence({ onComplete }: { onComplete: () => void })
 
         <div className="boot-brand">
           <strong id="rq-boot-title">RQ CORP</strong>
-          <span>RED QUEEN // PRIMARY AGENT</span>
+          <span><b>RED QUEEN</b><em>// PRIMARY AGENT</em></span>
           <small>SURVIVAL INTELLIGENCE · BUILT ON SOLANA</small>
         </div>
 
@@ -90,8 +76,8 @@ export default function BootSequence({ onComplete }: { onComplete: () => void })
 
         <div className="boot-terminal" aria-live="polite">
           <div className="boot-terminal-head">
-            <span>RQ/BOOT</span>
-            <span>SURVIVAL INTELLIGENCE SYSTEM</span>
+            <span>SYS://RQ_BOOT</span>
+            <span>[ SURVIVAL INTELLIGENCE SYSTEM ]</span>
           </div>
           <div className="boot-lines">
             {BOOT_LINES.slice(0, visibleLines).map((line, index) => (
@@ -108,8 +94,8 @@ export default function BootSequence({ onComplete }: { onComplete: () => void })
           <div className="boot-progress-bar" style={{ width: `${progress}%` }} />
         </div>
         <div className="boot-percent">
-          <span>SYSTEM BOOT</span>
-          <span>{String(progress).padStart(3, "0")}%</span>
+          <span>SYS_BOOT</span>
+          <span>[{String(progress).padStart(3, "0")}%]</span>
         </div>
       </div>
     </section>
