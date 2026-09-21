@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 import ThemeToggle from "./ThemeToggle";
+import RqWordmark from "./RqWordmark";
 import { RQ_WELCOME_EVENT } from "@/lib/rq-experience";
 
 const primaryLinks = [
@@ -46,7 +47,7 @@ export default function NavBar() {
   return <>
     <a className="rq-skip-link" href="#rq-main">Skip to content</a>
     <nav className="navbar rq-navbar" aria-label="Primary navigation"><div className="navbar-inner">
-      <Link href="/" className="navbar-logo" aria-label="RQ home"><span className="rq-wordmark">RQ<span>/</span></span><span className="rq-brand-descriptor">SURVIVAL ECOSYSTEM<br />BUILT ON SOLANA</span></Link>
+      <Link href="/" className="navbar-logo" aria-label="RQ Corp home"><RqWordmark corp /><span className="rq-brand-descriptor">SURVIVAL ECOSYSTEM<br />BUILT ON SOLANA</span></Link>
       <Link href="/reports" className="rq-nav-protocol desktop-only" aria-label="Open x402 intelligence reports"><i /><span><b>x402</b> / SOLANA USDC</span></Link>
       <ul className="navbar-nav desktop-only">{primaryLinks.map(link => <li key={link.href}><Link href={link.href} className={active(link.href) ? "active" : ""} aria-current={active(link.href) ? "page" : undefined}>{link.label}</Link></li>)}<li className="nav-more-wrap"><details><summary>Explore <span>+</span></summary><div className="nav-more-menu">{exploreLinks.map(link => <Link key={link.href} href={link.href} onClick={e => e.currentTarget.closest("details")?.removeAttribute("open")}><strong>{link.label}</strong><small>{link.subtitle}</small></Link>)}<button className="rq-menu-personalise" onClick={e => { e.currentTarget.closest("details")?.removeAttribute("open"); window.dispatchEvent(new Event(RQ_WELCOME_EVENT)); }}>Personalise my RQ ↗</button></div></details></li></ul>
       <div className="navbar-actions desktop-only"><ThemeToggle compact /><Link className="navbar-account" href={account}>{user ? "My profile" : "Sign in"}</Link></div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./rq-experience.css";
+import "./rq-boot.css";
 import RqWelcome from "@/components/RqWelcome";
 import RqBootGate from "@/components/RqBootGate";
 import NavBar from "@/components/NavBar";
@@ -65,7 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="page-bg">
             <MobileExperienceProvider />
             <NavBar />
-            <main className="page-content" id="rq-main">{children}</main>
+            <main className="page-content" id="rq-main" tabIndex={-1}>{children}</main>
             <RqWelcome />
             <QueenDock />
             <Footer />

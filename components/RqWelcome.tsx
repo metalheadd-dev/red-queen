@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { draftQueenQuestion, profilePrompt, readRqProfile, RQ_PROFILE_EVENT, RQ_PROFILE_KEY, RQ_WELCOME_EVENT, type RqProfile } from "@/lib/rq-experience";
 import { RQ_BOOT_COMPLETE_EVENT } from "@/lib/rq-boot";
+import RqWordmark from "./RqWordmark";
 
 const emptyProfile: RqProfile = { name: "", city: "", country: "", people: 1, interest: "both", favorite: "", goal: "prepare", completedAt: "" };
 
@@ -75,7 +76,7 @@ export default function RqWelcome() {
 
   return <dialog ref={dialog} className="rq-welcome" aria-labelledby="rq-welcome-title" onCancel={e => { e.preventDefault(); close(); }} onClick={e => { if (e.target === dialog.current) close(); }}>
     <div className="rq-welcome-shell">
-      <aside className="rq-welcome-art" aria-hidden="true"><span className="rq-wordmark">RQ<span>/</span></span><img src="/art/red-queen-presence.png" alt="" /><span className="rq-welcome-caption">SHE WAS EXPECTING YOU.</span></aside>
+      <aside className="rq-welcome-art" aria-hidden="true"><RqWordmark /><img src="/art/red-queen-presence.png" alt="" /><span className="rq-welcome-caption">SHE WAS EXPECTING YOU.</span></aside>
       <div className="rq-welcome-body">
         <div className="rq-welcome-top"><span>FIRST CONTACT / {step === 3 ? "READY" : `0${step + 1}`}</span><button type="button" onClick={close} aria-label="Close introduction">×</button></div>
         <div className="rq-welcome-progress" aria-label={`Introduction step ${Math.min(step + 1, 3)} of 3`}>{[0, 1, 2].map(i => <i key={i} className={i <= step ? "is-complete" : ""} />)}</div>

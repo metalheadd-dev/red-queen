@@ -11,8 +11,14 @@ html[data-theme="light"] { --rq-bg:#f0f0ee; --rq-panel:#fafaf8; --rq-raised:#e5e
 .rq-experience :is(a,button,input,select,textarea):focus-visible,.rq-welcome :is(button,input,select):focus-visible,.rq-navbar :is(a,button,summary):focus-visible { outline:2px solid var(--rq-red); outline-offset:5px; }
 .rq-kicker { color:var(--rq-red); font:600 10px/1.6 var(--mono); letter-spacing:.16em; display:inline-flex; align-items:center; gap:10px; }
 .rq-status-dot { display:inline-block; width:6px; height:6px; background:var(--rq-red); box-shadow:0 0 12px rgba(255,0,51,.45); border-radius:50%; }
-.rq-wordmark { display:inline-flex; align-items:flex-start; color:var(--rq-ink); font:800 46px/.82 'Oxanium',var(--title-font),var(--sans)!important; letter-spacing:-.075em; text-decoration:none; }
-.rq-wordmark > span { color:var(--rq-red); font:500 25px/.8 var(--sans); margin-left:7px; letter-spacing:0; }
+.rq-wordmark { display:inline-flex; align-items:flex-end; color:var(--rq-ink); font:800 46px/.82 'Oxanium',var(--title-font),var(--sans)!important; letter-spacing:-.075em; text-decoration:none; }
+.rq-wordmark-letters { display:inline-flex; align-items:baseline; }
+.rq-wordmark-q { position:relative; display:inline-block; }
+.rq-wordmark-crown { position:absolute; width:.59em; height:.4em; top:-.3em; left:50%; transform:translateX(-45%); color:currentColor; overflow:visible; }
+.rq-wordmark .rq-wordmark-corp { margin:0 0 .2em 11px; color:var(--rq-red); font:600 10px/1 var(--mono); letter-spacing:.17em; }
+.rq-replay-intro { display:block; padding:0; margin-top:18px; border:0; color:var(--rq-muted); background:none; cursor:pointer; font:500 12px/1.5 var(--mono); text-align:left; }
+.rq-replay-intro:hover { color:var(--rq-red); }
+.rq-replay-intro:focus-visible { outline:2px solid var(--rq-red); outline-offset:5px; }
 .rq-button { min-height:52px; padding:14px 22px; display:inline-flex; align-items:center; justify-content:center; gap:24px; border:1px solid var(--rq-line); color:var(--rq-ink); background:transparent; font:600 14px/1.3 var(--sans); text-decoration:none; transition:background .18s,border-color .18s,transform .18s; }
 .rq-button:hover { border-color:var(--rq-red); transform:translateY(-2px); }
 .rq-button-primary { color:#fff; border-color:var(--rq-red); background:var(--rq-red); }
@@ -119,7 +125,7 @@ html[data-theme="light"] { --rq-bg:#f0f0ee; --rq-panel:#fafaf8; --rq-raised:#e5e
 .rq-deeper-menu { display:grid; align-content:center; }.rq-deeper-menu a { padding:25px 0; border-bottom:1px solid var(--rq-line); color:var(--rq-ink); text-decoration:none; display:flex; justify-content:space-between; align-items:center; gap:20px; font-size:15px; }.rq-deeper-menu b { font:500 11px var(--mono); color:var(--rq-red); white-space:nowrap; }
 .rq-home-outro { border-top:1px solid var(--rq-line); padding:60px 0 70px; display:flex; align-items:center; gap:45px; }
 .rq-home-outro > .rq-wordmark { font-size:130px!important; }.rq-home-outro h2 { font-size:28px; margin:12px 0 20px; }.rq-home-outro > button { margin-left:auto; color:var(--rq-muted); }
-.rq-footer { background:var(--rq-bg)!important; border-top:1px solid var(--rq-line); padding:35px 0 25px!important; text-align:left; }
+.rq-footer { display:block; background:var(--rq-bg)!important; border-top:1px solid var(--rq-line); padding:35px 0 25px!important; text-align:left; }
 .rq-footer > div { display:grid; grid-template-columns:1fr auto; gap:25px; }.rq-footer p { color:var(--rq-muted); font:400 12px/1.6 var(--sans); letter-spacing:0; margin:12px 0 5px; }.rq-footer small { color:var(--rq-muted); font:400 10px var(--mono); }.rq-footer nav { display:flex; flex-wrap:wrap; align-items:center; gap:22px; }.rq-footer nav a { font:400 12px var(--sans); color:var(--rq-muted); }.rq-footer .rq-footer-note { grid-column:1/-1; border-top:1px solid var(--rq-line); padding-top:20px; font-size:11px; }
 .rq-welcome { padding:0; border:1px solid var(--rq-line); background:var(--rq-bg); color:var(--rq-ink); width:min(930px,calc(100vw - 40px)); max-height:calc(100dvh - 40px); margin:auto; overflow-y:auto; box-shadow:0 30px 120px rgba(0,0,0,.5); }
 .rq-welcome::backdrop { background:rgba(0,0,0,.76); backdrop-filter:blur(8px); }
