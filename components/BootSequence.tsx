@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import SolvivalIcon from "./SolvivalIcon";
 
 const BOOT_LINES = [
   { text: "SOLANA MAINNET // CONNECTED", delay: 260, type: "default" },
@@ -80,12 +79,9 @@ export default function BootSequence({ onComplete }: { onComplete: () => void })
         </div>
 
         <div className="boot-brand">
-          <SolvivalIcon size={34} />
-          <div>
-            <span>RQ CORP // ENTITY 001</span>
-            <strong id="rq-boot-title">RED QUEEN</strong>
-            <small>SURVIVAL INTELLIGENCE // SOLANA</small>
-          </div>
+          <strong id="rq-boot-title">RQ CORP</strong>
+          <span>RED QUEEN // PRIMARY AGENT</span>
+          <small>SURVIVAL INTELLIGENCE · BUILT ON SOLANA</small>
         </div>
 
         <p id="rq-boot-directive" className="boot-directive">
