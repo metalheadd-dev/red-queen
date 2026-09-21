@@ -29,17 +29,19 @@ export default function RqHome() {
   }, []);
   return <div className="rq-home rq-experience">
     <section className="rq-home-hero rq-shell">
+      <div className="rq-hero-signal-field" aria-hidden="true"><i /><i /><i /></div>
+      <div className="rq-hero-sector-index" aria-hidden="true"><span>RQ / 001</span><span>SOLANA MAINNET</span><span>BLACK SITE ACCESS</span></div>
       <div className="rq-home-hero-copy">
-        <div className="rq-kicker"><i className="rq-status-dot" /> RQ / SURVIVAL ECOSYSTEM ON SOLANA</div>
+        <div className="rq-kicker"><i className="rq-status-dot" /> RQ / SOLANA SURVIVAL COMMAND</div>
         {profile && <p className="rq-returning">Welcome back{profile.name ? `, ${profile.name}` : ""}. Your Queen is listening.</p>}
         <h1>See the threat.<br /><em>Outlive the<br className="rq-desktop-break" /> outcome.</em></h1>
-        <p className="rq-home-lead">RQ is a survival ecosystem powered by Red Queen. She turns live signals into decisions, preparedness plans, paid intelligence and real-world gear.</p>
+        <p className="rq-home-lead">Red Queen turns live signals into decisions, preparedness plans, paid intelligence and real-world gear. Before the threat decides for you.</p>
         <div className="rq-home-cta"><button className="rq-button rq-button-primary" onClick={() => profile ? router.push("/red-queen") : window.dispatchEvent(new Event(RQ_WELCOME_EVENT))}>{profile ? "Talk to your Queen" : "Enter RQ"}<span>↗</span></button><Link className="rq-button rq-button-secondary" href="#x402-network">Open x402 network</Link></div>
         <div className="rq-hero-protocols" aria-label="RQ network capabilities"><span><i />SOLANA MAINNET</span><span><i />x402 PAY-PER-REQUEST</span><span><i />AGENTS WELCOME</span></div>
-        <span className="rq-free-note">Explore free · USDC is requested only when you approve a paid operation</span>
+        <div className="rq-hero-directive"><span>QUEEN DIRECTIVE</span><strong>Observe. Decide. SOLvive.</strong><small>USDC is requested only when you approve a paid operation.</small></div>
       </div>
       <div className="rq-home-presence">
-        <span className="rq-presence-watermark" aria-hidden="true">RQ</span><span className="rq-presence-coordinate" aria-hidden="true">ENTITY / 001<br />THE RED QUEEN<br />STATUS / WATCHING</span><div className="rq-presence-ring" aria-hidden="true"><i /></div>
+        <span className="rq-presence-watermark" aria-hidden="true">RQ</span><span className="rq-presence-coordinate" aria-hidden="true">ENTITY / 001<br />THE RED QUEEN<br />STATUS / WATCHING</span><div className="rq-threat-readout" aria-hidden="true"><span>CURRENT POSTURE</span><strong>WATCHING</strong><i>NO FALSE COMFORT</i></div><div className="rq-presence-ring" aria-hidden="true"><i /></div>
         <Image src="/art/red-queen-throne-v2.png" alt="Red Queen seated on her throne, drawn in white and red circuitry" fill sizes="(max-width: 700px) 90vw, 48vw" priority />
         <div className="rq-presence-caption"><span><i className="rq-status-dot" /> AI SURVIVAL AGENT / ONLINE</span><strong>“The world does not warn you twice.”</strong><span>RED QUEEN / AGENT 001</span></div>
       </div>
