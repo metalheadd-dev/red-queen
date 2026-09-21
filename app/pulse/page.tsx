@@ -404,11 +404,11 @@ export default function PulsePage() {
               <em>What matters to you.</em>
             </h1>
             <p className="pulse-lead">
-              Explore reported events, check their sources and ask Queen what they mean for your situation.
+              Explore reported events, check their sources and ask Red Queen what they mean for your situation.
             </p>
             <p className="pulse-queen-vow">“I do not promise safety. I make sure you do not choose blind.”</p>
             <div className="pulse-hero-actions">
-              <Link className="btn btn-primary" href={showStart ? "#first-contact" : "/red-queen"}>{showStart ? "Choose my area" : "Ask Queen"}</Link>
+              <Link className="btn btn-primary" href={showStart ? "#first-contact" : "/red-queen"}>{showStart ? "Choose my area" : "Ask Red Queen"}</Link>
               <a className="btn btn-ghost" href="#live-map">Explore the map</a>
             </div>
             <p className="pulse-entry-note">NO ACCOUNT · NO WALLET · NO EXACT ADDRESS REQUIRED</p>

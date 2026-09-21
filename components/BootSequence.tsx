@@ -44,7 +44,7 @@ export default function BootSequence({ onComplete }: Props) {
     <div
       className="boot-screen rq-session-boot"
       role="status"
-      aria-label="RQ survival network is connecting"
+      aria-label="Red Queen survival network is connecting"
       style={{
         transition: "opacity 0.35s ease",
         opacity: exiting ? 0 : 1,
@@ -55,8 +55,8 @@ export default function BootSequence({ onComplete }: Props) {
         <Image src="/art/red-queen-agent-registry-v1.png" alt="" width={1024} height={1024} priority />
       </div>
 
-      <div className="boot-brand"><SolvivalIcon size={34} /><div><strong>RQ</strong><span>RED QUEEN / SURVIVAL ECOSYSTEM</span></div></div>
-      <p className="boot-directive">SOLANA SURVIVAL NETWORK // INITIALIZING</p>
+      <div className="boot-brand"><SolvivalIcon size={34} /><div><strong>RED QUEEN</strong><span>SURVIVAL INTELLIGENCE // SOLANA</span></div></div>
+      <p className="boot-directive">SURVIVAL NETWORK // INITIALIZING</p>
 
       {/* Boot lines */}
       <div className="boot-lines">

@@ -84,7 +84,7 @@ export default function PreparednessPlansPanel() {
         <div className="preparedness-plans-empty">
           <div>
             <strong>Your first plan starts with a conversation.</strong>
-            <p>Ask Queen about your situation, then save her plan here. Work through the steps at your own pace. Plans stay on this device.</p>
+            <p>Ask Red Queen about your situation, then save her plan here. Work through the steps at your own pace. Plans stay on this device.</p>
           </div>
           <Link href="/red-queen?mode=PREPARE&focus=HOUSEHOLD&prompt=Build%20a%20practical%20preparedness%20plan%20for%20my%20highest-impact%20household%20gap.%20Give%20me%20observable%20steps%20and%20a%20realistic%20review%20date.">BUILD FIRST PLAN →</Link>
         </div>

@@ -170,7 +170,7 @@ export default function QueenDock() {
         <div className="queen-dock-launcher">
           <button className="queen-dock-trigger" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
             <span className="queen-dock-orb"><i /></span>
-            <span><strong>Ask Queen</strong><small>{area ? `${area} · SHE REMEMBERS` : "SURVIVAL INTELLIGENCE · LISTENING"}</small></span>
+            <span><strong>Ask Red Queen</strong><small>{area ? `${area} · SHE REMEMBERS` : "SURVIVAL INTELLIGENCE · LISTENING"}</small></span>
             <b>{open ? "×" : "↑"}</b>
           </button>
           <button className="queen-dock-minimize" onClick={minimizeDock} aria-label="Minimize Red Queen assistant">−</button>

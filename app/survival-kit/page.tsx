@@ -101,7 +101,7 @@ export default function SurvivalKitPage() {
             <span className="pulse-eyebrow">RQ / MY PLAN</span>
             <h1>Your plan.<br /><em>One step at a time.</em></h1>
             <p>
-              Start with your household checklist. Ask Queen for help with any step, then save a plan you can actually follow.
+              Start with your household checklist. Ask Red Queen for help with any step, then save a plan you can actually follow.
             </p>
             <div className="prepare-hero-actions">
               <Link className="btn btn-primary" href={terminalHref(nextActionPrompt)}>Help me choose a next step</Link>

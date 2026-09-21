@@ -50,7 +50,7 @@ export default function LicensePage() {
             <span>03 // PERMITTED PRODUCT USE</span>
             <h2>What a SOLvivor may do.</h2>
             <div className="legal-control-grid">
-              <p><b>ANALYZE</b> Ask Queen for source-aware survival reasoning and practical preparedness guidance.</p>
+              <p><b>ANALYZE</b> Ask Red Queen for source-aware survival reasoning and practical preparedness guidance.</p>
               <p><b>PREPARE</b> Build local checklists, save protocols, and use public threat dossiers for personal readiness.</p>
               <p><b>VERIFY</b> Connect a Solana wallet for authentication or public holder proof without giving RED QUEEN custody.</p>
               <p><b>PAY EXPLICITLY</b> Approve a clearly priced x402 operation only when the payment rail is available and understood.</p>

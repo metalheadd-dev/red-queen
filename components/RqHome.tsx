@@ -37,12 +37,13 @@ export default function RqHome() {
         <h1>See the threat.<br /><em>Outlive the<br className="rq-desktop-break" /> outcome.</em></h1>
         <p className="rq-home-lead">Red Queen turns live signals into decisions, preparedness plans, paid intelligence and real-world gear. Before the threat decides for you.</p>
         <div className="rq-home-cta"><button className="rq-button rq-button-primary" onClick={() => profile ? router.push("/red-queen") : window.dispatchEvent(new Event(RQ_WELCOME_EVENT))}>{profile ? "Talk to your Queen" : "Enter RQ"}<span>↗</span></button><Link className="rq-button rq-button-secondary" href="#x402-network">Open x402 network</Link></div>
-        <div className="rq-hero-protocols" aria-label="RQ network capabilities"><span><i />SOLANA MAINNET</span><span><i />x402 PAY-PER-REQUEST</span><span><i />AGENTS WELCOME</span></div>
+        <div className="rq-hero-protocols" aria-label="RQ network capabilities"><span><i />SOLANA MAINNET</span><span className="is-x402"><i />x402 / USDC / 7 OPERATIONS</span><span><i />AGENTS WELCOME</span></div>
         <div className="rq-hero-directive"><span>QUEEN DIRECTIVE</span><strong>Observe. Decide. SOLvive.</strong><small>USDC is requested only when you approve a paid operation.</small></div>
       </div>
       <div className="rq-home-presence">
         <span className="rq-presence-watermark" aria-hidden="true">RQ</span><span className="rq-presence-coordinate" aria-hidden="true">ENTITY / 001<br />THE RED QUEEN<br />STATUS / WATCHING</span><div className="rq-threat-readout" aria-hidden="true"><span>CURRENT POSTURE</span><strong>WATCHING</strong><i>NO FALSE COMFORT</i></div><div className="rq-presence-ring" aria-hidden="true"><i /></div>
         <Image src="/art/red-queen-throne-v2.png" alt="Red Queen seated on her throne, drawn in white and red circuitry" fill sizes="(max-width: 700px) 90vw, 48vw" priority />
+        <Link className="rq-hero-x402" href="/reports"><span>x402 // SOLANA</span><strong>PAID INTELLIGENCE RAIL</strong><small>7 operations · exact USDC · no subscription →</small></Link>
         <div className="rq-presence-caption"><span><i className="rq-status-dot" /> AI SURVIVAL AGENT / ONLINE</span><strong>“The world does not warn you twice.”</strong><span>RED QUEEN / AGENT 001</span></div>
       </div>
     </section>
@@ -72,9 +73,9 @@ export default function RqHome() {
     </section>
     <section className="rq-shell rq-next-section" aria-labelledby="rq-next-title"><div className="rq-section-heading"><div><span className="rq-kicker">02 / ONE SURVIVAL ECOSYSTEM</span><h2 id="rq-next-title">Signal. Decision. Action.</h2></div><span className="rq-section-aside">Built for humans. Open to agents. Settled on Solana.</span></div>
       <div className="rq-route-cards">
-        <Link href="/pulse"><span className="rq-card-number">01 / WATCH</span><div className="rq-card-graphic rq-radar-graphic" aria-hidden="true"><i /><i /><b>+</b></div><h3>See what’s happening.</h3><p>Explore real threats on the map. Check the source. Ask Queen what it means for you.</p><span className="rq-text-link">Live threats <b>↗</b></span></Link>
+        <Link href="/pulse"><span className="rq-card-number">01 / WATCH</span><div className="rq-card-graphic rq-radar-graphic" aria-hidden="true"><i /><i /><b>+</b></div><h3>See what’s happening.</h3><p>Explore real threats on the map. Check the source. Ask Red Queen what it means for you.</p><span className="rq-text-link">Live threats <b>↗</b></span></Link>
         <Link href="/prepare"><span className="rq-card-number">02 / PREPARE</span><div className="rq-card-graphic rq-check-graphic" aria-hidden="true"><span>✓</span><i /><i /></div><h3>Make your first move.</h3><p>Keep your plan, tick off useful actions and see what you still need to prepare.</p><span className="rq-text-link">My plan <b>↗</b></span></Link>
-        <Link href="/shop"><span className="rq-card-number">03 / EQUIP</span><div className="rq-card-graphic rq-kit-graphic" aria-hidden="true"><span>+</span></div><h3>Get the right gear.</h3><p>Build a kit for your household. Find real products and review a purchase with Queen.</p><span className="rq-text-link">Survival shop <b>↗</b></span></Link>
+        <Link href="/shop"><span className="rq-card-number">03 / EQUIP</span><div className="rq-card-graphic rq-kit-graphic" aria-hidden="true"><span>+</span></div><h3>Build your loadout.</h3><p>Prepare for a specific threat, find real products and review every purchase with Red Queen.</p><span className="rq-text-link">Open loadout <b>↗</b></span></Link>
       </div>
     </section>
     <section className="rq-shell rq-drill" aria-labelledby="rq-drill-title"><div><span className="rq-kicker">03 / A 30-SECOND INSTINCT CHECK</span><h2 id="rq-drill-title">The power just died.<br /><em>Your first move?</em></h2><p>A practice scenario. Choose an answer and see Queen’s take.</p><span className="rq-drill-tag">BLACKOUT / PRACTICE</span></div>

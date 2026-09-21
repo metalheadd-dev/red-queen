@@ -1115,11 +1115,11 @@ html[data-rq-boot="show"] body { overflow: hidden; }
 .boot-queen { position:relative; width:min(290px,68vw); aspect-ratio:1; margin-bottom:-28px; overflow:hidden; border-radius:50%; }
 .boot-queen::before { content:""; position:absolute; inset:8%; z-index:1; border:1px solid rgba(255,0,51,.35); border-radius:50%; box-shadow:0 0 70px rgba(255,0,51,.14),inset 0 0 36px rgba(255,0,51,.08); }
 .boot-queen-ring { position:absolute; inset:2%; z-index:3; border:1px dashed rgba(255,255,255,.16); border-radius:50%; animation:boot-ring 8s linear infinite; }
-.boot-queen-ring::after { content:"RQ // 8004 // x402"; position:absolute; left:50%; bottom:6%; padding:4px 8px; transform:translateX(-50%); background:#040406; color:rgba(255,255,255,.5); font:700 6px var(--mono); letter-spacing:.14em; white-space:nowrap; }
+.boot-queen-ring::after { content:""; position:absolute; inset:18%; border:1px solid rgba(255,0,51,.15); border-radius:50%; }
 .boot-queen img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:contrast(1.12) saturate(.86) drop-shadow(0 0 28px rgba(255,0,51,.28)); }
 .boot-brand { position: relative; z-index: 3; display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-.boot-brand strong { display: block; color: #fff; font: 700 17px var(--title-font); letter-spacing: .16em; }
-.boot-brand span { display: block; margin-top: 3px; color: var(--accent); font: 700 9px var(--mono); letter-spacing: .18em; }
+.boot-brand strong { display: block; color: #ff0033; font: 700 19px 'Oxanium',var(--title-font); letter-spacing: .1em; text-shadow:0 0 24px rgba(255,0,51,.2); }
+.boot-brand span { display: block; margin-top: 4px; color: rgba(255,255,255,.58); font: 700 8px var(--mono); letter-spacing: .16em; }
 .boot-directive { position:relative; z-index:3; max-width:560px; margin:0 0 18px; color:rgba(255,255,255,.58); font:700 10px/1.6 var(--mono); letter-spacing:.12em; text-align:center; }
 .boot-percent { margin-top: 11px; color: rgba(255,255,255,.4); font: 700 9px var(--mono); letter-spacing: .14em; }
 @keyframes boot-ring { to { transform: rotate(360deg); } }

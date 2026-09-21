@@ -26,7 +26,7 @@ export default function manifest(): MetadataRoute.Manifest {
       },
       {
         name: "Ask Red Queen",
-        short_name: "Ask Queen",
+        short_name: "Red Queen",
         description: "Talk to your AI survival agent.",
         url: "/red-queen",
         icons: [{ src: "/token-image.png", sizes: "512x512", type: "image/png" }],
