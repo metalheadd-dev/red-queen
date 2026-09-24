@@ -11,6 +11,10 @@ export interface SurvivalContext {
   area: string;
   focus: SurvivalFocus;
   mode: AgentMode;
+  people?: number;
+  budget?: string;
+  existingEquipment?: string[];
+  constraints?: string;
   signalId?: string;
   signalIds?: string[];
   location?: {

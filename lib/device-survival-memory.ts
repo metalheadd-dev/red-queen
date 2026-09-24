@@ -1,5 +1,6 @@
 import { getCurrentDailyAction, readDailyActions } from "./daily-action";
 import { readPreparednessPlans } from "./preparedness-plan";
+import { readRqProfile } from "./rq-experience";
 import { isSignalWatchType, parseSignalWatchMemory, SIGNAL_WATCH_STORAGE_KEY, SignalWatchType } from "./signal-watch";
 
 export interface DevicePlanSummary {
@@ -11,6 +12,12 @@ export interface DevicePlanSummary {
 }
 
 export interface DeviceSurvivalMemory {
+  profile: {
+    area: string;
+    people: number;
+    interest: "real" | "fiction" | "both";
+    favorite: string;
+  } | null;
   activeAction: string;
   plans: DevicePlanSummary[];
   preparednessChecks: number;
@@ -22,6 +29,7 @@ export interface DeviceSurvivalMemory {
 }
 
 const EMPTY_MEMORY: DeviceSurvivalMemory = {
+  profile: null,
   activeAction: "",
   plans: [],
   preparednessChecks: 0,
@@ -35,6 +43,7 @@ function safeDate(value: unknown) {
 }
 
 export function buildDeviceSurvivalMemory(storage: Pick<Storage, "getItem" | "setItem">): DeviceSurvivalMemory {
+  const rqProfile = readRqProfile(storage);
   const activeAction = getCurrentDailyAction(readDailyActions(storage));
   const plans = readPreparednessPlans(storage)
     .sort((a, b) => Number(a.status === "COMPLETED") - Number(b.status === "COMPLETED"))
@@ -53,6 +62,12 @@ export function buildDeviceSurvivalMemory(storage: Pick<Storage, "getItem" | "se
   } catch {}
   const watch = parseSignalWatchMemory(storage.getItem(SIGNAL_WATCH_STORAGE_KEY));
   return {
+    profile: rqProfile ? {
+      area: [rqProfile.city, rqProfile.country].filter(Boolean).join(", ").slice(0, 120),
+      people: rqProfile.people,
+      interest: rqProfile.interest,
+      favorite: rqProfile.favorite,
+    } : null,
     activeAction: activeAction?.status === "ACTIVE" ? activeAction.action.slice(0, 420) : "",
     plans,
     preparednessChecks,
@@ -68,6 +83,15 @@ export function normalizeDeviceSurvivalMemory(value: unknown): DeviceSurvivalMem
   if (!value || typeof value !== "object") return EMPTY_MEMORY;
   const input = value as Record<string, unknown>;
   const rawPlans = Array.isArray(input.plans) ? input.plans : [];
+  const rawProfile = input.profile && typeof input.profile === "object"
+    ? input.profile as Record<string, unknown>
+    : null;
+  const profile: DeviceSurvivalMemory["profile"] = rawProfile ? {
+    area: typeof rawProfile.area === "string" ? rawProfile.area.replace(/[\r\n\t]/g, " ").trim().slice(0, 120) : "",
+    people: Math.min(12, Math.max(1, Math.round(Number(rawProfile.people) || 1))),
+    interest: rawProfile.interest === "real" || rawProfile.interest === "fiction" ? rawProfile.interest : "both",
+    favorite: typeof rawProfile.favorite === "string" ? rawProfile.favorite.replace(/[\r\n\t]/g, " ").trim().slice(0, 100) : "",
+  } : null;
   const plans = rawPlans.slice(0, 4).flatMap((item): DevicePlanSummary[] => {
     if (!item || typeof item !== "object") return [];
     const plan = item as Record<string, unknown>;
@@ -91,6 +115,7 @@ export function normalizeDeviceSurvivalMemory(value: unknown): DeviceSurvivalMem
     ? rawWatch.types.filter((type): type is SignalWatchType => typeof type === "string" && isSignalWatchType(type)).slice(0, 6)
     : [];
   return {
+    profile,
     activeAction: typeof input.activeAction === "string" ? input.activeAction.trim().slice(0, 420) : "",
     plans,
     preparednessChecks: Math.min(18, Math.max(0, Math.round(Number(input.preparednessChecks) || 0))),
@@ -104,7 +129,8 @@ export function normalizeDeviceSurvivalMemory(value: unknown): DeviceSurvivalMem
 
 export function hasDeviceSurvivalMemory(memory: DeviceSurvivalMemory) {
   return Boolean(
-    memory.activeAction
+    memory.profile
+    || memory.activeAction
     || memory.plans.length
     || memory.preparednessChecks
     || memory.signalWatch.localPriority

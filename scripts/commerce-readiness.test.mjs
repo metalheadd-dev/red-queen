@@ -115,3 +115,52 @@ test("mosquito and fictional disaster kits have different practical supplies", (
   assert.ok(!zombie.items.some((item) => item.id === "insect-repellent"));
   assert.equal(mosquito.items.find((item) => item.id === "water").quantity, "18 litres minimum");
 });
+
+test("survival kit removes confirmed owned equipment instead of recommending duplicates", () => {
+  const { buildSurvivalKit } = load("lib/survival-market.ts", { "@/lib/survival-context": {} });
+  const kit = buildSurvivalKit({
+    area: "Barcelona",
+    focus: "BLACKOUT",
+    people: 2,
+    constraints: "72-hour blackout",
+    ownedItems: ["Two flashlights", "20,000 mAh power bank", "first aid kit"],
+  });
+  assert.ok(!kit.items.some((item) => item.id === "light"));
+  assert.ok(!kit.items.some((item) => item.id === "power"));
+  assert.ok(!kit.items.some((item) => item.id === "first-aid"));
+  assert.ok(kit.items.some((item) => item.id === "water"));
+  assert.ok(kit.items.some((item) => item.id === "food"));
+});
+
+test("Queen Core enforces the six-stage response contract", () => {
+  const { RED_QUEEN_RESPONSE_SCHEMA, formatAgentMessage } = load("lib/red-queen-agent.ts");
+  const response = RED_QUEEN_RESPONSE_SCHEMA.parse({
+    threat: { classification: "REAL", label: "Blackout", summary: "A household power outage.", location: "Barcelona", timeframe: "CURRENT" },
+    situation: "Power is unavailable.",
+    facts: [],
+    answer: "Protect light, communications and medication continuity first.",
+    uncertainty: "Restoration time is unknown.",
+    action: "Check the official outage notice.",
+    urgency: "PREPARE",
+    confidence: "MEDIUM",
+    grounding: "GENERAL_KNOWLEDGE",
+    usesLiveContext: false,
+    sourceStatus: { freshness: "NOT_AVAILABLE", observedAt: "", note: "No verified live source was used." },
+    priorities: [{ title: "Confirm scope", reason: "It determines whether to shelter or relocate.", timing: "NOW" }],
+    followUps: ["How long has power been out?", "What equipment do you own?"],
+    plan: null,
+    procurement: null,
+    loadout: { needed: false, owned: ["Flashlights"], missing: [], verify: ["Battery charge"], doNotBuy: ["Another flashlight"], budgetNote: "No purchase is needed." },
+    optionalAction: { type: "NONE", label: "No secondary action", reason: "Complete the immediate check first.", requiresApproval: false },
+    readiness: { eligible: false, xp: 0, reason: "No completed action yet.", gains: {
+      threat_awareness: 0, operational_discipline: 0, psychological_stability: 0,
+      technical_preparedness: 0, adaptability: 0, resourcefulness: 0, surveillance_resistance: 0,
+    } },
+  });
+  const message = formatAgentMessage(response);
+  const stages = ["THREAT\n", "ASSESSMENT\n", "PRIORITIES\n", "PLAN\n", "LOADOUT\n", "OPTIONAL ACTION\n"];
+  const positions = stages.map((stage) => message.indexOf(stage));
+  assert.ok(positions.every((position) => position >= 0));
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions);
+  assert.match(message, /DO NOT BUY: Another flashlight/);
+});

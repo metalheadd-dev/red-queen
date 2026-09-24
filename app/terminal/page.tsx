@@ -20,6 +20,7 @@ import type { RedQueenClientResponse } from "@/lib/red-queen-agent";
 import { RQ_CHAT_DRAFT_KEY } from "@/lib/rq-experience";
 import { createDailyAction, DAILY_ACTION_EVENT, readDailyActions, saveDailyAction, updateDailyAction } from "@/lib/daily-action";
 import { buildDeviceSurvivalMemory } from "@/lib/device-survival-memory";
+import { parseSurvivalProfile, readLocalSurvivalProfileUpdatedAt, saveLocalSurvivalProfile } from "@/lib/survival-profile";
 import {
   createPreparednessPlan,
   PREPAREDNESS_PLANS_EVENT,
@@ -529,6 +530,12 @@ export default function TerminalPage() {
       area: queryArea || storedArea,
       focus,
       mode,
+      people: Number.isFinite(Number(stored.people)) ? Math.min(12, Math.max(1, Math.round(Number(stored.people)))) : undefined,
+      budget: typeof stored.budget === "string" ? stored.budget.replace(/[\r\n\t]/g, " ").trim().slice(0, 120) : undefined,
+      existingEquipment: Array.isArray(stored.existingEquipment)
+        ? stored.existingEquipment.filter((item): item is string => typeof item === "string").map((item) => item.trim().slice(0, 100)).filter(Boolean).slice(0, 24)
+        : undefined,
+      constraints: typeof stored.constraints === "string" ? stored.constraints.replace(/[\r\n\t]/g, " ").trim().slice(0, 320) : undefined,
       signalId: sanitizeSignalId(params.get("signal")),
       signalIds: sanitizeSignalIds(params.get("signals")),
       location: queryArea && queryArea !== storedArea ? undefined : storedLocation,
@@ -558,6 +565,34 @@ export default function TerminalPage() {
     window.addEventListener("rq-chat-draft-ready", applyDraft);
     return () => window.removeEventListener("rq-chat-draft-ready", applyDraft);
   }, []);
+
+  useEffect(() => {
+    if (!session?.access_token) return;
+    const controller = new AbortController();
+    void fetch("/api/profile/survival-context", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      signal: controller.signal,
+      cache: "no-store",
+    }).then(async (response) => {
+      if (!response.ok) return;
+      const data = await response.json();
+      const remote = parseSurvivalProfile(data.profile);
+      if (!remote || controller.signal.aborted) return;
+      const remoteUpdatedAt = Date.parse(data.profile.updatedAt || "");
+      if (!Number.isFinite(remoteUpdatedAt) || readLocalSurvivalProfileUpdatedAt(localStorage) > remoteUpdatedAt) return;
+      saveLocalSurvivalProfile(localStorage, remote, data.profile.updatedAt);
+      const queryArea = sanitizeArea(new URLSearchParams(window.location.search).get("area") || "");
+      setSurvivalContext((current) => ({
+        ...current,
+        area: queryArea || remote.area,
+        people: remote.people,
+        budget: remote.budget,
+        constraints: remote.constraints,
+        existingEquipment: remote.existingEquipment,
+      }));
+    }).catch(() => { /* The browser copy remains usable when account sync is unavailable. */ });
+    return () => controller.abort();
+  }, [session?.access_token]);
 
   useEffect(() => {
     if (hasVerifiedIdentity) {
@@ -1179,6 +1214,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
               <span>YOUR AREA</span>
               <strong>{survivalContext.area || "Add your city in your question"}</strong>
               <span>{getFocusOption(survivalContext.focus).label}</span>
+              <Link href="/prepare#my-loadout" className="rq-context-line__loadout">EDIT MY LOADOUT{survivalContext.existingEquipment?.length ? ` · ${survivalContext.existingEquipment.length} OWNED` : ""}</Link>
               {requestedSignalCount > 0 && <span>{requestedSignalCount} SIGNAL ID{requestedSignalCount === 1 ? "" : "S"} · SERVER RE-VERIFIES</span>}
               {survivalContext.area && (
                 <button

@@ -73,56 +73,105 @@ export default function AgentResponseCard({
         {response.memory.deviceContextLoaded && <span className="rq-signal rq-signal--memory">DEVICE CONTEXT LOADED</span>}
       </div>
 
-      <div className="rq-response__situation">{response.situation}</div>
-
-      {response.facts.length > 0 && (
-        <div className="rq-facts">
-          <span>VERIFIED FACTS</span>
-          <ul>{response.facts.map((fact) => <li key={fact}>{fact}</li>)}</ul>
+      <section className="rq-response-stage">
+        <header className="rq-response-stage__head"><b>01</b><span>THREAT</span></header>
+        <div className="rq-threat-card">
+          <div><span>CLASSIFICATION</span><strong>{response.threat.classification}</strong></div>
+          <div><span>TIMEFRAME</span><strong>{response.threat.timeframe}</strong></div>
+          <div><span>LOCATION</span><strong>{response.threat.location}</strong></div>
+          <h3>{response.threat.label}</h3>
+          <p>{response.threat.summary}</p>
         </div>
-      )}
+      </section>
 
-      <span className="rq-section-label">QUEEN ASSESSMENT</span>
-      <div className="rq-response__answer">{response.answer}</div>
-
-      <div className="rq-uncertainty">
-        <span>UNCERTAINTY</span>
-        <p>{response.uncertainty}</p>
-      </div>
-
-      <div className="rq-action">
-        <div>
-          <span>NEXT BEST ACTION</span>
-          {actionSaved ? (
-            <Link href="/prepare">OPEN MY PLAN →</Link>
-          ) : onSaveAction ? (
-            <button type="button" onClick={onSaveAction} disabled={actionSaved}>
-              SAVE TO MY PLAN
-            </button>
-          ) : null}
+      <section className="rq-response-stage">
+        <header className="rq-response-stage__head"><b>02</b><span>ASSESSMENT</span></header>
+        <div className="rq-response__situation">{response.situation}</div>
+        {response.facts.length > 0 && (
+          <div className="rq-facts">
+            <span>VERIFIED FACTS</span>
+            <ul>{response.facts.map((fact) => <li key={fact}>{fact}</li>)}</ul>
+          </div>
+        )}
+        <div className="rq-response__answer">{response.answer}</div>
+        <div className="rq-uncertainty">
+          <span>UNCERTAINTY</span>
+          <p>{response.uncertainty}</p>
         </div>
-        <strong>{response.action}</strong>
-      </div>
+        <div className={`rq-source-status rq-source-status--${response.sourceStatus.freshness.toLowerCase()}`}>
+          <div><span>SOURCE FRESHNESS</span><strong>{response.sourceStatus.freshness.replaceAll("_", " ")}</strong></div>
+          <p>{response.sourceStatus.note}</p>
+          {response.sourceStatus.observedAt && <time dateTime={response.sourceStatus.observedAt}>{new Date(response.sourceStatus.observedAt).toLocaleString()}</time>}
+        </div>
+        {response.sources.length > 0 && (
+          <div className="rq-sources">
+            <span>SOURCES LOCKED</span>
+            {response.sources.map((source) => (
+              <a key={source.url} href={source.url} target="_blank" rel="noopener noreferrer">
+                {source.verified ? "VERIFIED · " : ""}{source.label} ↗
+              </a>
+            ))}
+          </div>
+        )}
+      </section>
 
-      {response.plan && (
-        <div className="rq-preparedness-plan">
+      <section className="rq-response-stage">
+        <header className="rq-response-stage__head"><b>03</b><span>PRIORITIES</span></header>
+        <ol className="rq-priority-list">
+          {response.priorities.map((priority) => (
+            <li key={`${priority.timing}-${priority.title}`}>
+              <span>{priority.timing.replaceAll("_", " ")}</span>
+              <div><strong>{priority.title}</strong><p>{priority.reason}</p></div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="rq-response-stage">
+        <header className="rq-response-stage__head"><b>04</b><span>PLAN</span></header>
+        <div className="rq-action">
           <div>
-            <span>QUEEN PROTOCOL // {response.plan.steps.length} STEPS</span>
-            {planSaved ? (
-              <Link href="/prepare">OPEN SAVED PROTOCOL →</Link>
-            ) : onSavePlan ? (
-              <button type="button" onClick={onSavePlan}>SAVE FULL PLAN</button>
+            <span>IMMEDIATE ACTION</span>
+            {actionSaved ? (
+              <Link href="/prepare">OPEN MY PLAN →</Link>
+            ) : onSaveAction ? (
+              <button type="button" onClick={onSaveAction} disabled={actionSaved}>SAVE TO MY PLAN</button>
             ) : null}
           </div>
-          <h3>{response.plan.title}</h3>
-          <p>{response.plan.objective}</p>
-          <ol>{response.plan.steps.map((step) => <li key={step}>{step}</li>)}</ol>
-          <small>REVIEW IN {response.plan.reviewInDays} DAYS · LOCAL COMPLETION IS NOT AUTOMATIC BIO EVIDENCE</small>
+          <strong>{response.action}</strong>
         </div>
-      )}
+        {response.plan ? (
+          <div className="rq-preparedness-plan">
+            <div>
+              <span>QUEEN PROTOCOL // {response.plan.steps.length} STEPS</span>
+              {planSaved ? (
+                <Link href="/prepare">OPEN SAVED PROTOCOL →</Link>
+              ) : onSavePlan ? (
+                <button type="button" onClick={onSavePlan}>SAVE FULL PLAN</button>
+              ) : null}
+            </div>
+            <h3>{response.plan.title}</h3>
+            <p>{response.plan.objective}</p>
+            <ol>{response.plan.steps.map((step) => <li key={step}>{step}</li>)}</ol>
+            <small>REVIEW IN {response.plan.reviewInDays} DAYS · LOCAL COMPLETION IS NOT AUTOMATIC BIO EVIDENCE</small>
+          </div>
+        ) : <div className="rq-stage-empty">No multi-step plan is required. Follow the immediate action below.</div>}
+      </section>
 
-      {response.commerce && (
-        <section className="rq-procurement" aria-label="RED QUEEN preparedness cart">
+      <section className="rq-response-stage">
+        <header className="rq-response-stage__head"><b>05</b><span>LOADOUT</span></header>
+        {response.loadout ? (
+          <div className="rq-loadout">
+            <div className="rq-loadout__status"><span>{response.loadout.needed ? "GAPS IDENTIFIED" : "LOADOUT COMPLETE"}</span><p>{response.loadout.budgetNote}</p></div>
+            {response.loadout.owned.length > 0 && <div className="rq-loadout__group rq-loadout__group--owned"><span>CONFIRMED OWNED</span><ul>{response.loadout.owned.map((item) => <li key={item}>{item}</li>)}</ul></div>}
+            {response.loadout.missing.length > 0 && <div className="rq-loadout__group"><span>MISSING</span><ul>{response.loadout.missing.map((item) => <li key={`${item.category}-${item.item}`}><b>{item.priority}</b><strong>{item.item}</strong><small>{item.category} · {item.reason}</small></li>)}</ul></div>}
+            {response.loadout.verify.length > 0 && <div className="rq-loadout__group rq-loadout__group--verify"><span>VERIFY BEFORE BUYING</span><ul>{response.loadout.verify.map((item) => <li key={item}>{item}</li>)}</ul></div>}
+            {response.loadout.doNotBuy.length > 0 && <div className="rq-loadout__group rq-loadout__group--avoid"><span>DO NOT BUY</span><ul>{response.loadout.doNotBuy.map((item) => <li key={item}>{item}</li>)}</ul></div>}
+          </div>
+        ) : <div className="rq-stage-empty">No physical equipment is relevant to this assessment.</div>}
+
+        {response.commerce && (
+          <section className="rq-procurement" aria-label="RED QUEEN preparedness cart">
           <header className="rq-procurement__head">
             <div>
               <span>QUEEN PROCUREMENT // CART READY</span>
@@ -158,19 +207,21 @@ export default function AgentResponseCard({
               try { sessionStorage.setItem("rq-commerce-handoff-v1", JSON.stringify({ constraints: response.commerce?.constraints || "", expiresAt: Date.now() + 600_000 })); } catch {}
             }}>REVIEW CART &amp; SHOP →</Link>
           </footer>
-        </section>
-      )}
+          </section>
+        )}
+      </section>
 
-      {response.sources.length > 0 && (
-        <div className="rq-sources">
-          <span>SOURCES LOCKED</span>
-          {response.sources.map((source) => (
-            <a key={source.url} href={source.url} target="_blank" rel="noopener noreferrer">
-              {source.verified ? "VERIFIED · " : ""}{source.label} ↗
-            </a>
-          ))}
-        </div>
-      )}
+      <section className="rq-response-stage">
+        <header className="rq-response-stage__head"><b>06</b><span>OPTIONAL ACTION</span></header>
+        {response.optionalAction.type !== "NONE" && (
+          <div className="rq-optional-action">
+            <span>{response.optionalAction.type.replaceAll("_", " ")}{response.optionalAction.requiresApproval ? " · APPROVAL REQUIRED" : ""}</span>
+            <strong>{response.optionalAction.label}</strong>
+            <p>{response.optionalAction.reason}</p>
+          </div>
+        )}
+        {response.optionalAction.type === "NONE" && <div className="rq-stage-empty">No secondary action is needed.</div>}
+      </section>
 
       <div className={`rq-readiness ${response.readiness.applied ? "rq-readiness--applied" : ""}`}>
         <span>READINESS</span>

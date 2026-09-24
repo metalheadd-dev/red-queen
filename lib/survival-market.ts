@@ -7,6 +7,7 @@ export type SurvivalKitInput = {
   focus: SurvivalFocus;
   people: number;
   constraints: string;
+  ownedItems?: string[];
 };
 
 export type SurvivalKitItem = {
@@ -42,6 +43,42 @@ export function parseSurvivalKitInput(value: unknown): SurvivalKitInput | null {
 
 function item(id: string, category: string, name: string, quantity: string, why: string, searchQuery: string, priority: SurvivalKitItem["priority"] = "ESSENTIAL", cautions?: string): SurvivalKitItem {
   return { id, category, name, quantity, why, searchQuery, priority, cautions };
+}
+
+const INVENTORY_ALIASES: Record<string, string[]> = {
+  water: ["drinking water", "water reserve", "water supply"],
+  food: ["shelf stable food", "emergency food", "food reserve"],
+  light: ["flashlight", "flashlights", "led light", "lantern"],
+  power: ["power bank", "portable charger"],
+  radio: ["emergency radio", "hand crank radio", "battery radio"],
+  "first-aid": ["first aid kit", "medical kit"],
+  headlamps: ["headlamp", "headlamps"],
+  respirators: ["n95", "ffp2", "respirator"],
+  "smoke-respirators": ["n95", "ffp2", "smoke respirator"],
+  "ash-respirators": ["n95", "ffp2", "ash respirator"],
+  thermometer: ["thermometer"],
+  "security-key": ["security key", "fido2 key"],
+  "work-boots": ["work boots", "safety boots"],
+  "work-gloves": ["work gloves", "cut resistant gloves"],
+  "eye-protection": ["safety goggles", "protective goggles"],
+  "insect-repellent": ["insect repellent", "mosquito repellent", "deet", "picaridin"],
+  "mosquito-net": ["mosquito net"],
+  "go-bags": ["go bag", "evacuation backpack"],
+};
+
+function normalizeInventoryText(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9\u0400-\u04ff]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function inventoryCoversItem(entry: SurvivalKitItem, ownedItems: string[]) {
+  const owned = ownedItems.map(normalizeInventoryText).filter((value) => value.length >= 3);
+  if (!owned.length) return false;
+  const name = normalizeInventoryText(entry.name);
+  const aliases = INVENTORY_ALIASES[entry.id] || [];
+  return owned.some((ownedItem) => (
+    (ownedItem.length >= 6 && (name.includes(ownedItem) || ownedItem.includes(name)))
+    || aliases.some((alias) => ownedItem.includes(alias))
+  ));
 }
 
 function defaultAmazonBase(area: string) {
@@ -195,6 +232,7 @@ export function buildSurvivalKit(input: SurvivalKitInput) {
 
   const amazonBase = process.env.SURVIVAL_MARKET_AMAZON_BASE_URL?.trim() || defaultAmazonBase(input.area);
   const x402Market = process.env.X402_MARKET_BASE_URL?.trim() || "https://x402-market.com/shop";
+  const filteredItems = items.filter((entry) => !inventoryCoversItem(entry, input.ownedItems || []));
   return {
     title: `72-hour survival kit · ${input.area}`,
     generatedAt: new Date().toISOString(),
@@ -202,7 +240,7 @@ export function buildSurvivalKit(input: SurvivalKitInput) {
     focus: input.focus,
     people: input.people,
     constraints: input.constraints,
-    items,
+    items: filteredItems,
     suppliers: {
       x402Market: { name: "x402 Market", url: x402Market, rail: "Agent-readable catalog · PYUSD checkout · separate approval" },
       amazon: { name: "Amazon search", url: amazonBase, rail: "Product discovery · exact pages can enter SP3ND fulfillment" },

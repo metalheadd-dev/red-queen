@@ -61,7 +61,7 @@ export default function RqWelcome() {
       localStorage.setItem(RQ_PROFILE_KEY, JSON.stringify(next));
       let previous = {};
       try { previous = JSON.parse(localStorage.getItem("rq-survival-context-v1") || "{}"); } catch { /* Replace invalid optional context. */ }
-      localStorage.setItem("rq-survival-context-v1", JSON.stringify({ ...previous, area: [next.city, next.country].filter(Boolean).join(", ").slice(0, 80), location: undefined, focus: next.goal === "understand" ? "LOCAL_THREATS" : "HOUSEHOLD", mode: next.goal === "practice" ? "SIMULATE" : next.goal === "understand" ? "MONITOR" : "PREPARE" }));
+      localStorage.setItem("rq-survival-context-v1", JSON.stringify({ ...previous, area: [next.city, next.country].filter(Boolean).join(", ").slice(0, 80), people: next.people, location: undefined, focus: next.goal === "understand" ? "LOCAL_THREATS" : "HOUSEHOLD", mode: next.goal === "practice" ? "SIMULATE" : next.goal === "understand" ? "MONITOR" : "PREPARE" }));
       window.dispatchEvent(new Event(RQ_PROFILE_EVENT));
     } catch { setStorageNote("Your browser could not save these preferences. You can still start a conversation."); }
     setStep(3);

@@ -8,6 +8,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:commerce": "node --test scripts/commerce-readiness.test.mjs",
+    "test:profile": "node --test scripts/survival-profile.test.mjs",
     "release:check": "node scripts/release-check.mjs",
     "release:check:env": "node scripts/release-check.mjs --env",
     "agent:registry:check": "node scripts/agent-registry-check.mjs",

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import DailyActionPanel from "@/components/DailyActionPanel";
 import ActionHistoryPanel from "@/components/ActionHistoryPanel";
 import PreparednessPlansPanel from "@/components/PreparednessPlansPanel";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
 import MobileCommandHeader from "@/components/MobileCommandHeader";
+import SurvivalProfileEditor from "@/components/SurvivalProfileEditor";
 import {
   PREPAREDNESS_CHECKLIST,
   PREPAREDNESS_DOMAINS,
@@ -22,6 +23,7 @@ export default function SurvivalKitPage() {
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
   const [area, setArea] = useState("");
   const [ready, setReady] = useState(false);
+  const handleProfileSaved = useCallback((saved: { area: string }) => setArea(saved.area), []);
 
   useEffect(() => {
     try {
@@ -151,6 +153,7 @@ export default function SurvivalKitPage() {
         </section>
 
         <DailyActionPanel context="PREPARE" />
+        <SurvivalProfileEditor onSaved={handleProfileSaved} />
         <PreparednessPlansPanel />
         <ActionHistoryPanel />
 

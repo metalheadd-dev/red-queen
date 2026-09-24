@@ -70,18 +70,43 @@ interface AgentSessionContext {
   area: string;
   focus?: SurvivalFocus;
   mode: AgentMode;
+  people?: number;
+  budget: string;
+  existingEquipment: string[];
+  constraints: string;
   signalId?: string;
   signalIds: string[];
+}
+
+function normalizeShortText(value: unknown, maxLength: number) {
+  return typeof value === "string"
+    ? value.replace(/[\r\n\t]/g, " ").replace(/\s+/g, " ").trim().slice(0, maxLength)
+    : "";
+}
+
+function normalizeEquipment(value: unknown) {
+  const entries = Array.isArray(value)
+    ? value
+    : typeof value === "string" ? value.split(/[,;\n]/) : [];
+  return Array.from(new Set(entries
+    .map((entry) => normalizeShortText(entry, 100))
+    .filter(Boolean)))
+    .slice(0, 24);
 }
 
 function normalizeSessionContext(value: unknown): AgentSessionContext {
   const input = value && typeof value === "object" ? value as Record<string, unknown> : {};
   const rawFocus = typeof input.focus === "string" ? input.focus : "";
   const rawMode = typeof input.mode === "string" ? input.mode : "";
+  const rawPeople = Number(input.people);
   return {
     area: sanitizeArea(typeof input.area === "string" ? input.area : ""),
     focus: isSurvivalFocus(rawFocus) ? rawFocus : undefined,
     mode: isAgentMode(rawMode) ? rawMode : "ANALYZE",
+    people: Number.isFinite(rawPeople) ? Math.min(12, Math.max(1, Math.round(rawPeople))) : undefined,
+    budget: normalizeShortText(input.budget, 120),
+    existingEquipment: normalizeEquipment(input.existingEquipment),
+    constraints: normalizeShortText(input.constraints, 320),
     signalId: sanitizeSignalId(input.signalId),
     signalIds: sanitizeSignalIds(input.signalIds),
   };
@@ -224,6 +249,13 @@ function normalizeReadiness(response: RedQueenAgentResponse, mode: AgentMode) {
 
 function selfHarmResponse(): RedQueenAgentResponse {
   return {
+    threat: {
+      classification: "REAL",
+      label: "Immediate personal safety risk",
+      summary: "The message indicates a possible risk of self-harm that needs human support now.",
+      location: "Not supplied",
+      timeframe: "CURRENT",
+    },
     situation: "Your immediate safety matters more than any simulation or score.",
     facts: [],
     answer:
@@ -234,15 +266,64 @@ function selfHarmResponse(): RedQueenAgentResponse {
     confidence: "HIGH",
     grounding: "GENERAL_KNOWLEDGE",
     usesLiveContext: false,
+    sourceStatus: {
+      freshness: "NOT_AVAILABLE",
+      observedAt: "",
+      note: "No live source is needed to prioritize immediate human support.",
+    },
+    priorities: [
+      { title: "Do not stay alone", reason: "Immediate human presence can reduce danger while urgent support is arranged.", timing: "NOW" },
+      { title: "Contact emergency or crisis support", reason: "A trained responder can help assess and protect your immediate safety.", timing: "NOW" },
+    ],
     followUps: ["Help me find a crisis line", "Help me write the message", "Stay with me for the next step"],
     plan: null,
     procurement: null,
+    loadout: null,
+    optionalAction: {
+      type: "CONTACT_OFFICIAL_SERVICES",
+      label: "Find local crisis support",
+      reason: "Use your country or region to locate the correct emergency or crisis service.",
+      requiresApproval: true,
+    },
     readiness: {
       eligible: false,
       xp: 0,
       reason: "Crisis support is never gamified.",
       gains: { ...ZERO_GAINS },
     },
+  };
+}
+
+function resolveSourceStatus(
+  response: RedQueenAgentResponse,
+  pulse: LivePulse | null,
+  signals: NormalizedSignal[],
+): RedQueenAgentResponse["sourceStatus"] {
+  if (!response.usesLiveContext) {
+    return response.grounding === "SCENARIO_SIMULATION"
+      ? { freshness: "NOT_APPLICABLE", observedAt: "", note: "This is a labeled simulation, not a live threat report." }
+      : { freshness: "NOT_AVAILABLE", observedAt: "", note: "No verified live source was used for this assessment." };
+  }
+
+  const timestamps = [
+    ...signals.map((signal) => signal.observedAt),
+    pulse?.generatedAt,
+  ].flatMap((value) => {
+    if (!value) return [];
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? [date] : [];
+  }).sort((a, b) => b.getTime() - a.getTime());
+
+  const newest = timestamps[0];
+  if (!newest) {
+    return { freshness: "NOT_AVAILABLE", observedAt: "", note: "The verified source did not provide a usable observation time." };
+  }
+  const ageHours = Math.max(0, (Date.now() - newest.getTime()) / 3_600_000);
+  const freshness = ageHours <= 6 ? "LIVE" : ageHours <= 72 ? "RECENT" : "DATED";
+  return {
+    freshness,
+    observedAt: newest.toISOString(),
+    note: `${freshness === "LIVE" ? "Live" : freshness === "RECENT" ? "Recent" : "Older"} verified evidence. Newest observation is ${Math.round(ageHours)} hour${Math.round(ageHours) === 1 ? "" : "s"} old.`,
   };
 }
 
@@ -266,11 +347,12 @@ async function buildCommerceCart(
   message: string,
   context: AgentSessionContext,
 ): Promise<RedQueenCommerceCart | null> {
+  if (response.loadout && !response.loadout.needed) return null;
   const inferred = PREPAREDNESS_COMMERCE_PATTERN.test(message);
   const intent = response.procurement || (inferred ? {
     title: response.grounding === "SCENARIO_SIMULATION" ? "Scenario-ready 72-hour kit" : "Personal 72-hour preparedness kit",
     focus: inferProcurementFocus(message, context.focus),
-    people: inferPeople(message),
+    people: context.people || inferPeople(message),
     constraints: response.grounding === "SCENARIO_SIMULATION"
       ? "Scenario simulation. Prioritize shelter, blackout resilience, hygiene, communications and evacuation basics. Exclude weapons."
       : "",
@@ -280,16 +362,30 @@ async function buildCommerceCart(
 
   const area = context.area || "GENERAL PREPAREDNESS";
   const threatContext = message.replace(/[\r\n\t]/g, " ").replace(/\s+/g, " ").trim().slice(0, 180);
-  const kitConstraints = [intent.constraints, threatContext ? `Threat context: ${threatContext}` : ""]
+  const ownedItems = Array.from(new Set([
+    ...context.existingEquipment,
+    ...(response.loadout?.owned || []),
+  ])).slice(0, 24);
+  const missingItems = response.loadout?.missing.map((item) => item.item).slice(0, 10) || [];
+  const kitConstraints = [
+    intent.constraints,
+    context.constraints,
+    context.budget ? `Budget: ${context.budget}.` : "",
+    ownedItems.length ? `Already owned: ${ownedItems.join(", ")}. Do not duplicate.` : "",
+    missingItems.length ? `Identified gaps: ${missingItems.join(", ")}.` : "",
+    threatContext ? `Threat context: ${threatContext}` : "",
+  ]
     .filter(Boolean)
     .join(" ")
     .slice(0, 320);
   const kit = buildSurvivalKit({
     area,
     focus: intent.focus,
-    people: intent.people,
+    people: context.people || intent.people,
     constraints: kitConstraints,
+    ownedItems,
   });
+  if (!kit.items.length) return null;
   const commerceItems: RedQueenCommerceCart["items"] = kit.items.map((entry) => ({
     id: entry.id,
     category: entry.category,
@@ -349,8 +445,15 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = normalizeMessages(body.messages);
-    const sessionContext = normalizeSessionContext(body.context);
+    let sessionContext = normalizeSessionContext(body.context);
     const deviceMemory = normalizeDeviceSurvivalMemory(body.deviceMemory);
+    if (deviceMemory.profile) {
+      sessionContext = {
+        ...sessionContext,
+        area: sessionContext.area || sanitizeArea(deviceMemory.profile.area),
+        people: sessionContext.people || deviceMemory.profile.people,
+      };
+    }
     const deviceMemoryAvailable = hasDeviceSurvivalMemory(deviceMemory);
     const latestUserMessage = [...messages].reverse().find((message) => message.role === "user");
     if (!latestUserMessage) {
@@ -383,6 +486,26 @@ export async function POST(req: Request) {
         .eq("wallet_address", hashedIdentifier)
         .single();
       userProfile = data;
+
+      const { data: savedSurvivalProfile, error: survivalProfileError } = await supabase
+        .from("user_survival_profiles")
+        .select("area, people, budget, constraints, existing_equipment")
+        .eq("wallet_address", hashedIdentifier)
+        .maybeSingle();
+      if (survivalProfileError) {
+        console.error("Could not load private survival profile for Queen:", survivalProfileError);
+      } else if (savedSurvivalProfile) {
+        sessionContext = {
+          ...sessionContext,
+          area: sessionContext.area || sanitizeArea(savedSurvivalProfile.area || ""),
+          people: sessionContext.people || savedSurvivalProfile.people,
+          budget: sessionContext.budget || savedSurvivalProfile.budget || "",
+          constraints: sessionContext.constraints || savedSurvivalProfile.constraints || "",
+          existingEquipment: sessionContext.existingEquipment.length
+            ? sessionContext.existingEquipment
+            : normalizeEquipment(savedSurvivalProfile.existing_equipment),
+        };
+      }
     }
 
     let verifiedWallet = "";
@@ -498,6 +621,10 @@ ${buildLiveContext(livePulse, attachedSignals, requestedSignalIds.length, tokenC
         grounding: agentResponse.grounding === "VERIFIED_LIVE" ? "GENERAL_KNOWLEDGE" : agentResponse.grounding,
       };
     }
+    agentResponse = {
+      ...agentResponse,
+      sourceStatus: resolveSourceStatus(agentResponse, livePulse, attachedSignals),
+    };
 
     let updatedStats = stats;
     let readinessApplied = false;

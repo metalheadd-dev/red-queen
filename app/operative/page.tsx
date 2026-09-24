@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import SurvivalProfileEditor from "@/components/SurvivalProfileEditor";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAuth } from "@/components/AuthProvider";
 import { generateApocalypticName } from "@/lib/names";
@@ -725,6 +726,8 @@ export default function OperativeProfilePage() {
           <div><span>PLAN EXECUTION</span><strong>{completedProtocolSteps}/{protocolSteps.length}</strong><small>observable steps complete</small><Link href="/prepare">CONTINUE PLAN →</Link></div>
           <div><span>SIGNAL WATCH</span><strong>{signalWatch.types.length}</strong><small>{signalWatch.localPriority ? "local priority active" : "signal categories"}</small><Link href="/pulse#live-map">TUNE WATCH →</Link></div>
         </section>
+
+        <SurvivalProfileEditor />
 
         <section className="rq-profile-receipts" aria-label="x402 payment receipts">
           <div className="rq-profile-receipts-heading">
