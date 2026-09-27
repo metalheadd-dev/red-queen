@@ -103,6 +103,144 @@ test("stored paid delivery bypasses expired quote and depleted provider checks",
   assert.equal(preflights, 0);
 });
 
+test("x402 prepares deterministic output before entering the payment middleware", async () => {
+  const { createHash } = require("node:crypto");
+  const fingerprint = (value) => createHash("sha256").update(value).digest("hex");
+  let paymentMiddlewareCalls = 0;
+  let deliveredPrepared;
+  const runtime = load("lib/x402.ts", {
+    "@payai/facilitator": { facilitator: {} },
+    "@x402/core/server": { HTTPFacilitatorClient: class {}, x402ResourceServer: class {} },
+    "@x402/svm/exact/server": { registerExactSvmScheme: () => {} },
+    "@x402/next": { withX402: (handler) => {
+      paymentMiddlewareCalls++;
+      return handler;
+    } },
+    "next/server": { NextResponse: Response },
+    "@/lib/solana": { isValidSolanaPublicKey: () => true },
+    "@/lib/x402-discovery": { discoveryExtensionsFor: () => ({}) },
+    "@/lib/x402-operations": {
+      fingerprint,
+      checkX402OperationStore: async () => ({ available: true }),
+      findX402Operation: async () => null,
+    },
+  });
+  const route = runtime.withFriendlyX402(async (_request, prepared) => {
+    deliveredPrepared = prepared;
+    return Response.json({ delivered: prepared });
+  }, {
+    productId: "incident-dossier",
+    accepts: { payTo: "approved", scheme: "exact", network: "solana:mainnet", price: "$0.02" },
+    preflight: async () => ({ prepared: { sourceRevision: "v2" } }),
+  });
+  const response = await route(new Request("https://redqueen.space/api/intel/incident-dossier"));
+  assert.equal(response.status, 200);
+  assert.equal(paymentMiddlewareCalls, 1);
+  assert.equal(deliveredPrepared.sourceRevision, "v2");
+  assert.equal((await response.json()).delivered.sourceRevision, "v2");
+
+  const rejectedRoute = runtime.withFriendlyX402(() => { throw new Error("must not deliver"); }, {
+    productId: "incident-dossier",
+    accepts: { payTo: "approved", scheme: "exact", network: "solana:mainnet", price: "$0.02" },
+    preflight: async () => Response.json({ error: "Source stale" }, { status: 503 }),
+  });
+  const rejected = await rejectedRoute(new Request("https://redqueen.space/api/intel/incident-dossier"));
+  assert.equal(rejected.status, 503);
+  assert.equal(paymentMiddlewareCalls, 1);
+});
+
+test("x402 catalog discloses delivery risk and MCP publishes plan recheck tools", () => {
+  const { X402_INTELLIGENCE_PRODUCTS } = load("lib/intelligence-products.ts");
+  const live = X402_INTELLIGENCE_PRODUCTS.filter((product) => product.endpoint && product.status !== "RESEARCH");
+  assert.ok(live.length >= 10);
+  assert.ok(live.every((product) => ["PREPARED_BEFORE_PAYMENT", "UPSTREAM_AFTER_PAYMENT"].includes(product.deliveryMode)));
+  assert.deepEqual(
+    Array.from(live.filter((product) => product.deliveryMode === "UPSTREAM_AFTER_PAYMENT"), (product) => product.id),
+    ["premium-area-intelligence", "external-survival-intelligence"],
+  );
+  const recheck = live.find((product) => product.id === "preparedness-recheck");
+  assert.equal(recheck.freePreflight, "/api/intel/preparedness-recheck/quote");
+
+  const { RED_QUEEN_MCP_TOOLS } = load("lib/mcp-discovery.ts");
+  assert.ok(RED_QUEEN_MCP_TOOLS.includes("quote_preparedness_plan_recheck"));
+  assert.ok(RED_QUEEN_MCP_TOOLS.includes("recheck_preparedness_plan"));
+  const publicCard = JSON.parse(fs.readFileSync("public/.well-known/mcp/server-card.json", "utf8"));
+  assert.deepEqual(Array.from(publicCard.capabilities.tools), Array.from(RED_QUEEN_MCP_TOOLS));
+  assert.match(publicCard.description, /RQ Corp/);
+});
+
+test("RQ Proof Protocol stores only a bounded hash memo and parses it exactly", () => {
+  const proof = load("lib/intelligence-proof.ts");
+  const hash = "a".repeat(64);
+  const memo = proof.buildIntelligenceProofMemo({ hash, type: "QUEEN_ASSESSMENT", anchoredAt: "2026-09-27T12:00:00.000Z" });
+  assert.equal(memo, `RQ_PROOF_V1|sha256:${hash}|type:QUEEN_ASSESSMENT|at:2026-09-27T12:00:00.000Z`);
+  assert.deepEqual({ ...proof.parseIntelligenceProofMemo(memo) }, { hash, type: "QUEEN_ASSESSMENT", anchoredAt: "2026-09-27T12:00:00.000Z" });
+  assert.equal(memo.includes("Madrid"), false);
+  assert.equal(proof.parseIntelligenceProofMemo(`${memo}|private:data`), null);
+});
+
+test("Agent Studio enforces holder capacity without granting payment authority", () => {
+  const agents = load("lib/agent-blueprint.ts");
+  assert.equal(agents.getAgentCapacity(0).modules, 2);
+  assert.equal(agents.getAgentCapacity(4).slots, 8);
+  const civilian = agents.buildAgentBlueprint({
+    name: "ROOK Sentinel", archetype: "SENTINEL", directive: "Watch source revisions and escalate material changes.", broadArea: "Madrid",
+    modules: ["THREAT_GRAPH", "SIGNAL_WATCH", "PREPAREDNESS"], memory: "DEVICE_ONLY", dailyCapUsdc: 1, holderTierObserved: 0,
+  });
+  assert.equal(civilian.modules.length, 2);
+  assert.equal(civilian.paymentPolicy.enabled, false);
+  assert.equal(civilian.paymentPolicy.approval, "EVERY_OPERATION");
+  assert.equal(civilian.irreversibleActions, "DENIED");
+});
+
+test("paid local intelligence excludes stale records even when their place matches", () => {
+  const { buildThreatGraph } = load("lib/threat-graph.ts");
+  const { buildLocalDelta, buildPreparednessPlan } = load("lib/intelligence-reports.ts", {
+    "@/lib/survival-context": {},
+    "@/lib/threat-graph": { buildThreatGraph },
+  });
+  const base = {
+    kind: "GEOLOGICAL", region: "Barcelona", location: "Barcelona", lat: 41.4, lng: 2.17,
+    name: "Quake", source: "USGS", sourceUrl: "https://earthquake.usgs.gov/earthquakes/", fact: "Magnitude 3.0",
+    action: "Review local guidance", assessment: "Check relevance", confidence: 98, severity: 45, priorityScore: 70,
+    freshness: "CURRENT", ageHours: 2,
+  };
+  const grid = {
+    generatedAt: "2026-09-27T11:00:00Z",
+    signals: [
+      { ...base, id: "old", observedAt: "2026-09-24T09:00:00Z", updatedAt: "2026-09-24T09:00:00Z" },
+      { ...base, id: "current", observedAt: "2026-09-27T09:00:00Z", updatedAt: "2026-09-27T10:00:00Z" },
+    ],
+  };
+  const delta = buildLocalDelta(grid, { area: "Barcelona", radiusKm: 250 });
+  assert.deepEqual(Array.from(delta.changes, (item) => item.id), ["current"]);
+  const plan = buildPreparednessPlan({ area: "Barcelona", focus: "LOCAL_THREATS", household: "Two adults", constraints: "", grid });
+  assert.deepEqual(Array.from(plan.currentSignalContext, (item) => item.id), ["current"]);
+});
+
+test("plan recheck charges only when a current matching source changed after the checkpoint", () => {
+  const { buildThreatGraph } = load("lib/threat-graph.ts");
+  const { buildPreparednessRecheck } = load("lib/intelligence-reports.ts", {
+    "@/lib/survival-context": {},
+    "@/lib/threat-graph": { buildThreatGraph },
+  });
+  const signal = {
+    id: "gdacs-current", kind: "DISASTER", region: "Madrid", location: "Madrid", name: "Infrastructure disruption",
+    observedAt: "2026-09-27T08:00:00Z", updatedAt: "2026-09-27T10:30:00Z", source: "GDACS", sourceUrl: "https://www.gdacs.org/",
+    fact: "Official record updated", assessment: "Check local continuity", action: "Review the plan", confidence: 96,
+    severity: 60, priorityScore: 80, freshness: "CURRENT", ageHours: 3,
+  };
+  const input = {
+    title: "Blackout plan", area: "Madrid", focus: "BLACKOUT", updatedAt: "2026-09-27T09:00:00Z",
+    reviewAt: "2026-09-28T09:00:00Z", completedSteps: 2, totalSteps: 6, remainingSteps: ["Check lighting"],
+  };
+  const changed = buildPreparednessRecheck({ generatedAt: "2026-09-27T11:00:00Z", signals: [signal] }, input);
+  assert.equal(changed.changes.length, 1);
+  assert.equal(changed.plan.progressPercent, 33);
+  const unchanged = buildPreparednessRecheck({ generatedAt: "2026-09-27T11:00:00Z", signals: [signal] }, { ...input, updatedAt: "2026-09-27T10:45:00Z" });
+  assert.equal(unchanged.changes.length, 0);
+});
+
 test("mosquito and fictional disaster kits have different practical supplies", () => {
   const { buildSurvivalKit } = load("lib/survival-market.ts", { "@/lib/survival-context": {} });
   const input = { area: "Barcelona", focus: "HOUSEHOLD", people: 2 };

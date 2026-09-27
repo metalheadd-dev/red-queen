@@ -3,7 +3,7 @@
   "info": {
     "title": "RED QUEEN Intelligence Merchant API",
     "description": "Machine-readable survival intelligence and owner-approved physical commerce on Solana. Intelligence resources use exact USDC x402 payments; SP3ND fulfills Amazon/eBay orders with USDC and x402 Market remains available for PYUSD inventory. Purchases never award XP or BIO-SCORE.",
-    "version": "3.4.0"
+    "version": "3.5.0"
   },
   "servers": [{ "url": "https://redqueen.space" }],
   "externalDocs": {
@@ -113,6 +113,34 @@
           "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PreparednessInput" }, "example": { "area": "Berlin", "focus": "HOUSEHOLD", "household": "One adult and one child", "constraints": "Limited storage; no car" } } }
         },
         "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/intel/preparedness-recheck/quote": {
+      "post": {
+        "tags": ["Survival Intelligence"],
+        "summary": "Check a saved plan for material source changes without payment",
+        "description": "Compares a local preparedness-plan checkpoint with the current verified source window. It returns availability and a change count only; no wallet, account or exact address is required and no payment is requested.",
+        "operationId": "quotePreparednessPlanRecheck",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PreparednessRecheckInput" } } }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "503": { "$ref": "#/components/responses/Unavailable" } }
+      }
+    },
+    "/api/intel/preparedness-recheck": {
+      "post": {
+        "tags": ["Survival Intelligence"],
+        "summary": "Recompile a saved plan only when current source conditions changed",
+        "description": "Prepares the complete current-source comparison before settlement. If no material revision matches the saved plan, the endpoint returns 409 and never requests payment.",
+        "operationId": "createPreparednessPlanRecheck",
+        "x-payment-info": { "$ref": "#/components/x-payment-info/PreparednessRecheck" },
+        "parameters": [{ "$ref": "#/components/parameters/OperationId" }, { "$ref": "#/components/parameters/PaymentSignature" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PreparednessRecheckInput" } } }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/Delivered" }, "400": { "$ref": "#/components/responses/InvalidInput" }, "409": { "description": "No current verified source revision matched the saved plan. No payment was requested." }, "402": { "$ref": "#/components/responses/PaymentRequired" }, "503": { "$ref": "#/components/responses/Unavailable" } }
       }
     },
     "/api/intel/incident-dossier": {
@@ -317,6 +345,22 @@
         "required": ["focus"],
         "anyOf": [{ "required": ["household"] }, { "required": ["constraints"] }]
       },
+      "PreparednessRecheckInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "A bounded snapshot of one plan stored on the caller's device. Use the plan's conditionCheckedAt value as updatedAt when available, otherwise its createdAt value.",
+        "properties": {
+          "title": { "type": "string", "minLength": 2, "maxLength": 100 },
+          "area": { "type": "string", "maxLength": 80, "description": "Optional broad city or region; never an exact address." },
+          "focus": { "type": "string", "enum": ["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"] },
+          "updatedAt": { "type": "string", "format": "date-time", "description": "Last condition checkpoint, no more than one year old." },
+          "reviewAt": { "type": "string", "format": "date-time" },
+          "completedSteps": { "type": "integer", "minimum": 0, "maximum": 8 },
+          "totalSteps": { "type": "integer", "minimum": 2, "maximum": 8 },
+          "remainingSteps": { "type": "array", "maxItems": 8, "items": { "type": "string", "minLength": 1, "maxLength": 220 } }
+        },
+        "required": ["title", "focus", "updatedAt", "reviewAt", "completedSteps", "totalSteps", "remainingSteps"]
+      },
       "TransactionRiskInput": {
         "type": "object",
         "additionalProperties": false,
@@ -385,6 +429,7 @@
       "PremiumArea": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.05 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", "upstreamProcurement": true },
       "ExternalIntelligence": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.08 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", "upstreamProcurement": true, "upstreamCap": "0.03 USDC", "upstreamMerchant": "Agent402.Tools" },
       "Preparedness": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
+      "PreparednessRecheck": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.01 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", "freePreflight": "/api/intel/preparedness-recheck/quote", "preparedBeforePayment": true },
       "IncidentDossier": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
       "TransactionRisk": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.01 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" },
       "WalletExposure": { "protocol": "x402", "version": 2, "scheme": "exact", "price": "0.02 USDC", "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" }

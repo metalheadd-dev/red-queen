@@ -1,5 +1,6 @@
 import { NormalizedSignal, SignalGrid } from "@/lib/signal-engine";
 import { SurvivalFocus } from "@/lib/survival-context";
+import { buildThreatGraph } from "@/lib/threat-graph";
 
 export const MINIMUM_PAID_SOURCE_COVERAGE = 4;
 
@@ -126,6 +127,7 @@ export function buildLocalDelta(grid: SignalGrid, input: {
   const areaNeedle = input.area.toLowerCase();
   const hasCoordinates = Number.isFinite(input.lat) && Number.isFinite(input.lng);
   const relevant = grid.signals
+    .filter((signal) => buildThreatGraph(signal, new Date(grid.generatedAt))?.status === "CURRENT")
     .map((signal) => {
       const distanceKm = hasCoordinates && Number.isFinite(signal.lat) && Number.isFinite(signal.lng)
         ? haversineKm({ lat: input.lat!, lng: input.lng! }, { lat: signal.lat!, lng: signal.lng! })
@@ -198,6 +200,7 @@ export function buildPreparednessPlan(input: {
   const steps = PLAN_STEPS[input.focus];
   const areaNeedle = input.area.toLowerCase();
   const relevantSignals = input.grid.signals.filter((signal) => {
+    if (buildThreatGraph(signal, new Date(input.grid.generatedAt))?.status !== "CURRENT") return false;
     if (areaNeedle.length >= 3 && `${signal.region} ${signal.location}`.toLowerCase().includes(areaNeedle)) return true;
     if (input.focus === "BLACKOUT") return signal.kind === "DISASTER" || signal.kind === "SPACE_WEATHER";
     if (input.focus === "DIGITAL_SECURITY") return signal.kind === "CYBER" || signal.kind === "SOLANA_NETWORK";
@@ -269,5 +272,83 @@ export function buildIncidentDossier(signal: NormalizedSignal) {
     ],
     sources: [{ label: signal.source, url: signal.sourceUrl, observedAt: signal.observedAt, confidence: signal.confidence }],
     exportNotice: "This dossier is a timestamped decision-support artifact, not an emergency order or guarantee of safety.",
+  };
+}
+
+export type PreparednessRecheckInput = {
+  title: string;
+  area: string;
+  focus: SurvivalFocus;
+  updatedAt: string;
+  reviewAt: string;
+  completedSteps: number;
+  totalSteps: number;
+  remainingSteps: string[];
+};
+
+function signalMatchesPlan(signal: NormalizedSignal, input: PreparednessRecheckInput) {
+  const area = input.area.trim().toLowerCase();
+  const areaMatch = area.length >= 3 && `${signal.region} ${signal.location} ${signal.name}`.toLowerCase().includes(area);
+  const focusMatch = input.focus === "BLACKOUT"
+    ? signal.kind === "DISASTER" || signal.kind === "SPACE_WEATHER"
+    : input.focus === "DIGITAL_SECURITY"
+      ? signal.kind === "CYBER" || signal.kind === "SOLANA_NETWORK"
+      : input.focus === "HEALTH"
+        ? signal.kind === "HEALTH"
+        : input.focus === "LOCAL_THREATS";
+  if (area.length >= 3 && input.focus !== "DIGITAL_SECURITY" && input.focus !== "HEALTH") return areaMatch;
+  return areaMatch || focusMatch;
+}
+
+/** Compares one user-supplied plan checkpoint with current, source-backed records. */
+export function buildPreparednessRecheck(grid: SignalGrid, input: PreparednessRecheckInput) {
+  const generatedAt = new Date(grid.generatedAt);
+  const checkpoint = new Date(input.updatedAt);
+  const earliest = new Date(generatedAt.getTime() - 30 * 86_400_000);
+  const since = checkpoint > earliest ? checkpoint : earliest;
+  const changes = grid.signals
+    .filter((signal) => buildThreatGraph(signal, generatedAt)?.status === "CURRENT")
+    .filter((signal) => signalMatchesPlan(signal, input))
+    .filter((signal) => {
+      const changedAt = Date.parse(signal.updatedAt || signal.observedAt);
+      return Number.isFinite(changedAt) && changedAt > since.getTime();
+    })
+    .slice(0, 8);
+  const priority = changes[0] || null;
+  const progress = input.totalSteps > 0 ? Math.round((input.completedSteps / input.totalSteps) * 100) : 0;
+
+  return {
+    title: `${input.title} · condition recheck`,
+    generatedAt: grid.generatedAt,
+    plan: {
+      area: input.area || "Broad area not supplied",
+      focus: input.focus,
+      checkpoint: since.toISOString(),
+      originalReviewAt: input.reviewAt,
+      progressPercent: Math.min(100, Math.max(0, progress)),
+      completedSteps: input.completedSteps,
+      totalSteps: input.totalSteps,
+    },
+    headline: changes.length
+      ? `${changes.length} current source revision${changes.length === 1 ? "" : "s"} may affect this plan.`
+      : "No current source revision matched this plan since its checkpoint.",
+    changes: changes.map((signal) => ({
+      id: signal.id,
+      name: signal.name,
+      kind: signal.kind,
+      fact: signal.fact,
+      assessment: signal.assessment,
+      action: signal.action,
+      observedAt: signal.observedAt,
+      updatedAt: signal.updatedAt || signal.observedAt,
+      confidence: signal.confidence,
+      source: signal.source,
+      sourceUrl: signal.sourceUrl,
+    })),
+    remainingSteps: input.remainingSteps.slice(0, 8),
+    nextAction: priority
+      ? `Review ${priority.name} against official local guidance, then decide whether the first unfinished plan step still has priority.`
+      : "Keep the existing plan and repeat the free check after an official update or at the scheduled review time.",
+    uncertainty: "This recheck compares one device-supplied plan checkpoint with currently reachable RQ sources. It cannot prove local safety, complete coverage or that every plan assumption remains valid.",
   };
 }

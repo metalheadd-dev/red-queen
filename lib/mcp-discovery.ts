@@ -9,6 +9,8 @@ export const RED_QUEEN_MCP_TOOLS = [
   "get_wallet_exposure_audit",
   "get_local_delta_brief",
   "compile_72_hour_plan",
+  "quote_preparedness_plan_recheck",
+  "recheck_preparedness_plan",
   "get_incident_dossier",
   "explain_solana_transaction_risk",
   "purchase_premium_area_intelligence",
@@ -28,7 +30,7 @@ export function buildRedQueenMcpDiscovery() {
     title: "RED QUEEN Survival Intelligence MCP",
     description:
       "Source-backed survival intelligence, preparedness, wallet-risk and x402 agentic commerce tools on Solana.",
-    version: "1.2.0",
+    version: "1.3.0",
     status: "ok",
     endpoint: RED_QUEEN_MCP_ENDPOINT,
     transport: "streamable-http",

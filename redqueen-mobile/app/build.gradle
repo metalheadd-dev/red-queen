@@ -24,9 +24,9 @@ def twaManifest = [
     applicationId: 'space.redqueen.twa',
     hostName: 'redqueen.space', // The domain being opened in the TWA.
     launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
-    name: 'Red Queen SOLvival Terminal', // The application name.
-    launcherName: 'Red Queen', // The name shown on the Android Launcher.
-    themeColor: '#FF4D4D', // The color used for the status bar.
+    name: 'RQ Corp: Red Queen', // The application name.
+    launcherName: 'RQ Corp', // The name shown on the Android Launcher.
+    themeColor: '#FF1748', // The color used for the status bar.
     themeColorDark: '#000000', // The color used for the dark status bar.
     navigationColor: '#000000', // The color used for the navigation bar.
     navigationColorDark: '#000000', // The color used for the dark navbar.
@@ -56,9 +56,9 @@ android {
     defaultConfig {
         applicationId "space.redqueen.twa"
         minSdkVersion 21
-        targetSdkVersion 35
-        versionCode 6
-        versionName "3.2"
+        targetSdkVersion 36
+        versionCode 7
+        versionName "3.3"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name

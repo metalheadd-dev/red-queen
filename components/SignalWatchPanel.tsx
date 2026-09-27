@@ -334,6 +334,7 @@ export default function SignalWatchPanel({ nodes, area, location }: SignalWatchP
                 <p>{matchReason(signal, memory, location)}</p>
                 <div className="signal-watch-card-actions">
                   {signal.sourceUrl && <a href={signal.sourceUrl} target="_blank" rel="noopener noreferrer">SOURCE ↗</a>}
+                  <Link href={`/threat-graph?id=${encodeURIComponent(signal.id)}`}>EVIDENCE CHAIN →</Link>
                   <Link href={queenReviewHref(signal)}>ASK RED QUEEN →</Link>
                   {reviewSignalIds.includes(signal.id) && <button type="button" onClick={() => acknowledgeSignal(signal.id)}>MARK REVIEWED</button>}
                 </div>

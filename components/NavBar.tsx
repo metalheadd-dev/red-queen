@@ -14,7 +14,10 @@ const primaryLinks = [
   { href: "/shop", label: "Loadout", subtitle: "Build a kit and find real gear", icon: "◇" },
 ];
 const exploreLinks = [
-  { href: "/reports", label: "x402 intelligence", subtitle: "7 paid operations settled in USDC on Solana" },
+  { href: "/threat-graph", label: "Threat Graph", subtitle: "Source → event → possible impact → next action" },
+  { href: "/reports", label: "x402 intelligence", subtitle: "10 paid operations settled in USDC on Solana" },
+  { href: "/proofs", label: "RQ Proof Protocol", subtitle: "Anchor and verify private artifact hashes on Solana" },
+  { href: "/agents", label: "Agent Studio", subtitle: "Design bounded agents under Queen oversight" },
   { href: "/library", label: "Threat library", subtitle: "Learn about real and fictional threats" },
   { href: "/community", label: "The world of RQ", subtitle: "Lore, community and the Queen's story" },
   { href: "/network-clearance", label: "Wallet & $THREAT", subtitle: "Your wallet, benefits and agent identity" },

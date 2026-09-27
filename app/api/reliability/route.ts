@@ -13,6 +13,8 @@ export async function GET() {
   const resources = X402_INTELLIGENCE_PRODUCTS.filter(
     (product) => Boolean(product.endpoint) && product.status !== "RESEARCH",
   );
+  const preparedResources = resources.filter((product) => product.deliveryMode === "PREPARED_BEFORE_PAYMENT");
+  const upstreamAfterPayment = resources.filter((product) => product.deliveryMode === "UPSTREAM_AFTER_PAYMENT");
 
   return NextResponse.json({
     service: "RED QUEEN Intelligence Merchant",
@@ -35,7 +37,9 @@ export async function GET() {
       receiptStore: receiptStore.available ? "AVAILABLE" : "UNAVAILABLE",
       replayProtection: "X-Operation-Id + request and payment fingerprints",
       idempotentDelivery: true,
-      paymentWithoutDeclaredOutput: false,
+      preparedBeforePayment: preparedResources.map((product) => product.id),
+      upstreamAfterPayment: upstreamAfterPayment.map((product) => product.id),
+      disclosure: "Prepared resources compute the complete declared output before settlement. Upstream-after-payment resources can still fail after customer settlement and require a durable fulfillment or refund policy before production launch.",
     },
     trustBoundary: "No seed phrase, private key, custody, autonomous spending authority, XP or BIO-SCORE is exchanged for payment.",
   }, {

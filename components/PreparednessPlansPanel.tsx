@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import styles from "./PreparednessOverview.module.css";
 import {
   formatPreparednessPlanText,
   formatPlanReviewDate,
@@ -42,6 +43,10 @@ export default function PreparednessPlansPanel() {
 
   const active = useMemo(() => plans.filter((plan) => plan.status === "ACTIVE"), [plans]);
   const completed = plans.length - active.length;
+  const totalSteps = plans.reduce((sum, plan) => sum + plan.steps.length, 0);
+  const checkedSteps = plans.reduce((sum, plan) => sum + plan.steps.filter((step) => step.completed).length, 0);
+  const overduePlans = active.filter((plan) => Date.parse(plan.reviewAt) < Date.now());
+  const nextStep = active.flatMap((plan) => plan.steps.filter((step) => !step.completed).map((step) => ({ plan, step })))[0];
 
   function toggleStep(planId: string, stepId: string, completedStep: boolean) {
     setPlans(updatePreparednessPlanStep(localStorage, planId, stepId, completedStep));
@@ -79,6 +84,13 @@ export default function PreparednessPlansPanel() {
         <div><span>YOUR NEXT MOVES</span><h2>Saved plans</h2></div>
         <strong>{active.length} ACTIVE · {completed} COMPLETE</strong>
       </div>
+
+      {!!plans.length && <div className={styles.overview} aria-label="Preparedness progress">
+        <div><span>DEVICE PROGRESS</span><strong>{checkedSteps}/{totalSteps}</strong><small>plan steps marked complete</small></div>
+        <div><span>REVIEW QUEUE</span><strong>{overduePlans.length}</strong><small>plans past their review date</small></div>
+        <div className={styles.next}><span>NEXT PRACTICAL STEP</span><strong>{nextStep ? nextStep.step.text : "Review your saved plans"}</strong><small>{nextStep ? nextStep.plan.title : "No unfinished step on this device"}</small></div>
+        <p>These are self-reported device notes, not a certified safety score. Recheck source freshness and local instructions before acting.</p>
+      </div>}
 
       {!plans.length ? (
         <div className="preparedness-plans-empty">
@@ -120,6 +132,7 @@ export default function PreparednessPlansPanel() {
                   <div>{plan.sourceLabel && plan.sourceUrl ? <a href={plan.sourceUrl} target="_blank" rel="noreferrer">SOURCE · {plan.sourceLabel} ↗</a> : <span>GENERAL PREPAREDNESS KNOWLEDGE</span>}</div>
                   <div className="preparedness-plan-actions">
                     <button type="button" onClick={() => exportPlan(plan)}>EXPORT OFFLINE</button>
+                    <Link href={`/reports?${new URLSearchParams({ product: "recheck", planId: plan.id }).toString()}`}>CHECK CONDITIONS →</Link>
                     <Link href={`/red-queen?${new URLSearchParams({ mode: "PREPARE", focus: plan.focus || "HOUSEHOLD", area: plan.area, prompt: queenPrompt }).toString()}`}>REVIEW WITH QUEEN →</Link>
                     <button type="button" className={confirmRemoveId === plan.id ? "confirm" : ""} onClick={() => removePlan(plan.id)} onBlur={() => setConfirmRemoveId("")}>{confirmRemoveId === plan.id ? "CONFIRM REMOVE" : "REMOVE"}</button>
                   </div>

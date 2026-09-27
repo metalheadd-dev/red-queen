@@ -6,7 +6,7 @@ const svmAddress = process.env.SVM_ADDRESS || "";
 const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
 const rpcUrl = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
 
-const handler = async (_req: NextRequest) => {
+const prepareResponse = async (_req: NextRequest) => {
   try {
     const connection = new Connection(rpcUrl, "confirmed");
     const [voteAccounts, epochInfo, feeMetrics, supplyInfo, inflationRate, perfSamples] = await Promise.all([
@@ -117,10 +117,19 @@ const handler = async (_req: NextRequest) => {
   }
 };
 
+const handler = async (_req: NextRequest, prepared?: unknown) => {
+  if (!prepared) return NextResponse.json({ error: "No Solana RPC snapshot was prepared before payment." }, { status: 503 });
+  return NextResponse.json(prepared);
+};
+
 export const GET = withFriendlyX402(
   handler,
   {
     productId: "solana-network-health",
+    preflight: async (req: NextRequest) => {
+      const response = await prepareResponse(req);
+      return response.ok ? { prepared: await response.json() } : response;
+    },
     accepts: {
       scheme: "exact",
       price: "$0.02",

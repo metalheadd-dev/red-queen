@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <title>RQ Corp | Offline field card</title>
+  <style>
+    :root{color-scheme:dark;font-family:Arial,Helvetica,sans-serif;background:#050505;color:#f7f2f3}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 90% 0%,#260810,transparent 42%),#050505}
+    main{max-width:640px;margin:auto;padding:calc(28px + env(safe-area-inset-top)) 22px calc(35px + env(safe-area-inset-bottom))}
+    .eyebrow,.status,.label{font-family:Consolas,monospace;font-weight:700;letter-spacing:.13em;text-transform:uppercase}
+    .eyebrow{display:flex;justify-content:space-between;gap:10px;padding-bottom:16px;border-bottom:1px solid #53202c;color:#ff1748;font-size:11px}
+    .eyebrow span:last-child{color:#b2a2a7}h1{font-size:clamp(38px,10vw,62px);line-height:1;margin:38px 0 14px;letter-spacing:-.06em}h1 em{color:#ff1748;font-style:normal}
+    .lead{color:#c6b9be;font-size:16px;line-height:1.5;margin-bottom:24px}.status{padding:14px;border:1px solid #66303b;color:#ff718c;background:#17080d;font-size:10px;line-height:1.5}
+    section{margin-top:24px;border-top:1px solid #3c2028;padding-top:15px}h2{font-size:18px;margin:5px 0 14px}.label{color:#ff3158;font-size:10px}
+    ol{list-style:none;padding:0;margin:0}li{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid #2c2427;color:#dfd5d8;line-height:1.45;font-size:14px}li b{color:#ff3158;font:700 11px Consolas,monospace}
+    a,button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;margin-top:26px;padding:0 18px;color:#0b0608;background:#ff1748;font:700 11px Consolas,monospace;text-decoration:none;letter-spacing:.08em;border:0;cursor:pointer}
+    button{color:#f7f2f3;background:transparent;border:1px solid #8a263a}#saved-plans{margin-top:20px}#saved-plans article{border:1px solid #53202c;padding:15px;margin:10px 0;background:#12090c}#saved-plans h3{font-size:16px;margin:0 0 8px}#saved-plans p{font-size:13px;line-height:1.5;color:#c4b5ba}#saved-plans ul{padding-left:20px;color:#eee;font-size:13px;line-height:1.55}
+    small{display:block;margin-top:25px;color:#9e9297;line-height:1.5}a:focus-visible,button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  </style>
+</head>
+<body><main>
+  <div class="eyebrow"><span>RQ CORP / FIELD CARD</span><span>RED QUEEN</span></div>
+  <h1>Signal lost.<br><em>Protocol remains.</em></h1>
+  <p class="lead">This basic card is saved on your device. Live threats, Red Queen, account data and payments need a connection.</p>
+  <p class="status">OFFLINE MODE // No live data. Do not treat this card as a current alert.</p>
+  <section><span class="label">01 / Immediate</span><h2>Make the next safe move</h2><ol>
+    <li><b>01</b><span>If anyone is in immediate danger, contact local emergency services using any available connection.</span></li>
+    <li><b>02</b><span>Move away from the immediate hazard. Follow local authority instructions and posted evacuation routes.</span></li>
+    <li><b>03</b><span>Check the people with you, urgent medication needs and a safe meeting point.</span></li>
+  </ol></section>
+  <section><span class="label">02 / Connectivity</span><h2>Restore information carefully</h2><ol>
+    <li><b>04</b><span>Preserve battery. Use a battery light instead of an open flame when possible.</span></li>
+    <li><b>05</b><span>Try official radio, mobile network or local authority channels when service returns.</span></li>
+    <li><b>06</b><span>Do not act on an unverified rumor or a fictional scenario as if it were a live event.</span></li>
+  </ol></section>
+  <section><span class="label">03 / Your device</span><h2>Saved preparedness plans</h2>
+    <p class="lead">If you saved a plan on this device, you can open its last local copy here. It may be out of date and is never a live warning.</p>
+    <button id="show-plans" type="button">SHOW SAVED PLANS ON THIS DEVICE</button>
+    <div id="saved-plans" hidden aria-live="polite"></div>
+  </section>
+  <a href="/">RECONNECT TO RQ CORP →</a>
+  <small>General preparedness information, not a substitute for emergency services or official local guidance. This cached page contains no personal data. Saved plans, if any, are read from this browser only after you choose to display them.</small>
+</main><script>
+  const button = document.getElementById("show-plans");
+  const container = document.getElementById("saved-plans");
+  button.addEventListener("click", () => {
+    if (!container.hidden) { container.hidden = true; button.textContent = "SHOW SAVED PLANS ON THIS DEVICE"; container.replaceChildren(); return; }
+    container.hidden = false;
+    button.textContent = "HIDE SAVED PLANS";
+    let plans = [];
+    try {
+      const value = JSON.parse(localStorage.getItem("rq-preparedness-plans-v1") || "[]");
+      if (Array.isArray(value)) plans = value.slice(0, 12);
+    } catch { /* Private storage can be unavailable on some devices. */ }
+    if (!plans.length) { container.textContent = "No saved plan is available on this device."; return; }
+    plans.forEach((plan) => {
+      if (!plan || typeof plan.title !== "string" || !Array.isArray(plan.steps)) return;
+      const article = document.createElement("article");
+      const title = document.createElement("h3"); title.textContent = plan.title.slice(0, 100); article.append(title);
+      const note = document.createElement("p"); note.textContent = `Saved ${typeof plan.updatedAt === "string" ? plan.updatedAt.slice(0, 16) : "previously"}. Review against current official guidance when connected.`; article.append(note);
+      const list = document.createElement("ul");
+      plan.steps.slice(0, 8).forEach((step) => { if (!step || typeof step.text !== "string") return; const item = document.createElement("li"); item.textContent = `${step.completed === true ? "✓" : "○"} ${step.text.slice(0, 220)}`; list.append(item); });
+      article.append(list); container.append(article);
+    });
+    if (!container.children.length) container.textContent = "No readable saved plan is available on this device.";
+  });
+</script></body></html>

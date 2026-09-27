@@ -9,6 +9,8 @@ import { GET as premiumGet } from "@/app/api/intel/premium/route";
 import { GET as walletExposureGet } from "@/app/api/intel/wallet-exposure/route";
 import { GET as localDeltaGet } from "@/app/api/intel/local-delta/route";
 import { POST as preparednessPlanPost } from "@/app/api/intel/preparedness-plan/route";
+import { POST as preparednessRecheckQuotePost } from "@/app/api/intel/preparedness-recheck/quote/route";
+import { POST as preparednessRecheckPost } from "@/app/api/intel/preparedness-recheck/route";
 import { GET as incidentDossierGet } from "@/app/api/intel/incident-dossier/route";
 import { POST as transactionRiskPost } from "@/app/api/intel/transaction-risk/route";
 import { POST as premiumAreaPost } from "@/app/api/intel/premium-area/route";
@@ -378,6 +380,67 @@ const handler = createMcpHandler(
         url: "http://localhost:3000/api/intel/preparedness-plan",
         method: "POST",
         body: { area, focus, household, constraints },
+        operationId,
+        paymentSignature,
+      }),
+    );
+
+    const preparednessRecheckShape = {
+      title: z.string().min(2).max(100),
+      area: z.string().max(80).default(""),
+      focus: z.enum(["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"]),
+      updatedAt: z.string().datetime().describe("Last source-condition checkpoint from the saved plan."),
+      reviewAt: z.string().datetime(),
+      completedSteps: z.number().int().min(0).max(8),
+      totalSteps: z.number().int().min(2).max(8),
+      remainingSteps: z.array(z.string().min(1).max(220)).max(8),
+    };
+    const preparednessRecheckSchema = z.object(preparednessRecheckShape)
+      .refine((value) => value.completedSteps <= value.totalSteps, { message: "completedSteps cannot exceed totalSteps." });
+
+    server.registerTool(
+      "quote_preparedness_plan_recheck",
+      {
+        title: "Check a RED QUEEN Plan for Source Changes",
+        description: "Run the free source-change gate for one saved preparedness plan. It reports whether a paid update exists without connecting a wallet or moving funds.",
+        inputSchema: preparednessRecheckSchema,
+        outputSchema: z.object({
+          available: z.boolean().optional(),
+          price: z.string().optional(),
+          checkedAt: z.string().optional(),
+          changeCount: z.number().optional(),
+          headline: z.string().optional(),
+          reason: z.string().nullable().optional(),
+          error: z.string().optional(),
+        }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async (input) => invokePaidRoute({
+        route: preparednessRecheckQuotePost,
+        url: "http://localhost:3000/api/intel/preparedness-recheck/quote",
+        method: "POST",
+        body: input,
+      }),
+    );
+
+    server.registerTool(
+      "recheck_preparedness_plan",
+      {
+        title: "Update a RED QUEEN Preparedness Plan",
+        description: "Purchase a bounded source-backed update for a saved preparedness plan. Call the free quote tool first. If no material current-source revision matches, this tool returns without requesting payment.",
+        inputSchema: z.object({
+          ...preparednessRecheckShape,
+          operationId: z.string().uuid().optional(),
+          paymentSignature: z.string().optional(),
+        }).refine((value) => value.completedSteps <= value.totalSteps, { message: "completedSteps cannot exceed totalSteps." }),
+        outputSchema: z.object({ success: z.boolean().optional(), report: z.any().optional(), error: z.string().optional() }),
+        annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async ({ operationId, paymentSignature, ...input }) => invokePaidRoute({
+        route: preparednessRecheckPost,
+        url: "http://localhost:3000/api/intel/preparedness-recheck",
+        method: "POST",
+        body: input,
         operationId,
         paymentSignature,
       }),

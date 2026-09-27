@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { REALISTIC, FICTIONAL, SATIRICAL, ALGORITHMIC, Threat } from "@/lib/threats";
 import { fetchGDACS } from "@/lib/threats-fetchers";
 import { fetchSignalGrid } from "@/lib/signal-engine";
+import { buildThreatGraph } from "@/lib/threat-graph";
 
 export const dynamic = "force-dynamic";
 
@@ -215,7 +216,7 @@ export async function GET(request: NextRequest) {
   if (liveOnly) {
     const grid = await fetchSignalGrid({ sourceIds: ["USGS", "NASA_EONET", "GDACS"] });
     const liveNodes: ThreatNode[] = grid.signals
-      .filter((signal) => Number.isFinite(signal.lat) && Number.isFinite(signal.lng))
+      .filter((signal) => buildThreatGraph(signal)?.status === "CURRENT" && Number.isFinite(signal.lat) && Number.isFinite(signal.lng))
       .map((signal) => ({
         id: signal.id,
         name: signal.name,

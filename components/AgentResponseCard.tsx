@@ -233,6 +233,23 @@ export default function AgentResponseCard({
         <small>{response.readiness.reason}</small>
       </div>
 
+      <div className="rq-readiness-bridge">
+        <div>
+          <span>RQ PROOF PROTOCOL</span>
+          <strong>Anchor this exact result without publishing it</strong>
+          <p>The browser hashes this response locally. Only the hash, artifact type and time can enter a user-approved Solana Memo transaction.</p>
+        </div>
+        <Link href="/proofs" onClick={() => {
+          try {
+            sessionStorage.setItem("rq-proof-draft-v1", JSON.stringify({
+              title: `${response.threat.label} assessment`,
+              type: "QUEEN_ASSESSMENT",
+              content: JSON.stringify(response, null, 2),
+            }));
+          } catch {}
+        }}>CREATE PROOF</Link>
+      </div>
+
       <div className="rq-followups">
         <span>CONTINUE ANALYSIS</span>
         <div>

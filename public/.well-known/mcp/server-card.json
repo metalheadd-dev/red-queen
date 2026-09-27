@@ -1,11 +1,11 @@
 {
   "serverInfo": {
     "name": "RED QUEEN",
-    "version": "2.0.0"
+    "version": "1.3.0"
   },
   "homepage": "https://redqueen.space",
   "iconUrl": "https://redqueen.space/favicon.ico",
-  "description": "Agentic survival intelligence, paid x402 resources and Solana wallet-risk tools operated by SOLvival Corp.",
+  "description": "Source-backed survival intelligence, preparedness, wallet-risk and x402 agentic commerce tools on Solana, operated by RQ Corp.",
   "transport": "streamable-http",
   "endpoint": "https://redqueen.space/api/mcp/mcp",
   "protocolVersion": "2025-06-18",
@@ -25,12 +25,19 @@
       "get_wallet_exposure_audit",
       "get_local_delta_brief",
       "compile_72_hour_plan",
+      "quote_preparedness_plan_recheck",
+      "recheck_preparedness_plan",
       "get_incident_dossier",
       "explain_solana_transaction_risk",
       "purchase_premium_area_intelligence",
       "quote_external_survival_intelligence",
       "purchase_external_survival_intelligence",
-      "build_72_hour_survival_cart"
+      "build_72_hour_survival_cart",
+      "search_physical_survival_offers",
+      "prepare_physical_checkout_quote",
+      "confirm_physical_checkout",
+      "get_physical_order_tracking",
+      "cancel_physical_order"
     ],
     "prompts": [],
     "resources": []

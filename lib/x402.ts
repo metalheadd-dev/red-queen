@@ -39,7 +39,7 @@ function getX402Server() {
  * directing the user to the on-chain hub, while maintaining necessary x402 headers.
  */
 export function withFriendlyX402(
-  routeHandler: (req: NextRequest) => Promise<NextResponse>,
+  routeHandler: (req: NextRequest, prepared?: unknown) => Promise<NextResponse>,
   routeConfig: any
 ) {
   return async (req: NextRequest) => {
@@ -115,14 +115,27 @@ export function withFriendlyX402(
 
     // Deliver an authenticated stored result before checking today's provider
     // balance or quote expiry. A completed purchase must remain retrievable.
+    let preparedOutput: unknown;
     if (typeof preflight === "function") {
-      const preflightResponse = await preflight(req);
-      if (preflightResponse) return preflightResponse;
+      try {
+        const preflightResult = await preflight(req);
+        if (preflightResult instanceof Response) return preflightResult as NextResponse;
+        if (preflightResult && typeof preflightResult === "object" && "prepared" in preflightResult) {
+          preparedOutput = preflightResult.prepared;
+        } else if (preflightResult !== null) {
+          return NextResponse.json({ error: "Paid output preparation returned an invalid result. No payment was requested." }, { status: 503 });
+        }
+      } catch (error) {
+        console.error(`x402 preflight failed for ${productId}`, error);
+        return NextResponse.json({ error: "Paid output preparation failed. No payment was requested." }, { status: 503 });
+      }
     }
 
     // Initialize only for an actual paid resource request. Importing an API route
     // during build must never contact an external facilitator.
-    const innerMiddleware = withX402(routeHandler, paymentRouteConfig, getX402Server());
+    // The prepared output is scoped to this HTTP request. It is not held in a
+    // process-global map, and the post-settlement handler uses this same snapshot.
+    const innerMiddleware = withX402((innerReq) => routeHandler(innerReq, preparedOutput), paymentRouteConfig, getX402Server());
     let res: NextResponse;
 
     try {
@@ -134,7 +147,7 @@ export function withFriendlyX402(
         {
           success: false,
           error:
-            "The x402 payment gateway is temporarily unavailable. No payment was requested or settled. Please retry shortly.",
+            "The x402 payment gateway is temporarily unavailable. Payment state may be uncertain. Check your wallet and operation receipt before retrying.",
           operationId,
         },
         {

@@ -29,6 +29,21 @@ export default function RqHome() {
     return () => window.removeEventListener(RQ_PROFILE_EVENT, sync);
   }, []);
   return <div className="rq-home rq-experience">
+    <section className="rq-mobile-field" aria-label="RQ Corp field terminal">
+      <div className="rq-mobile-field-top"><span><i /> RQ CORP / FIELD TERMINAL</span><span>SOLANA ECOSYSTEM</span></div>
+      <p className="rq-mobile-field-eyebrow">RED QUEEN / YOUR INTELLIGENCE</p>
+      <h2>The next move<br /><em>is yours.</em></h2>
+      <p className="rq-mobile-field-intro">See a signal. Ask what it means. Prepare before it reaches you.</p>
+      <button type="button" className="rq-mobile-field-primary" onClick={() => profile ? router.push("/red-queen") : window.dispatchEvent(new Event(RQ_WELCOME_EVENT))}>
+        <span>ASK RED QUEEN</span><b aria-hidden="true">↗</b>
+      </button>
+      <div className="rq-mobile-field-grid">
+        <Link href="/pulse"><span>01 / OBSERVE</span><strong>Live threats</strong><small>Signals and sources</small></Link>
+        <Link href="/prepare"><span>02 / PREPARE</span><strong>My plan</strong><small>Actions and loadout</small></Link>
+        <Link href="/offline.html"><span>03 / FALLBACK</span><strong>Offline card</strong><small>After first visit</small></Link>
+      </div>
+      <p className="rq-mobile-field-note">Real-world alerts belong to local authorities. Fictional scenarios are marked as simulations.</p>
+    </section>
     <section className="rq-home-hero rq-shell">
       <div className="rq-hero-signal-field" aria-hidden="true"><i /><i /><i /></div>
       <div className="rq-hero-sector-index" aria-hidden="true"><span>RQ / 001</span><span>SOLANA MAINNET</span><span>BLACK SITE ACCESS</span></div>

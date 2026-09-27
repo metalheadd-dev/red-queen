@@ -24,6 +24,7 @@ export interface PreparednessPlan {
   sourceUrl?: string;
   createdAt: string;
   updatedAt: string;
+  conditionCheckedAt?: string;
   reviewAt: string;
   completedAt?: string;
   status: PreparednessPlanStatus;
@@ -77,6 +78,7 @@ export function parsePreparednessPlan(value: unknown): PreparednessPlan | null {
     sourceUrl: safeSourceUrl(plan.sourceUrl),
     createdAt: plan.createdAt,
     updatedAt: typeof plan.updatedAt === "string" ? plan.updatedAt : plan.createdAt,
+    conditionCheckedAt: typeof plan.conditionCheckedAt === "string" && !Number.isNaN(Date.parse(plan.conditionCheckedAt)) ? plan.conditionCheckedAt : undefined,
     reviewAt: plan.reviewAt,
     completedAt: typeof plan.completedAt === "string" ? plan.completedAt : undefined,
     status: plan.status === "COMPLETED" ? "COMPLETED" : "ACTIVE",
@@ -167,6 +169,17 @@ export function removePreparednessPlan(
   planId: string,
 ) {
   const next = readPreparednessPlans(storage).filter((plan) => plan.id !== planId);
+  writePreparednessPlans(storage, next);
+  return next;
+}
+
+export function updatePreparednessPlanCheckpoint(
+  storage: Pick<Storage, "getItem" | "setItem">,
+  planId: string,
+  checkedAt: string,
+) {
+  if (Number.isNaN(Date.parse(checkedAt))) return readPreparednessPlans(storage);
+  const next = readPreparednessPlans(storage).map((plan) => plan.id === planId ? { ...plan, conditionCheckedAt: checkedAt } : plan);
   writePreparednessPlans(storage, next);
   return next;
 }

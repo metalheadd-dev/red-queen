@@ -19,25 +19,14 @@ async function readInput(request: Request) {
   };
 }
 
-const handler = async (request: NextRequest) => {
-  try {
-    const input = await readInput(request);
-    const grid = await fetchSignalGrid();
-    if (grid.coverage.online < MINIMUM_PAID_SOURCE_COVERAGE) {
-      return NextResponse.json({ success: false, error: `Only ${grid.coverage.online}/${grid.coverage.total} source families responded. Paid plan delivery requires ${MINIMUM_PAID_SOURCE_COVERAGE}.`, syntheticData: false }, { status: 503 });
-    }
-    return NextResponse.json({
-      success: true,
-      clearance: "PAID OUTPUT // x402 SETTLED",
-      generatedAt: grid.generatedAt,
-      plan: buildPreparednessPlan({ ...input, grid }),
-      sourceCoverage: grid.coverage,
-      trustBoundary: "The plan is a personal memory aid and decision-support artifact, not an emergency order, medical advice or proof of readiness. This purchase awards no BIO-SCORE or survival XP.",
-    });
-  } catch (error) {
-    console.error("Preparedness compiler failed:", error);
-    return NextResponse.json({ success: false, error: "The plan compiler could not produce the declared output. No synthetic paid plan was substituted." }, { status: 503 });
-  }
+const handler = async (_request: NextRequest, prepared?: unknown) => {
+  if (!prepared) return NextResponse.json({ success: false, error: "Preparedness plan was not compiled before settlement." }, { status: 503 });
+  return NextResponse.json({
+    success: true,
+    clearance: "PAID OUTPUT // x402 SETTLED",
+    ...(prepared as Record<string, unknown>),
+    trustBoundary: "The plan is a personal memory aid and decision-support artifact, not an emergency order, medical advice or proof of readiness. This purchase awards no BIO-SCORE or survival XP.",
+  });
 };
 
 export const POST = withFriendlyX402(handler, {
@@ -46,7 +35,16 @@ export const POST = withFriendlyX402(handler, {
     const input = await readInput(request.clone());
     if (!isSurvivalFocus(input.rawFocus)) return NextResponse.json({ error: "A supported preparedness focus is required." }, { status: 400 });
     if (!input.household && !input.constraints) return NextResponse.json({ error: "Provide at least one household detail or constraint so the paid plan is meaningfully personalized." }, { status: 400 });
-    return null;
+    try {
+      const grid = await fetchSignalGrid();
+      if (grid.coverage.online < MINIMUM_PAID_SOURCE_COVERAGE) {
+        return NextResponse.json({ error: `Only ${grid.coverage.online}/${grid.coverage.total} source families responded. Paid plan delivery requires ${MINIMUM_PAID_SOURCE_COVERAGE}. No payment was requested.`, syntheticData: false }, { status: 503 });
+      }
+      return { prepared: { generatedAt: grid.generatedAt, plan: buildPreparednessPlan({ ...input, grid }), sourceCoverage: grid.coverage } };
+    } catch (error) {
+      console.error("Preparedness plan preflight failed:", error);
+      return NextResponse.json({ error: "Queen could not compile the plan before payment. No payment was requested." }, { status: 503 });
+    }
   },
   accepts: { scheme: "exact", price: "$0.02", network, payTo: svmAddress },
   description: "Personalized, source-bounded 72-hour preparedness protocol with phased actions and exportable sources.",

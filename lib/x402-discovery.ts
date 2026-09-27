@@ -148,6 +148,38 @@ export const X402_PRODUCT_DISCOVERY: Record<string, ProductDiscovery> = {
       plan: { title: "72-hour protocol", phases: [], sources: [] },
     }),
   },
+  "preparedness-recheck": {
+    method: "POST",
+    bodyType: "json",
+    input: {
+      title: "Household blackout protocol",
+      area: "Madrid",
+      focus: "BLACKOUT",
+      updatedAt: "2026-09-27T10:00:00.000Z",
+      reviewAt: "2026-09-28T10:00:00.000Z",
+      completedSteps: 2,
+      totalSteps: 6,
+      remainingSteps: ["Confirm backup lighting"],
+    },
+    inputSchema: {
+      properties: {
+        title: { type: "string", minLength: 2, maxLength: 100 },
+        area: { type: "string", maxLength: 80, description: "Broad city or region; never an exact address." },
+        focus: { type: "string", enum: ["LOCAL_THREATS", "BLACKOUT", "HOUSEHOLD", "DIGITAL_SECURITY", "HEALTH"] },
+        updatedAt: { type: "string", format: "date-time", description: "Last local plan checkpoint." },
+        reviewAt: { type: "string", format: "date-time" },
+        completedSteps: { type: "integer", minimum: 0, maximum: 8 },
+        totalSteps: { type: "integer", minimum: 2, maximum: 8 },
+        remainingSteps: { type: "array", maxItems: 8, items: { type: "string", maxLength: 220 } },
+      },
+      required: ["title", "area", "focus", "updatedAt", "reviewAt", "completedSteps", "totalSteps", "remainingSteps"],
+    },
+    output: jsonObjectOutput({
+      success: true,
+      clearance: "PLAN RECHECK // x402 SETTLED",
+      report: { headline: "One current revision may affect this plan", changes: [], nextAction: "Review the changed source." },
+    }),
+  },
   "incident-dossier": {
     method: "GET",
     input: { signalId: "verified-signal-id" },
@@ -235,6 +267,8 @@ export function buildX402Manifest() {
         scheme: "exact",
         mimeType: "application/json",
         output: product.output,
+        deliveryMode: product.deliveryMode,
+        freePreflight: product.freePreflight ? `${RED_QUEEN_ORIGIN}${product.freePreflight}` : null,
         discovery: discovery
           ? {
               input: discovery.input || {},
@@ -250,7 +284,7 @@ export function buildX402Manifest() {
     x402Version: 2,
     name: "RED QUEEN Intelligence",
     description: "Paid, source-bounded survival intelligence delivered by RED QUEEN through x402 exact-SVM settlement on Solana.",
-    provider: "SOLvival Corp",
+    provider: "RQ Corp",
     origin: RED_QUEEN_ORIGIN,
     network: RED_QUEEN_X402_NETWORK,
     paymentAsset: "USDC",

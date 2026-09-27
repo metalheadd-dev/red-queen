@@ -1,10 +1,10 @@
 {
   "packageId": "space.redqueen.twa",
   "host": "redqueen.space",
-  "name": "Red Queen SOLvival Terminal",
-  "launcherName": "Red Queen",
+  "name": "RQ Corp: Red Queen",
+  "launcherName": "RQ Corp",
   "display": "standalone",
-  "themeColor": "#FF4D4D",
+  "themeColor": "#FF1748",
   "themeColorDark": "#000000",
   "navigationColor": "#000000",
   "navigationColorDark": "#000000",
@@ -19,8 +19,8 @@
     "path": "c:\\Users\\Voronovskiy\\Desktop\\redqueen\\redqueen-mobile\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "3.2",
-  "appVersionCode": 6,
+  "appVersionName": "3.3",
+  "appVersionCode": 7,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://redqueen.space/manifest.webmanifest",
@@ -42,5 +42,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "3.2"
+  "appVersion": "3.3"
 }

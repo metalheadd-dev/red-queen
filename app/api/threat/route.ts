@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchSignalGrid, SignalGrid } from "@/lib/signal-engine";
+import { buildThreatGraph } from "@/lib/threat-graph";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,8 @@ function sensorLimitedPayload(grid: SignalGrid) {
 
 export async function POST() {
   const grid = await fetchSignalGrid();
-  const primary = grid.signals.find((signal) => signal.freshness !== "STALE") || grid.signals[0];
+  const currentSignals = grid.signals.filter((signal) => buildThreatGraph(signal)?.status === "CURRENT");
+  const primary = currentSignals[0];
 
   if (!primary) {
     return NextResponse.json(sensorLimitedPayload(grid), {
@@ -65,8 +67,8 @@ export async function POST() {
     confidence: primary.confidence,
     verified: true,
     isFallback: false,
-    signalCount: grid.signals.length,
-    signals: grid.signals.slice(0, 24),
+    signalCount: currentSignals.length,
+    signals: currentSignals.slice(0, 24),
     sourceHealth: grid.sourceHealth,
     coverage: grid.coverage,
   };

@@ -19,22 +19,16 @@ function looksLikeBase64(value: string) {
   return value.length >= 40 && value.length <= 240_000 && /^[A-Za-z0-9+/]+={0,2}$/.test(value);
 }
 
-const handler = async (request: NextRequest) => {
-  try {
-    const input = await readInput(request);
-    const report = await inspectSolanaTransaction(input.transaction, input.wallet);
-    return NextResponse.json({
-      success: true,
-      clearance: "PAID OUTPUT // x402 SETTLED",
-      report,
-      transactionSubmitted: false,
-      signatureRequestedForInspectedTransaction: false,
-      trustBoundary: "RED QUEEN inspected and simulated the supplied transaction but did not sign or submit it. The separate x402 USDC payment cannot authorize the inspected payload.",
-    });
-  } catch (error) {
-    console.error("Transaction risk inspection failed:", error);
-    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Transaction inspection failed." }, { status: 422 });
-  }
+const handler = async (_request: NextRequest, prepared?: unknown) => {
+  if (!prepared) return NextResponse.json({ success: false, error: "Transaction simulation was not prepared before settlement." }, { status: 503 });
+  return NextResponse.json({
+    success: true,
+    clearance: "PAID OUTPUT // x402 SETTLED",
+    report: prepared,
+    transactionSubmitted: false,
+    signatureRequestedForInspectedTransaction: false,
+    trustBoundary: "RED QUEEN inspected and simulated the supplied transaction but did not sign or submit it. The separate x402 USDC payment cannot authorize the inspected payload.",
+  });
 };
 
 export const POST = withFriendlyX402(handler, {
@@ -48,7 +42,12 @@ export const POST = withFriendlyX402(handler, {
       return NextResponse.json({ error: "The supplied base64 does not contain a valid Solana versioned transaction. No payment was requested." }, { status: 400 });
     }
     if (input.wallet && !isValidSolanaPublicKey(input.wallet)) return NextResponse.json({ error: "The optional expected signer wallet is invalid." }, { status: 400 });
-    return null;
+    try {
+      return { prepared: await inspectSolanaTransaction(input.transaction, input.wallet) };
+    } catch (error) {
+      console.error("Transaction risk preflight failed:", error);
+      return NextResponse.json({ error: "Transaction simulation could not complete. No payment was requested." }, { status: 503 });
+    }
   },
   accepts: { scheme: "exact", price: "$0.01", network, payTo: svmAddress },
   description: "Pre-sign Solana transaction simulation, signer surface, known instruction decoding and bounded risk explanation.",

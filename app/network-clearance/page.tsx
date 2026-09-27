@@ -7,6 +7,7 @@ import { X402_INTELLIGENCE_PRODUCTS } from "@/lib/intelligence-products";
 import X402HealthBadge from "@/components/X402HealthBadge";
 import ThreatSwapClient from "@/components/ThreatSwapClient";
 import AgentRegistryIdentity from "@/components/AgentRegistryIdentity";
+import SolanaProofClient from "@/components/SolanaProofClient";
 
 import RqPageIntro from "@/components/RqPageIntro";
 
@@ -23,10 +24,11 @@ export default function NetworkClearancePage() {
   return (
     <div className="onchain-page rq-experience rq-product-page"><div className="container onchain-main">
         <RqPageIntro eyebrow="WALLET & $THREAT" title="Your wallet. Your control." description="Check your public Solana wallet, explore optional holder benefits or review a $THREAT swap. Connecting a wallet never approves spending." action={{ href: "/reports?product=wallet", label: "Get a wallet report" }} />
-        <nav className="rq-wallet-shortcuts" aria-label="Wallet sections"><a href="#wallet-intelligence">Wallet tools</a><a href="#buy-threat">$THREAT swap</a><a href="#agent-identity">Queen’s identity</a><Link href="/reports">Intelligence reports ↗</Link></nav>
+        <nav className="rq-wallet-shortcuts" aria-label="Wallet sections"><a href="#wallet-intelligence">Wallet tools</a><a href="#buy-threat">$THREAT swap</a><a href="#agent-identity">Queen’s identity</a><a href="#solana-proof">Payment proof</a><Link href="/reports">Intelligence reports ↗</Link></nav>
         <OnchainClearanceClient />
         <ThreatSwapClient />
         <AgentRegistryIdentity />
+        <SolanaProofClient />
 
         <details className="onchain-reference">
           <summary><span>SYSTEM REFERENCE</span><strong>How payments, $THREAT and Solana access work</strong><b>OPEN +</b></summary>
@@ -58,8 +60,9 @@ export default function NetworkClearancePage() {
                 <div><span>{product.status}</span><b>{product.price}</b></div>
                 <h3>{product.name}</h3>
                 <p>{product.value}</p>
-                <dl><div><dt>SCHEME</dt><dd>{product.scheme}</dd></div><div><dt>OUTPUT</dt><dd>{product.output}</dd></div></dl>
+                <dl><div><dt>SCHEME</dt><dd>{product.scheme}</dd></div><div><dt>OUTPUT</dt><dd>{product.output}</dd></div><div><dt>DELIVERY</dt><dd>{product.deliveryMode.replaceAll("_", " ")}</dd></div></dl>
                 {product.endpoint ? <code>{product.endpoint}</code> : <small>NOT EXPOSED AS A PAID ENDPOINT YET</small>}
+                {product.freePreflight ? <small>FREE GATE: {product.freePreflight}</small> : null}
               </article>
             ))}
           </div>

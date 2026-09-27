@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withFriendlyX402 } from "@/lib/x402";
 import { fetchSignalGrid, SignalSourceId } from "@/lib/signal-engine";
+import { buildThreatGraph } from "@/lib/threat-graph";
 
 const svmAddress = process.env.SVM_ADDRESS || "";
 const network = (process.env.SVM_NETWORK || "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") as any;
@@ -16,7 +17,7 @@ const SOURCE_URLS: Record<SignalSourceId, string> = {
   SOLANA_STATUS: "https://status.solana.com/",
 };
 
-const handler = async (_req: NextRequest) => {
+const prepareResponse = async (_req: NextRequest) => {
   try {
     const grid = await fetchSignalGrid();
     if (grid.coverage.online < MINIMUM_REACHABLE_SOURCES) {
@@ -29,9 +30,10 @@ const handler = async (_req: NextRequest) => {
       }, { status: 503 });
     }
 
-    const signals = grid.signals.slice(0, 12);
+    const currentSignals = grid.signals.filter((signal) => buildThreatGraph(signal, new Date(grid.generatedAt))?.status === "CURRENT");
+    const signals = currentSignals.slice(0, 12);
     const priority = signals[0] || null;
-    const elevatedCount = grid.signals.filter((signal) => signal.severity >= 60).length;
+    const elevatedCount = currentSignals.filter((signal) => signal.severity >= 60).length;
     const sourceStatus = grid.sourceHealth.map((source) => ({
       id: source.id.toLowerCase().replaceAll("_", "-"),
       name: source.label,
@@ -46,7 +48,7 @@ const handler = async (_req: NextRequest) => {
       timestamp: grid.generatedAt,
       clearance: "PAID OUTPUT // x402 SETTLED",
       intel: {
-        headline: `${grid.signals.length} verified signals normalized across ${grid.coverage.online}/${grid.coverage.total} reachable source families.`,
+        headline: `${currentSignals.length} current source-backed signals across ${grid.coverage.online}/${grid.coverage.total} reachable source families.`,
         summary: priority
           ? `RED QUEEN ranked the current source grid by severity, confidence, and freshness. ${elevatedCount} signals meet the elevated-attention threshold; the highest-ranked record is ${priority.name} from ${priority.source}.`
           : "The verified source grid responded, but no qualifying active signal was returned in the current source windows. This is not proof of safety or complete local coverage.",
@@ -94,10 +96,19 @@ const handler = async (_req: NextRequest) => {
   }
 };
 
+const handler = async (_req: NextRequest, prepared?: unknown) => {
+  if (!prepared) return NextResponse.json({ error: "No verified source snapshot was prepared before payment." }, { status: 503 });
+  return NextResponse.json(prepared);
+};
+
 export const GET = withFriendlyX402(
   handler,
   {
     productId: "global-source-synthesis",
+    preflight: async (req: NextRequest) => {
+      const response = await prepareResponse(req);
+      return response.ok ? { prepared: await response.json() } : response;
+    },
     accepts: {
       scheme: "exact",
       price: "$0.01",

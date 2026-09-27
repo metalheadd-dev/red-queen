@@ -72,7 +72,7 @@ export default function ForAgentsPage() {
         <header>
           <p className={styles.eyebrow}>LIVE MERCHANT CATALOG</p>
           <h2>Pay for one declared output.</h2>
-          <p>No subscription. No provider API key. Every operation declares its price and result before settlement.</p>
+          <p>No subscription. No provider API key. Every operation declares its price, result and delivery mode before settlement.</p>
         </header>
 
         <div className={styles.productGrid}>
@@ -93,6 +93,16 @@ export default function ForAgentsPage() {
                   <dt>DELIVERS</dt>
                   <dd>{product.output}</dd>
                 </div>
+                <div>
+                  <dt>DELIVERY</dt>
+                  <dd>{product.deliveryMode.replaceAll("_", " ")}</dd>
+                </div>
+                {product.freePreflight ? (
+                  <div>
+                    <dt>FREE GATE</dt>
+                    <dd>{product.freePreflight}</dd>
+                  </div>
+                ) : null}
               </dl>
             </article>
           ))}
@@ -128,6 +138,7 @@ export default function ForAgentsPage() {
           <li>No custody or automatic spending authority.</li>
           <li>No seed phrase or private key is ever requested.</li>
           <li>Every retry is bound to one operation ID and payment fingerprint.</li>
+          <li>Every catalog entry discloses whether output is prepared first or depends on post-payment procurement.</li>
           <li>Payment never creates XP, BIO-SCORE or survival competence.</li>
         </ul>
       </section>

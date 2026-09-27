@@ -27,38 +27,40 @@ function validateInput(request: NextRequest) {
   return "";
 }
 
-const handler = async (request: NextRequest) => {
-  try {
-    const input = readInput(request);
-    const grid = await fetchSignalGrid();
-    if (grid.coverage.online < MINIMUM_PAID_SOURCE_COVERAGE) {
-      return NextResponse.json({
-        success: false,
-        error: `Only ${grid.coverage.online}/${grid.coverage.total} source families responded. Paid Local Delta requires ${MINIMUM_PAID_SOURCE_COVERAGE}.`,
-        sourceStatus: grid.sourceHealth,
-        syntheticData: false,
-      }, { status: 503 });
-    }
-    return NextResponse.json({
-      success: true,
-      clearance: "PAID OUTPUT // x402 SETTLED",
-      generatedAt: grid.generatedAt,
-      report: buildLocalDelta(grid, input),
-      sourceCoverage: grid.coverage,
-      sourceStatus: grid.sourceHealth,
-      trustBoundary: "No fictional archive records are included. No match is not proof of safety, and exact home location is neither required nor retained by this endpoint.",
-    });
-  } catch (error) {
-    console.error("Local Delta failed:", error);
-    return NextResponse.json({ success: false, error: "The verified signal grid could not produce a Local Delta. No synthetic report was substituted." }, { status: 503 });
-  }
+const handler = async (_request: NextRequest, prepared?: unknown) => {
+  if (!prepared) return NextResponse.json({ success: false, error: "Local Delta was not prepared before settlement." }, { status: 503 });
+  return NextResponse.json({
+    success: true,
+    clearance: "PAID OUTPUT // x402 SETTLED",
+    ...(prepared as Record<string, unknown>),
+    trustBoundary: "No fictional archive records are included. No match is not proof of safety, and exact home location is neither required nor retained by this endpoint.",
+  });
 };
 
 export const GET = withFriendlyX402(handler, {
   productId: "local-delta-brief",
   preflight: async (request: NextRequest) => {
     const error = validateInput(request);
-    return error ? NextResponse.json({ error }, { status: 400 }) : null;
+    if (error) return NextResponse.json({ error }, { status: 400 });
+    try {
+      const grid = await fetchSignalGrid();
+      if (grid.coverage.online < MINIMUM_PAID_SOURCE_COVERAGE) {
+        return NextResponse.json({ error: `Only ${grid.coverage.online}/${grid.coverage.total} source families responded. Paid Local Delta requires ${MINIMUM_PAID_SOURCE_COVERAGE}. No payment was requested.`, sourceStatus: grid.sourceHealth, syntheticData: false }, { status: 503 });
+      }
+      const report = buildLocalDelta(grid, readInput(request));
+      if (!report.changes.length) {
+        return NextResponse.json({
+          error: "No current, source-backed change matched this area in the last 24 hours. No payment was requested.",
+          freeSummary: report.headline,
+          sourceCoverage: grid.coverage,
+          uncertainty: report.uncertainty,
+        }, { status: 409 });
+      }
+      return { prepared: { generatedAt: grid.generatedAt, report, sourceCoverage: grid.coverage, sourceStatus: grid.sourceHealth } };
+    } catch (error) {
+      console.error("Local Delta preflight failed:", error);
+      return NextResponse.json({ error: "The source grid could not prepare a Local Delta. No payment was requested." }, { status: 503 });
+    }
   },
   accepts: { scheme: "exact", price: "$0.01", network, payTo: svmAddress },
   description: "24-hour source-backed signal changes around a user-supplied broad location or approximate coordinates.",

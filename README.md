@@ -50,7 +50,7 @@ Local Pulse resolves only a user-entered city or region, never an exact address.
 | Preparedness checklist and saved Queen protocols | **Live** | Private plans currently persist in the browser; they are not published on-chain. |
 | BIO-SCORE and SOLvivor profile | **Live** | BIO changes only through eligible evaluated evidence, never from holdings or ordinary chat volume. |
 | `$THREAT` clearance and Queen Visage | **Live / configured environments** | Balance proof is read from Solana; Queen Visage requires at least 500,000 $THREAT, an OpenAI key, and a proof refreshed within 30 minutes. |
-| x402 exact-USDC intelligence endpoints | **Runtime-gated beta** | Seven paid operations: global synthesis, Local Delta, 72-hour plan, Incident Dossier, transaction risk, network health, and wallet exposure. Disabled unless recipient, facilitator, network, migration, and receipt store pass health checks. |
+| x402 exact-USDC intelligence endpoints | **Runtime-gated beta** | Ten paid operations, including change-gated Local Delta, Plan Recheck, incident, wallet and agent-procurement outputs. Disabled unless recipient, facilitator, network, migration, and receipt store pass health checks. |
 | Jupiter `$THREAT` acquisition | **Runtime-gated beta** | SOL/USDC → canonical `$THREAT` through Swap V2 order + execute. The server never holds a user key; quote, fee and output appear before wallet approval. |
 | Wallet Intelligence / Lockdown | **Read-only live / transaction feature-gated** | Reads SPL and Token-2022 authority state. Revocation preparation requires a verified wallet session, successful simulation, explicit environment enablement, and a separate wallet approval. |
 | 8004 Agent Registry identity | **Live** | RED QUEEN is registered on Solana mainnet with Agent ID / Agent Asset `NBetsSc3jdzGUTenVxtY3W7UFqeKJiY1kZ7EueuYaUS`. The domain metadata, MCP endpoint, OASF skills/domains and x402 declaration are public. Operational-wallet binding uses a separate owner-controlled message proof and transaction. |
@@ -131,8 +131,13 @@ Current paid resources:
 - `GET /api/intel/wallet-exposure?address={wallet}`: 0.02 USDC SPL and Token-2022 authority exposure audit.
 - `GET /api/intel/local-delta?area={area}&lat={lat}&lng={lng}&radiusKm={radius}`: 0.01 USDC source-backed 24-hour Local Delta.
 - `POST /api/intel/preparedness-plan`: 0.02 USDC personalized phased 72-hour plan.
+- `POST /api/intel/preparedness-recheck`: 0.01 USDC plan delta, available only after the free quote detects a current matching source revision.
 - `GET /api/intel/incident-dossier?signalId={verified-signal}`: 0.02 USDC timestamped dossier and export.
 - `POST /api/intel/transaction-risk`: 0.01 USDC unsigned transaction simulation and bounded risk explanation.
+- `POST /api/intel/premium-area`: 0.05 USDC provider-metered area intelligence after a free provider readiness check.
+- `POST /api/intel/external-intelligence`: 0.08 USDC capped agent-to-agent research after a reviewed procurement quote.
+
+Eight deterministic resources use `PREPARED_BEFORE_PAYMENT`: RED QUEEN computes and validates the complete output before returning an x402 challenge. Premium Area and External Intelligence use `UPSTREAM_AFTER_PAYMENT` because they purchase third-party evidence after settlement; this risk is declared in the public catalog and reliability endpoint and remains a production gate until durable fulfillment or refund handling exists. Plan Recheck and Incident Dossier expose free preflight endpoints so callers pay only when a deliverable current revision exists.
 
 Signed-in Solana accounts can read private receipt summaries at `GET /api/profile/x402-receipts`. The endpoint never exposes delivered report bodies and never treats payment as readiness evidence.
 
@@ -148,9 +153,15 @@ The first successfully verified swap can create one `ONCHAIN_INITIATE` achieveme
 
 Delegate revocation is disabled unless `WALLET_LOCKDOWN_ENABLED=true`. When enabled, `POST /api/onchain/wallet/lockdown/prepare` accepts at most eight selected token accounts, verifies the signed-in wallet owns them, rebuilds the authority state from Mainnet, constructs revoke-only instructions, and returns a transaction only after unsigned RPC simulation succeeds. The user must still inspect and approve the transaction in their wallet.
 
-The 0.01 USDC global synthesis now uses the same seven-source normalized signal engine as Pulse. It requires at least four reachable source families before delivery; a `503` handler response cancels settlement and never substitutes fictional or cached “safe default” telemetry. Payment requirements, including the current recipient and asset, come from the runtime HTTP 402 challenge rather than static documentation.
+The 0.01 USDC global synthesis now uses the same seven-source normalized signal engine as Pulse. It requires at least four reachable source families before payment and never substitutes fictional or cached “safe default” telemetry. Deterministic paid reports are prepared before the x402 challenge so a source or RPC failure does not open a payment request. Payment requirements, including the current recipient and asset, come from the runtime HTTP 402 challenge rather than static documentation.
 
 Apply `supabase/migrations/20260817170000_create_x402_operations.sql` to the linked Supabase project before enabling x402. The table has RLS enabled and intentionally exposes no browser policies; only the server service role can read payment receipts or paid outputs.
+
+### 5.1 RQ Proof Protocol and Agent Studio
+
+`/proofs` creates a SHA-256 fingerprint of an important Queen assessment, threat comparison, preparedness protocol or agent blueprint entirely in the browser. An optional user-approved Solana Memo transaction contains only `RQ_PROOF_V1`, artifact type, timestamp and hash. The full report, title, sources, location and household context remain off-chain. The verifier recomputes the hash locally and compares it with a confirmed Memo transaction. A proof establishes existence of one exact opaque version, not truth, safety or source quality.
+
+`/agents` is the first local Personal Survival Ally prototype. It compiles a portable `rq-agent-blueprint-v1` manifest with a narrow directive, approved modules, memory boundary and an `EVERY_OPERATION` x402 policy. No agent is hosted, registered, scheduled or given spending authority. A free local slot remains available; observed `$THREAT` clearance expands draft slots and module capacity without restricting emergency information. Blueprints can be exported or passed to RQ Proof Protocol for optional hash anchoring.
 
 ### 6. SOLvivor Network
 
@@ -170,6 +181,7 @@ RED QUEEN is registered with canonical Agent ID / Agent Asset `NBetsSc3jdzGUTenV
 
 ## Next Solana integrations
 
+- [THE QUEEN'S CHAMBER](docs/QUEENS_CHAMBER.md): a holder-gated collaborative space for Personal Survival Allies, contribution incentives, governed previews, external 8004 agents, and review-only agent-generated GitHub pull requests.
 - Solana Actions/Blinks for shareable RED QUEEN protocols and paid intelligence actions, after the core daily loop is stable.
 - Complete the owner-approved operational-wallet binding for the registered RED QUEEN Agent Asset, then expose the resulting mainnet status publicly.
 - Kora fee abstraction for sponsored first actions without requiring a pre-funded SOL balance.

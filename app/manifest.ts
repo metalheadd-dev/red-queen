@@ -2,13 +2,13 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "RQ · Survival Intelligence",
-    short_name: "RQ",
-    description: "Ask Red Queen. Understand threats, make a plan and find the gear you need.",
+    name: "RQ Corp | Red Queen",
+    short_name: "RQ Corp",
+    description: "Your survival field terminal. Ask Red Queen, review live threats and prepare your next move.",
     start_url: "/",
     display: "standalone",
     background_color: "#050505",
-    theme_color: "#ff0033",
+    theme_color: "#ff1748",
     icons: [
       {
         src: "/token-image.png",

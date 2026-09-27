@@ -911,7 +911,7 @@ h1, h2, h3, h4, h5 {
 }
 .rq-readiness-bridge strong { display: block; margin-top: 4px; color: #fff; font-size: 12px; }
 .rq-readiness-bridge p { margin: 4px 0 0; color: rgba(255,255,255,.45); font-size: 10px; line-height: 1.45; }
-.rq-readiness-bridge button { flex: 0 0 auto; padding: 9px 11px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 700 9px var(--mono); cursor: pointer; }
+.rq-readiness-bridge button, .rq-readiness-bridge a { flex: 0 0 auto; padding: 9px 11px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 700 9px var(--mono); text-align: center; text-decoration: none; cursor: pointer; }
 
 .rq-session-bar { padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(7,8,10,.96); }
 .rq-mode-selector { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }

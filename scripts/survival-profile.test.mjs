@@ -52,6 +52,22 @@ test("local profile save preserves agent preferences and tracks freshness", () =
   assert.equal(profile.readLocalSurvivalProfile(device).people, 3);
 });
 
+test("plan condition checkpoint advances without rewriting user progress time", () => {
+  const plans = load("lib/preparedness-plan.ts");
+  const device = storage();
+  const plan = {
+    id: "plan-1", title: "Blackout plan", objective: "Keep essentials running", area: "Madrid", focus: "BLACKOUT",
+    grounding: "GENERAL_KNOWLEDGE", createdAt: "2026-09-26T10:00:00.000Z", updatedAt: "2026-09-27T09:00:00.000Z",
+    reviewAt: "2026-09-28T10:00:00.000Z", status: "ACTIVE",
+    steps: [{ id: "a", text: "Check lighting", completed: true }, { id: "b", text: "Check water", completed: false }],
+  };
+  plans.savePreparednessPlan(device, plan);
+  const next = plans.updatePreparednessPlanCheckpoint(device, "plan-1", "2026-09-27T11:00:00.000Z");
+  assert.equal(next[0].conditionCheckedAt, "2026-09-27T11:00:00.000Z");
+  assert.equal(next[0].updatedAt, "2026-09-27T09:00:00.000Z");
+  assert.equal(next[0].steps[0].completed, true);
+});
+
 test("private account route rejects unauthenticated reads and writes", async () => {
   const route = load("app/api/profile/survival-context/route.ts", {
     "@/lib/auth-helpers": { getAuthIdentifier: async () => null },

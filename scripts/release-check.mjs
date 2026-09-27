@@ -37,6 +37,10 @@ const communityMigration = read("supabase/migrations/20260818120000_add_communit
 const threatSwapOrder = read("app/api/onchain/swap/threat/order/route.ts");
 const threatSwapExecute = read("app/api/onchain/swap/threat/execute/route.ts");
 const transactionRiskRoute = read("app/api/intel/transaction-risk/route.ts");
+const reliabilityRoute = read("app/api/reliability/route.ts");
+const intelligenceProducts = read("lib/intelligence-products.ts");
+const proofLab = read("components/IntelligenceProofLab.tsx");
+const agentBlueprint = read("lib/agent-blueprint.ts");
 
 requireCondition(!packageJson.scripts?.postinstall, "postinstall must not patch payment dependencies");
 requireCondition(!packageJson.dependencies?.["@solana/wallet-adapter-wallets"], "release must not install the unused all-wallet adapter bundle");
@@ -59,6 +63,7 @@ requireCondition(fs.existsSync(path.join(root, "supabase/migrations/202608171700
 requireCondition(fs.existsSync(path.join(root, "supabase/migrations/20260817210000_create_guest_agent_usage.sql")), "guest quota migration is missing");
 requireCondition(fs.existsSync(path.join(root, "supabase/migrations/20260818120000_add_community_leaderboard_opt_in.sql")), "community opt-in migration is missing");
 requireCondition(fs.existsSync(path.join(root, "supabase/migrations/20260818170000_create_onchain_achievements.sql")), "on-chain achievement migration is missing");
+requireCondition(fs.existsSync(path.join(root, "public/.well-known/mcp/server-card.json")), "public MCP server card is missing");
 requireCondition(communityMigration.includes("community_visible boolean not null default false"), "community profiles must remain private by default");
 requireCondition(communityLeaderboard.includes('.eq("community_visible", true)'), "public readiness board must select opted-in profiles only");
 requireCondition(!communityLeaderboard.includes("payer:"), "public readiness board must not expose payer identity");
@@ -67,6 +72,14 @@ requireCondition(threatSwapOrder.includes("outputMint: THREAT_TOKEN_MINT"), "Jup
 requireCondition(threatSwapOrder.includes("outputDecimals"), "Jupiter order must verify canonical mint decimals before display");
 requireCondition(threatSwapExecute.includes("signedTransaction") && threatSwapExecute.includes("requestId"), "Jupiter execution must submit only the reviewed signed order");
 requireCondition(transactionRiskRoute.includes("No payment was requested"), "transaction-risk input must be validated before x402 payment");
+requireCondition(!reliabilityRoute.includes("paymentWithoutDeclaredOutput"), "reliability endpoint must not overstate delivery guarantees");
+requireCondition(reliabilityRoute.includes("upstreamAfterPayment"), "reliability endpoint must disclose post-payment upstream risk");
+requireCondition(intelligenceProducts.includes('freePreflight: "/api/intel/preparedness-recheck/quote"'), "plan recheck must retain its free source-change gate");
+requireCondition(proofLab.includes("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"), "RQ Proof Protocol must use the canonical Memo program");
+requireCondition(!proofLab.includes("SystemProgram.transfer"), "RQ Proof Protocol must never add a token or SOL transfer");
+requireCondition(proofLab.includes("It does not prove the assessment is true"), "RQ Proof Protocol must disclose its evidence boundary before signature");
+requireCondition(agentBlueprint.includes('approval: "EVERY_OPERATION"'), "agent blueprints must retain per-operation payment approval");
+requireCondition(agentBlueprint.includes('irreversibleActions: "DENIED"'), "agent blueprints must deny irreversible actions");
 
 if (strictEnvironment) {
   loadEnvConfig(root);
