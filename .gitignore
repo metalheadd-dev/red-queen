@@ -32,9 +32,12 @@ yarn-error.log*
 
 # mobile build and signing keys
 *.keystore
+*.jks
+.tools/
 *.apk
 *.aab
 .gradle/
+.gradle-user-home/
 build/
 local.properties
 
@@ -52,6 +55,11 @@ PRODUCTION_MILESTONE_REPORT.md
 AGENTS.md
 MEMORY.md
 SOUL.md
+
+# generated Godot editor state
+game/rq-shelter/.godot/
+game/rq-shelter/dist/
+game/rq-shelter/android/
 
 # internal game documentation (never publish)
 GAME DOCS/

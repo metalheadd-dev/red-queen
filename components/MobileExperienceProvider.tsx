@@ -53,6 +53,32 @@ function matchesWatch(signal: MobileSignal, memory: SignalWatchMemory, location?
 
 export default function MobileExperienceProvider() {
   useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const compact = window.matchMedia("(max-width:700px)");
+    let restingHeight = viewport.height;
+    const sync = () => {
+      const element = document.activeElement;
+      const editing = element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement
+        && !["checkbox", "radio", "button", "submit", "file", "range", "color"].includes(element.type);
+      if (!editing) restingHeight = viewport.height;
+      const keyboardOpen = compact.matches && editing && restingHeight - viewport.height > 180;
+      document.documentElement.dataset.rqKeyboard = keyboardOpen ? "open" : "closed";
+    };
+    viewport.addEventListener("resize", sync);
+    document.addEventListener("focusin", sync);
+    document.addEventListener("focusout", sync);
+    compact.addEventListener("change", sync);
+    return () => {
+      viewport.removeEventListener("resize", sync);
+      document.removeEventListener("focusin", sync);
+      document.removeEventListener("focusout", sync);
+      compact.removeEventListener("change", sync);
+      delete document.documentElement.dataset.rqKeyboard;
+    };
+  }, []);
+
+  useEffect(() => {
     void registerRedQueenServiceWorker().catch(() => undefined);
   }, []);
 

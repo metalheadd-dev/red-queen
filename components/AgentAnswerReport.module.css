@@ -1,0 +1,7 @@
+.report { margin-top:18px; border-top:1px solid rgba(255,255,255,.12); padding-top:14px; }
+.report button { min-height:44px; padding:10px 12px; color:#c2c8d0; border:1px solid rgba(255,255,255,.18); background:transparent; font:600 10px/1.5 var(--mono); cursor:pointer; }
+.report button:hover { color:#ff9aaa; border-color:#ff304c; }.report button:disabled { opacity:.6; cursor:wait; }
+.report :is(button,select,textarea):focus-visible { outline:2px solid #ff304c; outline-offset:3px; }
+.form { display:grid; gap:14px; margin-top:15px; }.form label { display:grid; gap:8px; color:var(--text-muted,#b7bdc5); font:400 12px/1.6 var(--sans); }
+.form :is(select,textarea) { width:100%; padding:12px; color:var(--text-main,#eee); border:1px solid rgba(127,127,127,.35); background:var(--bg-secondary,#111419); font:400 14px/1.5 var(--sans); }.form textarea { resize:vertical; }
+.form > div { display:flex; flex-wrap:wrap; gap:10px; }.report p { color:var(--text-muted,#a9afb7); font:400 12px/1.6 var(--sans); margin-top:10px; }

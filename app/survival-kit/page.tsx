@@ -8,6 +8,7 @@ import PreparednessPlansPanel from "@/components/PreparednessPlansPanel";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
 import MobileCommandHeader from "@/components/MobileCommandHeader";
 import SurvivalProfileEditor from "@/components/SurvivalProfileEditor";
+import ResponsiveDisclosure from "@/components/ResponsiveDisclosure";
 import {
   PREPAREDNESS_CHECKLIST,
   PREPAREDNESS_DOMAINS,
@@ -153,8 +154,10 @@ export default function SurvivalKitPage() {
         </section>
 
         <DailyActionPanel context="PREPARE" />
-        <SurvivalProfileEditor onSaved={handleProfileSaved} />
         <PreparednessPlansPanel />
+        <ResponsiveDisclosure summary="Household & gear" className="rq-prepare-context" revealHash="#my-loadout">
+          <SurvivalProfileEditor onSaved={handleProfileSaved} />
+        </ResponsiveDisclosure>
         <ActionHistoryPanel />
 
         <section className="prepare-next-action">

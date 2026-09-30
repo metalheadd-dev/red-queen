@@ -28,7 +28,7 @@ export default function RqWelcome() {
     let waitingForBoot = false;
     const scheduleOpen = () => { timer = setTimeout(open, 450); };
     try {
-      const shouldOpen = pathname === "/" && !readRqProfile(localStorage) && localStorage.getItem("rq-welcome-seen-v1") !== "1" && sessionStorage.getItem("rq-welcome-dismissed") !== "1";
+      const shouldOpen = !window.matchMedia("(max-width: 700px), (display-mode: standalone)").matches && pathname === "/" && !readRqProfile(localStorage) && localStorage.getItem("rq-welcome-seen-v1") !== "1" && sessionStorage.getItem("rq-welcome-dismissed") !== "1";
       if (shouldOpen) {
         waitingForBoot = document.documentElement.dataset.rqBoot === "show";
         if (waitingForBoot) window.addEventListener(RQ_BOOT_COMPLETE_EVENT, scheduleOpen, { once: true });

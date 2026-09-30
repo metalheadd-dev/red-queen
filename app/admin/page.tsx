@@ -540,6 +540,7 @@ export default function AdminDashboardPage() {
             </h1>
           </div>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <Link href="/admin/feedback" className="btn">QUEEN FEEDBACK</Link>
             <button
               onClick={() => setActiveTab("submissions")}
               className="btn"

@@ -13,6 +13,7 @@ import { Connection, PublicKey, TransactionMessage, VersionedTransaction, Comput
 import { getAssociatedTokenAddress, createTransferCheckedInstruction } from "@solana/spl-token";
 import { getWorkingConnection } from "@/lib/solana";
 import AgentResponseCard from "@/components/AgentResponseCard";
+import AgentAnswerReport from "@/components/AgentAnswerReport";
 import CoreLoopGuide from "@/components/CoreLoopGuide";
 import MobileCommandHeader from "@/components/MobileCommandHeader";
 import { RED_QUEEN_AGENT_ID_SHORT } from "@/lib/agent-identity-public";
@@ -1287,6 +1288,7 @@ ${cmd} is not active. Type /help for the current platform command index, or ask 
                       {renderContent(msg.content)}
                     </div>
                   )}
+                  {msg.role === "assistant" && msg.content !== CORE_INTRO_MESSAGE && <AgentAnswerReport prompt={i > 0 && messages[i - 1].role === "user" ? messages[i - 1].content : ""} reply={msg.content} />}
                   {msg.role === "assistant" && msg.content !== CORE_INTRO_MESSAGE && (
                     <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "8px", flexWrap: "wrap" }}>
                       {!msg.intel && msg.bioScore && msg.bioScore !== "PENDING" && (

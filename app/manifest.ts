@@ -31,6 +31,13 @@ export default function manifest(): MetadataRoute.Manifest {
         url: "/red-queen",
         icons: [{ src: "/token-image.png", sizes: "512x512", type: "image/png" }],
       },
+      {
+        name: "Gaming Room",
+        short_name: "Gaming",
+        description: "Find survival games and plan a run with Queen.",
+        url: "/gaming",
+        icons: [{ src: "/token-image.png", sizes: "512x512", type: "image/png" }],
+      },
     ],
   };
 }

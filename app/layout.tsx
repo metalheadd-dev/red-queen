@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./rq-experience.css";
 import "./rq-boot.css";
+import "./rq-mobile.css";
 import RqWelcome from "@/components/RqWelcome";
 import RqBootGate from "@/components/RqBootGate";
 import NavBar from "@/components/NavBar";
@@ -20,9 +21,9 @@ const themeBootstrapScript = `
     document.documentElement.dataset.theme = "dark";
   }
   try {
-    document.documentElement.dataset.rqBoot = sessionStorage.getItem("rq-boot-seen-v1") === "1" ? "seen" : "show";
+    document.documentElement.dataset.rqBoot = window.matchMedia("(max-width: 700px), (display-mode: standalone)").matches || sessionStorage.getItem("rq-boot-seen-v1") === "1" ? "seen" : "show";
   } catch (_) {
-    document.documentElement.dataset.rqBoot = "show";
+    document.documentElement.dataset.rqBoot = window.matchMedia("(max-width: 700px), (display-mode: standalone)").matches ? "seen" : "show";
   }
 `;
 
@@ -52,6 +53,13 @@ export const metadata: Metadata = {
     description: "The survival ecosystem on Solana. Signals, decisions, x402 intelligence and real-world action with Red Queen.",
     images: ["/red-queen-social-card.png"],
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AgentMode, SurvivalContext } from "@/lib/survival-context";
 
-type DockAction = { label: string; mode: AgentMode; prompt: string };
+type DockAction = { label: string; mode: AgentMode; prompt: string; href?: string };
 
 const dockContent: Array<{
   match: (pathname: string) => boolean;
@@ -14,6 +14,16 @@ const dockContent: Array<{
   note: string;
   actions: DockAction[];
 }> = [
+  {
+    match: (pathname) => pathname.startsWith("/gaming"),
+    eyebrow: "GAMING ROOM",
+    title: "What is your next move?",
+    note: "Choose a survival game, plan a session without spoilers or review your last run with me.",
+    actions: [
+      { label: "ENTER THE QUEEN CHANNEL", mode: "ANALYZE", prompt: "", href: "/gaming/queen" },
+      { label: "EXPLORE SURVIVAL GAMES", mode: "ANALYZE", prompt: "", href: "/gaming#gaming-catalog" },
+    ],
+  },
   {
     match: (pathname) => pathname.startsWith("/onchain") || pathname.startsWith("/network-clearance") || pathname.startsWith("/reports") || pathname.startsWith("/shop"),
     eyebrow: "RQ / NEED A HAND?",
@@ -96,9 +106,10 @@ const dockContent: Array<{
   },
 ];
 
-const visibleCoreRoutes = ["/shop", "/reports", "/", "/pulse", "/red-queen", "/prepare", "/library", "/docs", "/profile", "/onchain", "/community", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance"];
+const visibleCoreRoutes = ["/gaming", "/shop", "/reports", "/", "/pulse", "/red-queen", "/prepare", "/library", "/docs", "/profile", "/onchain", "/community", "/terminal", "/survival-kit", "/threat-vector", "/operative", "/network-clearance"];
 
 function buildHref(action: DockAction, area: string) {
+  if (action.href) return action.href;
   const query = new URLSearchParams({ mode: action.mode, prompt: action.prompt });
   if (area) query.set("area", area);
   return `/red-queen?${query.toString()}`;
@@ -106,6 +117,7 @@ function buildHref(action: DockAction, area: string) {
 
 export default function QueenDock() {
   const pathname = usePathname();
+  const gaming = pathname.startsWith("/gaming");
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [area, setArea] = useState("");
@@ -123,12 +135,12 @@ export default function QueenDock() {
   useEffect(() => setOpen(false), [pathname]);
 
   const content = useMemo(
-    () => dockContent.find((item) => item.match(pathname)) || dockContent[0],
+    () => dockContent.find((item) => item.match(pathname)) || dockContent[1],
     [pathname],
   );
 
   const isVisible = visibleCoreRoutes.some((route) => route === "/" ? pathname === "/" : pathname.startsWith(route));
-  if (!isVisible || pathname === "/" || pathname.startsWith("/red-queen") || pathname.startsWith("/terminal")) return null;
+  if (!isVisible || pathname === "/" || pathname.startsWith("/gaming/queen") || pathname.startsWith("/red-queen") || pathname.startsWith("/terminal")) return null;
 
   const minimizeDock = () => {
     setOpen(false);
@@ -152,13 +164,13 @@ export default function QueenDock() {
           </div>
           <h2>{content.title}</h2>
           <p>{content.note}</p>
-          {area && <small>CONTEXT LOCKED · {area.toUpperCase()}</small>}
+          {area && !gaming && <small>CONTEXT LOCKED · {area.toUpperCase()}</small>}
           <div className="queen-dock-actions">
             {content.actions.map((action) => (
               <Link key={action.label} href={buildHref(action, area)}>{action.label}<span>→</span></Link>
             ))}
           </div>
-          <Link href="/red-queen" className="queen-dock-open-terminal">OPEN RED QUEEN</Link>
+          <Link href={gaming ? "/gaming/queen" : "/red-queen"} className="queen-dock-open-terminal">OPEN RED QUEEN</Link>
         </div>
       )}
       {minimized ? (
@@ -170,7 +182,7 @@ export default function QueenDock() {
         <div className="queen-dock-launcher">
           <button className="queen-dock-trigger" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
             <span className="queen-dock-orb"><i /></span>
-            <span><strong>Ask Red Queen</strong><small>{area ? `${area} · SHE REMEMBERS` : "SURVIVAL INTELLIGENCE · LISTENING"}</small></span>
+            <span><strong>Ask Red Queen</strong><small>{gaming ? "GAMING COMPANION · YOUR NEXT MOVE" : area ? `${area} · SHE REMEMBERS` : "SURVIVAL INTELLIGENCE · LISTENING"}</small></span>
             <b>{open ? "×" : "↑"}</b>
           </button>
           <button className="queen-dock-minimize" onClick={minimizeDock} aria-label="Minimize Red Queen assistant">−</button>

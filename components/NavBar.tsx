@@ -20,10 +20,21 @@ const exploreLinks = [
   { href: "/agents", label: "Agent Studio", subtitle: "Design bounded agents under Queen oversight" },
   { href: "/library", label: "Threat library", subtitle: "Learn about real and fictional threats" },
   { href: "/community", label: "The world of RQ", subtitle: "Lore, community and the Queen's story" },
+  { href: "/gaming", label: "Gaming Room", subtitle: "Survival games, RQ originals and competitions" },
   { href: "/network-clearance", label: "Wallet & $THREAT", subtitle: "Your wallet, benefits and agent identity" },
   { href: "/for-agents", label: "For developers & agents", subtitle: "Connect your agent to RQ" },
   { href: "/docs", label: "How RQ works", subtitle: "A quick guide to getting started" },
 ];
+function MobileNavIcon({ name }: { name: "home" | "queen" | "pulse" | "plan" | "profile" }) {
+  const paths = {
+    home: <><path d="m3 10 9-7 9 7" /><path d="M5 9v12h14V9M9 21v-7h6v7" /></>,
+    queen: <><path d="m4 7 4 4 4-7 4 7 4-4-2 12H6Z" /><path d="M8 15h8" /></>,
+    pulse: <><circle cx="12" cy="12" r="9" /><path d="M3 12h5l2-4 4 8 2-4h5" /></>,
+    plan: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 3h6v3H9ZM9 13l2 2 4-4" /></>,
+    profile: <><circle cx="12" cy="8" r="4" /><path d="M4 21v-2a8 8 0 0 1 16 0v2" /></>,
+  };
+  return <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
+}
 export default function NavBar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
@@ -44,9 +55,17 @@ export default function NavBar() {
   function active(href: string) {
     if (href === "/red-queen") return pathname === "/red-queen" || pathname === "/terminal";
     if (href === "/prepare") return pathname === "/prepare" || pathname === "/survival-kit";
-    return pathname === href;
+    if (href === "/profile") return pathname === "/profile" || pathname === "/operative";
+    return pathname === href || (href === "/gaming" && pathname.startsWith("/gaming/"));
   }
   const account = user ? "/profile" : "/login";
+  const quickLinks = [
+    { href: "/", label: "Home", icon: "home" },
+    { href: "/red-queen", label: "Queen", icon: "queen" },
+    { href: "/pulse", label: "Pulse", icon: "pulse" },
+    { href: "/prepare", label: "Plan", icon: "plan" },
+    { href: account, label: "Profile", icon: "profile" },
+  ] as const;
   return <>
     <a className="rq-skip-link" href="#rq-main">Skip to content</a>
     <nav className="navbar rq-navbar" aria-label="Primary navigation"><div className="navbar-inner">
@@ -58,8 +77,8 @@ export default function NavBar() {
     </div></nav>
     <div id="rq-mobile-menu" className={`rq-mobile-menu${menuOpen ? " is-open" : ""}`} hidden={!menuOpen}>
       <nav aria-label="All pages">{[...primaryLinks, ...exploreLinks].map(link => <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)}><strong>{link.label}</strong><small>{link.subtitle}</small><span>↗</span></Link>)}</nav>
-      <div className="rq-mobile-menu-foot"><button onClick={() => { setMenuOpen(false); window.dispatchEvent(new Event(RQ_WELCOME_EVENT)); }}>Personalise my RQ</button><Link href={account}>{user ? "My profile" : "Sign in"}</Link>{user && <button onClick={() => { void logout(); setMenuOpen(false); }}>Sign out</button>}</div>
+      <div className="rq-mobile-menu-foot"><button onClick={() => { setMenuOpen(false); window.dispatchEvent(new Event(RQ_WELCOME_EVENT)); }}>Personalise my RQ</button><Link href={account} onClick={() => setMenuOpen(false)}>{user ? "My profile" : "Sign in"}</Link><Link href="/offline.html">Offline card</Link><Link href="/privacy" onClick={() => setMenuOpen(false)}>Privacy</Link><Link href="/terms" onClick={() => setMenuOpen(false)}>Terms</Link>{user && <button onClick={() => { void logout(); setMenuOpen(false); }}>Sign out</button>}</div>
     </div>
-    <nav className="mobile-bottom-nav rq-bottom-nav" aria-label="Quick navigation"><Link href="/" className={pathname === "/" ? "active" : ""}><b aria-hidden="true">⌂</b><span>Home</span></Link>{primaryLinks.map(link => <Link key={link.href} href={link.href} className={`${link.href === "/red-queen" ? "mobile-queen-link " : ""}${active(link.href) ? "active" : ""}`} aria-current={active(link.href) ? "page" : undefined}><b aria-hidden="true">{link.icon}</b><span>{link.label}</span></Link>)}</nav>
+    <nav className="mobile-bottom-nav rq-bottom-nav" aria-label="Quick navigation">{quickLinks.map(link => <Link key={link.href} href={link.href} className={active(link.href) ? "active" : ""} aria-current={active(link.href) ? "page" : undefined} onClick={() => setMenuOpen(false)}><MobileNavIcon name={link.icon} /><span>{link.label}</span></Link>)}</nav>
   </>;
 }

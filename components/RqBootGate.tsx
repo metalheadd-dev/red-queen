@@ -10,14 +10,16 @@ export default function RqBootGate() {
 
   useEffect(() => {
     try {
-      if (sessionStorage.getItem(RQ_BOOT_SESSION_KEY) === "1") {
+      if (window.matchMedia("(max-width: 700px), (display-mode: standalone)").matches || sessionStorage.getItem(RQ_BOOT_SESSION_KEY) === "1") {
         document.documentElement.dataset.rqBoot = "seen";
         setActive(false);
       } else {
         document.documentElement.dataset.rqBoot = "show";
       }
     } catch {
-      document.documentElement.dataset.rqBoot = "show";
+      const compact = window.matchMedia("(max-width: 700px), (display-mode: standalone)").matches;
+      document.documentElement.dataset.rqBoot = compact ? "seen" : "show";
+      if (compact) setActive(false);
     }
   }, []);
 

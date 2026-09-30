@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import SurvivalProfileEditor from "@/components/SurvivalProfileEditor";
+import ProfileSteamLink from "@/components/ProfileSteamLink";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAuth } from "@/components/AuthProvider";
 import { generateApocalypticName } from "@/lib/names";
@@ -659,6 +660,8 @@ export default function OperativeProfilePage() {
           <div><span>RED QUEEN // NEXT LOOP</span><h2>{bioScore === 0 ? "Establish an evidence-based readiness baseline" : `Strengthen ${weakestDomain.label}`}</h2><p>{bioScore === 0 ? "RED QUEEN will present one decision at a time. Your first question alone will not change BIO." : weakestDomain.description}</p></div>
           <Link href={baselineHref}>{bioScore === 0 ? "RUN 3-MIN BASELINE" : "START FOCUSED DRILL"} →</Link>
         </section>
+
+        <ProfileSteamLink />
 
         <section className={`rq-profile-visage${hasFreshQueenVisageProof ? " is-unlocked" : " is-personal"}`}>
           <div className="rq-profile-visage-copy">

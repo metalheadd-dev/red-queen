@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         </header>
 
         <div className="legal-meta">
-          <span>LAST UPDATED // AUGUST 18, 2026</span>
+          <span>LAST UPDATED // SEPTEMBER 30, 2026</span>
           <span>PLAIN-LANGUAGE PRODUCT NOTICE</span>
         </div>
 
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
                 <b>DEVICE MEMORY</b>
                 <p>
                   Broad-area context, onboarding state, preparedness checklists, saved daily actions, Queen
-                  protocols, Signal Watch choices, and any avatar you choose to keep only locally are stored in
+                  protocols, Signal Watch choices, saved Gaming Room titles, and any avatar you choose to keep only locally are stored in
                   your browser. Local-only records do not automatically follow you to another device.
                 </p>
               </article>
@@ -48,7 +48,7 @@ export default function PrivacyPage() {
                 <p>
                   If you sign in, Supabase may store your account identifier, profile, conversation history,
                   readiness evidence, BIO-SCORE records, recent holder verification needed for gated features,
-                  and one optional private final avatar. Your public SOLvivor Network preference is also stored with the account. Signing out ends the session; it does not erase browser memory or existing account
+                  one optional private final avatar, and an optional Steam ID if you connect Steam. Your public SOLvivor Network preference is also stored with the account. Signing out ends the session; it does not erase browser memory or existing account
                   records.
                 </p>
               </article>
@@ -65,6 +65,7 @@ export default function PrivacyPage() {
               <li>Public token balances and transaction data required for holder or payment verification.</li>
               <li>Basic technical and abuse-prevention data needed to keep the service reliable.</li>
               <li>For guest AI quotas, a salted network-identifier hash, request count, and 24-hour reset time. Guest prompts and responses are not stored in the account message table.</li>
+              <li>If you choose Connect with Steam, Steam authenticates you on its own site and returns a Steam ID. RED QUEEN does not receive your Steam password, game library, or achievements.</li>
             </ul>
           </section>
 
@@ -96,6 +97,21 @@ export default function PrivacyPage() {
               avoid repeating your active action and recognize plan progress. It can include one active action, up
               to four plan summaries, baseline completion count, and Signal Watch categories. RED QUEEN does not
               transmit your entire browser storage.
+            </p>
+            <p>
+              Gaming Queen receives the selected game IDs, play preferences and conversation messages when
+              you send a request. It does not receive your Device Survival Memory or private preparedness
+              profile. Gaming replies are copied to this browser under a guest or account-specific key;
+              account replies may also be stored separately with a conversation ID, model and token usage.
+              Private conversation links require the same account to load server history. Gaming does not
+              change BIO-SCORE, certify competition results or initiate transactions. Browser copies remain
+              on this device after sign-out, so use a private browser on shared devices.
+            </p>
+            <p>
+              When you press Send Report, the selected question, AI reply, reason and optional details are
+              stored in a private RQ moderation queue. Reports can be submitted without an account; a
+              hashed technical identifier limits abuse. Reports do not publish your conversation or
+              contact other players. Only authorized RQ administrators can review this queue.
             </p>
             <p>
               Queen Visage is optional and reserved for accounts with a freshly verified balance of at least
@@ -138,6 +154,7 @@ export default function PrivacyPage() {
               <p><b>REMOVE LOCALLY</b> Use in-product Remove controls where available or clear this site&apos;s browser storage.</p>
               <p><b>SEPARATE APPROVAL</b> Connecting or signing in with a wallet never authorizes a payment.</p>
               <p><b>PUBLIC BOARD OPT-IN</b> Existing and new accounts remain private until you join. Leaving removes your profile from the public board.</p>
+              <p><b>STEAM CONNECTION</b> You can disconnect your Steam ID from the <Link href="/gaming/profile">Gaming Room profile</Link>. Saved game picks are a separate browser-only list.</p>
               <p><b>NO DATA BROKERS</b> Solvival Corp does not sell or rent identity data, wallet addresses, or Queen conversations.</p>
             </div>
           </section>

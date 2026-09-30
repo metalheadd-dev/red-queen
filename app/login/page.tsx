@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAuth } from "@/components/AuthProvider";
+import { gamingReturnPath } from "@/lib/gaming/navigation";
+import ResponsiveDisclosure from "@/components/ResponsiveDisclosure";
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
@@ -26,7 +28,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      router.replace("/profile");
+      const requested = new URLSearchParams(window.location.search).get("next");
+      router.replace(gamingReturnPath(requested) || "/profile");
       return;
     }
     if (!connected || walletAttempted.current) return;
@@ -39,7 +42,7 @@ export default function LoginPage() {
         setStatusMsg("");
         walletAttempted.current = false;
       } else {
-        setStatusMsg("Identity confirmed. Opening My Readiness…");
+        setStatusMsg("Identity confirmed. Returning to your account…");
       }
     });
   }, [connected, user, router, loginWithWallet]);
@@ -69,7 +72,7 @@ export default function LoginPage() {
       } else {
         const { error } = await loginWithEmail(email.trim(), password);
         if (error) throw error;
-        setStatusMsg("Identity confirmed. Opening My Readiness…");
+        setStatusMsg("Identity confirmed. Returning to your account…");
       }
     } catch (error: any) {
       setErrorMsg(error?.message || "Sign-in failed. Please try again.");
@@ -104,11 +107,11 @@ export default function LoginPage() {
           <p>Choose email or Solana. Both lead to the same core platform.</p>
         </div>
 
-        <div className="rq-login-wallet">
+        <ResponsiveDisclosure summary="Continue with Solana" className="rq-login-wallet-disclosure"><div className="rq-login-wallet">
           <div><strong>Continue with Solana</strong><small>Sign a message to prove wallet ownership.</small></div>
           <WalletMultiButton />
           <p>READ-ONLY IDENTITY CHECK · NO TRANSACTION · NO SPENDING APPROVAL</p>
-        </div>
+        </div></ResponsiveDisclosure>
 
         <div className="rq-login-divider"><span>OR USE EMAIL</span></div>
 

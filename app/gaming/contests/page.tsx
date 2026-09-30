@@ -1,0 +1,14 @@
+import Link from "next/link";
+
+export default function GamingContestsPage() {
+  return <div className="gaming-page gaming-subpage">
+    <header className="gaming-subhero"><div className="gaming-wrap"><nav className="gaming-breadcrumbs" aria-label="Breadcrumb"><Link href="/gaming">GAMING ROOM</Link><span>/</span><span>COMPETITIONS</span></nav><span className="gaming-kicker">RQ / SEASON BOARD</span><h1>SURVIVE. THEN PROVE IT.</h1><p>One scoreboard for verified game challenges. Separate from the SOLvivor readiness board: game scores never change BIO-SCORE or preparedness rank.</p></div></header>
+    <div className="gaming-wrap gaming-subcontent">
+      <div className="gaming-panel-grid"><section className="gaming-panel" aria-labelledby="season-title"><span className="gaming-state">● PRESEASON / ENTRIES CLOSED</span><h2 id="season-title">SEASON 00: FIELD SETUP</h2><p>We are preparing the first BLACKSITE challenge. The season opens only when the game build, scoring rules and result verification are ready. No prizes or partner games are announced yet.</p><div className="gaming-panel-footer"><Link className="gaming-button gaming-button-outline" href="/gaming">EXPLORE THE ROOM ↗</Link></div></section>
+      <section className="gaming-panel" aria-labelledby="competition-rules-title"><span className="gaming-kicker">THE RULES</span><h2 id="competition-rules-title">FAIR BY DESIGN.</h2><ul><li>Published objective, start and end times before entries open.</li><li>Only server-verified results appear on the board.</li><li>Clear tie-breakers and a dispute window for winners.</li><li>Wallet connection is optional; $THREAT holdings do not change scores.</li></ul></section></div>
+      <section className="gaming-queen-entry" aria-labelledby="queen-season-title"><div><span className="gaming-kicker">RED QUEEN / PRACTICE COMPANION</span><h2 id="queen-season-title">Prepare your next run.</h2><p>Ask Queen for a practice objective or a debrief. These are personal exercises; official entries, scores and rewards remain closed until the season opens.</p></div><Link href="/gaming/queen" className="gaming-button gaming-button-primary">ASK THE QUEEN →</Link></section>
+      <section className="gaming-board" aria-label="Season standings"><header><span>RANK</span><span>PLAYER</span><span>SCORE</span></header><div className="gaming-board-empty"><strong>NO VERIFIED RESULTS YET</strong><p>The first season has not opened. This board will populate from confirmed entries only.</p></div></section>
+      <div className="gaming-chain"><div><span className="gaming-kicker">ONCHAIN SEASON RECORD</span><h2>THE RESULT CAN BE CHECKED.</h2><p>After a season closes, we plan to anchor a digest of finalized results on Solana. Player identity and raw gameplay data stay offchain. No transaction is made just by joining the room.</p></div><Link href="/proofs" className="gaming-button gaming-button-outline">HOW RQ PROOF WORKS ↗</Link></div>
+    </div>
+  </div>;
+}

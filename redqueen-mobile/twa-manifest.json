@@ -19,9 +19,13 @@
     "path": "c:\\Users\\Voronovskiy\\Desktop\\redqueen\\redqueen-mobile\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "3.3",
-  "appVersionCode": 7,
-  "shortcuts": [],
+  "appVersionName": "3.4",
+  "appVersionCode": 8,
+  "shortcuts": [
+    { "name": "Ask Red Queen", "short_name": "Queen", "url": "https://redqueen.space/red-queen", "icon": "https://redqueen.space/token-image.png" },
+    { "name": "Live threats", "short_name": "Threats", "url": "https://redqueen.space/pulse", "icon": "https://redqueen.space/token-image.png" },
+    { "name": "Gaming Room", "short_name": "Gaming", "url": "https://redqueen.space/gaming", "icon": "https://redqueen.space/token-image.png" }
+  ],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://redqueen.space/manifest.webmanifest",
   "fallbackType": "customtabs",
@@ -42,5 +46,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "3.3"
+  "appVersion": "3.4"
 }

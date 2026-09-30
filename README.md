@@ -33,9 +33,20 @@ The browser also keeps a bounded scan baseline and reports what is new, escalate
 | `/docs` | Product Guide: every page, profile field, score, token boundary, x402 flow, and roadmap |
 | `/community` | Queen transmissions, practical field notes, labeled lore, and the opt-in SOLvivor readiness board |
 | `/operative` | My Readiness: identity, BIO, XP, evidence, memory, token clearance |
+| `/gaming` | Survival Gaming Room: curated catalog, RQ originals, competitions, and Steam connection |
+| `/gaming/profile` | Private Steam identity link and browser-saved games |
+| `/gaming/contests` | Preseason board with verified-scoring rules |
 | `/network-clearance` | Solana control plane and live `$THREAT` utility proof |
 
 The unfinished Operations game is intentionally disabled and excluded from the current product navigation.
+
+### Gaming Room and Steam setup
+
+See the [Steam, Gaming Queen and Android setup checklist](docs/gaming-mobile-setup-2026-09-30.md) for exact environment names, additive migrations, sign-in flow and release verification.
+
+The saved-game list supports a saved-only filter, removal from the player station, and browser-tab synchronization. RQ sign-in returns Gaming Room visitors to `/gaming/profile`. Steam account writes use insert-only unique constraints so concurrent callbacks cannot replace an existing link. The policy inquiry for proposed external Solana payments and subsidized discounts is saved in `docs/steam-support-inquiry-2026-09-30.md`; no game checkout or purchase subsidy is enabled.
+
+The Gaming Room catalog, search, filters, browser-saved titles, and preseason board work without account services. Steam connection requires the existing Supabase Auth session, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and the additive migration `supabase/migrations/20260929120000_create_gaming_steam_links.sql` in the same Supabase project. Deploy the code and migration together; without them the UI reports that linking is unavailable. Steam OpenID redirects to `/api/gaming/steam/callback` on the current site origin. Use HTTPS in production. The service-role key stays server-side. An RQ user can connect one Steam ID and disconnect it from `/gaming/profile`; the ID is private and cannot be assigned to two RQ accounts. No Steam Web API key is needed for identity linking. Linking does not import a library, achievements, purchases, or wishlists.
 
 Local Pulse resolves only a user-entered city or region, never an exact address. Broad-area geocoding is user-triggered, cached, provider-swappable, and currently uses OpenStreetMap Nominatim with attribution. The public endpoint is suitable only for moderate use under its usage policy; production scale should use a dedicated or commercial provider.
 
@@ -247,5 +258,9 @@ Then verify desktop and mobile flows for Pulse, Map, Queen, Prepare, Library, My
 `release:check` also prevents payment dependency patching, scheduled treasury automation, accidental Operations exposure, and missing migrations. The strict environment check reports variable names only and never prints secret values. Treasury execution is disabled for this release; `GET /api/treasury/buyback` is read-only and no Vercel cron is scheduled.
 
 ## Safety
+
+Gaming Queen is available at `/gaming/queen` for survival-game discovery, session planning and run debriefs. It uses the existing chat engine while keeping gaming history and progression separate. Conversations include per-conversation drafts, safe sign-in continuation, paged account history and validated JSON backup import/export. In-app Queen feedback is private at `/admin/feedback`. See [implementation and activation](docs/gaming-queen-2026-09-30.md), including the additive account-history/report migration. `npm run test:gaming` checks the Steam flow, persistence, feedback and gaming-agent boundaries. Live Supabase activation was intentionally skipped; no unrelated project is used.
+
+The main Android TWA includes Gaming Room shortcuts. [Android build preparation and actual verification status](docs/android-play-preparation-2026-09-30.md) documents local build commands, environment-based signing and the current Windows Java loopback blocker. No new AAB or Play publication is claimed.
 
 RED QUEEN provides informational threat analysis and preparedness guidance. It does not replace emergency services, official alerts, medical care, legal advice, or professional financial advice. Never enter a seed phrase, private key, exact home address, or sensitive recovery information into the platform.

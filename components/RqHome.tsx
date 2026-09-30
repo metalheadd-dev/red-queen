@@ -5,6 +5,7 @@ import Image from "next/image";
 import RqWordmark from "./RqWordmark";
 import { useRouter } from "next/navigation";
 import { draftQueenQuestion, readRqProfile, RQ_PROFILE_EVENT, RQ_SCENARIOS, RQ_WELCOME_EVENT, type RqProfile } from "@/lib/rq-experience";
+import { DAILY_ACTION_EVENT, DAILY_ACTIONS_STORAGE_KEY, DAILY_ACTION_STORAGE_KEY, parseDailyActions, parseDailyAction, type DailyAction } from "@/lib/daily-action";
 
 const paidOperations = [
   { id: "local", index: "01", name: "Local threat brief", price: "0.01 USDC", detail: "Verified changes near one broad area." },
@@ -21,28 +22,36 @@ export default function RqHome() {
   const [selected, setSelected] = useState(0);
   const [question, setQuestion] = useState("");
   const [profile, setProfile] = useState<RqProfile | null>(null);
+  const [actions, setActions] = useState<DailyAction[]>([]);
   const [decision, setDecision] = useState<number | null>(null);
   const scenario = RQ_SCENARIOS[selected];
   useEffect(() => {
-    const sync = () => { try { setProfile(readRqProfile(localStorage)); } catch { setProfile(null); } };
+    const sync = () => {
+      try { setProfile(readRqProfile(localStorage)); } catch { setProfile(null); }
+      try {
+        const saved = parseDailyActions(localStorage.getItem(DAILY_ACTIONS_STORAGE_KEY));
+        const legacy = saved.length ? null : parseDailyAction(localStorage.getItem(DAILY_ACTION_STORAGE_KEY));
+        setActions(saved.length ? saved : legacy ? [legacy] : []);
+      } catch { setActions([]); }
+    };
     sync(); window.addEventListener(RQ_PROFILE_EVENT, sync);
-    return () => window.removeEventListener(RQ_PROFILE_EVENT, sync);
+    window.addEventListener(DAILY_ACTION_EVENT, sync); window.addEventListener("storage", sync);
+    return () => { window.removeEventListener(RQ_PROFILE_EVENT, sync); window.removeEventListener(DAILY_ACTION_EVENT, sync); window.removeEventListener("storage", sync); };
   }, []);
   return <div className="rq-home rq-experience">
     <section className="rq-mobile-field" aria-label="RQ Corp field terminal">
-      <div className="rq-mobile-field-top"><span><i /> RQ CORP / FIELD TERMINAL</span><span>SOLANA ECOSYSTEM</span></div>
-      <p className="rq-mobile-field-eyebrow">RED QUEEN / YOUR INTELLIGENCE</p>
-      <h2>The next move<br /><em>is yours.</em></h2>
-      <p className="rq-mobile-field-intro">See a signal. Ask what it means. Prepare before it reaches you.</p>
-      <button type="button" className="rq-mobile-field-primary" onClick={() => profile ? router.push("/red-queen") : window.dispatchEvent(new Event(RQ_WELCOME_EVENT))}>
-        <span>ASK RED QUEEN</span><b aria-hidden="true">↗</b>
-      </button>
+      <div className="rq-mobile-home-heading"><div><p className="rq-mobile-field-eyebrow">{profile?.name ? `WELCOME BACK, ${profile.name}` : "RED QUEEN"}</p><h2>Your next<br /><em>move.</em></h2></div><Image src="/art/red-queen-throne-v2.png" alt="Red Queen" width={100} height={120} sizes="100px" /></div>
+      <p className="rq-mobile-field-intro">Ask Queen or choose where to go.</p>
+      <Link href="/red-queen" className="rq-mobile-field-primary"><span>ASK RED QUEEN</span><b aria-hidden="true">↗</b></Link>
       <div className="rq-mobile-field-grid">
-        <Link href="/pulse"><span>01 / OBSERVE</span><strong>Live threats</strong><small>Signals and sources</small></Link>
-        <Link href="/prepare"><span>02 / PREPARE</span><strong>My plan</strong><small>Actions and loadout</small></Link>
-        <Link href="/offline.html"><span>03 / FALLBACK</span><strong>Offline card</strong><small>After first visit</small></Link>
+        <Link href="/pulse"><span aria-hidden="true">◎</span><strong>Pulse</strong><small>Threats & sources</small></Link>
+        <Link href="/prepare"><span aria-hidden="true">✓</span><strong>My plan</strong><small>Saved actions</small></Link>
+        <Link href="/gaming"><span aria-hidden="true">♜</span><strong>Games</strong><small>Survival Gaming Room</small></Link>
+        <Link href="/shop"><span aria-hidden="true">◇</span><strong>Loadout</strong><small>Kits & gear</small></Link>
       </div>
-      <p className="rq-mobile-field-note">Real-world alerts belong to local authorities. Fictional scenarios are marked as simulations.</p>
+      {actions.length > 0 && <Link className="rq-mobile-progress" href="/prepare"><strong>Your saved actions <span>→</span></strong><span>{actions.filter(action => action.status === "COMPLETED").length} of {actions.length} marked complete · this device</span><progress value={actions.filter(action => action.status === "COMPLETED").length} max={actions.length} aria-label="Completed saved actions" /></Link>}
+      <div className="rq-mobile-home-utilities"><Link href="/offline.html">Offline card ↗</Link><Link href="/docs">Quick guide ↗</Link></div>
+      <p className="rq-mobile-field-note">For emergencies, follow local authorities.</p>
     </section>
     <section className="rq-home-hero rq-shell">
       <div className="rq-hero-signal-field" aria-hidden="true"><i /><i /><i /></div>
@@ -58,7 +67,7 @@ export default function RqHome() {
       </div>
       <div className="rq-home-presence">
         <span className="rq-presence-watermark" aria-hidden="true">RQ</span><span className="rq-presence-coordinate" aria-hidden="true">ENTITY / 001<br />THE RED QUEEN<br />STATUS / WATCHING</span><div className="rq-threat-readout" aria-hidden="true"><span>CURRENT POSTURE</span><strong>WATCHING</strong><i>NO FALSE COMFORT</i></div><div className="rq-presence-ring" aria-hidden="true"><i /></div>
-        <Image src="/art/red-queen-throne-v2.png" alt="Red Queen seated on her throne, drawn in white and red circuitry" fill sizes="(max-width: 700px) 90vw, 48vw" priority />
+        <Image src="/art/red-queen-throne-v2.png" alt="Red Queen seated on her throne, drawn in white and red circuitry" fill sizes="(max-width: 700px) 90vw, 48vw" />
         <Link className="rq-hero-x402" href="/reports"><span>x402 // SOLANA</span><strong>PAID INTELLIGENCE RAIL</strong><small>7 operations · exact USDC · no subscription →</small></Link>
         <div className="rq-presence-caption"><span><i className="rq-status-dot" /> AI SURVIVAL AGENT / ONLINE</span><strong>“The world does not warn you twice.”</strong><span>RED QUEEN / AGENT 001</span></div>
       </div>
