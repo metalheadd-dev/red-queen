@@ -9,6 +9,8 @@ export type SurvivalGame = {
   note: string;
   signal: string;
   accent: string;
+  genre?: string;
+  tags?: string[];
 };
 
 // Editorial selection. Store links point to the game's official Steam listing.
@@ -24,6 +26,21 @@ export const SURVIVAL_GAMES: readonly SurvivalGame[] = [
   { id: 1458140, title: "Pacific Drive", studio: "Ironwood Studios", lane: "EXPLORATION", setting: "OLYMPIC EXCLUSION ZONE", note: "Your car is shelter, equipment and the only exit.", signal: "ANOMALY / ROAD", accent: "#b99b7d" },
 ];
 
+export const DEFAULT_SURVIVAL_TAGS: Record<number, string[]> = {
+  883710: ["Survival Horror", "Zombies", "Singleplayer"],
+  377160: ["Post-apocalyptic", "Open World", "RPG"],
+  108600: ["Survival", "Zombies", "Sandbox"],
+  305620: ["Survival", "Exploration", "Singleplayer"],
+  892970: ["Survival", "Open World", "Co-op"],
+  322330: ["Survival", "Crafting", "Co-op"],
+  264710: ["Survival", "Exploration", "Underwater"],
+  1458140: ["Survival", "Driving", "Exploration"],
+};
+
+export function catalogTags(game: SurvivalGame): string[] {
+  return game.tags?.length ? game.tags : DEFAULT_SURVIVAL_TAGS[game.id] || [];
+}
+
 export function steamStoreUrl(id: number): string {
   return `https://store.steampowered.com/app/${id}/`;
 }
@@ -35,8 +52,7 @@ export function parseSavedGames(raw: string | null): number[] {
   try {
     const ids = JSON.parse(raw);
     if (!Array.isArray(ids)) return [];
-    const known = new Set(SURVIVAL_GAMES.map((game) => game.id));
-    return [...new Set(ids.filter((id): id is number => Number.isInteger(id) && known.has(id)))];
+    return [...new Set(ids.filter((id): id is number => Number.isSafeInteger(id) && id > 0 && id <= 2_147_483_647))].slice(0, 500);
   } catch {
     return [];
   }

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import AgentAnswerReport from "@/components/AgentAnswerReport";
 import { useSavedGames } from "@/components/useSavedGames";
-import { SURVIVAL_GAMES, steamStoreUrl } from "@/lib/gaming/catalog";
+import { SURVIVAL_GAMES, steamStoreUrl, type SurvivalGame } from "@/lib/gaming/catalog";
 import { isGamingConversationId, type GamingContext, type GamingIntent } from "@/lib/gaming/queen";
 import { gamingDraftKey, readGamingDraft, writeGamingDraft, readGamingTurns, parseGamingBackup, mergeGamingTurns as mergeTurns, type GamingTurn as Turn } from "@/lib/gaming/queen-history";
 
@@ -25,6 +25,7 @@ export default function GamingQueen() {
   const storageKey = `rq-gaming-queen-v1:${user?.id || "guest"}`;
   const owner = user?.id || "guest";
   const [context, setContext] = useState<GamingContext | null>(null);
+  const [catalog, setCatalog] = useState<SurvivalGame[]>([...SURVIVAL_GAMES]);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
   const [working, setWorking] = useState(false);
@@ -47,6 +48,19 @@ export default function GamingQueen() {
   const visibleTurns = readyKey === storageKey ? turns.filter(turn => turn.conversation_id === context?.conversationId) : [];
   const conversations = readyKey === storageKey ? Array.from(new Map([...turns].reverse().map(turn => [turn.conversation_id, turn])).values()) : [];
   const historyBusy = working || loadingOlder || accountLoading || authLoading;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/gaming/catalog").then(response => response.json()).then(data => {
+      if (cancelled || !Array.isArray(data.games)) return;
+      setCatalog(data.games);
+      const requestedId = Number(new URLSearchParams(window.location.search).get("game"));
+      if (data.games.some((game: SurvivalGame) => game.id === requestedId)) {
+        setContext(current => current && current.gameIds.length === 0 ? { ...current, gameIds: [requestedId] } : current);
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const compact = window.matchMedia("(max-width:700px)");
@@ -261,12 +275,13 @@ export default function GamingQueen() {
             <label>INTENSITY<select aria-label="Game intensity" value={context?.intensity || "BALANCED"} onChange={event => updateBrief({ intensity: event.target.value as GamingContext["intensity"] })}><option value="RELAXED">Room to explore</option><option value="BALANCED">Balanced pressure</option><option value="HARDCORE">Make it unforgiving</option></select></label>
             <label>SESSION LENGTH<select aria-label="Session length" value={context?.minutes || 60} onChange={event => updateBrief({ minutes: Number(event.target.value) as GamingContext["minutes"] })}><option value={30}>30 minutes</option><option value={60}>One hour</option><option value={120}>Two hours</option></select></label>
             <span className="gaming-kicker">GAME CONTEXT / UP TO 3</span>
-            <div className="gaming-queen-games">{SURVIVAL_GAMES.map(game => <label key={game.id}><input type="checkbox" checked={context?.gameIds.includes(game.id) || false} disabled={!context?.gameIds.includes(game.id) && (context?.gameIds.length || 0) >= 3} onChange={event => context && updateBrief({ gameIds: event.target.checked ? [...context.gameIds, game.id] : context.gameIds.filter(id => id !== game.id) })} />{game.title}</label>)}</div>
+            <div className="gaming-queen-games">{catalog.map(game => <label key={game.id}><input type="checkbox" checked={context?.gameIds.includes(game.id) || false} disabled={!context?.gameIds.includes(game.id) && (context?.gameIds.length || 0) >= 3} onChange={event => context && updateBrief({ gameIds: event.target.checked ? [...context.gameIds, game.id] : context.gameIds.filter(id => id !== game.id) })} />{game.title}</label>)}</div>
             <button type="button" className="gaming-queen-text-button" disabled={!savedLoaded || !saved.length} onClick={() => updateBrief({ gameIds: saved.slice(0, 3) })}>USE MY SAVED PICKS ({Math.min(3, saved.length)})</button>
             <label className="gaming-queen-spoilers"><input type="checkbox" checked={context?.spoilers || false} onChange={event => updateBrief({ spoilers: event.target.checked })} />Allow spoilers</label>
+            {session?.access_token && <label className="gaming-queen-spoilers"><input type="checkbox" checked={context?.useSteamStats || false} onChange={event => updateBrief({ useSteamStats: event.target.checked })} />Use my visible RQ Steam games (requires Steam link)</label>}
           </fieldset>
-          <p className="gaming-editorial-note">Only this brief and your messages are sent when you ask. Selected games are interests, not proof of ownership. Queen cannot read your screen or Steam library.</p>
-          {context?.gameIds.map(id => { const game = SURVIVAL_GAMES.find(game => game.id === id)!; return <a className="gaming-queen-store" key={id} href={steamStoreUrl(id)} target="_blank" rel="noopener noreferrer">{game.title} ON STEAM ↗</a>; })}
+          <p className="gaming-editorial-note">Your brief and message are sent when you ask. If you enable Steam context, Queen also receives names and playtime for visible RQ catalog games. Steam ID, achievements and the rest of your library are excluded. Selected games alone are interests, not proof of ownership.</p>
+          {context?.gameIds.map(id => { const game = catalog.find(game => game.id === id); return game ? <a className="gaming-queen-store" key={id} href={steamStoreUrl(id)} target="_blank" rel="noopener noreferrer">{game.title} ON STEAM ↗</a> : null; })}
         </details></aside>
         <section className="gaming-panel gaming-queen-chat" aria-labelledby="gaming-queen-title"><div className="gaming-queen-chat-head"><div><span className="gaming-kicker">QUEEN CHANNEL</span><h2 id="gaming-queen-title">I am listening.</h2></div><span className="gaming-state">{working ? "● THINKING" : "GAME ADVICE"}</span></div>
           <div className="gaming-queen-intents" role="group" aria-label="Queen gaming tasks">{INTENTS.map(item => <button type="button" key={item.id} disabled={!context || working || accountLoading} aria-pressed={context?.intent === item.id} onClick={() => chooseIntent(item.id)}>{item.label}</button>)}</div>

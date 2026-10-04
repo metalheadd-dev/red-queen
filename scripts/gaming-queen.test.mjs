@@ -48,6 +48,17 @@ test('gaming context accepts bounded catalog IDs, not invented facts or scoring 
   assert.equal(gaming.normalizeGamingContext(null), null);
 });
 
+test('Queen uses visible Steam playtime only after explicit context opt-in', () => {
+  const off = gaming.normalizeGamingContext({ conversationId, gameIds: [108600], useSteamStats: 'true' });
+  const on = gaming.normalizeGamingContext({ conversationId, gameIds: [108600], useSteamStats: true });
+  assert.equal(off.useSteamStats, false);
+  assert.equal(on.useSteamStats, true);
+  assert.match(gaming.gamingSystemContext(off), /No personal Steam game data was provided/);
+  const prompt = gaming.gamingSystemContext(on, catalog.SURVIVAL_GAMES, 'USER-OPTED-IN VISIBLE STEAM CONTEXT: Project Zomboid 120 minutes');
+  assert.match(prompt, /Project Zomboid 120 minutes/);
+  assert.match(prompt, /not purchase proof/);
+});
+
 test('gaming output cannot grant readiness, pretend to be live or open physical commerce', () => {
   const safe = gaming.enforceGamingBoundary(maliciousResponse);
   assert.equal(safe.readiness.eligible, false);
@@ -124,14 +135,15 @@ test('feedback is bounded user-submitted data, not invented verification or auth
   assert.equal(feedback.normalizeAgentReport({ reason: 'ADMIN', reply: 'hello' }), null);
 });
 
-function chatHarness({ storageFails = false, identity = 'email-auth:test-owner', guestAllowed = true, selfHarm = false } = {}) {
-  const rows = [], reads = [], prompts = [];
+function chatHarness({ storageFails = false, identity = 'email-auth:test-owner', guestAllowed = true, selfHarm = false, steamLink = false } = {}) {
+  const rows = [], reads = [], prompts = [], steamLoads = [];
   const db = { from(table) {
     reads.push(table);
-    if (!['users', 'gaming_queen_generations'].includes(table)) throw new Error(`Private context or core history accessed: ${table}`);
+    if (!['users', 'gaming_queen_generations', ...(steamLink ? ['gaming_steam_links'] : [])].includes(table)) throw new Error(`Private context or core history accessed: ${table}`);
     const query = {
       select() { return this; }, eq() { return this; }, order() { return this; }, limit() { return this; },
       single: async () => ({ data: { apocalyptic_name: 'PRIVATE_CODENAME', chosen_scenarios: [] } }),
+      maybeSingle: async () => ({ data: table === 'gaming_steam_links' ? { steam_id: '76561198000000000' } : null, error: null }),
       then(resolve) { return Promise.resolve({ data: [], error: null }).then(resolve); },
       insert: async row => { rows.push({ table, row }); return { error: storageFails ? { code: '42P01' } : null }; },
       upsert() { throw new Error('Gaming must not mutate readiness'); },
@@ -155,8 +167,14 @@ function chatHarness({ storageFails = false, identity = 'email-auth:test-owner',
     '@/lib/signal-engine': {}, '@/lib/red-queen-agent': { formatAgentMessage: response => response.answer },
     '@/lib/survival-context': { sanitizeArea: value => value || '', isAgentMode: value => ['SIMULATE', 'ANALYZE'].includes(value), isSurvivalFocus: () => false, sanitizeSignalId: () => undefined, sanitizeSignalIds: () => [] },
     '@/lib/survival-market': {}, '@/lib/amazon-creators': {}, '@/lib/x402-market': {}, '@/lib/gaming/queen': gaming,
+    '@/lib/gaming/catalog-server': { getPublishedCatalog: async () => ({ games: catalog.SURVIVAL_GAMES, dynamicAvailable: true }) },
+    '@/lib/gaming/steam-stats': { loadSteamDashboard: async (key, steamId, selectedCatalog) => {
+      if (!steamLink) throw new Error('Steam should not be read without opt-in');
+      steamLoads.push({ key, steamId, selectedCatalog });
+      return { games: [{ title: 'Project Zomboid', minutesPlayed: 120, minutesRecently: 30 }] };
+    } },
   };
-  return { ...load('app/api/chat/route.ts', mocks, { OPENAI_API_KEY: 'test-not-a-real-key' }), rows, reads, prompts };
+  return { ...load('app/api/chat/route.ts', mocks, { OPENAI_API_KEY: 'test-not-a-real-key', ...(steamLink ? { STEAM_WEB_API_KEY: 'test-steam-key' } : {}) }), rows, reads, prompts, steamLoads };
 }
 function request(body) { return new Request('http://localhost/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
 
@@ -180,6 +198,19 @@ test('gaming request persists separately, ignores survival context and cannot mu
   assert.ok(prompt.includes('Resident Evil 2'));
   for (const privateValue of ['PRIVATE_HOME', 'SECRET_AREA', 'PRIVATE_CODENAME']) assert.ok(!prompt.includes(privateValue));
   assert.ok(!app.reads.includes('messages'));
+});
+
+test('Queen binds opted-in Steam context to the verified RQ owner and only sends curated playtime', async () => {
+  const app = chatHarness({ steamLink: true });
+  const result = await app.POST(request({ gaming: { ...context, useSteamStats: true }, messages: [{ role: 'user', content: 'Which RQ game should I continue?' }] }));
+  assert.equal(result.status, 200);
+  assert.equal(app.steamLoads.length, 1);
+  assert.equal(app.steamLoads[0].steamId, '76561198000000000');
+  assert.equal(app.steamLoads[0].selectedCatalog.length, catalog.SURVIVAL_GAMES.length);
+  const system = app.prompts[0].input.find(item => item.role === 'system').content;
+  assert.match(system, /Project Zomboid/);
+  assert.match(system, /minutesPlayed/);
+  assert.equal(system.includes('76561198000000000'), false);
 });
 
 test('missing account table still returns generation with explicit unsaved status', async () => {

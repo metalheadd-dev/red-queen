@@ -65,7 +65,8 @@ export default function PrivacyPage() {
               <li>Public token balances and transaction data required for holder or payment verification.</li>
               <li>Basic technical and abuse-prevention data needed to keep the service reliable.</li>
               <li>For guest AI quotas, a salted network-identifier hash, request count, and 24-hour reset time. Guest prompts and responses are not stored in the account message table.</li>
-              <li>If you choose Connect with Steam, Steam authenticates you on its own site and returns a Steam ID. RED QUEEN does not receive your Steam password, game library, or achievements.</li>
+              <li>If you choose Connect with Steam, Steam authenticates you on its own site and returns a Steam ID. RED QUEEN never receives your Steam password. When you open your Gaming Room profile, our server requests the library, playtime, recent activity, and achievements that Steam makes visible, and shows them only to your signed-in account. These game details are not stored in the RED QUEEN database.</li>
+              <li>If you separately enable Steam context in Gaming Queen, names and playtime for visible RED QUEEN catalog games may be sent with your question to our AI provider. Your Steam ID, achievements, and other games are excluded from that context.</li>
             </ul>
           </section>
 

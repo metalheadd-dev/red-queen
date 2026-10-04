@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSavedGames } from "@/components/useSavedGames";
-import { steamStoreUrl, SURVIVAL_GAMES, type SurvivalLane } from "@/lib/gaming/catalog";
+import { catalogTags, steamStoreUrl, SURVIVAL_GAMES, type SurvivalGame, type SurvivalLane } from "@/lib/gaming/catalog";
 
 type Lane = "ALL" | SurvivalLane;
 const LANES: Array<{ id: Lane; label: string }> = [
@@ -16,17 +16,50 @@ const LANES: Array<{ id: Lane; label: string }> = [
   { id: "WASTELAND", label: "WASTELAND" },
 ];
 
+function liveLabel(value: number | null | undefined): string {
+  return value === null || value === undefined ? "Live count unavailable" : `${value.toLocaleString()} playing now`;
+}
+
 export default function GamingRoom() {
   const [lane, setLane] = useState<Lane>("ALL");
   const [query, setQuery] = useState("");
   const [savedOnly, setSavedOnly] = useState(false);
+  const [catalog, setCatalog] = useState<SurvivalGame[]>([...SURVIVAL_GAMES]);
+  const [tag, setTag] = useState("ALL");
+  const [liveCounts, setLiveCounts] = useState<Record<number, number | null>>({});
+  const [compare, setCompare] = useState<number[]>([]);
   const { saved, loaded, notice, toggleSaved } = useSavedGames();
 
-  const visible = useMemo(() => SURVIVAL_GAMES.filter((game) =>
+  const tags = useMemo(() => [...new Set(catalog.flatMap(game => catalogTags(game)))].sort(), [catalog]);
+  const visible = useMemo(() => catalog.filter((game) =>
     (lane === "ALL" || game.lane === lane)
+    && (tag === "ALL" || catalogTags(game).includes(tag))
     && (!savedOnly || saved.includes(game.id))
-    && `${game.title} ${game.studio} ${game.setting}`.toLowerCase().includes(query.trim().toLowerCase()),
-  ), [lane, query, savedOnly, saved]);
+    && `${game.title} ${game.studio} ${game.setting} ${game.genre || ""} ${catalogTags(game).join(" ")}`.toLowerCase().includes(query.trim().toLowerCase()),
+  ), [catalog, lane, tag, query, savedOnly, saved]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/gaming/catalog").then(response => response.json()).then(data => {
+      if (!cancelled && Array.isArray(data.games)) setCatalog(data.games);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/gaming/steam/current-players").then(response => response.json()).then(data => {
+      if (cancelled || !Array.isArray(data.counts)) return;
+      setLiveCounts(Object.fromEntries(data.counts.map((item: { appId: number; players: number | null }) => [item.appId, item.players])));
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  function toggleCompare(id: number) {
+    setCompare(current => current.includes(id) ? current.filter(value => value !== id) : [...current.slice(-1), id]);
+  }
+
+  const compared = compare.map(id => catalog.find(game => game.id === id)).filter(game => game !== undefined);
 
   return <div className="gaming-page">
     <nav className="gaming-local-nav" aria-label="Gaming Room navigation"><div className="gaming-wrap"><Link href="/gaming" aria-current="page">ROOM HOME</Link><a href="#gaming-catalog">ALL GAMES</a><Link href="/gaming/queen">ASK THE QUEEN</Link><Link href="/gaming/contests">COMPETITIONS</Link><Link href="/gaming/profile">MY STATION</Link></div></nav>
@@ -56,14 +89,17 @@ export default function GamingRoom() {
 
       <section id="gaming-catalog" className="gaming-catalog" aria-labelledby="gaming-catalog-title">
         <div className="gaming-section-heading"><div><span className="gaming-kicker">01 / FIELD LIBRARY</span><h2 id="gaming-catalog-title">SURVIVAL, SELECTED.</h2></div><p>Independent picks from Steam. Follow the official store page for current prices, availability and wishlists.</p></div>
+        <div className="gaming-steam-public-note"><strong>STEAM LIVE SIGNAL</strong><span>Current players are a Steam snapshot, refreshed about every 15 minutes. This is not sales or ownership data.</span></div>
+        {compared.length > 0 && <div className="gaming-compare"><div><span className="gaming-kicker">COMPARE / UP TO 2</span><h3>THE FIELD, SIDE BY SIDE.</h3></div><div className="gaming-compare-games">{compared.map(game => <div key={game.id}><strong>{game.title}</strong><span>{liveLabel(liveCounts[game.id])}</span><span>{game.signal}</span><button type="button" onClick={() => toggleCompare(game.id)}>REMOVE ×</button></div>)}</div></div>}
         <div className="gaming-toolbar"><div className="gaming-filters" role="group" aria-label="Filter survival games">{LANES.map((item) => <button type="button" key={item.id} onClick={() => setLane(item.id)} aria-pressed={lane === item.id} className={lane === item.id ? "active" : ""}>{item.label}</button>)}</div><label className="gaming-search"><input aria-label="Search survival games" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="SEARCH THE ROOM..." maxLength={80} /><span aria-hidden="true">⌕</span></label></div>
-        <div className="gaming-catalog-status"><span aria-live="polite">{visible.length} / {SURVIVAL_GAMES.length} GAMES</span><button type="button" aria-pressed={savedOnly} disabled={!loaded} onClick={() => setSavedOnly(!savedOnly)}>SAVED ONLY ({saved.length})</button><Link href="/gaming/profile">MANAGE SAVED GAMES ↗</Link></div>
+        <div className="gaming-tag-filter"><label>TAG <select value={tag} onChange={event => setTag(event.target.value)}><option value="ALL">ALL TAGS</option>{tags.map(value => <option key={value} value={value}>{value}</option>)}</select></label></div>
+        <div className="gaming-catalog-status"><span aria-live="polite">{visible.length} / {catalog.length} GAMES</span><button type="button" aria-pressed={savedOnly} disabled={!loaded} onClick={() => setSavedOnly(!savedOnly)}>SAVED ONLY ({saved.length})</button><Link href="/gaming/profile">MANAGE SAVED GAMES ↗</Link></div>
         {notice && <p className="gaming-profile-feedback" role="status">{notice}</p>}
         <div className="gaming-grid">{visible.map((game, index) => <article className="gaming-card" key={game.id} style={{ "--game-accent": game.accent } as React.CSSProperties}>
           <div className="gaming-card-art"><span className="gaming-card-number">RQ FILE / {String(index + 1).padStart(2, "0")}</span><span className="gaming-card-horizon" /><strong>{game.setting}</strong></div>
-          <div className="gaming-card-info"><span>{game.signal} <i>·</i> {game.studio}</span><h3>{game.title}</h3><p>{game.note}</p><div className="gaming-card-actions"><a href={steamStoreUrl(game.id)} target="_blank" rel="noopener noreferrer" aria-label={`Open ${game.title} on Steam`}>OPEN ON STEAM ↗</a><button type="button" aria-label={`${saved.includes(game.id) ? "Unsave" : "Save"} ${game.title}`} disabled={!loaded} aria-pressed={loaded && saved.includes(game.id)} onClick={() => toggleSaved(game.id)}>{loaded && saved.includes(game.id) ? "SAVED ✓" : "SAVE +"}</button></div><Link className="gaming-card-queen" href={`/gaming/queen?game=${game.id}`} aria-label={`Ask Queen about ${game.title}`}>PLAN A RUN WITH QUEEN →</Link></div>
+          <div className="gaming-card-info"><span>{game.signal} <i>·</i> {game.studio}</span><h3><Link href={`/gaming/games/${game.id}`}>{game.title}</Link></h3><p>{game.note}</p><div className="gaming-card-tags"><b>{game.genre || game.lane}</b>{catalogTags(game).slice(0, 3).map(value => <b key={value}>{value}</b>)}</div><div className="gaming-card-live">{liveCounts[game.id] === undefined || liveCounts[game.id] === null ? "STEAM LIVE / UNAVAILABLE" : `● ${liveLabel(liveCounts[game.id]).toUpperCase()} ON STEAM`}</div><div className="gaming-card-actions"><Link href={`/gaming/games/${game.id}`} aria-label={`View ${game.title} details`}>GAME FILE ↗</Link><button type="button" aria-label={`${saved.includes(game.id) ? "Unsave" : "Save"} ${game.title}`} disabled={!loaded} aria-pressed={loaded && saved.includes(game.id)} onClick={() => toggleSaved(game.id)}>{loaded && saved.includes(game.id) ? "SAVED ✓" : "SAVE +"}</button><button type="button" aria-label={`${compare.includes(game.id) ? "Remove" : "Compare"} ${game.title}`} aria-pressed={compare.includes(game.id)} onClick={() => toggleCompare(game.id)}>{compare.includes(game.id) ? "COMPARING ✓" : "COMPARE +"}</button></div><Link className="gaming-card-queen" href={`/gaming/queen?game=${game.id}`} aria-label={`Ask Queen about ${game.title}`}>PLAN A RUN WITH QUEEN →</Link></div>
           </article>)}</div>
-        {visible.length === 0 && <div className="gaming-empty"><p>{savedOnly && saved.length === 0 ? "YOUR SAVED LIST IS EMPTY." : "NO MATCHING GAMES."}</p><button type="button" className="gaming-button gaming-button-outline" onClick={() => { setLane("ALL"); setQuery(""); setSavedOnly(false); }}>SHOW ALL GAMES ↗</button></div>}
+        {visible.length === 0 && <div className="gaming-empty"><p>{savedOnly && saved.length === 0 ? "YOUR SAVED LIST IS EMPTY." : "NO MATCHING GAMES."}</p><button type="button" className="gaming-button gaming-button-outline" onClick={() => { setLane("ALL"); setTag("ALL"); setQuery(""); setSavedOnly(false); }}>SHOW ALL GAMES ↗</button></div>}
         <p className="gaming-editorial-note">Editorial selection only. RED QUEEN is independent of Steam and these studios; no discounts or partnerships are implied. Saved games stay in this browser and are separate from Steam wishlists.</p>
       </section>
 

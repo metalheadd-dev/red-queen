@@ -650,6 +650,7 @@ export default function AdminDashboardPage() {
             >
               CONTAINMENT BREACH
             </button>
+            <Link href="/admin/gaming" className="btn">GAMING CATALOG</Link>
           </div>
         </div>
       </div>
