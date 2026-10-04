@@ -7,7 +7,7 @@ export default function GamingCurrentPlayers({ appId }: { appId: number }) {
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/gaming/steam/current-players").then(response => response.json()).then(data => {
+    fetch(`/api/gaming/steam/current-players?ids=${appId}`).then(response => response.json()).then(data => {
       if (cancelled) return;
       const value = data.counts?.find((item: { appId: number; players: number | null }) => item.appId === appId)?.players;
       setPlayers(typeof value === "number" ? value : null);

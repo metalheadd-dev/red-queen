@@ -4,8 +4,8 @@
 .admin-gaming-kicker { display:block; margin-top:35px; color:#ff798a; font:700 12px var(--mono); letter-spacing:.12em; }
 .admin-gaming-page h1 { margin:12px 0; font:700 clamp(35px,5vw,65px) 'Oxanium',var(--sans); }
 .admin-gaming-page p { color:#b9bfc7; line-height:1.6; }
-.admin-gaming-form,.admin-gaming-list { margin-top:30px; padding:25px; border:1px solid #30343a; background:#111419; }
-.admin-gaming-form h2,.admin-gaming-list h2 { margin:0 0 24px; font:600 28px 'Oxanium',var(--sans); }
+.admin-gaming-form,.admin-gaming-list,.admin-gaming-import { margin-top:30px; padding:25px; border:1px solid #30343a; background:#111419; }
+.admin-gaming-form h2,.admin-gaming-list h2,.admin-gaming-import h2 { margin:0 0 24px; font:600 28px 'Oxanium',var(--sans); }
 .admin-gaming-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:17px; }
 .admin-gaming-fields label { display:grid; gap:8px; color:#c7ccd3; font:700 12px var(--mono); }
 .admin-gaming-fields :is(input,select,textarea) { width:100%; min-height:46px; padding:11px; border:1px solid #444b55; border-radius:0; background:#080a0d; color:#fff; font:400 16px var(--sans); }
@@ -16,8 +16,20 @@
 .admin-gaming-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:25px; }
 .admin-gaming-actions button,.admin-gaming-list button { min-height:46px; padding:11px 18px; border:1px solid #a6334a; background:#481421; color:#fff; font:700 12px var(--mono); cursor:pointer; }
 .admin-gaming-actions button:disabled { opacity:.5; }
+.admin-gaming-import-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:17px; margin-top:22px; }
+.admin-gaming-import-fields label { display:grid; gap:8px; color:#c7ccd3; font:700 12px var(--mono); }
+.admin-gaming-import-fields :is(input,select) { width:100%; min-height:46px; padding:11px; border:1px solid #444b55; background:#080a0d; color:#fff; font:400 16px var(--sans); }
+.admin-gaming-tag-results,.admin-gaming-selected-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.admin-gaming-tag-results button,.admin-gaming-selected-tags button { padding:8px 12px; border:1px solid #555d68; background:#1b2028; color:#fff; cursor:pointer; }
+.admin-gaming-tag-results button:disabled { opacity:.45; }
+.admin-gaming-import-page { font-size:13px; }
+.admin-gaming-preview { margin-top:20px; border-top:1px solid #343940; }
+.admin-gaming-preview h3 { font:700 17px 'Oxanium',var(--sans); }
+.admin-gaming-preview > div { display:grid; grid-template-columns:minmax(180px,1fr) minmax(200px,2fr) auto; gap:16px; align-items:center; padding:12px 0; border-top:1px solid #343940; }
+.admin-gaming-preview span { color:#afb7c1; font-size:13px; }
+.admin-gaming-preview small { color:#ff8795; font:700 11px var(--mono); }
 .admin-gaming-list article { display:flex; align-items:center; justify-content:space-between; gap:15px; padding:15px 0; border-top:1px solid #343940; }
 .admin-gaming-list article > div { display:grid; gap:5px; }
 .admin-gaming-list strong { font-size:18px; }.admin-gaming-list span,.admin-gaming-list small { color:#afb7c1; font-size:12px; }
 .admin-gaming-status { min-height:24px; color:#ff8795!important; }
-@media (max-width:650px) { .admin-gaming-fields { grid-template-columns:1fr; }.admin-gaming-form,.admin-gaming-list { padding:17px; }.admin-gaming-list article { align-items:flex-start; flex-direction:column; } }
+@media (max-width:650px) { .admin-gaming-fields,.admin-gaming-import-fields,.admin-gaming-preview > div { grid-template-columns:1fr; }.admin-gaming-form,.admin-gaming-list,.admin-gaming-import { padding:17px; }.admin-gaming-list article { align-items:flex-start; flex-direction:column; } }
