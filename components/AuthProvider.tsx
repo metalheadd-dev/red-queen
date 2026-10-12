@@ -134,14 +134,23 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       return { error: new Error("Connect a Solana wallet that supports message signing.") };
     }
     try {
-      const authWallet = {
-        publicKey: solanaWallet.publicKey,
-        signMessage: solanaWallet.signMessage,
-      };
-      const { data, error } = await supabaseClient.auth.signInWithWeb3({
+      // The SDK's signMessage fallback currently places Version before URI.
+      // Build the standard SIWS field order so wallets can display the request.
+      const message = [
+        `${window.location.host} wants you to sign in with your Solana account:`,
+        solanaWallet.publicKey.toBase58(),
+        "",
+        "Sign in to RED QUEEN. No transaction or spending approval is requested. Terms: https://redqueen.space/terms",
+        "",
+        `URI: ${window.location.href}`,
+        "Version: 1",
+        `Issued At: ${new Date().toISOString()}`,
+      ].join("\n");
+      const signature = await solanaWallet.signMessage(new TextEncoder().encode(message));
+      const { error } = await supabaseClient.auth.signInWithWeb3({
         chain: 'solana',
-        statement: 'Sign in to RED QUEEN. No transaction or spending approval is requested. Terms: https://redqueen.space/terms',
-        wallet: authWallet,
+        message,
+        signature,
       });
       if (error) return { error };
       return { error: null };

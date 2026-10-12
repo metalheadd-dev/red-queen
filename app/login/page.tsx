@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,15 +16,17 @@ const WalletMultiButton = dynamic(
 
 export default function LoginPage() {
   const { user, loginWithEmail, signUpWithEmail, loginWithWallet } = useAuth();
-  const { connected } = useWallet();
+  const { connected, signMessage } = useWallet();
   const router = useRouter();
-  const walletAttempted = useRef(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [statusMsg, setStatusMsg] = useState("");
+  const [walletErrorMsg, setWalletErrorMsg] = useState("");
+  const [walletStatusMsg, setWalletStatusMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [walletLoading, setWalletLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -32,20 +34,25 @@ export default function LoginPage() {
       router.replace(gamingReturnPath(requested) || "/profile");
       return;
     }
-    if (!connected || walletAttempted.current) return;
+  }, [user, router]);
 
-    walletAttempted.current = true;
-    setStatusMsg("Confirm the sign-in message in your wallet. No transaction will be sent.");
-    void loginWithWallet().then(({ error }) => {
+  const handleWalletSignIn = async () => {
+    if (walletLoading) return;
+    setWalletLoading(true);
+    setWalletErrorMsg("");
+    setWalletStatusMsg("Confirm the sign-in message in your wallet. No transaction will be sent.");
+    try {
+      const { error } = await loginWithWallet();
       if (error) {
-        setErrorMsg(`Wallet sign-in failed: ${error.message || error}`);
-        setStatusMsg("");
-        walletAttempted.current = false;
+        setWalletErrorMsg(`Wallet sign-in failed: ${error.message || error}`);
+        setWalletStatusMsg("");
       } else {
-        setStatusMsg("Identity confirmed. Returning to your account…");
+        setWalletStatusMsg("Identity confirmed. Returning to your account…");
       }
-    });
-  }, [connected, user, router, loginWithWallet]);
+    } finally {
+      setWalletLoading(false);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -110,6 +117,10 @@ export default function LoginPage() {
         <ResponsiveDisclosure summary="Continue with Solana" className="rq-login-wallet-disclosure"><div className="rq-login-wallet">
           <div><strong>Continue with Solana</strong><small>Sign a message to prove wallet ownership.</small></div>
           <WalletMultiButton />
+          {connected && <button type="button" className="btn btn-primary" disabled={!signMessage || walletLoading} onClick={() => void handleWalletSignIn()}>{walletLoading ? "SIGNING IN…" : "SIGN IN WITH SOLANA"}</button>}
+          {connected && !signMessage && <p role="alert">This wallet does not support message signing.</p>}
+          {walletErrorMsg && <div className="rq-login-message is-error" role="alert">{walletErrorMsg}</div>}
+          {walletStatusMsg && <div className="rq-login-message is-status" role="status">{walletStatusMsg}</div>}
           <p>READ-ONLY IDENTITY CHECK · NO TRANSACTION · NO SPENDING APPROVAL</p>
         </div></ResponsiveDisclosure>
 
@@ -144,7 +155,6 @@ export default function LoginPage() {
 
           {errorMsg && <div className="rq-login-message is-error" role="alert">{errorMsg}</div>}
           {statusMsg && <div className="rq-login-message is-status" role="status">{statusMsg}</div>}
-
           <button type="submit" className="btn btn-primary" disabled={loading}>
             {loading ? "Signing in…" : isSignUp ? "CREATE ACCOUNT" : "SIGN IN WITH EMAIL"}
           </button>

@@ -48,7 +48,7 @@
 
 ## 3. Вхід та Steam
 
-У Supabase Auth перевірте Email sign-in і реальну доставку листів підтвердження. В URL Configuration встановіть Site URL `https://redqueen.space`; дозволяйте тільки потрібні redirect URL для production і локальної перевірки. [Налаштування redirect URL](https://supabase.com/docs/guides/auth/redirect-urls).
+У Supabase Auth перевірте Email sign-in і реальну доставку листів підтвердження. Для входу через Solana увімкніть **Web3 Wallet → Solana** в Authentication → Providers. В URL Configuration встановіть Site URL `https://redqueen.space` і дозвольте URL сторінки входу `https://redqueen.space/login` (та інші реально використовувані адреси входу). Цей URL входить до повідомлення, яке підписує гаманець, і Supabase його перевіряє. [Web3 provider](https://supabase.com/docs/guides/auth/auth-web3), [налаштування redirect URL](https://supabase.com/docs/guides/auth/redirect-urls).
 
 Steam тут працює через власний OpenID-процес:
 
